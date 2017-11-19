@@ -23,6 +23,9 @@
 
 #include "piece.h"
 
+#define MIN(A, B) ((A) < (B) ? (A) : (B))
+#define MAX(A, B) ((A) > (B) ? (A) : (B))
+
 #define MATE       (16000)
 #define MAX_DEPTH  (64)
 #define MAX_HEIGHT (128)
@@ -50,7 +53,6 @@ typedef struct Board {
     int midgame;
     int endgame;
     int numMoves;
-    int hasCastled[2];
     uint64_t history[256];
     
 } Board;
@@ -99,8 +101,8 @@ typedef struct SearchInfo {
     int depthLimit;
     int terminateSearch;
     double startTime;
-    double endTime1;
-    double endTime2;
+    double idealTimeUsage;
+    double maxTimeUsage;
     
 } SearchInfo;
 
