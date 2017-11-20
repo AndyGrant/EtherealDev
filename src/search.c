@@ -263,9 +263,9 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
     // are not looking at a PV Node, as those are not subject to futility.
     // Determine check status if not done already
     inCheck = inCheck || !isNotInCheck(board, board->turn);
-    if (!PvNode && !inCheck){
+    if (!inCheck){
         eval = evaluateBoard(board);
-        futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
+        futilityMargin = eval + depth * (PvNode ? 1.65 : 0.95) * PieceValues[PAWN][EG];
     }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
@@ -355,10 +355,10 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
         
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (   !PvNode
+        if (   !RootNode
             && !inCheck
             &&  isQuiet
-            &&  played >= 1
+            &&  played >= (PvNode ? 4 : 1)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             continue;
