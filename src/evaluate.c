@@ -75,11 +75,13 @@ const int KnightMobility[9][PHASE_NB] = {
 };
 
 
-const int BishopValue[PHASE_NB] = { 317, 307};
+const int BishopValue[PHASE_NB] = { 322, 304};
 
 const int BishopWings[PHASE_NB] = {  -2,  14};
 
 const int BishopPair[PHASE_NB] = {  41,  54};
+
+const int BishopSameColouredPawns[PHASE_NB] = {  -2,  -7};
 
 const int BishopOutpost[2][PHASE_NB] = { {  11,  -7}, {  27,  -3} };
 
@@ -381,7 +383,7 @@ void evaluateKnights(EvalInfo * ei, Board * board, int colour){
 
 void evaluateBishops(EvalInfo * ei, Board * board, int colour){
     
-    int sq, defended, mobilityCount;
+    int sq, defended, mobilityCount, sameColouredPawns;
     uint64_t tempBishops, myPawns, enemyPawns, attacks;
     
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
@@ -416,6 +418,11 @@ void evaluateBishops(EvalInfo * ei, Board * board, int colour){
         // determine whether or not passed pawns may advance safely later on.
         attacks = BishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
         ei->attacked[colour] |= attacks;
+        
+        // Apply a penalty for each our own pawns on the same colour as this bishop
+        sameColouredPawns = popcount(myPawns & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES));
+        ei->midgame[colour] += sameColouredPawns * BishopSameColouredPawns[MG];
+        ei->endgame[colour] += sameColouredPawns * BishopSameColouredPawns[EG];
         
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
