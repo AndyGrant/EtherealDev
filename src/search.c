@@ -326,12 +326,14 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
     
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
-    if (    PvNode
+    if (   (PvNode || (eval + 32 > alpha))
         &&  ttMove == NONE_MOVE
         &&  depth >= InternalIterativeDeepeningDepth){
         
+        R = PvNode ? 2 : 4;
+        
         // Search with a reduced depth
-        value = search(&lpv, board, alpha, beta, depth-2, height);
+        value = search(&lpv, board, alpha, beta, depth - R, height);
         
         // Probe for the newly found move, and update ttMove / ttTactical
         if ((ttEntry = getTranspositionEntry(&Table, board->hash)) != NULL){

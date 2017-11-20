@@ -37,7 +37,7 @@ static const int RazorMargins[] = {0, 450, 480, 520, 580};
 
 static const int BetaPruningDepth = 3;
 
-static const int InternalIterativeDeepeningDepth = 3;
+static const int InternalIterativeDeepeningDepth = 5;
 
 static const int NullMovePruningDepth = 2;
 
