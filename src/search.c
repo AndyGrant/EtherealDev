@@ -341,7 +341,7 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
     }
     
     // Step 12. Check Extension
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += inCheck && !RootNode && (PvNode || depth <= 8);
     
     initalizeMovePicker(&movePicker, 0, ttMove, KillerMoves[height][0], KillerMoves[height][1]);
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
