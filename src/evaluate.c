@@ -559,11 +559,11 @@ void evaluateKings(EvalInfo * ei, Board * board, int colour){
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .5;
+            attackCounts *= .4;
         
         // Scale down attack count if there are no enemy rooks
         if (!(board->colours[!colour] & board->pieces[ROOK]))
-            attackCounts *= .8;
+            attackCounts *= .6;
     
         ei->midgame[colour] -= SafetyTable[attackCounts];
         ei->endgame[colour] -= SafetyTable[attackCounts];
