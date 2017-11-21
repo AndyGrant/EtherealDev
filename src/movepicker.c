@@ -116,21 +116,21 @@ uint16_t selectNextMove(MovePicker * mp, Board * board){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = STAGE_KILLER_2;
+            mp->stage = STAGE_GENERATE_QUIET;
             if (moveIsPsuedoLegal(board, mp->killer1))
                 return mp->killer1;
             
             /* fallthrough */
             
-        case STAGE_KILLER_2:
-            
-            // Play the killer move if it is from this position.
-            // position, and also advance to the next stage
-            mp->stage = STAGE_GENERATE_QUIET;
-            if (moveIsPsuedoLegal(board, mp->killer2))
-                return mp->killer2;
-            
-            /* fallthrough */
+        //case STAGE_KILLER_2:
+        //    
+        //    // Play the killer move if it is from this position.
+        //    // position, and also advance to the next stage
+        //    mp->stage = STAGE_GENERATE_QUIET;
+        //    if (moveIsPsuedoLegal(board, mp->killer2))
+        //        return mp->killer2;
+        //    
+        //    /* fallthrough */
         
         case STAGE_GENERATE_QUIET:
             
