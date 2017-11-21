@@ -273,20 +273,20 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
     // the Quiescence search was sufficient. For depth 1, we will just
     // return a Quiescence Search score because it is unlikely a quiet
     // move would close the massive gap between the evaluation and alpha
-    if (   !PvNode
-        && !inCheck
-        && !ttTactical
-        &&  depth <= RazorDepth
-        &&  eval + RazorMargins[depth] < alpha
-        &&  hasNonPawnMaterial(board, board->turn)){
-            
-        if (depth <= 1)
-            return qsearch(pv, board, alpha, beta, height);
-        
-        rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(pv, board, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return value;
-    }
+    // if (   !PvNode
+    //     && !inCheck
+    //     && !ttTactical
+    //     &&  depth <= RazorDepth
+    //     &&  eval + RazorMargins[depth] < alpha
+    //     &&  hasNonPawnMaterial(board, board->turn)){
+    //         
+    //     if (depth <= 1)
+    //         return qsearch(pv, board, alpha, beta, height);
+    //     
+    //     rAlpha = alpha - RazorMargins[depth];
+    //     value = qsearch(pv, board, rAlpha, rAlpha + 1, height);
+    //     if (value <= rAlpha) return value;
+    // }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
