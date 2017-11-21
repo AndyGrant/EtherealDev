@@ -393,11 +393,11 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
             &&  depth >= 3
-            && !inCheck
             &&  isQuiet
             &&  isNotInCheck(board, board->turn)){
             
             R = 2;
+            R -= 2 * inCheck;
             R -= RootNode;
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
