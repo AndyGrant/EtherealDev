@@ -405,8 +405,8 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
             R = 2;
             R -= RootNode;
             R -= 2 * inCheck;
-            R += (played - 4) / 8;
-            R += (depth  - 4) / 6;
+            R += (played - 4) / 6;
+            R += (depth  - 3) / 4;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
             R -= hist / 24;
