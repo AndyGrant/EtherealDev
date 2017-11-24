@@ -298,7 +298,8 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
-        && depth <= BetaPruningDepth){
+        &&  depth <= BetaPruningDepth
+        &&  hasNonPawnMaterial(board, board->turn)){
             
         value = eval - depth * 0.95 * PieceValues[PAWN][EG];
         
