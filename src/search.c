@@ -403,7 +403,6 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
             &&  isNotInCheck(board, board->turn)){
             
             R = 2;
-            R -= RootNode;
             R -= 2 * inCheck;
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
