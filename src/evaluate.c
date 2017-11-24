@@ -126,17 +126,21 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 
 };
 
-const int SafetyTable[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
+const int AttackWeights[QUEEN + 1] = { 1, 2, 2, 2, 3};
+
+const int SafetyTable[96][PHASE_NB] = {
+    {   0,   0},  {  -1,   1},  {  -3,   2},  {  -6,   3},  {  -9,   3},  { -12,   4},  { -15,   5},  { -18,   6},  
+    { -22,   7},  { -26,   8},  { -30,   9},  { -35,  10},  { -39,  11},  { -44,  12},  { -49,  14},  { -54,  15},  
+    { -59,  16},  { -64,  17},  { -69,  18},  { -75,  20},  { -81,  21},  { -86,  22},  { -92,  24},  { -98,  25},  
+    {-105,  26},  {-111,  28},  {-117,  29},  {-124,  31},  {-130,  32},  {-137,  34},  {-144,  35},  {-151,  37},  
+    {-158,  38},  {-165,  40},  {-172,  41},  {-180,  43},  {-187,  44},  {-195,  46},  {-202,  48},  {-210,  49},  
+    {-218,  51},  {-226,  53},  {-234,  54},  {-242,  56},  {-250,  58},  {-258,  59},  {-267,  61},  {-275,  63},  
+    {-283,  65},  {-292,  67},  {-301,  68},  {-309,  70},  {-318,  72},  {-327,  74},  {-336,  76},  {-345,  78},  
+    {-354,  80},  {-364,  82},  {-373,  84},  {-382,  85},  {-392,  87},  {-401,  89},  {-411,  91},  {-421,  93},  
+    {-430,  95},  {-440,  97},  {-450,  99},  {-460, 101},  {-470, 104},  {-480, 106},  {-490, 108},  {-501, 110},  
+    {-511, 112},  {-521, 114},  {-532, 116},  {-542, 118},  {-553, 121},  {-564, 123},  {-574, 125},  {-585, 127},  
+    {-596, 129},  {-607, 131},  {-618, 134},  {-629, 136},  {-640, 138},  {-651, 140},  {-662, 143},  {-674, 145},  
+    {-685, 147},  {-696, 150},  {-708, 152},  {-719, 154},  {-731, 157},  {-743, 159},  {-754, 161},  {-766, 164}, 
 };
 
 const int KingValue[PHASE_NB] = { 100, 100};
@@ -280,7 +284,7 @@ void evaluatePawns(EvalInfo * ei, Board * board, int colour){
     // the king safety calculation. We just do this for the pawns as a whole,
     // and not individually, to save time, despite the loss in accuracy.
     if (attacks != 0ull){
-        ei->attackCounts[colour] += 2 * popcount(attacks);
+        ei->attackCounts[colour] += AttackWeights[PAWN] * popcount(attacks);
         ei->attackerCounts[colour] += 1;
     }
     
@@ -373,7 +377,7 @@ void evaluateKnights(EvalInfo * ei, Board * board, int colour){
         // knight for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += AttackWeights[KNIGHT] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -439,7 +443,7 @@ void evaluateBishops(EvalInfo * ei, Board * board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += AttackWeights[BISHOP] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -498,7 +502,7 @@ void evaluateRooks(EvalInfo * ei, Board * board, int colour){
         // rook for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 3 * popcount(attacks);
+            ei->attackCounts[colour] += AttackWeights[ROOK] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -537,7 +541,7 @@ void evaluateQueens(EvalInfo * ei, Board * board, int colour){
         // queen for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 4 * popcount(attacks);
+            ei->attackCounts[colour] += AttackWeights[QUEEN] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -546,6 +550,7 @@ void evaluateQueens(EvalInfo * ei, Board * board, int colour){
 void evaluateKings(EvalInfo * ei, Board * board, int colour){
     
     int attackCounts;
+    uint64_t enemyRooks, enemyQueens;
     
     if (TRACE) T.kingPSQT[colour][getLSB(board->colours[colour] & board->pieces[KING])]++;
     
@@ -553,20 +558,17 @@ void evaluateKings(EvalInfo * ei, Board * board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (SafetyTable has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        enemyRooks  = board->pieces[ROOK ] & board->colours[!colour];
+        enemyQueens = board->pieces[QUEEN] & board->colours[!colour];
         
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .5;
+        // Cap our attackCounts at 95 (SafetyTable has 96 slots),
+        // and scale it down if there are missing major pieces
+        attackCounts  = MIN(95, ei->attackCounts[!colour]);
+        attackCounts *= enemyQueens ? 1.0 : .5;
+        attackCounts *= enemyRooks  ? 1.0 : .8;
         
-        // Scale down attack count if there are no enemy rooks
-        if (!(board->colours[!colour] & board->pieces[ROOK]))
-            attackCounts *= .8;
-    
-        ei->midgame[colour] -= SafetyTable[attackCounts];
-        ei->endgame[colour] -= SafetyTable[attackCounts];
+        ei->midgame[colour] += SafetyTable[attackCounts][MG];
+        ei->endgame[colour] += SafetyTable[attackCounts][EG];
     }
 }
 
@@ -654,3 +656,4 @@ void initializeEvalInfo(EvalInfo * ei, Board * board){
     if (TEXEL) ei->pentry = NULL;
     else       ei->pentry = getPawnEntry(&PTable, board->phash);
 }
+
