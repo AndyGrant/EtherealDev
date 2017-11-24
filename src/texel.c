@@ -26,6 +26,8 @@
 #include "bitutils.h"
 #include "board.h"
 #include "evaluate.h"
+#include "move.h"
+#include "search.h"
 #include "square.h"
 #include "texel.h"
 #include "types.h"
@@ -33,6 +35,9 @@
 // Need these in order to get the coefficients
 // for each of the evaluation terms
 extern EvalTrace T, EmptyTrace;
+
+// Need this to hack in a way to run qsearch
+extern SearchInfo * Info;
 
 // To determine the starting values for the Pawn terms
 extern const int PawnValue[PHASE_NB];
@@ -81,7 +86,7 @@ void runTexelTuning(){
     double K, thisError, baseRate = 5.0;
     double rates[NT][PHASE_NB] = {{0}, {0}};
     double params[NT][PHASE_NB] = {{0}, {0}};
-    double cparams[NT][PHASE_NB];
+    double cparams[NT][PHASE_NB] = {{0}, {0}};
     
     printf("\nAllocating Memory for Texel Tuner [%dMB]...\n",
            (int)(NP * sizeof(TexelEntry) / (1024 * 1024)));
@@ -137,10 +142,17 @@ void runTexelTuning(){
 
 void initializeTexelEntries(TexelEntry * tes){
     
-    int i;
+    int i, n;
+    Undo undo;
     Board board;
+    PVariation pv;
     char line[128];
     FILE * fin = fopen("FENS", "r");
+    
+    // HACK : Allow running qsearch without a seg fault
+    SearchInfo info;
+    Info = &info;
+    Info->searchIsTimeLimited = 0;
     
     for (i = 0; i < NP; i++){
         
@@ -152,10 +164,13 @@ void initializeTexelEntries(TexelEntry * tes){
         else if (strstr(line, "0-1")) tes[i].result = 0.0;
         else    {printf("Unable to Parse Result\n"); exit(0);}
         
-        // Zero out the global eval trace T before evaluation.
-        // The evaluation should always be from white's POV
-        T = EmptyTrace;
         initalizeBoard(&board, line);
+        
+        qsearch(&pv, &board, -MATE, MATE, 0);
+        for (n = 0; n < pv.length; n++)
+            applyMove(&board, pv.line[n], &undo);
+        
+        T = EmptyTrace; 
         tes[i].eval = evaluateBoard(&board);
         if (board.turn == BLACK) tes[i].eval *= -1;
         
