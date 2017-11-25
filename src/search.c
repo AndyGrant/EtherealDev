@@ -513,15 +513,14 @@ int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
     
     // Take a guess at the best case gain for a non promotion capture
     if (board->colours[!board->turn] & board->pieces[QUEEN])
-        maxValueGain = PieceValues[QUEEN ][EG] + 55;
+        maxValueGain = PieceValues[QUEEN ][EG] + 25;
     else if (board->colours[!board->turn] & board->pieces[ROOK])
-        maxValueGain = PieceValues[ROOK  ][EG] + 35;
+        maxValueGain = PieceValues[ROOK  ][EG] + 25;
     else
-        maxValueGain = PieceValues[BISHOP][EG] + 15;
+        maxValueGain = PieceValues[BISHOP][EG] + 25;
     
     // Delta pruning when no promotions and not extreme late game
-    if (    value + maxValueGain < alpha
-        &&  popcount(board->colours[WHITE] | board->colours[BLACK]) >= 6
+    if (     value + maxValueGain < alpha
         && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
@@ -532,7 +531,7 @@ int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+        value = eval + 25 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
         if (MoveType(currentMove) == PROMOTION_MOVE){
             value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
             value -= PieceValues[PAWN][EG];
