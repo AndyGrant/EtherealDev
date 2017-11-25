@@ -123,7 +123,6 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -4,   0}, { -13,   8}, {  -5,  21}, {  16,  37}, {  54,  52}, {  79,  77}, {   0,   0}}},
   {{{   0,   0}, {   0,  10}, {  -7,   7}, {  -1,  22}, {  25,  34}, {  71,  63}, { 121, 137}, {   0,   0}},
    {{   0,   0}, {   3,   5}, {  -5,   8}, {   0,  33}, {  23,  75}, {  89, 166}, { 223, 312}, {   0,   0}}}
-
 };
 
 const int SafetyTable[100] = { // Taken from CPW / Stockfish
@@ -559,11 +558,11 @@ void evaluateKings(EvalInfo * ei, Board * board, int colour){
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .5;
+            attackCounts *= .25;
         
         // Scale down attack count if there are no enemy rooks
         if (!(board->colours[!colour] & board->pieces[ROOK]))
-            attackCounts *= .8;
+            attackCounts *= .50;
     
         ei->midgame[colour] -= SafetyTable[attackCounts];
         ei->endgame[colour] -= SafetyTable[attackCounts];
