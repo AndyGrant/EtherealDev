@@ -138,8 +138,11 @@ const int SafetyTable[100] = { // Taken from CPW / Stockfish
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
+ 
 
 const int KingValue[PHASE_NB] = { 100, 100};
+
+const int KingWithNoPawns[PHASE_NB] = { -20, -25};
 
 const int NoneValue[PHASE_NB] = {   0,   0};
 
@@ -547,7 +550,17 @@ void evaluateKings(EvalInfo * ei, Board * board, int colour){
     
     int attackCounts;
     
+    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    
+    
     if (TRACE) T.kingPSQT[colour][getLSB(board->colours[colour] & board->pieces[KING])]++;
+    
+    //
+    if (!(myPawns & (IsolatedPawnMasks[getLSB(myKings)] | Files[File(getLSB(myKings))]))){
+        ei->midgame[colour] += KingWithNoPawns[MG];
+        ei->endgame[colour] += KingWithNoPawns[EG];
+    }
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
