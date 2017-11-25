@@ -555,15 +555,16 @@ void evaluateKings(EvalInfo * ei, Board * board, int colour){
         
         // Cap our attackCounts at 99 (SafetyTable has 100 slots)
         attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .5;
+            attackCounts *= .25;
         
         // Scale down attack count if there are no enemy rooks
         if (!(board->colours[!colour] & board->pieces[ROOK]))
-            attackCounts *= .8;
+            attackCounts *= .50;
+        
+        attackCounts = MIN(99, attackCounts);
     
         ei->midgame[colour] -= SafetyTable[attackCounts];
         ei->endgame[colour] -= SafetyTable[attackCounts];
