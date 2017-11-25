@@ -52,6 +52,8 @@ const int PawnIsolated[PHASE_NB] = {  -5, -10};
 
 const int PawnStacked[PHASE_NB] = { -12, -18};
 
+const int PawnBlocked[PHASE_NB] = {  -8,  -13};
+
 const int PawnConnected32[32][PHASE_NB] = {
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
     {   1,  -2}, {   3,   0}, {   3,   1}, {   0,   6},
@@ -317,6 +319,12 @@ void evaluatePawns(EvalInfo * ei, Board * board, int colour){
             ei->pawnMidgame[colour] += PawnStacked[MG];
             ei->pawnEndgame[colour] += PawnStacked[EG];
             if (TRACE) T.pawnStacked[colour]++;
+        }
+        
+        // Apply a penalty if the pawn is blocked
+        if ((1ull << (sq + (colour == WHITE ? 8 : -8))) & board->colours[!colour]){
+            ei->pawnMidgame[colour] += PawnBlocked[MG];
+            ei->pawnEndgame[colour] += PawnBlocked[EG];
         }
         
         // Apply a bonus if the pawn is connected
