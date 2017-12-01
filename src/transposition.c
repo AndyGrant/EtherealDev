@@ -105,11 +105,9 @@ void storeTranspositionEntry(TransTable * table, int depth, int type, int value,
     
     TransBucket * bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
     TransEntry * entries = bucket->entries;
-    TransEntry * oldOption = NULL;
-    TransEntry * lowDraftOption = NULL;
     TransEntry * toReplace = NULL;
     
-    int i; uint16_t hash16 = hash >> 48;
+    int i, score, best = 0; uint16_t hash16 = hash >> 48;
     
     for (i = 0; i < BUCKET_SIZE; i++){
         
@@ -126,19 +124,16 @@ void storeTranspositionEntry(TransTable * table, int depth, int type, int value,
             goto Replace;
         }
         
-        // Search for the lowest draft of an old entry
-        if (entries[i].age != table->generation)
-            if (oldOption == NULL || oldOption->depth >= entries[i].depth)
-                oldOption = &(entries[i]);
+        score  = 4096;
+        score += 1024 * entries[i].age != table->generation;
+        score += MAX_DEPTH - entries[i].depth;
+        score -= entries[i].type == PVNODE;
         
-        // Search for the lowest draft if no old entry has been found yet
-        if (oldOption == NULL)
-            if (lowDraftOption == NULL || lowDraftOption->depth >= entries[i].depth)
-                lowDraftOption = &(entries[i]);
+        if (score > best){
+            best = score;
+            toReplace = &(entries[i]);
+        }
     }
-    
-    // If no old option, use the lowest draft
-    toReplace = oldOption != NULL ? oldOption : lowDraftOption;
     
     Replace:
         toReplace->value    = value;
