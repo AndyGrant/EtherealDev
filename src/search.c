@@ -80,7 +80,7 @@ uint16_t getBestMove(SearchInfo * info){
                 info->idealTimeUsage = MIN(info->maxTimeUsage, info->idealTimeUsage * 1.10);
             
             if (depth >= 4 && pv.line[0] != lastBestMove)
-                info->idealTimeUsage = MIN(info->maxTimeUsage, info->idealTimeUsage * 1.35);
+                info->idealTimeUsage = MIN(info->maxTimeUsage, info->idealTimeUsage * (1 + .05 * depth));
         }
         
         lastValue = value;
