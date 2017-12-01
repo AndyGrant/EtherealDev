@@ -252,7 +252,7 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
         // Step 6A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
         // we can't, but because don't want truncated PV lines
-        if (!PvNode && ttEntry->depth >= depth){
+        if ((!PvNode || ttEntry->type == PVNODE) && ttEntry->depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
                 
