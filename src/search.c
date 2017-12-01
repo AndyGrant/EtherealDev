@@ -76,10 +76,10 @@ uint16_t getBestMove(SearchInfo * info){
         values[depth] = value = aspirationWindow(&pv, &info->board, depth, values);
         
         if (info->searchIsTimeLimited){
-            if (depth >= 4 && lastValue > value + 8)
+            if (depth > 1 && lastValue > value + 8)
                 info->idealTimeUsage = MIN(info->maxTimeUsage, info->idealTimeUsage * 1.10);
             
-            if (depth >= 4 && pv.line[0] != lastBestMove)
+            if (depth > 1 && pv.line[0] != lastBestMove)
                 info->idealTimeUsage = MIN(info->maxTimeUsage, info->idealTimeUsage * 1.35);
         }
         
