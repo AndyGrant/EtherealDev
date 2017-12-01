@@ -389,8 +389,7 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]
-            &&  isNotInCheck(board, board->turn)){
+            &&  quiets > LateMovePruningCounts[depth]){
         
             revertMove(board, currentMove, undo);
             continue;
