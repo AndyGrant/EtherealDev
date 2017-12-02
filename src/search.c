@@ -466,7 +466,7 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
     
     // Update History Scores
-    else if (best >= beta && !moveIsTactical(board, bestMove)){
+    else if (best > oldAlpha && !moveIsTactical(board, bestMove)){
         updateHistory(History, bestMove, board->turn, 1, depth*depth);
         for (i = 0; i < quiets - 1; i++)
             updateHistory(History, quietsTried[i], board->turn, 0, depth*depth);
