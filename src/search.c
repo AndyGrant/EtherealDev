@@ -412,7 +412,7 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
             R -= hist / 24;
-            R  = R >= 1 ? R : 1;
+            R  = MIN(depth - 1, MAX(R, 1));
         }
         
         else {
