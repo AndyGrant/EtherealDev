@@ -524,7 +524,6 @@ int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
     
     // Delta pruning when no promotions and not extreme late game
     if (    value + maxValueGain < alpha
-        &&  popcount(board->colours[WHITE] | board->colours[BLACK]) >= 6
         && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
