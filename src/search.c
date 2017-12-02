@@ -482,10 +482,12 @@ int search(PVariation * pv, Board * board, int alpha, int beta, int depth, int h
 
 int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
     
-    int eval, value, best, maxValueGain;
+    int played = 0, eval, value, best, maxValueGain;
     uint16_t currentMove;
     Undo undo[1];
     MovePicker movePicker;
+    
+    int inCheck = !isNotInCheck(board, board->turn);
     
     PVariation lpv;
     lpv.length = 0;
@@ -508,42 +510,48 @@ int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
     // Get a standing eval of the current board
     best = value = eval = evaluateBoard(board);
     
-    // Update lower bound
-    if (value > alpha) alpha = value;
+    if (!inCheck){
+        
+        // Update lower bound
+        if (value > alpha) alpha = value;
     
-    // QSearch can be terminated
-    if (alpha >= beta) return value;
-    
-    // Take a guess at the best case gain for a non promotion capture
-    if (board->colours[!board->turn] & board->pieces[QUEEN])
-        maxValueGain = PieceValues[QUEEN ][EG] + 55;
-    else if (board->colours[!board->turn] & board->pieces[ROOK])
-        maxValueGain = PieceValues[ROOK  ][EG] + 35;
-    else
-        maxValueGain = PieceValues[BISHOP][EG] + 15;
-    
-    // Delta pruning when no promotions and not extreme late game
-    if (    value + maxValueGain < alpha
-        &&  popcount(board->colours[WHITE] | board->colours[BLACK]) >= 6
-        && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
-        && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
-        return value;
+        // QSearch can be terminated
+        if (alpha >= beta) return value;
     
     
-    initalizeMovePicker(&movePicker, 1, NONE_MOVE, NONE_MOVE, NONE_MOVE);
+        // Take a guess at the best case gain for a non promotion capture
+        if (board->colours[!board->turn] & board->pieces[QUEEN])
+            maxValueGain = PieceValues[QUEEN ][EG] + 55;
+        else if (board->colours[!board->turn] & board->pieces[ROOK])
+            maxValueGain = PieceValues[ROOK  ][EG] + 35;
+        else
+            maxValueGain = PieceValues[BISHOP][EG] + 15;
+        
+        // Delta pruning when no promotions and not extreme late game
+        if (    value + maxValueGain < alpha
+            &&  popcount(board->colours[WHITE] | board->colours[BLACK]) >= 6
+            && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
+            && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
+            return value;
+        
+    }
+    
+    initalizeMovePicker(&movePicker, !inCheck, NONE_MOVE, NONE_MOVE, NONE_MOVE);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
-        if (MoveType(currentMove) == PROMOTION_MOVE){
-            value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
-            value -= PieceValues[PAWN][EG];
+        if (!inCheck || played >= 1){
+            // Take a guess at the best case value of this current move
+            value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+            if (MoveType(currentMove) == PROMOTION_MOVE){
+                value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
+                value -= PieceValues[PAWN][EG];
+            }
+            
+            // If the best case is not good enough, continue
+            if (value < alpha)
+                continue;
         }
-        
-        // If the best case is not good enough, continue
-        if (value < alpha)
-            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -551,6 +559,8 @@ int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
             revertMove(board, currentMove, undo);
             continue;
         }
+        
+        played += 1;
         
         // Search next depth
         value = -qsearch(&lpv, board, -beta, -alpha, height+1);
@@ -578,7 +588,7 @@ int qsearch(PVariation * pv, Board * board, int alpha, int beta, int height){
             return best;
     }
     
-    return best;
+    return (inCheck && played == 0) ? -MATE + height : best;
 }
 
 int moveIsTactical(Board * board, uint16_t move){
