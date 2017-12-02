@@ -245,6 +245,11 @@ void evaluatePieces(EvalInfo * ei, Board * board){
     evaluateKings(ei, board, WHITE);
     evaluateKings(ei, board, BLACK);
     
+    ei->midgame[WHITE] += -4 * popcount(board->colours[WHITE] & ~ei->attacked[WHITE]);
+    ei->endgame[WHITE] += -1 * popcount(board->colours[WHITE] & ~ei->attacked[WHITE]);
+    ei->endgame[BLACK] += -4 * popcount(board->colours[BLACK] & ~ei->attacked[BLACK]);
+    ei->midgame[BLACK] += -1 * popcount(board->colours[BLACK] & ~ei->attacked[BLACK]);
+    
     // Save a Pawn Eval Entry if we did not find one. We do not make use
     // of the Pawn Evaluation Table when we are doing texel tuning
     if (ei->pentry == NULL){
