@@ -110,6 +110,8 @@ const int RookMobility[15][PHASE_NB] = {
 
 const int QueenValue[PHASE_NB] = { 866, 894};
 
+const int QueenOnSeventh[PHASE_NB] = {   8,  24};
+
 const int QueenMobility[28][PHASE_NB] = {
     {-121, -50}, { -68,-187}, { -84, -99}, { -48, -53},
     { -18, -54}, { -12, -20}, {  -2, -18}, {   0, -15},
@@ -538,6 +540,13 @@ void evaluateQueens(EvalInfo * ei, Board * board, int colour){
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
         ei->attacked[colour] |= attacks;
             
+        // Queen gains a bonus for being located on seventh rank
+        if (Rank(sq) == (colour == BLACK ? 1 : 6)){
+            ei->midgame[colour] += QueenOnSeventh[MG];
+            ei->endgame[colour] += QueenOnSeventh[EG];
+            if (TRACE) T.rookOnSeventh[colour]++;
+        }
+        
         // Apply a bonus (or penalty) based on the mobility of the queen
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
         ei->midgame[colour] += QueenMobility[mobilityCount][MG];
