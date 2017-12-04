@@ -519,9 +519,17 @@ void evaluateRooks(EvalInfo * ei, Board * board, int colour){
 void evaluateQueens(EvalInfo * ei, Board * board, int colour){
     
     int sq, mobilityCount;
-    uint64_t tempQueens, attacks;
+    uint64_t myPawns, tempQueens, attacks;
     
+    myPawns    = board->pieces[PAWN ] * board->colours[colour];
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
+    
+    // Apply a bonus for having pawn wings and a queen
+    if (tempQueens && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
+        ei->midgame[colour] += BishopWings[MG];
+        ei->endgame[colour] += BishopWings[EG];
+        if (TRACE) T.bishopWings[colour]++;
+    }
     
     // Evaluate each queen
     while (tempQueens){
