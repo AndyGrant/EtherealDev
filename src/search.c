@@ -47,6 +47,8 @@ extern TransTable Table;
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time, double inc, double mtg){
     
+    Thread* bestthread = &threads[0];
+    
     int i, nthreads = threads[0].nthreads;
     
     double idealusage = 0, maxusage = 0, starttime = getRealTime();
@@ -82,8 +84,18 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     // Cleanup pthreads
     free(pthreads);
     
+    for (i = 1; i < nthreads; i++)
+        if (   (threads[i].depth  > info.depth
+            &&  threads[i].depth  > bestthread->depth
+            &&  threads[i].value  > threads[i].lower)
+            || (threads[i].depth  > info.depth
+            &&  threads[i].depth == bestthread->depth
+            &&  threads[i].value  > bestthread->value
+            &&  threads[i].value  > threads[i].lower))
+        bestthread = &threads[i];
+                
     // Return highest depth best move
-    return info.bestmoves[info.depth];
+    return bestthread->value > bestthread->lower ? bestthread->pv.line[0] : info.bestmoves[info.depth];
 }
 
 void* iterativeDeepening(void* vthread){
@@ -175,6 +187,9 @@ void* iterativeDeepening(void* vthread){
                 break;
             }
             
+            thread->value = -MATE;
+            thread->lower = -MATE;
+            
             pthread_mutex_unlock(thread->lock);
         }
         
@@ -207,11 +222,13 @@ int aspirationWindow(Thread* thread, int depth){
         for (; margin <= 640; margin *= 2){
             
             // Create the aspiration window
-            thread->lower = alpha = thread->info->values[depth - 1] - margin;
-            thread->upper = beta  = thread->info->values[depth - 1] + margin;
+            alpha = thread->info->values[depth - 1] - margin;
+            beta  = thread->info->values[depth - 1] + margin;
             
             // Perform the search on the modified window
             thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            thread->lower = alpha;
+            thread->upper = beta;
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -224,7 +241,10 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search ( near mate or when depth equals one )
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    thread->value = value = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    thread->lower = -MATE;
+    thread->upper = MATE;
+    return value;
 }
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
