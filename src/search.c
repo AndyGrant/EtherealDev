@@ -417,7 +417,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 12. Check Extension
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += inCheck && !RootNode && (PvNode || depth <= 6 || height <= 4);
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
