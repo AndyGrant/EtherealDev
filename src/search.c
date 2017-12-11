@@ -211,7 +211,7 @@ int aspirationWindow(Thread* thread, int depth){
             thread->upper = beta  = thread->info->values[depth - 1] + margin;
             
             // Perform the search on the modified window
-            thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0, 0);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -224,10 +224,10 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search ( near mate or when depth equals one )
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    return search(thread, &thread->pv, -MATE, MATE, depth, 0, 0);
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int skip){
     
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -343,6 +343,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
     }
     
+    if (skip) goto moves_loop;
+    
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
     // the Quiescence search was sufficient. For depth 1, we will just
@@ -389,7 +391,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1, 1);
         
         revertNullMove(board, undo);
         
@@ -407,7 +409,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, 0);
         
         // Probe for the newly found move, and update ttMove / ttTactical
         if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
@@ -415,6 +417,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttTactical = moveIsTactical(board, ttMove);
         }
     }
+    
+    moves_loop:
     
     // Step 12. Check Extension
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
@@ -485,13 +489,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Search the move with a possibly reduced depth, on a full or null window
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1, 0)
+               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1, 0);
                
         // If the search beat alpha, we may need to research, in the event that
         // the previous search was not the full window, or was a reduced depth
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1, 0)
                :  value;
         
         // REVERT MOVE FROM BOARD
