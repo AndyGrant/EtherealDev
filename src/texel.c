@@ -227,7 +227,7 @@ void initializeCoefficients(TexelEntry* te){
     
     int i = 0, a, b, c;
     
-    // Initialize coefficients for the pawns
+    /*// Initialize coefficients for the pawns
     
     te->coeffs[i++] = T.pawnCounts[WHITE] - T.pawnCounts[BLACK];
     
@@ -331,7 +331,7 @@ void initializeCoefficients(TexelEntry* te){
             for (c = 0; c < RANK_NB; c++)
                 te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
             
-    // Initialize coefficients for the threats
+    // Initialize coefficients for the threats*/
     
     for (a = 0; a < 2; a++)
         te->coeffs[i++] = T.threatWeakPawn[WHITE][a] - T.threatWeakPawn[BLACK][a];
@@ -350,7 +350,7 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
     
-    // Initialize parameters for the pawns
+    /*// Initialize parameters for the pawns
     
     cparams[i  ][MG] = PawnValue[MG];
     cparams[i++][EG] = PawnValue[EG];
@@ -483,7 +483,7 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         }
     }
     
-    // Initialize parameters for the threats
+    // Initialize parameters for the threats*/
     
     for (a = 0; a < 2; a++, i++){
         cparams[i][MG] = ThreatWeakPawn[a][MG];
@@ -504,8 +504,6 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         cparams[i][EG] = ThreatWeakQueen[a][EG];
         cparams[i][MG] = ThreatWeakQueen[a][MG];
     }
-    
-    printf("%d %d\n", i, NT);
 }
 
 void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
@@ -545,7 +543,7 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         tparams[x][EG] = params[x][EG] + cparams[x][EG];
     }    
     
-    // Print Pawn Parameters
+    /*// Print Pawn Parameters
     
     printf("\nconst int PawnValue[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
     
@@ -690,6 +688,24 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf("}\n");
         }
     } printf("\n};\n");
+    
+    // Print Threat Parameters*/
+    
+    printf("\nconst int ThreatWeakPawn[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+            
+    printf("\nconst int ThreatWeakMinor[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+            
+    printf("\nconst int ThreatWeakRook[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+            
+    printf("\nconst int ThreatWeakQueen[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
 }
 
 double computeOptimalK(TexelEntry* tes){
