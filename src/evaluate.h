@@ -66,6 +66,7 @@ typedef struct EvalInfo {
     uint64_t kingAreas[COLOUR_NB];
     uint64_t mobilityAreas[COLOUR_NB];
     uint64_t attacked[COLOUR_NB];
+    uint64_t attackedBy2[COLOUR_NB];
     uint64_t attackedNoQueen[COLOUR_NB];
     uint64_t occupiedMinusBishops[COLOUR_NB];
     uint64_t occupiedMinusRooks[COLOUR_NB];
@@ -90,6 +91,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour);
 void evaluateQueens(EvalInfo* ei, Board* board, int colour);
 void evaluateKings(EvalInfo* ei, Board* board, int colour);
 void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
+void evaluateThreats(EvalInfo* ei, Board* board, int colour);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnTable* ptable);
 
 extern const int* PieceValues[8];
