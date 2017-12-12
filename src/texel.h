@@ -21,7 +21,7 @@
 
 #include "types.h"
 
-#define NP (7000)
+#define NP (7000000)
 
 #define NT (348)
 
@@ -32,11 +32,11 @@ typedef struct TexelEntry {
     double factors[PHASE_NB];
 } TexelEntry;
 
-void runTexelTuning();
+void runTexelTuning(Thread* thread);
 
-void initializeTexelEntries(TexelEntry* tes);
+void initializeTexelEntries(TexelEntry* tes, Thread* thread);
 
-void initializeCoefficients(TexelEntry* te);
+void initializeCoefficients(TexelEntry* tes);
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]);
 

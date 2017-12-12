@@ -62,7 +62,7 @@ int main(){
     
     
     #ifdef TUNE
-    runTexelTuning();
+    runTexelTuning(threads);
     exit(0);
     #endif
     

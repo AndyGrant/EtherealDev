@@ -89,7 +89,7 @@ extern const int ThreatWeakMinor[2][PHASE_NB];
 extern const int ThreatWeakRook[2][PHASE_NB];
 extern const int ThreatWeakQueen[2][PHASE_NB];
 
-void runTexelTuning(){
+void runTexelTuning(Thread* thread){
     
     TexelEntry* tes;
     int i, j, iteration = -1;
@@ -108,7 +108,7 @@ void runTexelTuning(){
     tes = calloc(NP, sizeof(TexelEntry));
     
     printf("\n\nReading and Initializing Texel Entries from FENS...");
-    initializeTexelEntries(tes);
+    initializeTexelEntries(tes, thread);
     
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initializeCurrentParameters(cparams);
@@ -155,14 +155,11 @@ void runTexelTuning(){
     }
 }
 
-void initializeTexelEntries(TexelEntry* tes){
+void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     int i, j;
     Undo undo;
-    Board board;
     Limits limits;
-    Thread thread;
-    PVariation pv;
     char line[128];
     
     // Initialize limits for the search
@@ -174,10 +171,11 @@ void initializeTexelEntries(TexelEntry* tes){
     limits.depthLimit     = 1;
     
     // Initialize the thread for the search
-    thread.limits = &limits;
-    thread.depth  = 1;
-    thread.abort  = 0;
-    memset(thread.history, 1, sizeof(thread.history));
+    thread->limits = &limits;
+    thread->depth  = 1;
+    thread->abort  = 0;
+    memset(thread->history, 1, sizeof(HistoryTable));
+    
     FILE * fin = fopen("FENS", "r");
     
     for (i = 0; i < NP; i++){
@@ -194,21 +192,21 @@ void initializeTexelEntries(TexelEntry* tes){
         else    {printf("Unable to Parse Result\n"); exit(0);}
         
         // Search, then and apply all moves in the principle variation
-        initializeBoard(&thread.board, line);
-        search(&thread, &pv, -MATE, MATE, 1, 0);
-        for (j = 0; j < pv.length; j++)
-            applyMove(&board, pv.line[j], &undo);
+        initializeBoard(&thread->board, line);
+        search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        for (j = 0; j < thread->pv.length; j++)
+            applyMove(&thread->board, thread->pv.line[j], &undo);
             
         // Get the eval trace for the final position in the pv
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&board, NULL);
-        if (board.turn == BLACK) tes[i].eval *= -1;
+        tes[i].eval = evaluateBoard(&thread->board, NULL);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
         // Determine the game phase based on remaining material
-        tes[i].phase = 24 - 4 * popcount(board.pieces[QUEEN ])
-                          - 2 * popcount(board.pieces[ROOK  ])
-                          - 1 * popcount(board.pieces[KNIGHT])
-                          - 1 * popcount(board.pieces[BISHOP]);
+        tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
+                          - 2 * popcount(thread->board.pieces[ROOK  ])
+                          - 1 * popcount(thread->board.pieces[KNIGHT])
+                          - 1 * popcount(thread->board.pieces[BISHOP]);
                           
         // When updating gradients, we use the coefficients for each
         // term, as well as the phase of the position it came from
