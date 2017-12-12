@@ -40,4 +40,4 @@ debug:
 	$(CC) $(DFLAGS) $(SRC) -lpthread -o $(EXE)
     
 tune:
-	$(CC) $(TFLAGS) $(SRC) -lpthread -o $(EXE)
+	$(CC) $(TFLAGS) $(SRC) -lpthread -lm -o $(EXE)

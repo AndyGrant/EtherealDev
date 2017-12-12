@@ -21,7 +21,7 @@
 
 #include "types.h"
 
-#define NP (2000000)
+#define NP (7000)
 
 #define NT (348)
 

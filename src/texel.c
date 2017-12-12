@@ -177,7 +177,7 @@ void initializeTexelEntries(TexelEntry* tes){
     thread.limits = &limits;
     thread.depth  = 1;
     thread.abort  = 0;
-    
+    memset(thread.history, 1, sizeof(thread.history));
     FILE * fin = fopen("FENS", "r");
     
     for (i = 0; i < NP; i++){
@@ -346,8 +346,6 @@ void initializeCoefficients(TexelEntry* te){
     
     for (a = 0; a < 2; a++)
         te->coeffs[i++] = T.threatWeakQueen[WHITE][a] - T.threatWeakQueen[BLACK][a];
-    
-    printf("%d %d", i, NT);
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
