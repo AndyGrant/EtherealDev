@@ -23,7 +23,7 @@
 
 #define NP (2000000)
 
-#define NT (341)
+#define NT (348)
 
 typedef struct TexelEntry {
     double result;

@@ -294,7 +294,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackedBy2[colour] |= ei->attacked[colour] & ei->pawnAttacks[colour];
+    ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
     ei->attacked[colour] |= ei->pawnAttacks[colour];
     ei->attackedNoQueen[colour] |= attacks;
     

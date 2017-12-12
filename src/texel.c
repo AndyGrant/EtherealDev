@@ -74,7 +74,6 @@ extern const int RookMobility[15][PHASE_NB];
 
 // To determine the starting values for the Queen terms
 extern const int QueenValue[PHASE_NB];
-extern const int QueenChecked[PHASE_NB];
 extern const int QueenPSQT32[32][PHASE_NB];
 extern const int QueenMobility[28][PHASE_NB];
 
@@ -84,6 +83,11 @@ extern const int KingPSQT32[32][PHASE_NB];
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB][PHASE_NB];
 
+// To determine the starting values for Threat terms
+extern const int ThreatWeakPawn[2][PHASE_NB];
+extern const int ThreatWeakMinor[2][PHASE_NB];
+extern const int ThreatWeakRook[2][PHASE_NB];
+extern const int ThreatWeakQueen[2][PHASE_NB];
 
 void runTexelTuning(){
     
@@ -92,7 +96,7 @@ void runTexelTuning(){
     double K, thisError, baseRate = 1.0;
     double rates[NT][PHASE_NB] = {{0}, {0}};
     double params[NT][PHASE_NB] = {{0}, {0}};
-    double cparams[NT][PHASE_NB];
+    double cparams[NT][PHASE_NB] = {{0}, {0}};;
     
     setvbuf(stdout, NULL, _IONBF, 0);
     
@@ -173,7 +177,6 @@ void initializeTexelEntries(TexelEntry* tes){
     thread.limits = &limits;
     thread.depth  = 1;
     thread.abort  = 0;
-    
     
     FILE * fin = fopen("FENS", "r");
     
@@ -306,8 +309,6 @@ void initializeCoefficients(TexelEntry* te){
     
     te->coeffs[i++] = T.queenCounts[WHITE] - T.queenCounts[BLACK];
     
-    te->coeffs[i++] = T.queenChecked[WHITE] - T.queenChecked[BLACK];
-    
     for (a = 0; a < 64; a++){
         te->coeffs[i + relativeSquare32(a, WHITE)] += T.queenPSQT[WHITE][a];
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.queenPSQT[BLACK][a];
@@ -331,6 +332,22 @@ void initializeCoefficients(TexelEntry* te){
         for (b = 0; b < 2; b++)
             for (c = 0; c < RANK_NB; c++)
                 te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+            
+    // Initialize coefficients for the threats
+    
+    for (a = 0; a < 2; a++)
+        te->coeffs[i++] = T.threatWeakPawn[WHITE][a] - T.threatWeakPawn[BLACK][a];
+    
+    for (a = 0; a < 2; a++)
+        te->coeffs[i++] = T.threatWeakMinor[WHITE][a] - T.threatWeakMinor[BLACK][a];
+    
+    for (a = 0; a < 2; a++)
+        te->coeffs[i++] = T.threatWeakRook[WHITE][a] - T.threatWeakRook[BLACK][a];
+    
+    for (a = 0; a < 2; a++)
+        te->coeffs[i++] = T.threatWeakQueen[WHITE][a] - T.threatWeakQueen[BLACK][a];
+    
+    printf("%d %d", i, NT);
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -441,9 +458,6 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     cparams[i  ][MG] = QueenValue[MG];
     cparams[i++][EG] = QueenValue[EG];
     
-    cparams[i  ][MG] = QueenChecked[MG];
-    cparams[i++][EG] = QueenChecked[EG];
-    
     for (a = 0; a < 32; a++, i++){
         cparams[i][MG] = QueenPSQT32[a][MG];
         cparams[i][EG] = QueenPSQT32[a][EG];
@@ -472,6 +486,30 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
             }
         }
     }
+    
+    // Initialize parameters for the threats
+    
+    for (a = 0; a < 2; a++, i++){
+        cparams[i][MG] = ThreatWeakPawn[a][MG];
+        cparams[i][EG] = ThreatWeakPawn[a][EG];
+    }
+    
+    for (a = 0; a < 2; a++, i++){
+        cparams[i][MG] = ThreatWeakMinor[a][MG];
+        cparams[i][EG] = ThreatWeakMinor[a][EG];
+    }
+    
+    for (a = 0; a < 2; a++, i++){
+        cparams[i][MG] = ThreatWeakRook[a][MG];
+        cparams[i][EG] = ThreatWeakRook[a][EG];
+    }
+    
+    for (a = 0; a < 2; a++, i++){
+        cparams[i][EG] = ThreatWeakQueen[a][EG];
+        cparams[i][MG] = ThreatWeakQueen[a][MG];
+    }
+    
+    printf("%d %d\n", i, NT);
 }
 
 void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
