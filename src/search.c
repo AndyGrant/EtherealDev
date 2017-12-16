@@ -132,6 +132,13 @@ void* iterativeDeepening(void* vthread){
                 continue;
             }
             
+            if (thread->abort == ABORT_RESTART){
+                thread->abort = ABORT_NONE;
+                depth -= 1;
+                pthread_mutex_unlock(thread->lock);
+                continue;
+            }
+            
             else if (thread->abort == ABORT_ALL){
                 pthread_mutex_unlock(thread->lock);
                 return NULL;
@@ -149,6 +156,14 @@ void* iterativeDeepening(void* vthread){
                     *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 1.35);
             }
             
+            // Abort any threads still searching this depth, or lower
+            for (i = 0; i < thread->nthreads; i++)
+                if (   thread->depth >= thread->threads[i].depth
+                    && thread != &thread->threads[i])
+                    thread->threads[i].abort = ABORT_DEPTH;
+                else if (depth >= 4 && thread->info->bestmoves[thread->info->depth] != thread->pv.line[0])
+                    thread->threads[i].abort = ABORT_RESTART;
+            
             // Update the Search Info structure for the main thread
             thread->info->depth = depth;
             thread->info->values[depth] = value;
@@ -156,12 +171,6 @@ void* iterativeDeepening(void* vthread){
             
             // Send information about this search to the interface
             uciReport(thread->threads, thread->starttime, depth, value, &thread->pv);
-            
-            // Abort any threads still searching this depth, or lower
-            for (i = 0; i < thread->nthreads; i++)
-                if (   thread->depth >= thread->threads[i].depth
-                    && thread != &thread->threads[i])
-                    thread->threads[i].abort = ABORT_DEPTH;
             
             // Check for termination by any of the possible limits
             if (   (thread->limits->limitedByDepth && depth >= thread->limits->depthLimit)
@@ -184,6 +193,14 @@ void* iterativeDeepening(void* vthread){
             pthread_mutex_lock(thread->lock);
             thread->abort = ABORT_NONE;
             memcpy(&thread->board, thread->initialboard, sizeof(Board));
+            pthread_mutex_unlock(thread->lock);
+        }
+        
+        else if (abort == ABORT_RESTART){
+            pthread_mutex_lock(thread->lock);
+            thread->abort = ABORT_NONE;
+            memcpy(&thread->board, thread->initialboard, sizeof(Board));
+            depth -= 1;
             pthread_mutex_unlock(thread->lock);
         }
         
