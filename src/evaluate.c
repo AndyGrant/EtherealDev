@@ -110,8 +110,6 @@ const int RookMobility[15][PHASE_NB] = {
 
 const int QueenValue[PHASE_NB] = { 846, 880};
 
-const int QueenChecked[PHASE_NB] = { -48, -45};
-
 const int QueenMobility[28][PHASE_NB] = {
     {-138, -50}, { -91,-239}, { -86,-106}, { -50, -63},
     { -19, -61}, { -16, -28}, {  -8, -26}, {  -3, -24},
@@ -124,13 +122,7 @@ const int QueenMobility[28][PHASE_NB] = {
 };
 
 
-const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
-  {{{   0,   0}, {  -8,  -5}, { -17,   3}, { -15,   3}, {  14,  23}, {  45,  29}, {  60,  40}, {   0,   0}},
-   {{   0,   0}, {  -3,  -1}, { -14,   9}, {  -6,  21}, {  13,  35}, {  51,  46}, {  78,  71}, {   0,   0}}},
-  {{{   0,   0}, {   0,   9}, {  -7,   6}, {  -3,  21}, {  22,  30}, {  68,  58}, { 117, 127}, {   0,   0}},
-   {{   0,   0}, {   1,   4}, {  -6,   7}, {  -3,  32}, {  16,  73}, {  76, 158}, { 199, 294}, {   0,   0}}}
-};
-
+const int KingValue[PHASE_NB] = { 100, 100};
 
 const int SafetyTable[100] = { // Taken from CPW / Stockfish
        0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
@@ -145,7 +137,23 @@ const int SafetyTable[100] = { // Taken from CPW / Stockfish
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
-const int KingValue[PHASE_NB] = { 100, 100};
+
+const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
+  {{{   0,   0}, {  -8,  -5}, { -17,   3}, { -15,   3}, {  14,  23}, {  45,  29}, {  60,  40}, {   0,   0}},
+   {{   0,   0}, {  -3,  -1}, { -14,   9}, {  -6,  21}, {  13,  35}, {  51,  46}, {  78,  71}, {   0,   0}}},
+  {{{   0,   0}, {   0,   9}, {  -7,   6}, {  -3,  21}, {  22,  30}, {  68,  58}, { 117, 127}, {   0,   0}},
+   {{   0,   0}, {   1,   4}, {  -6,   7}, {  -3,  32}, {  16,  73}, {  76, 158}, { 199, 294}, {   0,   0}}}
+};
+
+
+const int ThreatWeakPawn[PHASE_NB]  = {  -7,  -9};
+
+const int ThreatWeakMinor[PHASE_NB] = { -13, -21};
+
+const int ThreatWeakRook[PHASE_NB]  = { -21, -35};
+
+const int ThreatWeakQueen[PHASE_NB] = { -48, -76};
+
 
 const int NoneValue[PHASE_NB] = {   0,   0};
 
@@ -167,6 +175,10 @@ int evaluateBoard(Board* board, PawnTable* ptable){
     // Setup and perform the evaluation of all pieces
     initializeEvalInfo(&ei, board, ptable);
     evaluatePieces(&ei, board, ptable);
+    
+    // Evaluate threats after attack maps are filled
+    evaluateThreats(&ei, board, WHITE);
+    evaluateThreats(&ei, board, BLACK);
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei.midgame[WHITE] - ei.midgame[BLACK]
@@ -282,6 +294,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
+    ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
     ei->attacked[colour] |= ei->pawnAttacks[colour];
     ei->attackedNoQueen[colour] |= attacks;
     
@@ -367,6 +380,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the knight attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = knightAttacks(sq, ~0ull);
+        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
@@ -433,6 +447,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the bishop attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
+        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
@@ -485,6 +500,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull);
+        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
@@ -543,14 +559,8 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // determine whether or not passed pawns may advance safely later on.
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull)
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
+        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
-            
-        // Apply a bonus if the queen is under an attack threat
-        if ((1ull << sq) & ei->attackedNoQueen[!colour]){
-            ei->midgame[colour] += QueenChecked[MG];
-            ei->endgame[colour] += QueenChecked[EG];
-            if (TRACE) T.queenChecked[colour]++;
-        }
             
         // Apply a bonus (or penalty) based on the mobility of the queen
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
@@ -620,6 +630,52 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+    }
+}
+
+void evaluateThreats(EvalInfo* ei, Board* board, int colour){
+
+    uint64_t pawns    = board->colours[colour] & board->pieces[PAWN  ];
+    uint64_t knights  = board->colours[colour] & board->pieces[KNIGHT];
+    uint64_t bishops  = board->colours[colour] & board->pieces[BISHOP];
+    uint64_t rooks    = board->colours[colour] & board->pieces[ROOK  ];
+    uint64_t queens   = board->colours[colour] & board->pieces[QUEEN ];
+    
+    uint64_t minors = knights | bishops;
+    
+    uint64_t weakpawns  = pawns  & ei->attackedBy2[!colour] & ~ei->attackedBy2[colour];
+    uint64_t weakminors = minors & ei->pawnAttacks[!colour];
+    uint64_t weakrooks  = rooks  & ei->pawnAttacks[!colour];
+    uint64_t weakqueens = queens & ei->attackedNoQueen[!colour];
+    
+    int attacks;
+    
+    if (weakpawns){
+        attacks = popcount(weakpawns);
+        ei->midgame[colour] += attacks * ThreatWeakPawn[MG];
+        ei->endgame[colour] += attacks * ThreatWeakPawn[EG];
+        if (TRACE) T.threatWeakPawn[colour] += attacks;
+    }
+    
+    if (weakminors){    
+        attacks = popcount(weakminors);
+        ei->midgame[colour] += attacks * ThreatWeakMinor[MG];
+        ei->endgame[colour] += attacks * ThreatWeakMinor[EG];
+        if (TRACE) T.threatWeakMinor[colour] += attacks;
+    }
+
+    if (weakrooks){
+        attacks = popcount(weakrooks);
+        ei->midgame[colour] += attacks * ThreatWeakRook[MG];
+        ei->endgame[colour] += attacks * ThreatWeakRook[EG];
+        if (TRACE) T.threatWeakRook[colour] += attacks;
+    }
+    
+    if (weakqueens){
+        attacks = popcount(weakqueens);
+        ei->midgame[colour] += attacks * ThreatWeakQueen[MG];
+        ei->endgame[colour] += attacks * ThreatWeakQueen[EG];
+        if (TRACE) T.threatWeakQueen[colour] += attacks;
     }
 }
 

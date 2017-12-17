@@ -49,13 +49,17 @@ typedef struct EvalTrace {
     int rookMobility[COLOUR_NB][15];
     
     int queenCounts[COLOUR_NB];
-    int queenChecked[COLOUR_NB];
     int queenPSQT[COLOUR_NB][SQUARE_NB];
     int queenMobility[COLOUR_NB][28];
     
     int kingPSQT[COLOUR_NB][SQUARE_NB];
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
+    
+    int threatWeakPawn[COLOUR_NB];
+    int threatWeakMinor[COLOUR_NB];
+    int threatWeakRook[COLOUR_NB];
+    int threatWeakQueen[COLOUR_NB];
     
 } EvalTrace;
 
@@ -66,6 +70,7 @@ typedef struct EvalInfo {
     uint64_t kingAreas[COLOUR_NB];
     uint64_t mobilityAreas[COLOUR_NB];
     uint64_t attacked[COLOUR_NB];
+    uint64_t attackedBy2[COLOUR_NB];
     uint64_t attackedNoQueen[COLOUR_NB];
     uint64_t occupiedMinusBishops[COLOUR_NB];
     uint64_t occupiedMinusRooks[COLOUR_NB];
@@ -90,6 +95,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour);
 void evaluateQueens(EvalInfo* ei, Board* board, int colour);
 void evaluateKings(EvalInfo* ei, Board* board, int colour);
 void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
+void evaluateThreats(EvalInfo* ei, Board* board, int colour);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnTable* ptable);
 
 extern const int* PieceValues[8];
