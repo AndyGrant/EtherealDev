@@ -205,22 +205,50 @@ int evaluateDraws(Board* board){
         return 0;
     
     // Check for King Vs. King
-    if (kings == (white | black)) return 1;
+    if (kings == (white | black)) 
+        return 1;
     
     if ((white & kings) == white){
+        
         // Check for King Vs King and Knight/Bishop
         if (popcount(black & (knights | bishops)) <= 1) return 1;
         
         // Check for King Vs King and two Knights
         if (popcount(black & knights) == 2 && (black & bishops) == 0ull) return 1;
+        
+        // Check for King Vs
     }
     
     if ((black & kings) == black){
+        
         // Check for King Vs King and Knight/Bishop
         if (popcount(white & (knights | bishops)) <= 1) return 1;
         
         // Check for King Vs King and two Knights
         if (popcount(white & knights) == 2 && (white & bishops) == 0ull) return 1;
+    }
+    
+    
+    if ((white | black) == (bishops | kings)){
+    
+        // Check for King and Bishop vs King and two Bishops
+        if (popcount(white & bishops) == 2 && popcount(black & bishops) == 1)
+            return 1;
+        
+        // Check for King and Bishop vs King and two Bishops
+        if (popcount(white & bishops) == 1 && popcount(black & bishops) == 2)
+            return 1;
+    }
+    
+    if ((white | black) == (bishops | rooks | kings) && popcount(white | black) == 4){
+        
+        // Check for King and Rook vs King and Bishop
+        if (white == (white & (kings | rooks)) && black == (black & (black | bishops)))
+            return 1;
+        
+        // Check for King and Rook vs King and Bishop
+        if (white == (white & (kings | bishops)) && black == (black & (black | rooks)))
+            return 1;
     }
     
     return 0;
