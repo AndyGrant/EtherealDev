@@ -440,7 +440,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            &&  hasNonPawnMaterial(board, board->turn))
             continue;
         
         // Apply and validate move before searching
@@ -458,6 +459,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth]
+            &&  hasNonPawnMaterial(board, !board->turn)
             &&  isNotInCheck(board, board->turn)){
         
             revertMove(board, currentMove, undo);
