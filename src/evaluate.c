@@ -96,6 +96,8 @@ const int BishopMobility[14][PHASE_NB] = {
 
 const int RookValue[PHASE_NB] = { 453, 483};
 
+const int RookRedundancy[PHASE_NB] = { -15, -30};
+
 const int RookFile[2][PHASE_NB] = { {   8,   9}, {  25,   5} };
 
 const int RookOnSeventh[PHASE_NB] = {   3,  10};
@@ -487,6 +489,12 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull);
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        // Apply a penalty if we have more than one rook
+        if (tempRooks){
+            ei->midgame[colour] += RookRedundancy[MG];
+            ei->endgame[colour] += RookRedundancy[EG];
+        }
         
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
