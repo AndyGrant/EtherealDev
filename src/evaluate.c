@@ -164,9 +164,10 @@ int evaluateBoard(Board* board, PawnTable* ptable){
     // evaluateDraws handles obvious drawn positions
     if (evaluateDraws(board)) return 0;
     
-    // Setup and perform the evaluation of all pieces
+    // Setup and perform the evaluation
     initializeEvalInfo(&ei, board, ptable);
     evaluatePieces(&ei, board, ptable);
+    evaluateMaterialImbalance(&ei, board);
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei.midgame[WHITE] - ei.midgame[BLACK]
@@ -621,6 +622,39 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
+}
+
+void evaluateMaterialImbalance(EvalInfo* ei, Board* board){
+    
+    static int MaterialPawnImbalance[PHASE_NB] = {   3,   4};
+    
+    static int MaterialImbalance[5][5][PHASE_NB] = {
+        {{-120,-160},{ -70, -99},{ -50, -70},{ -45, -62},{ -39, -55}},
+        {{ -55, -88},{ -56, -39},{ -22, -32},{ -16, -22},{   4,  -4}},
+        {{ -22, -42},{ -10, -18},{   0,   0},{  10,  18},{  22,  42}},
+        {{   4,  -4},{ -16, -22},{  22,  32},{  39,  56},{  55,  88}},
+        {{  39,  55},{  45,  62},{  50,  70},{  70,  99},{ 120, 160}},
+    };
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t pawns  = board->pieces[PAWN];
+    uint64_t minors = board->pieces[KNIGHT] | board->pieces[BISHOP];
+    uint64_t majors = board->pieces[ROOK  ] | board->pieces[QUEEN ];
+    
+    int pawndiff  = popcount(white & pawns ) - popcount(black & pawns );
+    int minordiff = popcount(white & minors) - popcount(black & minors);
+    int majordiff = popcount(white & majors) - popcount(black & majors);
+    
+    ei->midgame[WHITE] += pawndiff * pawndiff * MaterialPawnImbalance[MG];
+    ei->endgame[WHITE] += pawndiff * pawndiff * MaterialPawnImbalance[EG];
+    
+    minordiff = MAX(0, MIN(minordiff + 2, 4));
+    majordiff = MAX(0, MIN(majordiff + 2, 4));
+    
+    ei->midgame[WHITE] += MaterialImbalance[majordiff][minordiff][MG];
+    ei->endgame[WHITE] += MaterialImbalance[majordiff][minordiff][EG];
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
