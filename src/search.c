@@ -442,14 +442,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             continue;
-        
-        // Apply and validate move before searching
-        applyMove(board, currentMove, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, currentMove, undo);
-            continue;
-        }
-        
+            
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
@@ -457,9 +450,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]
-            &&  isNotInCheck(board, board->turn)){
+            &&  quiets > LateMovePruningCounts[depth])
+            continue;
         
+        // Apply and validate move before searching
+        applyMove(board, currentMove, undo);
+        if (!isNotInCheck(board, !board->turn)){
             revertMove(board, currentMove, undo);
             continue;
         }
