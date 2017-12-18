@@ -434,19 +434,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
         }
         
+        // Apply and validate move before searching
+        applyMove(board, currentMove, undo);
+        if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, currentMove, undo);
+            continue;
+        }
+        
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            continue;
-        
-        // Apply and validate move before searching
-        applyMove(board, currentMove, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, currentMove, undo);
+            &&  depth <= FutilityPruningDepth
+            &&  isNotInCheck(board, board->turn)){
+            
+            revertMove(board, currentMove, undo);            
             continue;
         }
         
