@@ -242,7 +242,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
+    int hist = 0, iidValue = MATE;// Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -411,7 +411,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        iidValue = search(thread, &lpv, alpha, beta, depth-2, height);
         
         // Probe for the newly found move, and update ttMove / ttTactical
         if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
@@ -479,6 +479,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
+            R += iidValue >= beta;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
