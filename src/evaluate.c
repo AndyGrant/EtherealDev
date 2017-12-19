@@ -488,6 +488,14 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
+        static const int RookSupportsPassedPawn[PHASE_NB] = {  10,  13};
+        
+        // Rook gains a bonus for supporting a passed pawn
+        if (Files[File(sq)] & attacks & ei->passedPawns & myPawns){
+            ei->midgame[colour] += RookSupportsPassedPawn[MG];
+            ei->endgame[colour] += RookSupportsPassedPawn[EG];
+        }
+        
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
         // there are no pawns at all, it is an open file
