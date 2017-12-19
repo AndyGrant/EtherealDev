@@ -545,8 +545,15 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
         ei->attacked[colour] |= attacks;
             
-        // Apply a bonus if the queen is under an attack threat
+        // Apply a penalty if the queen is under an attack threat
         if ((1ull << sq) & ei->attackedNoQueen[!colour]){
+            ei->midgame[colour] += QueenChecked[MG];
+            ei->endgame[colour] += QueenChecked[EG];
+            if (TRACE) T.queenChecked[colour]++;
+        }
+        
+        // Apply a penalty if the queen is under attack by a pawn
+        if ((1ull << sq) & ei->pawnAttacks[!colour]){
             ei->midgame[colour] += QueenChecked[MG];
             ei->endgame[colour] += QueenChecked[EG];
             if (TRACE) T.queenChecked[colour]++;
