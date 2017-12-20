@@ -110,9 +110,9 @@ const int RookMobility[15][PHASE_NB] = {
 
 const int QueenValue[PHASE_NB] = { 846, 880};
 
-const int QueenChecked[PHASE_NB] = { -48, -45};
+const int QueenChecked[PHASE_NB] = { -33, -98};
 
-const int QueenCheckedByPawn[PHASE_NB] = { -48, -45};
+const int QueenCheckedByPawn[PHASE_NB] = { -54,-143};
 
 const int QueenMobility[28][PHASE_NB] = {
     {-138, -50}, { -91,-239}, { -86,-106}, { -50, -63},
