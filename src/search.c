@@ -242,7 +242,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
+    int triedRazoring = 0, hist = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -363,6 +363,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return value;
+        
+        // Flag this as a failed razoring attempt. We will not
+        // perform any futility pruning (Step 13) on this node
+        triedRazoring = 1;
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -422,6 +426,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 12. Check Extension
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += triedRazoring;
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
