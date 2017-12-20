@@ -243,6 +243,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
+    int triedNMP = 0;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -402,6 +403,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 value = beta;
             return value;
         }
+        
+        triedNMP = 1;
     }
     
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
@@ -479,6 +482,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
+            R -= triedNMP && eval > beta + PieceValues[PAWN][MG];
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
