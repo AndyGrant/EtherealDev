@@ -69,6 +69,8 @@ const int PawnConnected32[32][PHASE_NB] = {
 
 const int KnightValue[PHASE_NB] = { 315, 300};
 
+const int KnightBonusForPawns[PHASE_NB] = {   2,   4};
+
 const int KnightOutpost[2][PHASE_NB] = { {  12, -11}, {  29,  10} };
 
 const int KnightMobility[9][PHASE_NB] = {
@@ -79,6 +81,8 @@ const int KnightMobility[9][PHASE_NB] = {
 
 
 const int BishopValue[PHASE_NB] = { 314, 302};
+
+const int BishopPenaltyForPawns[PHASE_NB] = {  -2,  -4};
 
 const int BishopWings[PHASE_NB] = {  -4,   9};
 
@@ -349,11 +353,19 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKnights(EvalInfo* ei, Board* board, int colour){
     
-    int sq, defended, mobilityCount;
-    uint64_t tempKnights, enemyPawns, attacks; 
+    int sq, defended, mobilityCount, count;
+    uint64_t myPawns, enemyPawns, tempKnights, attacks; 
     
-    tempKnights = board->pieces[KNIGHT] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    myPawns     = board->pieces[PAWN  ] & board->colours[ colour];
+    enemyPawns  = board->pieces[PAWN  ] & board->colours[!colour];
+    tempKnights = board->pieces[KNIGHT] & board->colours[ colour];
+    
+    // Apply a bonus when there for number of pawns on the board
+    if (tempKnights){
+        count = popcount(tempKnights) * (popcount(myPawns | enemyPawns) - 8);
+        ei->midgame[colour] += count * KnightBonusForPawns[MG];
+        ei->endgame[colour] += count * KnightBonusForPawns[EG];
+    }
     
     // Evaluate each knight
     while (tempKnights){
@@ -400,12 +412,20 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
 
 void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     
-    int sq, defended, mobilityCount;
-    uint64_t tempBishops, myPawns, enemyPawns, attacks;
+    int sq, defended, mobilityCount, count;
+    uint64_t myPawns, enemyPawns, tempBishops, attacks;
     
-    tempBishops = board->pieces[BISHOP] & board->colours[colour];
-    myPawns = board->pieces[PAWN] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    myPawns     = board->pieces[PAWN  ] & board->colours[ colour];
+    enemyPawns  = board->pieces[PAWN  ] & board->colours[!colour];
+    tempBishops = board->pieces[BISHOP] & board->colours[ colour];
+    
+    // Apply a penalty for the number of pawns on the board
+    // Apply a bonus when there for number of pawns on the board
+    if (tempBishops){
+        count = popcount(tempBishops) * (popcount(myPawns | enemyPawns) - 8);
+        ei->midgame[colour] += count * BishopPenaltyForPawns[MG];
+        ei->endgame[colour] += count * BishopPenaltyForPawns[EG];
+    }
     
     // Apply a bonus for having pawn wings and a bishop
     if (tempBishops && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
