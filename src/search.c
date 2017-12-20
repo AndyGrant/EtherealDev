@@ -208,7 +208,7 @@ int aspirationWindow(Thread* thread, int depth){
         margin = MAX(margin, 0.8 * (abs(values[depth - 3] - values[depth - 4])));
         margin = MAX(margin, 1);
         
-        for (; margin <= 640; margin *= 2){
+        for (; margin <= 640; margin = 1.5 * (margin + 1)){
             
             // Create the aspiration window
             thread->lower = alpha = values[depth - 1] - margin;
