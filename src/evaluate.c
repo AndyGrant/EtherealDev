@@ -158,25 +158,24 @@ const int* PieceValues[8] = {
     QueenValue, KingValue, NoneValue, NoneValue
 };
 
-int evaluateBoard(Board* board, PawnTable* ptable){
+int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     
-    EvalInfo ei;
     int mg, eg, phase, eval;
     
     // evaluateDraws handles obvious drawn positions
     if (evaluateDraws(board)) return 0;
     
     // Setup and perform the evaluation of all pieces
-    initializeEvalInfo(&ei, board, ptable);
-    evaluatePieces(&ei, board, ptable);
+    initializeEvalInfo(ei, board, ptable);
+    evaluatePieces(ei, board, ptable);
         
     // Combine evaluation terms for the mid game
-    mg = board->midgame + ei.midgame[WHITE] - ei.midgame[BLACK]
-       + ei.pawnMidgame[WHITE] - ei.pawnMidgame[BLACK] + Tempo[board->turn][MG];
+    mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
+       + ei->pawnMidgame[WHITE] - ei->pawnMidgame[BLACK] + Tempo[board->turn][MG];
        
     // Combine evaluation terms for the end game
-    eg = board->endgame + ei.endgame[WHITE] - ei.endgame[BLACK]
-       + ei.pawnEndgame[WHITE] - ei.pawnEndgame[BLACK] + Tempo[board->turn][EG];
+    eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
+       + ei->pawnEndgame[WHITE] - ei->pawnEndgame[BLACK] + Tempo[board->turn][EG];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4

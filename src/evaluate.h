@@ -81,7 +81,7 @@ typedef struct EvalInfo {
     
 } EvalInfo;
 
-int evaluateBoard(Board* board, PawnTable* ptable);
+int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable);
 int evaluateDraws(Board* board);
 void evaluatePieces(EvalInfo* ei, Board* board, PawnTable* ptable);
 void evaluatePawns(EvalInfo* ei, Board* board, int colour);
