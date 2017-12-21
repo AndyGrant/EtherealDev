@@ -623,6 +623,14 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
             continue;
+            
+        // Prune this capture if it is capturing a heavily defended piece, so long
+        // as we do not have any additional support for the attacker. If the capture
+        // is also a promotion we will not perform any pruning here, like above
+        if (     MoveType(currentMove) != PROMOTION_MOVE
+            &&  (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
+            && !(ei.attackedBy2[ board->turn] & (1ull << MoveTo(currentMove))))
+            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
