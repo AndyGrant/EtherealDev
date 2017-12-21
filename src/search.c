@@ -248,9 +248,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     
     Undo undo[1];
+    EvalInfo ei;
     PVariation lpv;
     TransEntry ttEntry;
-    MovePicker movePicker;        
+    MovePicker movePicker;
     
     lpv.length = 0;
     pv->length = 0;
@@ -343,7 +344,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Determine check status if not done already
     inCheck = inCheck || !isNotInCheck(board, board->turn);
     if (!PvNode){
-        eval = evaluateBoard(board, &thread->ptable);
+        eval = evaluateBoard(board, &ei, &thread->ptable);
         futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
     }
     
@@ -549,9 +550,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     Board* const board = &thread->board;
     
     int eval, value, best, maxValueGain;
+    int played = 0;
     uint16_t currentMove;
     Undo undo[1];
     MovePicker movePicker;
+    EvalInfo ei;
     
     PVariation lpv;
     lpv.length = 0;
@@ -571,10 +574,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     // Max height reached, stop here
     if (height >= MAX_HEIGHT)
-        return evaluateBoard(board, &thread->ptable);
+        return evaluateBoard(board, &ei, &thread->ptable);
     
     // Get a standing eval of the current board
-    best = value = eval = evaluateBoard(board, &thread->ptable);
+    best = value = eval = evaluateBoard(board, &ei, &thread->ptable);
     
     // Update lower bound
     if (value > alpha) alpha = value;
@@ -612,12 +615,18 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (value < alpha)
             continue;
         
+         if (    (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
+             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+              <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+             continue;
+        
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
             revertMove(board, currentMove, undo);
             continue;
-        }
+        } played++;
         
         // Search next depth
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
