@@ -612,6 +612,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (value < alpha)
             continue;
         
+        if (     PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+               < PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]
+            && squareIsAttacked(board, !board->turn, MoveTo(currentMove)))
+            continue;
+        
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
