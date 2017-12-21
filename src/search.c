@@ -92,6 +92,8 @@ void* iterativeDeepening(void* vthread){
     
     Thread* const thread = (Thread*) vthread;
     
+    Limits* const limits = thread->limits;
+    
     int i, count, value = 0, depth, abort;
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
@@ -138,7 +140,7 @@ void* iterativeDeepening(void* vthread){
             }
             
             // Dynamically decide how much time we should be using
-            if (thread->limits->limitedBySelf){
+            if (limits->limitedBySelf){
                 
                 // Increase our time if the score suddently dropped by eight centipawns
                 if (depth >= 4 && thread->info->values[thread->info->depth] > value + 8)
@@ -164,10 +166,10 @@ void* iterativeDeepening(void* vthread){
                     thread->threads[i].abort = ABORT_DEPTH;
             
             // Check for termination by any of the possible limits
-            if (   (thread->limits->limitedByDepth && depth >= thread->limits->depthLimit)
-                || (thread->limits->limitedByTime  && getRealTime() - thread->starttime > thread->limits->timeLimit)
-                || (thread->limits->limitedBySelf  && getRealTime() - thread->starttime > thread->maxusage)
-                || (thread->limits->limitedBySelf  && getRealTime() - thread->starttime > *thread->idealusage)){
+            if (   (limits->limitedByDepth && depth >= limits->depthLimit)
+                || (limits->limitedByTime  && getRealTime() - thread->starttime >  limits->timeLimit)
+                || (limits->limitedBySelf  && getRealTime() - thread->starttime > *thread->idealusage)
+                || (limits->limitedBySelf  && getRealTime() - thread->starttime >  thread->maxusage / 1.5)){
                 
                 for (i = 0; i < thread->nthreads; i++)
                     thread->threads[i].abort = ABORT_ALL;
