@@ -191,8 +191,9 @@ void* iterativeDeepening(void* vthread){
                 // We expect to complete the next depth in the same time as this depth,
                 // but multiplied by a factor of based on previous growth trends. We add
                 // a small value of .25 to the growth factor as a safety net to attempt
-                // to further avoid fruitless uses of the allocated search time
-                expectedUsage = info->usage[depth] * (info->usage[depth] / info->usage[depth-1] - .25);
+                // to further avoid fruitless uses of the allocated search time. We also
+                // cap the growth rate at a factor of 2, to account for any big PV changes.
+                expectedUsage = info->usage[depth] * (MIN(2, info->usage[depth] / info->usage[depth-1]) + .25);
                 
                 // Check to see if there are any threads on a higher depth that are
                 // expected to complete their search before the max usage time is hit
