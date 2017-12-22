@@ -39,11 +39,10 @@ typedef struct Thread {
     double* idealusage;
     double starttime;
     double maxusage;
+    double depthtime;
     
     int depth;
     int value;
-    int lower;
-    int upper;
     uint64_t nodes;
     
     int abort;
