@@ -191,10 +191,10 @@ void* iterativeDeepening(void* vthread){
                 
                 // Determine the average growth of search times for all the previous
                 // depths. We will only consider consecutive depth'ed searches, and
-                // limit the growth factor to 2.5 in the case of a hard PV change.
-                for (i = 2; i < depth; i++){
+                // limit the growth factor to 2.0 in the case of a hard PV change.
+                for (i = 2; i <= depth; i++){
                     if (info->usage[i] != 0.0 && info->usage[i-1] != 0.0){
-                        totalFactor += MIN(2.5, info->usage[i] / info->usage[i-1]);
+                        totalFactor += MIN(2.0, info->usage[i] / info->usage[i-1]);
                         factors     += 1;
                     }
                 }
@@ -203,7 +203,7 @@ void* iterativeDeepening(void* vthread){
                 // but multiplied by a factor of based on previous growth trends. We add
                 // a small value of .25 to the growth factor as a safety net to attempt
                 // to further avoid fruitless uses of the allocated search time
-                expectedUsage = info->usage[depth] * totalFactor / MIN(1, factors) + .25;
+                expectedUsage = info->usage[depth] * totalFactor / (MIN(1, factors) + .25);
                 
                 // Check to see if there are any threads on a higher depth that are
                 // expected to complete their search before the max usage time is hit
@@ -214,7 +214,8 @@ void* iterativeDeepening(void* vthread){
                         
                 // No other thread is expected to complete, and we do not expect this thread
                 // to be able to start and complete a search on depth + 1 within the time window
-                if (   !expectedToComplete
+                if (    factors > 4
+                    && !expectedToComplete
                     &&  getRealTime() - thread->starttime + expectedUsage > thread->maxusage){
                     
                 
