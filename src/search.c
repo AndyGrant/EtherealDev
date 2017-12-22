@@ -92,6 +92,8 @@ void* iterativeDeepening(void* vthread){
     
     Thread* const thread = (Thread*) vthread;
     
+    SearchInfo* const info = thread->info;
+    
     int i, count, value = 0, depth, abort;
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
@@ -102,17 +104,16 @@ void* iterativeDeepening(void* vthread){
         
         thread->depth = depth;
         
-         for (count = 0, i = 0; i < thread->nthreads; i++)
-             count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
-         
-         if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
-             thread->depth = depth + 1;
-             pthread_mutex_unlock(thread->lock);
-             continue;
-         }
-         
-         pthread_mutex_unlock(thread->lock);
-        
+        for (count = 0, i = 0; i < thread->nthreads; i++)
+            count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
+
+        if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
+            thread->depth = depth + 1;
+            pthread_mutex_unlock(thread->lock);
+            continue;
+        }
+
+        pthread_mutex_unlock(thread->lock);
         
         abort = setjmp(thread->jbuffer);
         
@@ -141,18 +142,19 @@ void* iterativeDeepening(void* vthread){
             if (thread->limits->limitedBySelf){
                 
                 // Increase our time if the score suddently dropped by eight centipawns
-                if (depth >= 4 && thread->info->values[thread->info->depth] > value + 8)
+                if (depth >= 4 && info->values[info->depth] > value + 8)
                     *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 1.10);
                 
                 // Increase our time if the pv has changed across the last two iterations
-                if (depth >= 4 && thread->info->bestmoves[thread->info->depth] != thread->pv.line[0])
+                if (depth >= 4 && info->bestmoves[info->depth] != thread->pv.line[0])
                     *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 1.35);
             }
             
             // Update the Search Info structure for the main thread
-            thread->info->depth = depth;
-            thread->info->values[depth] = value;
-            thread->info->bestmoves[depth] = thread->pv.line[0];
+            info->depth = depth;
+            info->values[depth] = value;
+            info->bestmoves[depth] = thread->pv.line[0];
+            info->endtime[depth] = getRealTime() - thread->starttime;
             
             // Send information about this search to the interface
             uciReport(thread->threads, thread->starttime, depth, value, &thread->pv);
@@ -176,6 +178,40 @@ void* iterativeDeepening(void* vthread){
                 
                 break;
             }
+            
+            // Check to see if we expect to be able to complete the next depth
+            if (thread->limits->limitedBySelf){
+                
+                int factors = 0;
+                double totalFactor = 0;
+                double latestUsage;
+                
+                
+                for (i = 2; i < depth; i++){
+                    if (info->endtime[i] != 0.0 && info->endtime[i-1] != 0.0){
+                        totalFactor = MIN(2.5, info->endtime[i] / info->endtime[i-1]);
+                        latestUsage = info->endtime[i] - info->endtime[i-1];
+                        factors += 1;
+                    }
+                }
+                
+                double expectedEnd = info->endtime[depth] + latestUsage * (totalFactor / MIN(1, factors) + .40);
+                
+                if (   info->endtime[depth    ] != 0.0
+                    && info->endtime[depth - 1] != 0.0
+                    && factors > 4
+                    && expectedEnd > thread->maxusage){
+                    
+                    for (i = 0; i < thread->nthreads; i++)
+                        thread->threads[i].abort = ABORT_ALL;
+                    
+                    pthread_mutex_unlock(thread->lock);
+                    
+                    break;
+                }
+                
+            }
+                
             
             pthread_mutex_unlock(thread->lock);
         }
