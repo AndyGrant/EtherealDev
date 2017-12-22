@@ -186,24 +186,13 @@ void* iterativeDeepening(void* vthread){
             // so we will only attempt to use it if we completed the previous depth
             if (thread->limits->limitedBySelf && info->usage[depth - 1] != 0.0){
                 
-                int factors = 0, expectedToComplete = 0;
-                double expectedUsage, totalFactor = 0;
-                
-                // Determine the average growth of search times for all the previous
-                // depths. We will only consider consecutive depth'ed searches, and
-                // limit the growth factor to 2.0 in the case of a hard PV change.
-                for (i = 2; i <= depth; i++){
-                    if (info->usage[i] != 0.0 && info->usage[i-1] != 0.0){
-                        totalFactor += MIN(2.0, info->usage[i] / info->usage[i-1]);
-                        factors     += 1;
-                    }
-                }
+                double expectedUsage, expectedToComplete = 0;
                 
                 // We expect to complete the next depth in the same time as this depth,
                 // but multiplied by a factor of based on previous growth trends. We add
                 // a small value of .25 to the growth factor as a safety net to attempt
                 // to further avoid fruitless uses of the allocated search time
-                expectedUsage = info->usage[depth] * totalFactor / (MIN(1, factors) + .25);
+                expectedUsage = info->usage[depth] * (info->usage[depth] / info->usage[depth-1] - .25);
                 
                 // Check to see if there are any threads on a higher depth that are
                 // expected to complete their search before the max usage time is hit
@@ -214,11 +203,9 @@ void* iterativeDeepening(void* vthread){
                         
                 // No other thread is expected to complete, and we do not expect this thread
                 // to be able to start and complete a search on depth + 1 within the time window
-                if (    factors > 4
-                    && !expectedToComplete
+                if (   !expectedToComplete
                     &&  getRealTime() - thread->starttime + expectedUsage > thread->maxusage){
                     
-                
                     for (i = 0; i < thread->nthreads; i++)
                         thread->threads[i].abort = ABORT_ALL;
                     
