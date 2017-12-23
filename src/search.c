@@ -201,7 +201,7 @@ int aspirationWindow(Thread* thread, int depth){
     
     int* const values = thread->info->values;
     
-    if (depth > 4 && abs(values[depth - 1]) < MATE / 2){
+    if (depth > 4 && abs(values[thread->info->depth]) < MATE / 2){
         
         margin =             1.6 * (abs(values[depth - 1] - values[depth - 2]));
         margin = MAX(margin, 2.0 * (abs(values[depth - 2] - values[depth - 3])));
@@ -211,8 +211,8 @@ int aspirationWindow(Thread* thread, int depth){
         for (; margin <= 640; margin *= 2){
             
             // Create the aspiration window
-            thread->lower = alpha = values[depth - 1] - margin;
-            thread->upper = beta  = values[depth - 1] + margin;
+            alpha = values[thread->info->depth] - margin;
+            beta  = values[thread->info->depth] + margin;
             
             // Perform the search on the modified window
             thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0);
