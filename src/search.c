@@ -197,7 +197,7 @@ void* iterativeDeepening(void* vthread){
                     if (thread->threads[i].depth > depth){
                         
                         estimatedUsage = info->usage[depth];
-                        for (j = 0; j < estimatedUsage; j++)
+                        for (j = 0; j < thread->threads[i].depth - depth; j++)
                             estimatedUsage += estimatedUsage * localFactor;
                         
                         if (thread->threads[i].depthtime + estimatedUsage < thread->maxusage)
