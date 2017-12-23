@@ -16,10 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <pthread.h>
-#include <setjmp.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
+#include <pthread.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -186,26 +187,21 @@ void* iterativeDeepening(void* vthread){
             // so we will only attempt to use it if we completed the previous depth
             if (thread->limits->limitedBySelf && info->usage[depth - 1] != 0.0){
                 
-                double expectedUsage, expectedToComplete = 0;
+                double localFactor, expectedToComplete = 0;
                 
-                // We expect to complete the next depth in the same time as this depth,
-                // but multiplied by a factor of based on previous growth trends. We add
-                // a small value of .25 to the growth factor as a safety net to attempt
-                // to further avoid fruitless uses of the allocated search time. We also
-                // cap the growth rate at a factor of 2, to account for any big PV changes.
-                expectedUsage = info->usage[depth] * (MIN(2, info->usage[depth] / info->usage[depth-1]) + .25);
+                localFactor = MIN(10, info->usage[depth] / info->usage[depth-1]) - .25;
                 
                 // Check to see if there are any threads on a higher depth that are
                 // expected to complete their search before the max usage time is hit
                 for (i = 0; i < thread->nthreads; i++)
                     if (    thread->threads[i].depth > depth
-                        &&  thread->threads[i].depthtime + expectedUsage * (thread->threads[i].depth - depth) < thread->maxusage)
+                        &&  thread->threads[i].depthtime + info->usage[depth] * pow(localFactor, (thread->threads[i].depth - depth)) < thread->maxusage)
                        {expectedToComplete = 1; break;}
                         
                 // No other thread is expected to complete, and we do not expect this thread
                 // to be able to start and complete a search on depth + 1 within the time window
                 if (   !expectedToComplete
-                    &&  getRealTime() - thread->starttime + expectedUsage > thread->maxusage){
+                    &&  getRealTime() - thread->starttime + info->usage[depth] * localFactor > thread->maxusage){
                     
                     for (i = 0; i < thread->nthreads; i++)
                         thread->threads[i].abort = ABORT_ALL;
