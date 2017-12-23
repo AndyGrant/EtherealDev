@@ -95,7 +95,7 @@ void* iterativeDeepening(void* vthread){
     
     SearchInfo* const info = thread->info;
     
-    int i, count, value = 0, depth, abort;
+    int i, j, count, value = 0, depth, abort;
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
@@ -187,16 +187,23 @@ void* iterativeDeepening(void* vthread){
             // so we will only attempt to use it if we completed the previous depth
             if (thread->limits->limitedBySelf && info->usage[depth - 1] != 0.0){
                 
-                double localFactor, expectedToComplete = 0;
+                double estimatedUsage, localFactor, expectedToComplete = 0;
                 
-                localFactor = MIN(10, info->usage[depth] / info->usage[depth-1]) - .25;
+                localFactor = MIN(5, info->usage[depth] / info->usage[depth-1]) - .25;
                 
                 // Check to see if there are any threads on a higher depth that are
                 // expected to complete their search before the max usage time is hit
-                for (i = 0; i < thread->nthreads; i++)
-                    if (    thread->threads[i].depth > depth
-                        &&  thread->threads[i].depthtime + info->usage[depth] * pow(localFactor, (thread->threads[i].depth - depth)) < thread->maxusage)
-                       {expectedToComplete = 1; break;}
+                for (i = 0; i < thread->nthreads; i++){
+                    if (thread->threads[i].depth > depth){
+                        
+                        estimatedUsage = info->usage[depth];
+                        for (j = 0; j < estimatedUsage; j++)
+                            estimatedUsage += estimatedUsage * localFactor;
+                        
+                        if (thread->threads[i].depthtime + estimatedUsage < thread->maxusage)
+                            {expectedToComplete = 1; break;}
+                    }
+                }
                         
                 // No other thread is expected to complete, and we do not expect this thread
                 // to be able to start and complete a search on depth + 1 within the time window
