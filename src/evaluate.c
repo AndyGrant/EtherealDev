@@ -435,7 +435,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the bishop attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
-        attacks = bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
+        attacks = bishopAttacks(sq, ei->occupiedMinusSliders[colour], ~0ull);
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
@@ -488,7 +488,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
-        attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull);
+        attacks = rookAttacks(sq, ei->occupiedMinusSliders[colour], ~0ull);
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
@@ -546,8 +546,8 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
-        attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull)
-                | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
+        attacks = rookAttacks(sq, ei->occupiedMinusSliders[colour], ~0ull)
+                | bishopAttacks(sq, ei->occupiedMinusSliders[colour], ~0ull);
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
             
@@ -667,11 +667,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     ei->attacked[WHITE] = ei->attackedNoQueen[WHITE] = kingAttacks(wKingSq, ~0ull);
     ei->attacked[BLACK] = ei->attackedNoQueen[BLACK] = kingAttacks(bKingSq, ~0ull);
     
-    ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
-    ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
-    
-    ei->occupiedMinusRooks[WHITE] = (white | black) ^ (white & (rooks | queens));
-    ei->occupiedMinusRooks[BLACK] = (white | black) ^ (black & (rooks | queens));
+    ei->occupiedMinusSliders[WHITE] = (white | black) ^ (white & (bishops | rooks | queens));
+    ei->occupiedMinusSliders[BLACK] = (white | black) ^ (black & (bishops | rooks | queens));
     
     ei->passedPawns = 0ull;
     

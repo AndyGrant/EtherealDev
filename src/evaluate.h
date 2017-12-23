@@ -69,8 +69,7 @@ typedef struct EvalInfo {
     uint64_t attacked[COLOUR_NB];
     uint64_t attackedBy2[COLOUR_NB];
     uint64_t attackedNoQueen[COLOUR_NB];
-    uint64_t occupiedMinusBishops[COLOUR_NB];
-    uint64_t occupiedMinusRooks[COLOUR_NB];
+    uint64_t occupiedMinusSliders[COLOUR_NB];
     uint64_t passedPawns;
     int attackCounts[COLOUR_NB];
     int attackerCounts[COLOUR_NB];
