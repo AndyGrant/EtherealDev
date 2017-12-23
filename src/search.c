@@ -199,7 +199,7 @@ void* iterativeDeepening(void* vthread){
                 // expected to complete their search before the max usage time is hit
                 for (i = 0; i < thread->nthreads; i++)
                     if (    thread->threads[i].depth > depth
-                        &&  thread->threads[i].depthtime + expectedUsage < thread->maxusage)
+                        &&  thread->threads[i].depthtime + expectedUsage * (thread->threads[i].depth - depth) < thread->maxusage)
                        {expectedToComplete = 1; break;}
                         
                 // No other thread is expected to complete, and we do not expect this thread
