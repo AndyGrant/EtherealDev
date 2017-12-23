@@ -336,17 +336,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Entry allows early exit
             if (rAlpha >= rBeta) return ttValue;
         }
-    }
+    }    
     
-    // Step 7. Determine check status, and calculate the futility margin.
-    // We only need the futility margin if we are not in check, and we
-    // are not looking at a PV Node, as those are not subject to futility.
-    // Determine check status if not done already
     inCheck = inCheck || !isNotInCheck(board, board->turn);
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
-    }
+    eval = evaluateBoard(board, &ei, &thread->ptable);
+    futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -480,6 +474,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
+            R -= !ei.positionIsDrawn && ei.attackerCounts[board->turn] > 3;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
