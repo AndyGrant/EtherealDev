@@ -185,11 +185,11 @@ void* iterativeDeepening(void* vthread){
             // Check to see if we expect to be able to complete the next depth. If we
             // skipped over a depth while searching, this heuristic loses some value,
             // so we will only attempt to use it if we completed the previous depth
-            if (thread->limits->limitedBySelf && info->usage[depth - 1] != 0.0){
+            if (thread->limits->limitedBySelf && info->usage[depth-1] != 0.0){
                 
                 double estimatedUsage, localFactor, expectedToComplete = 0;
                 
-                localFactor = MIN(5, info->usage[depth] / info->usage[depth-1]) - .25;
+                localFactor = MIN(2, info->usage[depth] / info->usage[depth-1]) - .50;
                 
                 // Check to see if there are any threads on a higher depth that are
                 // expected to complete their search before the max usage time is hit
