@@ -379,32 +379,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             return value;
     }
     
-    // Step 10. Null Move Pruning. If our position is so good that
-    // giving our opponent back-to-back moves is still not enough
-    // for them to gain control of the game, we can be somewhat safe
-    // in saying that our position is too good to be true
-    if (   !PvNode
-        && !inCheck
-        &&  depth >= NullMovePruningDepth
-        &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
-            
-        R = MIN(7, 4 + depth / 6 + (eval - beta + 200) / 400); 
-            
-        applyNullMove(board, undo);
-        
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
-        
-        revertNullMove(board, undo);
-        
-        if (value >= beta){
-            if (value >= MATE - MAX_HEIGHT)
-                value = beta;
-            return value;
-        }
-    }
-    
     // Step 11. ProbCut
     if (   !PvNode
         && !inCheck
@@ -446,6 +420,34 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         }
     }
+    
+    // Step 10. Null Move Pruning. If our position is so good that
+    // giving our opponent back-to-back moves is still not enough
+    // for them to gain control of the game, we can be somewhat safe
+    // in saying that our position is too good to be true
+    if (   !PvNode
+        && !inCheck
+        &&  depth >= NullMovePruningDepth
+        &&  eval >= beta
+        &&  hasNonPawnMaterial(board, board->turn)
+        &&  board->history[board->numMoves-1] != NULL_MOVE){
+            
+        R = MIN(7, 4 + depth / 6 + (eval - beta + 200) / 400); 
+            
+        applyNullMove(board, undo);
+        
+        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        
+        revertNullMove(board, undo);
+        
+        if (value >= beta){
+            if (value >= MATE - MAX_HEIGHT)
+                value = beta;
+            return value;
+        }
+    }
+    
+
     
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
