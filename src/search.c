@@ -430,14 +430,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            value = -qsearch(thread, pv, -rbeta, -rbeta+1, height+1);
-            
-            if (value < rbeta){
-                revertMove(board, currentMove, undo);
-                continue;
+            if (depth <= 8){
+                value = -qsearch(thread, pv, -rbeta, -rbeta+1, height+1);
+                if (value < rbeta){
+                    revertMove(board, currentMove, undo);
+                    continue;
+                }
             }
             
-            value =  -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
+            else {
+                value = -search(thread, &lpv, -rbeta, -rbeta+1, depth - 7, height+1);
+                if (value < rbeta){
+                    revertMove(board, currentMove, undo);
+                    continue;
+                }
+            }
+            
+            value = -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
             
             revertMove(board, currentMove, undo);
             
