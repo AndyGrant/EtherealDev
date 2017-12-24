@@ -408,7 +408,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11. ProbCut
     if (   !PvNode
         && !inCheck
-        &&  depth >= 5
+        &&  depth >= 4
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
             
@@ -437,7 +437,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            value =  -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
+            value =  -search(thread, &lpv, -rbeta, -rbeta + 1, depth - 3, height + 1);
             
             revertMove(board, currentMove, undo);
             
