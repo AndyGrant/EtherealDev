@@ -430,20 +430,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            value = -qsearch(thread, pv, -rbeta, -rbeta+1, height+1);
-            
+            // Verify with a very shallow search first
+            value = -search(thread, &lpv, -rbeta, -rbeta+1, MIN(0, depth-7), height+1);
             if (value < rbeta){
                 revertMove(board, currentMove, undo);
                 continue;
             }
             
-            value =  -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
+            // See if this move provides a cutoff at a somewhat reduced search
+            value = -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
             
+            // Revert board state
             revertMove(board, currentMove, undo);
             
+            // Reduced search provided a cutoff, we can terminate
+            // this search with some assurance we are correct
             if (value >= rbeta)
                 return value;
-            
         }
     }
     
