@@ -430,8 +430,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            value = -qsearch(thread, pv, -rbeta, -rbeta+1, height+1);
-            
+            // Verify that the move is not really bad before moving on
+            value = -qsearch(thread, pv, -beta, -beta+1, height+1);
             if (value < rbeta){
                 revertMove(board, currentMove, undo);
                 continue;
