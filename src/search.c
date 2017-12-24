@@ -412,7 +412,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
             
-        int rbeta = MIN(beta + 100, MATE - MAX_HEIGHT - 1);
+        int rbeta = MIN(beta + 200, MATE - MAX_HEIGHT - 1);
+        
+        int qbeta = MIN(beta + 100, MATE - MAX_HEIGHT - 1);
             
         initializeMovePicker(&movePicker, thread, ttMove, height, 1);
         
@@ -431,17 +433,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            value = -qsearch(thread, pv, -rbeta, -rbeta+1, height+1);
-            
-            if (value < rbeta){
+            // As a first step, verify that this move betas qbeta in qsearch
+            value = -qsearch(thread, pv, -qbeta, -qbeta+1, height+1);
+            if (value < qbeta){
                 revertMove(board, currentMove, undo);
                 continue;
             }
             
+            // Perform the normal reduced search for ProbCut
             value =  -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
             
+            // Restore the board state
             revertMove(board, currentMove, undo);
             
+            // Check for cutoff and terminate if found
             if (value >= rbeta)
                 return value;
             
