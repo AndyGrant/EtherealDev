@@ -168,6 +168,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     // Setup and perform the evaluation of all pieces
     initializeEvalInfo(ei, board, ptable);
     evaluatePieces(ei, board, ptable);
+    evaluateImbalance(ei, board);
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
@@ -634,6 +635,27 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
+}
+
+void evaluateImbalance(EvalInfo* ei, Board* board){
+    
+    static int ImbalanceMinor[PHASE_NB] = {  12,   0};
+    static int ImbalanceMajor[PHASE_NB] = {  22,   0};
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t minors = board->pieces[KNIGHT] | board->pieces[BISHOP];
+    uint64_t majors = board->pieces[ROOK  ] | board->pieces[QUEEN ];
+    
+    int minordiff = popcount(white & minors) - popcount(black & minors);
+    int majordiff = popcount(white & majors) - popcount(black & majors);
+    
+    ei->midgame[WHITE] += minordiff * ImbalanceMinor[MG];
+    ei->endgame[WHITE] += minordiff * ImbalanceMinor[EG];
+    
+    ei->midgame[WHITE] += majordiff * ImbalanceMajor[MG];
+    ei->endgame[WHITE] += majordiff * ImbalanceMajor[EG];
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
