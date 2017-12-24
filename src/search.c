@@ -407,15 +407,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 11. ProbCut
     if (   !PvNode
+        && !inCheck
         &&  depth >= 5
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
             
         int rbeta = MIN(beta + 100, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, ttMove, height, 1);
+        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+            
+            // Skip this capture if the raw value gained from a capture will
+            // not exceed rbeta, making it unlikely to cause the desired cutoff
+            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+                continue;
             
             // Apply and validate move before searching
             applyMove(board, currentMove, undo);
