@@ -215,7 +215,7 @@ int aspirationWindow(Thread* thread, int depth){
             thread->upper = beta  = values[depth - 1] + margin;
             
             // Perform the search on the modified window
-            thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0, 0);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -228,10 +228,10 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search ( near mate or when depth equals one )
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    return search(thread, &thread->pv, -MATE, MATE, depth, 0, 0);
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int probCut){
     
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -355,6 +355,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
         && !inCheck
+        && !probCut
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
@@ -370,6 +371,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
+        && !probCut
         &&  depth <= BetaPruningDepth
         &&  hasNonPawnMaterial(board, board->turn)){
             
@@ -385,6 +387,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
+        && !probCut
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
@@ -394,7 +397,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1, 0);
         
         revertNullMove(board, undo);
         
@@ -408,6 +411,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11. ProbCut
     if (   !PvNode
         && !inCheck
+        && !probCut
         &&  depth >= 5
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
@@ -430,20 +434,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            value = -qsearch(thread, pv, -rbeta, -rbeta+1, height+1);
-            
+            // Verify with a very shallow search first
+            value = -search(thread, &lpv, -rbeta, -rbeta+1, MIN(0, depth-7), height+1, 1);
             if (value < rbeta){
                 revertMove(board, currentMove, undo);
                 continue;
             }
             
-            value =  -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1);
+            // See if this move provides a cutoff at a somewhat reduced search
+            value = -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1, 1);
             
+            // Revert board state
             revertMove(board, currentMove, undo);
             
+            // Reduced search provided a cutoff, we can terminate
+            // this search with some assurance we are correct
             if (value >= rbeta)
                 return value;
-            
         }
     }
     
@@ -454,7 +461,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, 0);
         
         // Probe for the newly found move, and update ttMove / ttTactical
         if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
@@ -532,13 +539,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Search the move with a possibly reduced depth, on a full or null window
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1, 0)
+               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1, 0);
                
         // If the search beat alpha, we may need to research, in the event that
         // the previous search was not the full window, or was a reduced depth
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1, 0)
                :  value;
         
         // REVERT MOVE FROM BOARD
