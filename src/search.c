@@ -478,7 +478,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
             
             else 
-                R = 1 +  (MoveType(currentMove) != PROMOTION_MOVE
+                R = 1 + (!ei.positionIsDrawn
+                     &&   MoveType(currentMove) != PROMOTION_MOVE
                      &&  (ei.attacked[board->turn]     & (1ull << MoveTo(currentMove)))
                      && !(ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
                      &&   PieceValues[PieceType(undo->capturePiece)][MG]
