@@ -412,9 +412,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
             
-        int rbeta = MIN(beta + 200, MATE - MAX_HEIGHT - 1);
+        int rbeta = MIN(beta + 100, MATE - MAX_HEIGHT - 1);
         
-        int qbeta = MIN(beta + 100, MATE - MAX_HEIGHT - 1);
+        int qbeta = MIN(beta + 160, MATE - MAX_HEIGHT - 1);
             
         initializeMovePicker(&movePicker, thread, ttMove, height, 1);
         
@@ -422,7 +422,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Skip this capture if the raw value gained from a capture will
             // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (    currentMove == ttMove
+            if (    currentMove != ttMove
                 &&  eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
                 continue;
             
