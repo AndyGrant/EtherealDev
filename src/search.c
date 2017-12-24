@@ -405,6 +405,35 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
+    // Step 11. ProbCut
+    if (   !PvNode
+        &&  depth >= 5
+        &&  board->history[board->numMoves-1] != NULL_MOVE
+        &&  abs(beta) < MATE - MAX_HEIGHT){
+            
+        int rbeta = MIN(beta + 200, MATE - MAX_HEIGHT - 1);
+            
+        initializeMovePicker(&movePicker, thread, ttMove, height, 1);
+        
+        while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+            
+            // Apply and validate move before searching
+            applyMove(board, currentMove, undo);
+            if (!isNotInCheck(board, !board->turn)){
+                revertMove(board, currentMove, undo);
+                continue;
+            }
+            
+            value = -search(thread, &lpv, -rbeta, -rbeta+1, depth - 4, height+1);
+            
+            revertMove(board, currentMove, undo);
+            
+            if (value >= rbeta)
+                return value;
+            
+        }
+    }
+    
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
