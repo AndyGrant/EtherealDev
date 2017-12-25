@@ -492,6 +492,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   played >= 1
             &&   depth <= 3
             &&   MoveType(currentMove) != PROMOTION_MOVE
+            &&  !ei.positionIsDrawn
             &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
@@ -672,6 +673,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // so long as we do not have any additional support for the attacker. If
         // the capture is also a promotion we will not perform any pruning here
         if (     MoveType(currentMove) != PROMOTION_MOVE
+            &&  !ei.positionIsDrawn
             &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
