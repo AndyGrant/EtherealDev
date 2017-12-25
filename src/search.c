@@ -414,13 +414,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 0);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Skip this capture if the raw value gained from a capture will
             // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            if (moveIsTactical(board, currentMove)){
+                if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+                    continue;
+            }
+            
+            // Skip this quiet if does not have a very high history score
+            else if (getHistoryScore(thread->history, currentMove, board->turn, 128) < 32)
                 continue;
             
             // Apply and validate move before searching
