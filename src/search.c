@@ -414,13 +414,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, ttTactical ? ttMove : NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Skip this capture if the raw value gained from a capture will
             // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            if (   currentMove != ttMove
+                && eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
                 continue;
             
             // Apply and validate move before searching
@@ -433,7 +434,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rbeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rbeta, -rbeta+1,       0, height+1) >= rbeta
+            if (   (currentMove == ttMove
+                || -search(thread, &lpv, -rbeta, -rbeta+1,       0, height+1) >= rbeta)
                 && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1) >= rbeta){
                     
                 revertMove(board, currentMove, undo);
