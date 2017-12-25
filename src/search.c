@@ -414,7 +414,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, ttTactical ? ttMove : NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
