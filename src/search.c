@@ -654,14 +654,16 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (value < alpha)
             continue;
         
+        static int StandardPieceValues[8] = {1, 3, 3, 5, 9, 1, 0, 0};
+        
         // Prune this capture if it is capturing a weaker piece which is protected,
         // so long as we do not have any additional support for the attacker. If
         // the capture is also a promotion we will not perform any pruning here
         if (     MoveType(currentMove) != PROMOTION_MOVE
             &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+            &&  StandardPieceValues[PieceType(board->squares[MoveTo  (currentMove)])]
+             <  StandardPieceValues[PieceType(board->squares[MoveFrom(currentMove)])])
             continue;
         
         // Apply and validate move before searching
