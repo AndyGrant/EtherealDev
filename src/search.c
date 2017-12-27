@@ -528,9 +528,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = MIN(depth - 1, MAX(R, 1));
         }
         
-        else {
+        // Reduce this capture if it is capturing a weaker piece which is protected,
+        // so long as we do not have any additional support for the attacker. If
+        // the capture is also a promotion we will not perform any pruning here
+        else if (    !PvNode
+                 &&   played >= 4
+                 &&   depth >= 3
+                 &&  !isQuiet
+                 &&   MoveType(currentMove) != PROMOTION_MOVE
+                 &&  !ei.positionIsDrawn
+                 &&  (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove)))
+                 && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove))))
+                 R = 2;
+        else 
             R = 1;
-        }
+        
         
         
         // Search the move with a possibly reduced depth, on a full or null window
