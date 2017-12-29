@@ -449,10 +449,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 11B. MultiCut. If we have a couple of moves that beat beta at a reduced search,
-    // we likely have at least one move that will beat beta at a full search.
+    // we likely have at least one move that will beat beta at a full search. This acts as
+    // a compliment to Null Move Pruning when a position is good, but not enough to pass
     if (   !PvNode
         && !inCheck
-        &&  depth >= 5
+        &&  depth >= 6
         &&  eval >= beta){
             
         int count = 0;
@@ -469,7 +470,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
             
             count +=   -search(thread, &lpv, -beta, -beta+1,       1, height+1) >= beta
-                    && -search(thread, &lpv, -beta, -beta+1, depth-4, height+1) >= beta;
+                    && -search(thread, &lpv, -beta, -beta+1, depth-5, height+1) >= beta;
                     
             // Revert the board state
             revertMove(board, currentMove, undo);
