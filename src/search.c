@@ -448,6 +448,36 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
+    // Step 11B. MultiCut. If we have a couple of moves that beat beta at a reduced search,
+    // we likely have at least one move that will beat beta at a full search.
+    if (   !PvNode
+        && !inCheck
+        &&  depth >= 5
+        &&  eval >= beta){
+            
+        int count = 0;
+            
+        initializeMovePicker(&movePicker, thread, ttMove, height, 0);
+        
+        while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+            
+            // Apply and validate move before searching
+            applyMove(board, currentMove, undo);
+            if (!isNotInCheck(board, !board->turn)){
+                revertMove(board, currentMove, undo);
+                continue;
+            }
+            
+            count +=   -search(thread, &lpv, -beta, -beta+1,       1, height+1) >= beta
+                    && -search(thread, &lpv, -beta, -beta+1, depth-4, height+1) >= beta;
+                    
+            // Revert the board state
+            revertMove(board, currentMove, undo);
+            
+            if (count >= 3) return beta;
+        }
+    }
+    
     // Step 12. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
