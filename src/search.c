@@ -548,7 +548,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += !PvNode;
-            R += 2 * cutnode;
+            R += cutnode;
+            R += cutnode;
             R += ttTactical && bestMove == ttMove;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
@@ -559,14 +560,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
         
         // Search the move with a possibly reduced depth, on a full or null window
-        value = played == 1 ? -search(thread, &lpv,    -beta, -alpha, depth-R, height+1, !PvNode && !cutnode)
-                            : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1, !PvNode && !cutnode);
-               
-        // If the search beat alpha, we may need to research, in the event that
-        // the previous search was not the full window, or was a reduced depth
-        value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1, !PvNode && !cutnode)
-               :  value;
+        value = played == 1 ? -search(thread, &lpv,    -beta, -alpha, depth-1, height+1, !cutnode && !PvNode)
+                            : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1, !cutnode);
+              
+        // If the search beat alpha we may need to research
+        if (value > alpha){
+            
+            // Research because the non-first child of a PvNode is searched with a Null Window
+            if (PvNode && played > 1)
+                value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1, 0);
+            
+            // Research because we applied LMR to the search
+            else if (R != 1)
+                value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1, !cutnode);
+        }
         
         // REVERT MOVE FROM BOARD
         revertMove(board, currentMove, undo);
