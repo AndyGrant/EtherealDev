@@ -456,11 +456,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= 6
         &&  eval >= beta){
             
-        int count = 0;
-            
+        int cutoffs     = 0;
+        int quota       = 3;
+        int quietsLeft  = 6 + (eval - beta) / PieceValues[PAWN][MG];
+        
         initializeMovePicker(&movePicker, thread, ttMove, height, 0);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+            
+            // Stop trying multi cut once we have have hit our max attempts with quiets
+            quietsLeft -= !moveIsTactical(board, currentMove);
+            if (quietsLeft < 0) break;
             
             // Apply and validate move before searching
             applyMove(board, currentMove, undo);
@@ -469,13 +475,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            count +=   -search(thread, &lpv, -beta, -beta+1,       1, height+1) >= beta
-                    && -search(thread, &lpv, -beta, -beta+1, depth-5, height+1) >= beta;
+            cutoffs +=   -search(thread, &lpv, -beta, -beta+1,       1, height+1) >= beta
+                      && -search(thread, &lpv, -beta, -beta+1, depth-4, height+1) >= beta;
                     
             // Revert the board state
             revertMove(board, currentMove, undo);
             
-            if (count >= 3) return beta;
+            if (cutoffs >= quota) return beta;
         }
     }
     
