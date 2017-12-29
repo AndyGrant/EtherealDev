@@ -411,6 +411,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        &&  cutnode
         &&  depth >= 5
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
