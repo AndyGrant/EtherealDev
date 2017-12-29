@@ -411,6 +411,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        && !cutnode
         &&  depth >= 5
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
@@ -548,7 +549,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += !PvNode;
-            R += !cutnode;
+            R += !PvNode;
             R += ttTactical && bestMove == ttMove;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
