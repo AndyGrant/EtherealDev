@@ -415,7 +415,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  board->history[board->numMoves-1] != NULL_MOVE
         &&  abs(beta) < MATE - MAX_HEIGHT){
             
-        int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
+        int rbeta = MIN(beta + 250, MATE - MAX_HEIGHT - 1);
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
