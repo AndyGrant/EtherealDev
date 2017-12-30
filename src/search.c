@@ -454,10 +454,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  cutnode
         &&  eval > beta
         &&  depth >= 7){
-            
-        int count = 0, quietsLeft = 6;
+           
+        int count = 0;
         
-        int rbeta = beta + 100;
+        int quietsLeft = 6;
             
         initializeMovePicker(&movePicker, thread, ttMove, height, 0);
         
@@ -479,10 +479,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rbeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            count +=   -search(thread, &lpv,  -beta,  -beta+1, depth-6, height+1, !cutnode) >=  beta
-                    && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1, !cutnode) >= rbeta;
-                    
-            rbeta = beta + 100 - 50 * count;
+            count +=   -search(thread, &lpv, -beta, -beta+1, depth-6, height+1, !cutnode) >= beta
+                    && -search(thread, &lpv, -beta, -beta+1, depth-4, height+1, !cutnode) >= beta;
              
             // Revert the board state
             revertMove(board, currentMove, undo);
