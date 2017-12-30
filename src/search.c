@@ -451,6 +451,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11B. MultiCut
     if (   !PvNode
         && !inCheck
+        &&  cutnode
         &&  depth >= 7
         &&  eval > beta + 200
         &&  abs(beta) < MATE - MAX_HEIGHT
