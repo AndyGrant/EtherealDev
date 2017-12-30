@@ -215,7 +215,7 @@ int aspirationWindow(Thread* thread, int depth){
             thread->upper = beta  = values[depth - 1] + margin;
             
             // Perform the search on the modified window
-            thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0, 0);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -228,10 +228,10 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search ( near mate or when depth equals one )
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    return search(thread, &thread->pv, -MATE, MATE, depth, 0, 0);
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int cutnode){
     
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -394,7 +394,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1, !cutnode);
         
         revertNullMove(board, undo);
         
@@ -408,20 +408,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11. ProbCut. If we have a good capture that causes a beta cutoff
     // with a slightly reduced depth search it is likely that this capture is
     // likely going to be good at a full depth. To save some work we will prune
-    // captures that won't exceed rbeta or captures that fail at a low depth
+    // captures that won't exceed rBeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        && !cutnode
         &&  depth >= 5){
             
-        int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
+        rBeta = beta + 150;
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Skip this capture if the raw value gained from a capture will
-            // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            // not exceed rBeta, making it unlikely to cause the desired cutoff
+            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rBeta)
                 continue;
             
             // Apply and validate move before searching
@@ -432,10 +433,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
-            // and then with a slightly reduced search. If both searches still exceed rbeta,
+            // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rbeta, -rbeta+1,       0, height+1) >= rbeta
-                && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1) >= rbeta){
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1, !cutnode) >= rBeta
+                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, !cutnode) >= rBeta){
                     
                 revertMove(board, currentMove, undo);
                 return beta;
@@ -453,7 +454,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, cutnode);
         
         // Probe for the newly found move, and update ttMove / ttTactical
         if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
@@ -557,15 +558,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         
         // Search the move with a possibly reduced depth, on a full or null window
-        value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
-               
-        // If the search beat alpha, we may need to research, in the event that
-        // the previous search was not the full window, or was a reduced depth
-        value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
-               :  value;
+        value = played == 1 ? -search(thread, &lpv,    -beta, -alpha, depth-1, height+1, !cutnode && !PvNode)
+                            : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1, !cutnode);
+              
+        // If the search beat alpha we may need to research
+        if (value > alpha){
+            
+            // Research because the non-first child of a PvNode is searched with a Null Window
+            if (PvNode && played > 1)
+                value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1, 0);
+            
+            // Research because we applied LMR to the search
+            else if (R != 1)
+                value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1, !cutnode);
+        }
         
         // REVERT MOVE FROM BOARD
         revertMove(board, currentMove, undo);
