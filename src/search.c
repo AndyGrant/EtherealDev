@@ -448,6 +448,50 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
+    // Step 11B. MultiCut
+    if (   !PvNode
+        && !inCheck
+        &&  depth >= 7
+        &&  eval > beta + 200
+        &&  abs(beta) < MATE - MAX_HEIGHT
+        &&  board->history[board->numMoves-1] != NULL_MOVE){
+            
+        int count = 0, quietsLeft = 6;
+        
+        int rbeta = beta + 75;
+            
+        initializeMovePicker(&movePicker, thread, ttMove, height, 0);
+        
+        while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+            
+            isQuiet = !moveIsTactical(board, currentMove);
+            
+            if (quietsLeft == 0 && isQuiet) break;
+            
+            // Apply and validate move before searching
+            applyMove(board, currentMove, undo);
+            if (!isNotInCheck(board, !board->turn)){
+                revertMove(board, currentMove, undo);
+                continue;
+            }
+            
+            quietsLeft -= isQuiet;
+            
+            // Verify the move is good with a depth zero search (qsearch, unless in check)
+            // and then with a slightly reduced search. If both searches still exceed rbeta,
+            // we will prune this node's subtree with resonable assurance that we made no error
+            count +=   -search(thread, &lpv,  -beta,  -beta+1, depth-6, height+1, !cutnode) >=  beta
+                    && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1, !cutnode) >= rbeta;
+                    
+            rbeta = beta + 75 - 30 * count;
+             
+            // Revert the board state
+            revertMove(board, currentMove, undo);
+            
+            if (count >= 3) return beta;
+        }
+    }
+    
     // Step 12. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
@@ -548,7 +592,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += !PvNode;
-            R += !cutnode;
+            R += !PvNode;
             R += ttTactical && bestMove == ttMove;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
