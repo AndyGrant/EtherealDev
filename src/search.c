@@ -452,14 +452,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  cutnode
-        &&  depth >= 7
-        &&  eval > beta + 200
-        &&  abs(beta) < MATE - MAX_HEIGHT
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  eval > beta
+        &&  depth >= 7){
             
         int count = 0, quietsLeft = 6;
         
-        int rbeta = beta + 75;
+        int rbeta = beta + 100;
             
         initializeMovePicker(&movePicker, thread, ttMove, height, 0);
         
@@ -484,7 +482,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             count +=   -search(thread, &lpv,  -beta,  -beta+1, depth-6, height+1, !cutnode) >=  beta
                     && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1, !cutnode) >= rbeta;
                     
-            rbeta = beta + 75 - 30 * count;
+            rbeta = beta + 100 - 50 * count;
              
             // Revert the board state
             revertMove(board, currentMove, undo);
