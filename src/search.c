@@ -201,20 +201,20 @@ int aspirationWindow(Thread* thread, int depth){
     
     int* const values = thread->info->values;
     
-    if (depth > 4 && abs(values[depth - 1]) < MATE / 2){
+    if (depth > 4 && abs(values[depth-1]) < MATE / 2){
         
         
-        upper = MAX(    4,  1.6 * (values[depth - 1] - values[depth - 2]));
-        upper = MAX(upper,  2.0 * (values[depth - 2] - values[depth - 3]));
-        upper = MAX(upper,  0.8 * (values[depth - 3] - values[depth - 4]));
+        upper = MAX(    1,  1.6 * (values[depth-1] - values[depth-2]));
+        upper = MAX(upper,  2.0 * (values[depth-2] - values[depth-3]));
+        upper = MAX(upper,  0.8 * (values[depth-3] - values[depth-4]));
         
-        lower = MAX(    4, -1.6 * (values[depth - 1] - values[depth - 2]));
-        lower = MAX(lower, -2.0 * (values[depth - 2] - values[depth - 3]));
-        lower = MAX(lower, -0.8 * (values[depth - 3] - values[depth - 4])); 
+        lower = MAX(    1, -1.6 * (values[depth-1] - values[depth-2]));
+        lower = MAX(lower, -2.0 * (values[depth-2] - values[depth-3]));
+        lower = MAX(lower, -0.8 * (values[depth-3] - values[depth-4])); 
         
         // Create the aspiration window
-        alpha = values[depth - 1] - lower;
-        beta  = values[depth - 1] + upper;
+        alpha = values[depth-1] - lower;
+        beta  = values[depth-1] + upper;
         
         for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
             
