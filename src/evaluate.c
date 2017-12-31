@@ -480,7 +480,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
-    uint64_t enemyKings = board->pieces[KING] & board->pieces[!colour];
+    uint64_t enemyKings = board->pieces[KING] & board->colours[!colour];
     
     // Evaluate each rook
     while (tempRooks){
