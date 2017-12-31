@@ -98,6 +98,8 @@ const int RookValue[PHASE_NB] = { 453, 483};
 
 const int RookFile[2][PHASE_NB] = { {   8,   9}, {  25,   5} };
 
+const int RookFileNearKing[2][PHASE_NB] = { {   4,   4}, {   8,   8} };
+
 const int RookOnSeventh[PHASE_NB] = {   3,  10};
 
 const int RookMobility[15][PHASE_NB] = {
@@ -478,6 +480,8 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    uint64_t enemyKings = board->pieces[KING] & board->pieces[!colour];
+    
     // Evaluate each rook
     while (tempRooks){
         
@@ -502,6 +506,13 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += RookFile[open][MG];
             ei->endgame[colour] += RookFile[open][EG];
             if (TRACE) T.rookFile[colour][open]++;
+            
+            // Add an additional bonus for being on an semi open
+            // or completly open file that is next to the enemy king
+            if (AdjacentAndThisFile[sq] & enemyKings){
+                ei->midgame[colour] += RookFileNearKing[open][MG];
+                ei->endgame[colour] += RookFileNearKing[open][EG];
+            }
             
         }
         

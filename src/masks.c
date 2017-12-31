@@ -24,6 +24,7 @@
 #include "piece.h"
 #include "types.h"
 
+uint64_t AdjacentAndThisFile[SQUARE_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
@@ -44,6 +45,10 @@ void initializeMasks(){
         else
             IsolatedPawnMasks[i] = Files[File(i)+1];
     }
+    
+    // Initialize Adjacent and this file masks
+    for (i = 0; i < SQUARE_NB; i++)
+        AdjacentAndThisFile[i] = IsolatedPawnMasks[i] | Files[File(i)];
     
     // Initalize passed pawn masks and outpost masks
     for (i = 0; i < SQUARE_NB; i++){
