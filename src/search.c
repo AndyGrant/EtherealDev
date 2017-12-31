@@ -405,10 +405,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  depth >= NullMovePruningDepth){
             
         R = MIN(7, 4 + depth / 6 + (eval - beta + 200) / 400); 
             
