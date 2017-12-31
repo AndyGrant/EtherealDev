@@ -203,20 +203,15 @@ int aspirationWindow(Thread* thread, int depth){
     
     if (depth > 4 && abs(values[depth - 1]) < MATE / 2){
         
-        
         upper = MAX(    4,  1.6 * (values[depth - 1] - values[depth - 2]));
         upper = MAX(upper,  2.0 * (values[depth - 2] - values[depth - 3]));
         upper = MAX(upper,  0.8 * (values[depth - 3] - values[depth - 4]));
         
         lower = MAX(    4, -1.6 * (values[depth - 1] - values[depth - 2]));
         lower = MAX(lower, -2.0 * (values[depth - 2] - values[depth - 3]));
-        lower = MAX(lower, -0.8 * (values[depth - 3] - values[depth - 4])); 
+        lower = MAX(lower, -0.8 * (values[depth - 3] - values[depth - 4]));
         
-        // Create the aspiration window
-        alpha = values[depth - 1] - lower;
-        beta  = values[depth - 1] + upper;
-        
-        for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
+        for (; lower <= 640 && upper <= 640; lower *= 1.5, upper *= 1.5){
             
             // Perform the search on the modified window
             thread->value = value = search(thread, &thread->pv, alpha, beta, depth, 0);
@@ -227,13 +222,13 @@ int aspirationWindow(Thread* thread, int depth){
             
             // Search failed low
             if (value <= alpha){
-                beta  = (alpha + beta) / 2;
+                // beta  = (alpha + beta) / 2;
                 alpha = alpha - 2 * lower;
             }
             
             // Search failed high
             if (value >= beta){
-                alpha = (alpha + beta) / 2;
+                // alpha = (alpha + beta) / 2;
                 beta  = beta + 2 * upper;
             }
             
