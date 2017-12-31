@@ -502,7 +502,6 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += RookFile[open][MG];
             ei->endgame[colour] += RookFile[open][EG];
             if (TRACE) T.rookFile[colour][open]++;
-            
         }
         
         // Rook gains a bonus for being located
@@ -567,7 +566,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         }
             
         // Apply a bonus (or penalty) based on the mobility of the queen
-        mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
+        mobilityCount = popcount((ei->mobilityAreas[colour] & attacks & ~ei->attackedNoQueen[!colour]));
         ei->midgame[colour] += QueenMobility[mobilityCount][MG];
         ei->endgame[colour] += QueenMobility[mobilityCount][EG];
         if (TRACE) T.queenMobility[colour][mobilityCount]++;
