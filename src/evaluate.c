@@ -98,7 +98,7 @@ const int RookValue[PHASE_NB] = { 453, 483};
 
 const int RookFile[2][PHASE_NB] = { {   8,   9}, {  25,   5} };
 
-const int RookOnSeventh[PHASE_NB] = {   3,  10};
+const int RookOnSeventh[PHASE_NB] = {   7,  14};
 
 const int RookMobility[15][PHASE_NB] = {
     {-114, -93}, { -55, -50}, {  -9, -29}, {  -6, -10},
@@ -472,11 +472,12 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
 void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     
     int sq, open, mobilityCount;
-    uint64_t tempRooks, myPawns, enemyPawns, attacks;
+    uint64_t tempRooks, myPawns, enemyPawns, enemyKings, attacks;
     
-    tempRooks = board->pieces[ROOK] & board->colours[colour];
-    myPawns = board->pieces[PAWN] & board->colours[colour];
+    myPawns    = board->pieces[PAWN] & board->colours[ colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    tempRooks  = board->pieces[ROOK] & board->colours[ colour];
+    enemyKings = board->pieces[KING] & board->colours[!colour];
     
     // Evaluate each rook
     while (tempRooks){
@@ -507,7 +508,8 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         
         // Rook gains a bonus for being located
         // on seventh rank relative to its colour
-        if (Rank(sq) == (colour == BLACK ? 1 : 6)){
+        if (   RelativeRank(sq, colour) >= 6
+            && RelativeRank(getlsb(enemyKings), colour) >= 6){
             ei->midgame[colour] += RookOnSeventh[MG];
             ei->endgame[colour] += RookOnSeventh[EG];
             if (TRACE) T.rookOnSeventh[colour]++;

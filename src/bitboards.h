@@ -51,6 +51,9 @@ extern const uint64_t Files[FILE_NB];
 extern const uint64_t Ranks[RANK_NB];
 
 #define File(sq) ((sq)  & 7)
+
 #define Rank(sq) ((sq) >> 3)
+
+#define RelativeRank(sq, c) (c == WHITE ? Rank(sq) : 7 - Rank(sq))
 
 #endif
