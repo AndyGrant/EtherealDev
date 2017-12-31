@@ -374,18 +374,6 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
-        // Apply a bonus if the knight is on an outpost square, and cannot be attacked
-        // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
-        if (    (OutpostRanks[colour] & (1ull << sq))
-            && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
-                
-            defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            
-            ei->midgame[colour] += KnightOutpost[defended][MG];
-            ei->endgame[colour] += KnightOutpost[defended][EG];
-            if (TRACE) T.knightOutpost[colour][defended]++;
-        }
-        
         // Apply a bonus (or penalty) based on the mobility of the knight
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
         ei->midgame[colour] += KnightMobility[mobilityCount][MG];
@@ -441,18 +429,6 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
-        // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
-        // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
-        if (    (OutpostRanks[colour] & (1ull << sq))
-            && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
-                
-            defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            
-            ei->midgame[colour] += BishopOutpost[defended][MG];
-            ei->endgame[colour] += BishopOutpost[defended][EG];
-            if (TRACE) T.bishopOutpost[colour][defended]++;
-        }
-        
         // Apply a bonus (or penalty) based on the mobility of the bishop
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
         ei->midgame[colour] += BishopMobility[mobilityCount][MG];
@@ -502,7 +478,6 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += RookFile[open][MG];
             ei->endgame[colour] += RookFile[open][EG];
             if (TRACE) T.rookFile[colour][open]++;
-            
         }
         
         // Rook gains a bonus for being located
