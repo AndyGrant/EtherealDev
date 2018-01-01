@@ -161,6 +161,7 @@ const int* PieceValues[8] = {
 int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     
     int mg, eg, phase, eval;
+    double scaleFactor = 1.0;
     
     // evaluateDraws handles obvious drawn positions
     ei->positionIsDrawn = evaluateDraws(board);
@@ -187,8 +188,38 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     // Compute the interpolated evaluation
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
+    if (!(board->pieces[ROOK] | board->pieces[QUEEN])){
+
+        uint64_t white   = board->colours[WHITE];
+        uint64_t black   = board->colours[BLACK];
+        uint64_t pawns   = board->pieces[PAWN];
+        uint64_t knights = board->pieces[KNIGHT];
+        uint64_t bishops = board->pieces[BISHOP];
+        uint64_t kings   = board->pieces[KING];
+        
+        if ((white & kings) == white){
+            // Check for King Vs King and Knight/Bishop
+            if (popcount(black & (knights | bishops)) <= 1)
+                scaleFactor = MIN(1, popcount(pawns) / 6.0);
+            
+            // Check for King Vs King and two Knights
+            if (popcount(black & knights) == 2 && (black & bishops) == 0ull)
+                scaleFactor = MIN(1, popcount(pawns) / 6.0);
+        }
+        
+        if ((black & kings) == black){
+            // Check for King Vs King and Knight/Bishop
+            if (popcount(white & (knights | bishops)) <= 1)
+                scaleFactor = MIN(1, popcount(pawns) / 6.0);
+            
+            // Check for King Vs King and two Knights
+            if (popcount(white & knights) == 2 && (white & bishops) == 0ull)
+                scaleFactor = MIN(1, popcount(pawns) / 6.0);
+        }
+    }
+    
     // Return the evaluation relative to the side to move
-    return board->turn == WHITE ? eval : -eval;
+    return board->turn == WHITE ? scaleFactor * eval : scaleFactor * -eval;
 }
 
 int evaluateDraws(Board* board){
