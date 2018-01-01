@@ -525,8 +525,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
                 continue;
             
-            // Otherwise, if the piece has one defender, we will prune up to depth 3
-            if (    depth <= 3
+            // Otherwise, if the piece has one defender, we will prune up to depth 2
+            if (    depth <= 2
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
         }
