@@ -431,6 +431,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        && (ttMove == NONE_MOVE || ttTactical)
         &&  depth >= 5){
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
