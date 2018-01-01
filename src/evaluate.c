@@ -631,12 +631,12 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
-        massiveThreat =     (!safeAdvance || !canAdvance)
-                        &&  ((1ull << sq) & ei->attackedBy2[!colour])
-                        && !((1ull << sq) & ei->attacked[colour]);
+        slightThreat =   (!safeAdvance || !canAdvance)
+                      &&  ((1ull << sq) & ei->attacked[!colour])
+                      && !((1ull << sq) & ei->attacked[ colour]);
         
-        ei->midgame[colour] += (massiveThreat ? .2 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][MG];
-        ei->endgame[colour] += (massiveThreat ? .2 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][EG];
+        ei->midgame[colour] += (massiveThreat ? .8 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][MG];
+        ei->endgame[colour] += (massiveThreat ? .8 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
 }
