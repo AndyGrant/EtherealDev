@@ -56,7 +56,7 @@ int valueToTT(int value, int height);
 
 static const int RazorDepth = 8;
 
-static const int RazorMargins[] = {0, 450, 480, 520, 580, 660, 760, 880, 1020};
+static const int RazorMargins[] = {0, 450, 480, 520, 580, 600, 650, 700, 750};
 
 static const int BetaPruningDepth = 8;
 
