@@ -584,9 +584,18 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int attackCounts;
+    int defenderCounts, attackCounts;
+    
+    uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
+                          | (board->pieces[KNIGHT] & board->colours[colour])
+                          | (board->pieces[BISHOP] & board->colours[colour]);
     
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
+    
+    // Bonus for our pawns and minors sitting within our king area
+    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
+    ei->midgame[colour] += (defenderCounts - 3) * 1;
+    ei->endgame[colour] += (defenderCounts - 3) * 2;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
