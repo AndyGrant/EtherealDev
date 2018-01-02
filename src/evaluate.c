@@ -607,7 +607,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
-    int sq, rank, canAdvance, safeAdvance, massiveThreat;
+    int sq, rank, canAdvance, safeAdvance, slightThreat;
     uint64_t tempPawns, destination, notEmpty;
     
     tempPawns = board->colours[colour] & ei->passedPawns;
@@ -635,8 +635,8 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
                       &&  ((1ull << sq) & ei->attacked[!colour])
                       && !((1ull << sq) & ei->attacked[ colour]);
         
-        ei->midgame[colour] += (massiveThreat ? .8 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][MG];
-        ei->endgame[colour] += (massiveThreat ? .8 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][EG];
+        ei->midgame[colour] += (slightThreat ? .8 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][MG];
+        ei->endgame[colour] += (slightThreat ? .8 : 1.0) * PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
 }
