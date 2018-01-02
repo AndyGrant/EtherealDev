@@ -127,7 +127,7 @@ const int QueenMobility[28][PHASE_NB] = {
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
-const int KingDefenders[PHASE_NB] = {   4,   2};
+const int KingDefenders[PHASE_NB] = {   3,   2};
 
 const int KingSafetyTable[100] = { // Taken from CPW / Stockfish
        0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
@@ -601,7 +601,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
     ei->midgame[colour] += MIN(defenderCounts - 1, 2) * KingDefenders[MG];
     ei->endgame[colour] += MIN(defenderCounts - 1, 2) * KingDefenders[EG];
-    if (TRACE) T.kingDefenders[colour] += MIN(defenderCounts - 2, 2);
+    if (TRACE) T.kingDefenders[colour] += MIN(defenderCounts - 1, 2);
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
