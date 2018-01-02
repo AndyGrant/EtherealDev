@@ -125,16 +125,11 @@ const int QueenMobility[28][PHASE_NB] = {
 
 };
 
+const int KingValue[PHASE_NB] = { 100, 100};
 
-const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
-  {{{   0,   0}, {  -8,  -5}, { -17,   3}, { -15,   3}, {  14,  23}, {  45,  29}, {  60,  40}, {   0,   0}},
-   {{   0,   0}, {  -3,  -1}, { -14,   9}, {  -6,  21}, {  13,  35}, {  51,  46}, {  78,  71}, {   0,   0}}},
-  {{{   0,   0}, {   0,   9}, {  -7,   6}, {  -3,  21}, {  22,  30}, {  68,  58}, { 117, 127}, {   0,   0}},
-   {{   0,   0}, {   1,   4}, {  -6,   7}, {  -3,  32}, {  16,  73}, {  76, 158}, { 199, 294}, {   0,   0}}}
-};
+const int KingDefenders[PHASE_NB] = {   4,   2};
 
-
-const int SafetyTable[100] = { // Taken from CPW / Stockfish
+const int KingSafetyTable[100] = { // Taken from CPW / Stockfish
        0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
       18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
       68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
@@ -147,16 +142,25 @@ const int SafetyTable[100] = { // Taken from CPW / Stockfish
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
-const int KingValue[PHASE_NB] = { 100, 100};
 
-const int NoneValue[PHASE_NB] = {   0,   0};
+const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
+  {{{   0,   0}, {  -8,  -5}, { -17,   3}, { -15,   3}, {  14,  23}, {  45,  29}, {  60,  40}, {   0,   0}},
+   {{   0,   0}, {  -3,  -1}, { -14,   9}, {  -6,  21}, {  13,  35}, {  51,  46}, {  78,  71}, {   0,   0}}},
+  {{{   0,   0}, {   0,   9}, {  -7,   6}, {  -3,  21}, {  22,  30}, {  68,  58}, { 117, 127}, {   0,   0}},
+   {{   0,   0}, {   1,   4}, {  -6,   7}, {  -3,  32}, {  16,  73}, {  76, 158}, { 199, 294}, {   0,   0}}}
+};
+
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  20,  10}, { -20, -10} };
+
+
+const int NoneValue[PHASE_NB] = {   0,   0};
 
 const int* PieceValues[8] = {
     PawnValue, KnightValue, BishopValue, RookValue,
     QueenValue, KingValue, NoneValue, NoneValue
 };
+
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     
@@ -584,15 +588,26 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int attackCounts;
+    int defenderCounts, attackCounts;
+    
+    uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
+                          | (board->pieces[KNIGHT] & board->colours[colour])
+                          | (board->pieces[BISHOP] & board->colours[colour]);
     
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
+    
+    // Bonus for our pawns and minors sitting within our king area. Cap the bonus
+    // to not encourage crowding the king, but keeping a healthy number of supporters
+    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
+    ei->midgame[colour] += MIN(defenderCounts - 2, 2) * KingDefenders[MG];
+    ei->endgame[colour] += MIN(defenderCounts - 2, 2) * KingDefenders[EG];
+    if (TRACE) T.kingDefenders[colour] += MIN(defenderCounts - 2, 2);
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (SafetyTable has 100 slots)
+        // Cap our attackCounts at 99 (KingSafetyTable has 100 slots)
         attackCounts = ei->attackCounts[!colour];
         attackCounts = attackCounts >= 100 ? 99 : attackCounts;
         
@@ -600,8 +615,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= SafetyTable[attackCounts];
-        ei->endgame[colour] -= SafetyTable[attackCounts];
+        ei->midgame[colour] -= KingSafetyTable[attackCounts];
+        ei->endgame[colour] -= KingSafetyTable[attackCounts];
     }
 }
 
