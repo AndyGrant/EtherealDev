@@ -594,8 +594,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // Bonus for our pawns and minors sitting within our king area
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->midgame[colour] += (defenderCounts - 3) * 1;
-    ei->endgame[colour] += (defenderCounts - 3) * 2;
+    ei->midgame[colour] += MIN(defenderCounts - 2, 2) * 4;
+    ei->endgame[colour] += MIN(defenderCounts - 1, 2) * 2;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
