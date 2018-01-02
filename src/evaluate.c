@@ -593,8 +593,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (ei->attackerCounts[!colour] >= 2){
         
         // Cap our attackCounts at 99 (SafetyTable has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        attackCounts  = ei->attackCounts[!colour];
+        attackCounts *= ei->attackerCounts[!colour] >= 3 ? 1.5 : 1.0;
+        attackCounts  = attackCounts >= 100 ? 99 : attackCounts;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
