@@ -599,8 +599,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // Bonus for our pawns and minors sitting within our king area. Cap the bonus
     // to not encourage crowding the king, but keeping a healthy number of supporters
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->midgame[colour] += MIN(defenderCounts - 2, 2) * KingDefenders[MG];
-    ei->endgame[colour] += MIN(defenderCounts - 2, 2) * KingDefenders[EG];
+    ei->midgame[colour] += MIN(defenderCounts - 1, 2) * KingDefenders[MG];
+    ei->endgame[colour] += MIN(defenderCounts - 1, 2) * KingDefenders[EG];
     if (TRACE) T.kingDefenders[colour] += MIN(defenderCounts - 2, 2);
     
     // If we have two or more threats to our king area, we will apply a penalty
