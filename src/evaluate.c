@@ -600,7 +600,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
     
     // Bonus for our pawns and minors sitting within our king area
-    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
+    defenderCounts = popcount(myDefenders & ei->kingAreas[colour] & ~ei->attackedBy2[!colour]);
     ei->midgame[colour] += KingDefenders[defenderCounts][MG];
     ei->endgame[colour] += KingDefenders[defenderCounts][EG];
     if (TRACE) T.kingDefenders[colour][defenderCounts]++;
