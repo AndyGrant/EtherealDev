@@ -591,34 +591,41 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
+    int count;
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
                           | (board->pieces[BISHOP] & board->colours[colour]);
+                          
+    uint64_t enemyNonPawn = board->colours[!colour] & ~board->pieces[PAWN];
     
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
     
     // Bonus for our pawns and minors sitting within our king area
-    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->midgame[colour] += KingDefenders[defenderCounts][MG];
-    ei->endgame[colour] += KingDefenders[defenderCounts][EG];
-    if (TRACE) T.kingDefenders[colour][defenderCounts]++;
+    count = popcount(myDefenders & ei->kingAreas[colour]);
+    ei->midgame[colour] += KingDefenders[count][MG];
+    ei->endgame[colour] += KingDefenders[count][EG];
+    if (TRACE) T.kingDefenders[colour][count]++;
+    
+    // Penalty for enemy minors and majors sitting within our king area
+    count = popcount(enemyNonPawn & ei->kingAreas[colour]);
+    ei->midgame[colour] += count * -8;
+    ei->endgame[colour] += count * -1;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
         // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        count = ei->attackCounts[!colour];
+        count = count >= 100 ? 99 : count;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            count *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        ei->midgame[colour] -= KingSafety[count];
+        ei->endgame[colour] -= KingSafety[count];
     }
 }
 
