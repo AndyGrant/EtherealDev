@@ -625,9 +625,10 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
     int sq, rank, canAdvance, safeAdvance;
-    uint64_t tempPawns, destination, notEmpty;
+    uint64_t tempPawns, myRooks, destination, notEmpty;
     
     tempPawns = board->colours[colour] & ei->passedPawns;
+    myRooks   = board->pieces[ROOK] & board->colours[colour];
     notEmpty = board->colours[WHITE] | board->colours[BLACK];
     
     // Evaluate each passed pawn
@@ -651,6 +652,14 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        static const int PassedPawnRookSupport[PHASE_NB] = {10, 13};
+        
+        // Bonus if we have a rook on our file
+        if (Files[File(sq)] & myRooks){
+            ei->pawnMidgame[colour] += PassedPawnRookSupport[MG];
+            ei->pawnEndgame[colour] += PassedPawnRookSupport[EG];    
+        }
     }
 }
 
