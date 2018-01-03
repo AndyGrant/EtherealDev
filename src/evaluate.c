@@ -129,9 +129,9 @@ const int QueenMobility[28][PHASE_NB] = {
 const int KingValue[PHASE_NB] = { 100, 100};
 
 const int KingDefenders[12][PHASE_NB] = {
-    {  -8,  -2}, {  -4,   0}, {   0,   2}, {   4,   4},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
+    { -30,  -8}, { -15,  -5}, {   0,   2}, {   7,   7},
+    {  14,   8}, {  14,   8}, {  14,   8}, {  14,   8},
+    {  14,   8}, {  14,   8}, {  14,   8}, {  14 ,   8},
 };
 
 const int KingSafety[100] = { // Taken from CPW / Stockfish
