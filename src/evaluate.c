@@ -596,8 +596,10 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
                           | (board->pieces[BISHOP] & board->colours[colour]);
-                          
+    
+    uint64_t enemyPawn   =  board->colours[!colour] &  board->pieces[PAWN];    
     uint64_t enemyNonPawn = board->colours[!colour] & ~board->pieces[PAWN];
+    
     
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
     
@@ -608,9 +610,10 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.kingDefenders[colour][count]++;
     
     // Penalty for enemy minors and majors sitting within our king area
-    count = popcount(enemyNonPawn & ei->kingAreas[colour]);
-    ei->midgame[colour] += count * -14;
-    ei->endgame[colour] += count *  -4;
+    count  = 4 * popcount(enemyNonPawn & ei->kingAreas[colour]);
+    count += 1 * popcount(enemyPawn    & ei->kingAreas[colour]);
+    ei->midgame[colour] += count * -2;
+    ei->endgame[colour] += count * -1;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
