@@ -609,8 +609,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // Penalty for enemy minors and majors sitting within our king area
     count = popcount(enemyNonPawn & ei->kingAreas[colour]);
-    ei->midgame[colour] += count * -4;
-    ei->endgame[colour] += count * -0;
+    ei->midgame[colour] += count * -10;
+    ei->endgame[colour] += count *  -5;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
