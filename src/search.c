@@ -241,12 +241,20 @@ int aspirationWindow(Thread* thread, int depth){
             if (value <= alpha){
                 beta  = (alpha + beta) / 2;
                 alpha = alpha - 2 * lower;
+                
+                // Dynamically decide how much time we should be using
+                if (thread->limits->limitedBySelf && thread == &thread->threads[0])
+                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 1.05);
             }
             
             // Search failed high
             if (value >= beta){
                 alpha = (alpha + beta) / 2;
                 beta  = beta + 2 * upper;
+                
+                // Dynamically decide how much time we should be using
+                if (thread->limits->limitedBySelf && thread == &thread->threads[0])
+                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * .95);
             }
             
             // Result was a near mate score, force a full search
