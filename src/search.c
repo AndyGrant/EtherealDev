@@ -244,7 +244,7 @@ int aspirationWindow(Thread* thread, int depth){
                 
                 // Dynamically decide how much time we should be using
                 if (thread->limits->limitedBySelf && thread == &thread->threads[0])
-                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 1.05);
+                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 1.10);
             }
             
             // Search failed high
@@ -254,7 +254,7 @@ int aspirationWindow(Thread* thread, int depth){
                 
                 // Dynamically decide how much time we should be using
                 if (thread->limits->limitedBySelf && thread == &thread->threads[0])
-                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * .95);
+                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * .90);
             }
             
             // Result was a near mate score, force a full search
