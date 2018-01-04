@@ -92,7 +92,10 @@ void* iterativeDeepening(void* vthread){
     
     Thread* const thread = (Thread*) vthread;
     
+    const int mainThread = thread == &thread->threads[0];
+    
     int i, count, value = 0, depth, abort;
+    
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
@@ -137,8 +140,9 @@ void* iterativeDeepening(void* vthread){
                 return NULL;
             }
             
+            
             // Dynamically decide how much time we should be using
-            if (thread->limits->limitedBySelf){
+            if (mainThread && thread->limits->limitedBySelf){
                 
                 // Increase our time if the score suddently dropped by eight centipawns
                 if (depth >= 4 && thread->info->values[thread->info->depth] > value + 8)
