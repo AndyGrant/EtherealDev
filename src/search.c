@@ -179,7 +179,7 @@ void* iterativeDeepening(void* vthread){
                 double estimatedUsage = info->timeUsage[depth] * (timeFactor + .25);
                 double estiamtedEndtime = getRealTime() + estimatedUsage - thread->starttime;
                 
-                if (estiamtedEndtime > thread->maxusage){
+                if (estiamtedEndtime > thread->idealusage){
                     for (i = 0; i < thread->nthreads; i++)
                         thread->threads[i].abort = ABORT_ALL;
                     
