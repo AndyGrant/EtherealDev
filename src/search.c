@@ -212,6 +212,8 @@ int aspirationWindow(Thread* thread, int depth){
     
     int alpha, beta, value, upper, lower;
     
+    const int mainThread = thread == &thread->threads[0];
+    
     int* const values = thread->info->values;
     
     // Aspiration window only after we have completed the first four
@@ -252,6 +254,10 @@ int aspirationWindow(Thread* thread, int depth){
             if (value >= beta){
                 alpha = (alpha + beta) / 2;
                 beta  = beta + 2 * upper;
+                
+                if (    mainThread 
+                    &&  thread->pv.line[0] == thread->info->bestmoves[thread->info->depth])
+                    *thread->idealusage = MIN(thread->maxusage, *thread->idealusage * 0.95);
             }
             
             // Result was a near mate score, force a full search
