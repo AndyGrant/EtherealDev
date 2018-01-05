@@ -22,13 +22,13 @@ EXE = Ethereal
 
 WFLAGS = -Wall -Wextra -Wshadow
 
-CFLAGS = -DNDEBUG -O3 $(WFLAGS) -std=c99 -march=native -mtune=native -flto
+CFLAGS = -DNDEBUG -O3 $(WFLAGS) -std=c11 -march=native -mtune=native -flto
 
-RFLAGS = -DNDEBUG -O3 $(WFLAGS) -std=c99 -flto -static
+RFLAGS = -DNDEBUG -O3 $(WFLAGS) -std=c11 -flto -static
 
-PFLAGS = -DNDEBUG -O0 $(WFLAGS) -std=c99 -p -pg
+PFLAGS = -DNDEBUG -O0 $(WFLAGS) -std=c11 -p -pg
 
-DFLAGS = -O0 $(WFLAGS) -std=c99
+DFLAGS = -O0 $(WFLAGS) -std=c11
 
 TFLAGS = $(CFLAGS) -fopenmp -DTUNE
 
