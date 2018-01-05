@@ -19,8 +19,9 @@
 #ifndef _THREAD_H
 #define _THREAD_H
 
-#include <setjmp.h>
 #include <pthread.h>
+#include <setjmp.h>
+#include <stdatomic.h>
 
 #include "types.h"
 #include "transposition.h"
@@ -40,7 +41,8 @@ typedef struct Thread {
     double starttime;
     double maxusage;
     
-    int depth;
+    atomic_int depth;
+    
     int value;
     int lower;
     int upper;
