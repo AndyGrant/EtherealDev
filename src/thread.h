@@ -25,13 +25,10 @@
 #include "transposition.h"
 #include "search.h"
 
-enum { ABORT_NONE, ABORT_DEPTH, ABORT_ALL };
-
 typedef struct Thread {
     
     Limits* limits;
     SearchInfo* info;
-    Board* initialboard;
     
     Board board;
     PVariation pv;

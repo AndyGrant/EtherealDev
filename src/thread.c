@@ -72,11 +72,6 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         // as well as the time usage variables that are being used
         threads[i].info = info;
         
-        // The original board is used as a reset point for when a
-        // thread is told to terminate a depth early, before being
-        // allowed to properly backtrack and undo each applied move
-        threads[i].initialboard = board;
-        
         // Make our own copy of the original position
         memcpy(&threads[i].board, board, sizeof(Board));
         
