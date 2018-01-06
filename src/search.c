@@ -155,7 +155,7 @@ void* iterativeDeepening(void* vthread){
             
             // Abort any threads still searching this depth, or lower
             for (i = 0; i < thread->nthreads; i++)
-                if (   thread->depth >= thread->threads[i].depth
+                if (   depth >= thread->threads[i].depth
                     && thread != &thread->threads[i])
                     thread->threads[i].abort = ABORT_DEPTH;
             
