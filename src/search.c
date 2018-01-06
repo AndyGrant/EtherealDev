@@ -103,24 +103,23 @@ void* iterativeDeepening(void* vthread){
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
         // Determine if this thread should be running on at a higher depth
+        
+        pthread_mutex_lock(thread->lock);
+        
+        thread->depth = depth;
+        
         if (!mainThread){
-        
-            pthread_mutex_lock(thread->lock);
-        
-            thread->depth = depth;
-        
-            for (count = 0, i = 0; i < thread->nthreads; i++)
+            for (count = 0, i = 1; i < thread->nthreads; i++)
                 count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
 
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
+            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 3){
                 thread->depth = depth + 1;
                 pthread_mutex_unlock(thread->lock);
                 continue;
             }
-
-            pthread_mutex_unlock(thread->lock);
         }
         
+        pthread_mutex_unlock(thread->lock);
         
         abort = setjmp(thread->jbuffer);
         
