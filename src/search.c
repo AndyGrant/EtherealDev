@@ -94,32 +94,37 @@ void* iterativeDeepening(void* vthread){
     
     SearchInfo* const info = thread->info;
     
-    const int mainThread = thread == &thread->threads[0];
-    
     int i, count, value = 0, depth, abort;
     
     
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
-        // Determine if this thread should be running on at a higher depth
-        if (!mainThread){
         
-            pthread_mutex_lock(thread->lock);
+        pthread_mutex_lock(thread->lock);
         
-            thread->depth = depth;
-        
-            for (count = 0, i = 0; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
-
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
-                thread->depth = depth + 1;
-                pthread_mutex_unlock(thread->lock);
-                continue;
-            }
-
+        if (thread->abort == ABORT_DEPTH){
             pthread_mutex_unlock(thread->lock);
+            continue;
         }
+        
+        if (thread->abort == ABORT_ALL){
+            pthread_mutex_unlock(thread->lock);
+            return NULL;
+        }
+        
+        thread->depth = depth;
+        
+        for (count = 0, i = 0; i < thread->nthreads; i++)
+            count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
+
+        if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
+            thread->depth = depth + 1;
+            pthread_mutex_unlock(thread->lock);
+            continue;
+        }
+
+        pthread_mutex_unlock(thread->lock);
         
         
         abort = setjmp(thread->jbuffer);
@@ -128,9 +133,17 @@ void* iterativeDeepening(void* vthread){
             
             value = aspirationWindow(thread, depth);
             
-            if (!mainThread) continue;
-            
             pthread_mutex_lock(thread->lock);
+            
+            if (thread->abort == ABORT_DEPTH){
+                pthread_mutex_unlock(thread->lock);
+                continue;
+            }
+            
+            if (thread->abort == ABORT_ALL){
+                pthread_mutex_unlock(thread->lock);
+                return NULL;
+            }
             
             // Dynamically decide how much time we should be using
             if (thread->limits->limitedBySelf){
