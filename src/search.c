@@ -96,30 +96,32 @@ void* iterativeDeepening(void* vthread){
     
     const int mainThread = thread == &thread->threads[0];
     
-    int i, count, value = 0, depth, abort;
+    int i, idx, value = 0, depth, abort;
+    
+    
+    // Determine if this thread should be running on at a higher depth
+    
+    for (idx = 0; idx < thread->nthreads; idx++)
+        if (thread == &thread->threads[idx]) 
+            break;
+    
+   /*0 1 2 3 4 5
+       1 2 3 4
+       1 2 3
+       1 2
+       1
+   */
+    
+    static int skips[16] = {0, 1, 2, 2, 1, 3, 3, 3, 2, 1, 4, 4, 2, 1, 5, 1};
+        
+    int delta = skips[(idx % 16) - MIN(idx / 16, idx % 16 - 1)] + (idx / 16);
     
     
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
-        // Determine if this thread should be running on at a higher depth
-        if (!mainThread){
+        if (depth < thread->info->depth + delta) continue;
         
-            pthread_mutex_lock(thread->lock);
-        
-            thread->depth = depth;
-        
-            for (count = 0, i = 0; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
-
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
-                thread->depth = depth + 1;
-                pthread_mutex_unlock(thread->lock);
-                continue;
-            }
-
-            pthread_mutex_unlock(thread->lock);
-        }
         
         
         abort = setjmp(thread->jbuffer);
