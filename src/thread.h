@@ -26,8 +26,6 @@
 #include "transposition.h"
 #include "search.h"
 
-enum { ABORT_NONE, ABORT_DEPTH, ABORT_ALL };
-
 typedef struct Thread {
     
     Board board;
