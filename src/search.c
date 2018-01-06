@@ -166,11 +166,11 @@ void* iterativeDeepening(void* vthread){
             // Send information about this search to the interface
             uciReport(thread->threads, thread->starttime, depth, value, &thread->pv);
             
-            // Abort any threads still searching this depth, or lower
-            for (i = 0; i < thread->nthreads; i++)
-                if (   thread->depth >= thread->threads[i].depth
-                    && thread != &thread->threads[i])
-                    thread->threads[i].abort = ABORT_DEPTH;
+            // // Abort any threads still searching this depth, or lower
+            // for (i = 0; i < thread->nthreads; i++)
+            //     if (   thread->depth >= thread->threads[i].depth
+            //         && thread != &thread->threads[i])
+            //         thread->threads[i].abort = ABORT_DEPTH;
             
             // Check for termination by any of the possible limits
             if (   (thread->limits->limitedByDepth && depth >= thread->limits->depthLimit)
