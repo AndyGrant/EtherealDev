@@ -102,27 +102,50 @@ void* iterativeDeepening(void* vthread){
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
+        /* Scheduleing For Thread Depths */
+        
+        pthread_mutex_lock(thread->lock);
+        
+        // Check to see if this depth was already aborted
+        if (    thread->abort == ABORT_DEPTH
+            &&  depth <= thread->info->depth){
+            pthread_mutex_unlock(thread->lock);
+            continue;
+        }
+        
+        // Make sure this thread was not already aborted
+        if (thread->abort == ABORT_ALL){
+            pthread_mutex_unlock(thread->lock);
+            break;
+        }
+            
+        // Set thread depth, which may be updated if there
+        // are already many threads searching the same depth
+        thread->depth = depth;
+        
         // Determine if this thread should be running on at a higher depth
         if (!mainThread){
-        
-            pthread_mutex_lock(thread->lock);
-        
-            thread->depth = depth;
-        
+            
+            // Sum up threads searching this depth
             for (count = 0, i = 0; i < thread->nthreads; i++)
                 count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
 
+            // Skip this depth if many threads are searching it
             if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
-                thread->depth = depth + 1;
                 pthread_mutex_unlock(thread->lock);
                 continue;
             }
-
-            pthread_mutex_unlock(thread->lock);
         }
         
+        pthread_mutex_unlock(thread->lock);
         
+        /* End Scheduleing For Thread Depths */
+        
+        
+        // Set the jump back state
         abort = setjmp(thread->jbuffer);
+        
+        
         
         if (abort == ABORT_NONE){
             
@@ -154,9 +177,8 @@ void* iterativeDeepening(void* vthread){
             uciReport(thread->threads, thread->starttime, depth, value, &thread->pv);
             
             // Abort any threads still searching this depth, or lower
-            for (i = 0; i < thread->nthreads; i++)
-                if (   thread->depth >= thread->threads[i].depth
-                    && thread != &thread->threads[i])
+            for (i = 1; i < thread->nthreads; i++)
+                if (thread->depth >= thread->threads[i].depth)
                     thread->threads[i].abort = ABORT_DEPTH;
             
             // Check for termination by any of the possible limits
