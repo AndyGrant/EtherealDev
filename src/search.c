@@ -49,6 +49,8 @@ extern TransTable Table;
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time, double mtg){
     
+    Thread* bestThread;
+    
     int i, nthreads = threads[0].nthreads;
     
     SearchInfo info; memset(&info, 0, sizeof(SearchInfo));
@@ -88,8 +90,15 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     // Cleanup pthreads
     free(pthreads);
     
-    // Return highest depth best move
-    return info.bestmoves[info.depth];
+    bestThread = &threads[0];
+    for (i = 1; i < nthreads; i++)
+        if (    threads[i].lastDepth > bestThread->lastDepth
+            ||  (    threads[i].lastValue > bestThread->lastValue
+                 &&  threads[i].lastValue > MATE - MAX_HEIGHT)
+            ||  (    threads[i].lastDepth == bestThread->lastDepth
+                 &&  threads[i].lastValue > bestThread->lastValue))
+            bestThread = &threads[i];
+    return bestThread->lastBestMove;
 }
 
 void* iterativeDeepening(void* vthread){
@@ -138,7 +147,9 @@ void* iterativeDeepening(void* vthread){
         
             
         // Perform the actual search for the current depth
-        value = aspirationWindow(thread, depth);
+        thread->lastValue = value = aspirationWindow(thread, depth);
+        thread->lastDepth = depth;
+        thread->lastBestMove = thread->pv.line[0];
         
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
