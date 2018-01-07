@@ -92,11 +92,10 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     bestThread = &threads[0];
     for (i = 1; i < nthreads; i++)
-        if (    threads[i].lastDepth > bestThread->lastDepth
-            ||  (    threads[i].lastValue > bestThread->lastValue
-                 &&  threads[i].lastValue > MATE - MAX_HEIGHT)
-            ||  (    threads[i].lastDepth == bestThread->lastDepth
-                 &&  threads[i].lastValue > bestThread->lastValue))
+        if (  (     threads[i].lastValue > bestThread->lastValue
+                &&  threads[i].lastValue > MATE - MAX_HEIGHT)
+            || (    threads[i].lastDepth >= bestThread->lastDepth
+                &&  threads[i].lastValue > bestThread->lastValue))
             bestThread = &threads[i];
     return bestThread->lastBestMove;
 }
