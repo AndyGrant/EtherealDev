@@ -211,11 +211,13 @@ int aspirationWindow(Thread* thread, int depth){
         upper = MAX(    4,  1.6 * (values[depth-1] - values[depth-2]));
         upper = MAX(upper,  2.0 * (values[depth-2] - values[depth-3]));
         upper = MAX(upper,  0.8 * (values[depth-3] - values[depth-4]));
+        upper = thread == &thread->threads[0] ? upper : 16;
         
         // Dynamically compute the lower margin based on previous scores
         lower = MAX(    4, -1.6 * (values[depth-1] - values[depth-2]));
         lower = MAX(lower, -2.0 * (values[depth-2] - values[depth-3]));
         lower = MAX(lower, -0.8 * (values[depth-3] - values[depth-4])); 
+        lower = thread == &thread->threads[0] ? lower : 16;
         
         // Create the aspiration window
         alpha = values[depth-1] - lower;
