@@ -311,8 +311,8 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     enemyPawns = pawns & board->colours[!colour];
     
     if ((myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
-        ei->pawnMidgame[colour] += 10;
-        ei->pawnEndgame[colour] += 30;
+        ei->pawnMidgame[colour] += 40;
+        ei->pawnEndgame[colour] += 40;
     }
         
     
