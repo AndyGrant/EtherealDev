@@ -82,6 +82,10 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         threads[i].depth = 0;
         threads[i].nodes = 0ull;
         
+        threads[i].lastDepth = 0;
+        threads[i].lastUpperBound = -MATE;
+        threads[i].lastBestMove = 0;
+        
         // Reset the abort flag for the new search
         threads[i].abort = 0;
     }

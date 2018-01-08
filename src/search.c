@@ -88,8 +88,15 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     // Cleanup pthreads
     free(pthreads);
     
-    // Return highest depth best move
-    return info.bestmoves[info.depth];
+    Thread* bestThread = &threads[0];
+    for (i = 0; i < nthreads; i++)
+        if (   (   threads[i].lastDepth >= bestThread->depth
+                && threads[i].lastUpperBound >= bestThread->lastUpperBound)
+            || (   threads[i].lastUpperBound >= bestThread->lastUpperBound
+                && threads[i].lastUpperBound >= MATE - MAX_HEIGHT))
+            bestThread = &threads[i];
+            
+    return bestThread->lastBestMove;
 }
 
 void* iterativeDeepening(void* vthread){
@@ -227,6 +234,13 @@ int aspirationWindow(Thread* thread, int depth){
             
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            
+            // Result was either within the window or a fail-high
+            if (value > alpha){
+                thread->lastDepth = depth;
+                thread->lastUpperBound = MIN(value, beta);
+                thread->lastBestMove = thread->pv.line[0];
+            }
             
             // Result was within our window
             if (value > alpha && value < beta)
