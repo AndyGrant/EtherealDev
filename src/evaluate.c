@@ -520,6 +520,17 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.rookOnSeventh[colour]++;
         }
         
+        // Rook gains a bonus for playing around a passed pawn
+        if (    (RanksOnOrAbove[colour][Rank(sq)] & ei->passedPawns)
+            && ((Ranks[Rank(sq)] | Files[File(sq)]) & ei->passedPawns)){
+                
+            static const int RookTarrasch[PHASE_NB] = {   5,  17};
+                
+            ei->midgame[colour] += RookTarrasch[MG];
+            ei->endgame[colour] += RookTarrasch[EG];
+                
+        }
+        
         // Apply a bonus (or penalty) based on the mobility of the rook
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
         ei->midgame[colour] += RookMobility[mobilityCount][MG];
