@@ -524,7 +524,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         if (    (RanksOnOrAbove[colour][Rank(sq)] & ei->passedPawns)
             && ((Ranks[Rank(sq)] | Files[File(sq)]) & ei->passedPawns)){
                 
-            static const int RookTarrasch[PHASE_NB] = {   5,  17};
+            static const int RookTarrasch[PHASE_NB] = {  10,  34};
                 
             ei->midgame[colour] += RookTarrasch[MG];
             ei->endgame[colour] += RookTarrasch[EG];
