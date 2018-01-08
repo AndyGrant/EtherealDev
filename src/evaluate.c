@@ -310,6 +310,12 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     myPawns = tempPawns = pawns & board->colours[colour];
     enemyPawns = pawns & board->colours[!colour];
     
+    if ((myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
+        ei->pawnMidgame[colour] += 10;
+        ei->pawnEndgame[colour] += 30;
+    }
+        
+    
     // Evaluate each pawn (but not for being passed)
     while (tempPawns != 0ull){
         
