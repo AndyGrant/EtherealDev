@@ -236,6 +236,9 @@ int aspirationWindow(Thread* thread, int depth){
             if (value <= alpha){
                 beta  = (alpha + beta) / 2;
                 alpha = alpha - 2 * lower;
+                
+                // Increase our time if the move failed low
+                thread->info->idealusage = MIN(thread->info->maxusage, thread->info->idealusage * 1.10);
             }
             
             // Search failed high
