@@ -203,25 +203,25 @@ int aspirationWindow(Thread* thread, int depth){
     
     int* const values = thread->info->values;
     
+    int psuedoDepth = MAX(5, 1 + thread->info->depth);
+    
     // Aspiration window only after we have completed the first four
     // depths, and so long as the last score is not near a mate score
     if (depth > 4 && abs(values[depth-1]) < MATE / 2){
         
         // Dynamically compute the upper margin based on previous scores
-        upper = MAX(    4,  1.6 * (values[depth-1] - values[depth-2]));
-        upper = MAX(upper,  2.0 * (values[depth-2] - values[depth-3]));
-        upper = MAX(upper,  0.8 * (values[depth-3] - values[depth-4]));
-        upper = thread == &thread->threads[0] ? upper : 16;
+        upper = MAX(    4,  1.6 * (values[psuedoDepth-1] - values[psuedoDepth-2]));
+        upper = MAX(upper,  2.0 * (values[psuedoDepth-2] - values[psuedoDepth-3]));
+        upper = MAX(upper,  0.8 * (values[psuedoDepth-3] - values[psuedoDepth-4]));
         
         // Dynamically compute the lower margin based on previous scores
-        lower = MAX(    4, -1.6 * (values[depth-1] - values[depth-2]));
-        lower = MAX(lower, -2.0 * (values[depth-2] - values[depth-3]));
-        lower = MAX(lower, -0.8 * (values[depth-3] - values[depth-4])); 
-        lower = thread == &thread->threads[0] ? lower : 16;
+        lower = MAX(    4, -1.6 * (values[psuedoDepth-1] - values[psuedoDepth-2]));
+        lower = MAX(lower, -2.0 * (values[psuedoDepth-2] - values[psuedoDepth-3]));
+        lower = MAX(lower, -0.8 * (values[psuedoDepth-3] - values[psuedoDepth-4])); 
         
         // Create the aspiration window
-        alpha = values[depth-1] - lower;
-        beta  = values[depth-1] + upper;
+        alpha = values[psuedoDepth-1] - lower;
+        beta  = values[psuedoDepth-1] + upper;
         
         // Try windows until lower or upper bound exceeds a limit
         for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
