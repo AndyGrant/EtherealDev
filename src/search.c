@@ -513,9 +513,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. Don't include capture-promotions
         if (    !PvNode
+            &&  !inCheck
             &&  !isQuiet
             &&   played >= 1
-            &&   depth <= 4
+            &&   depth <= 5
             &&   MoveType(currentMove) != ENPASS_MOVE
             &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
