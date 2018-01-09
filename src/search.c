@@ -61,7 +61,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
-        info.idealusage = mtg >= 0 ? 0.5 * (time / (mtg + 3)) : 0.3 * (time / 25);
+        info.idealusage = mtg >= 0 ? 0.5 * (time / (mtg + 3)) : 0.5 * (time / 25);
         info.maxusage   = mtg >= 0 ? 2.8 * (time / (mtg + 1)) : 4.5 * (time / 25);
         info.idealusage = MIN(info.idealusage, time - 20);
         info.maxusage   = MIN(info.maxusage,   time - 20);
@@ -182,10 +182,10 @@ void* iterativeDeepening(void* vthread){
         // Check to see if we expect to be able to complete the next depth
         if (thread->limits->limitedBySelf){
             double timeFactor = MIN(2, info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]));
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .25);
+            double estimatedUsage = info->timeUsage[depth] * (timeFactor - .25);
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
-            if (estiamtedEndtime > info->maxusage){
+            if (estiamtedEndtime > info->idealusage){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
