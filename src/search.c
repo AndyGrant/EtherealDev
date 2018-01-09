@@ -255,10 +255,9 @@ int aspirationWindow(Thread* thread, int depth){
                 
                 // In a time managed search, a fail high which keeps the same best move
                 // as the previous iteration is sufficient for us to terminate the search
-                if (    mainThread
-                    &&  thread->pv.line[0] == thread->info->bestmoves[thread->info->depth]
-                    &&  thread->limits->limitedBySelf 
-                    &&  getRealTime() - thread->info->starttime > thread->info->idealusage)
+                if (   !mainThread
+                    &&  upper >= 16
+                    &&  thread->pv.line[0] == thread->info->bestmoves[thread->info->depth])
                     return beta;
             }
             
