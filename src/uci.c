@@ -223,19 +223,24 @@ void uciPosition(char* str, Board* board){
     }
 }
 
-void uciReport(Thread* threads, double startTime, int depth, int value, PVariation* pv){
+void uciReport(Thread* thread){
+    
+    static const char* table[3] = {"", "upperbound ", "lowerbound "};
     
     int i;
-    int elapsed    = (int)(getRealTime() - startTime);
-    int hashfull   = (1000 * Table.used) / (Table.numBuckets * BUCKET_SIZE);
-    uint64_t nodes =  nodesSearchedThreadPool(threads);
-    int nps        = (int)(1000 * (nodes / (1 + elapsed)));
+    int elapsed       = (int)(getRealTime() - thread->info->starttime);
+    int hashfull      = (1000 * Table.used) / (Table.numBuckets * BUCKET_SIZE);
+    uint64_t nodes    =  nodesSearchedThreadPool(thread->threads);
+    int nps           = (int)(1000 * (nodes / (1 + elapsed)));
+    const char* bound =  table[(thread->value >= thread->beta) + (2 * (thread->value <= thread->alpha))];
     
-    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d hashfull %d pv ",
-           depth, value, elapsed, nodes, nps, hashfull);
+    printf("info depth %d score cp %d %stime %d nodes %"PRIu64" nps %d hashfull %d",
+           thread->depth, thread->value, bound, elapsed, nodes, nps, hashfull);
            
-    for (i = 0; i < pv->length; i++){
-        printMove(pv->line[i]);
+    // Print out the expected line of play
+    if (thread->pv.length) printf(" pv ");
+    for (i = 0; i < thread->pv.length; i++){
+        printMove(thread->pv.line[i]);
         printf(" ");
     }
     

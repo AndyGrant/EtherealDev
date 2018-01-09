@@ -148,9 +148,6 @@ void* iterativeDeepening(void* vthread){
         info->bestmoves[depth] = thread->pv.line[0];
         info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
         
-        // Send information about this search to the interface
-        uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
-        
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
@@ -198,9 +195,11 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth){
     
-    int alpha, beta, value, upper, lower;
+    const int mainThread = thread == &thread->threads[0];
     
     int* const values = thread->info->values;
+    
+    int alpha, beta, value, upper, lower;    
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
@@ -216,7 +215,7 @@ int aspirationWindow(Thread* thread, int depth){
         // Dynamically compute the lower margin based on previous scores
         lower = MAX(    4, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
         lower = MAX(lower, -2.0 * (values[mainDepth-2] - values[mainDepth-3]));
-        lower = MAX(lower, -0.8 * (values[mainDepth-3] - values[mainDepth-4])); 
+        lower = MAX(lower, -0.8 * (values[mainDepth-3] - values[mainDepth-4]));
         
         // Create the aspiration window
         alpha = values[mainDepth-1] - lower;
@@ -228,9 +227,20 @@ int aspirationWindow(Thread* thread, int depth){
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
             
+            // Update the thread's search result and window in case we exit here
+            // we know whether this is an upperbound, lowerbound, or exact result
+            thread->value = value;
+            thread->alpha = alpha;
+            thread->beta  = beta;
+            
             // Result was within our window
-            if (value > alpha && value < beta)
+            if (value > alpha && value < beta){
+                
+                // Report this search to the UI
+                if (mainThread) uciReport(thread);
+                
                 return value;
+            }
             
             // Search failed low
             if (value <= alpha){
@@ -242,6 +252,14 @@ int aspirationWindow(Thread* thread, int depth){
             if (value >= beta){
                 alpha = (alpha + beta) / 2;
                 beta  = beta + 2 * upper;
+                
+                // In a time managed search, a fail high which keeps the same best move
+                // as the previous iteration is sufficient for us to terminate the search
+                if (    mainThread
+                    &&  thread->pv.line[0] == thread->info->bestmoves[thread->info->depth]
+                    &&  thread->limits->limitedBySelf 
+                    &&  getRealTime() - thread->info->starttime > thread->info->idealusage)
+                    return beta;
             }
             
             // Result was a near mate score, force a full search
@@ -251,7 +269,14 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search when near mate or when depth is below or equal to 4
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    thread->value = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    thread->alpha = -MATE;
+    thread->beta  =  MATE;
+    
+    // Report this search to the UI
+    if (mainThread) uciReport(thread);
+    
+    return thread->value;
 }
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
