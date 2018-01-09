@@ -502,17 +502,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (   !PvNode
-            &&  isQuiet
-            &&  played >= 1
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+        if (    !RootNode
+            && (!PvNode || !inCheck)
+            &&   isQuiet
+            &&   played >= 1
+            &&   futilityMargin <= alpha
+            &&   depth <= FutilityPruningDepth)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. Don't include capture-promotions
-        if (    !PvNode
+        if (    !RootNode
+            && (!PvNode || !inCheck)
             &&  !isQuiet
             &&   played >= 1
             &&   depth <= 4
@@ -544,12 +546,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
-        if (   !PvNode
-            &&  isQuiet
-            &&  played >= 1
-            &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]
-            &&  isNotInCheck(board, board->turn)){
+        if (    !RootNode
+            && (!PvNode || !inCheck)
+            &&   isQuiet
+            &&   played >= 1
+            &&   depth <= LateMovePruningDepth
+            &&   quiets > LateMovePruningCounts[depth]
+            &&   isNotInCheck(board, board->turn)){
         
             revertMove(board, currentMove, undo);
             continue;
