@@ -219,8 +219,8 @@ int aspirationWindow(Thread* thread, int depth){
         lower = MAX(lower, -0.8 * (values[mainDepth-3] - values[mainDepth-4])); 
         
         // Create the aspiration window
-        alpha = values[mainDepth-1] - lower;
-        beta  = values[mainDepth-1] + upper;
+        alpha = values[thread->info->depth] - lower;
+        beta  = values[thread->info->depth] + upper;
         
         // Try windows until lower or upper bound exceeds a limit
         for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
