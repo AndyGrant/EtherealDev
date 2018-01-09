@@ -492,23 +492,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
-        
-        // If this move is quiet we will save it to a list of attemped
-        // quiets, and we will need a history score for pruning decisions
-        if ((isQuiet = !moveIsTactical(board, currentMove))){
-            quietsTried[quiets++] = currentMove;
-            hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
-        }
-        
-        // Step 14. Futility Pruning. If our score is far below alpha,
-        // and we don't expect anything from this move, skip it.
-        if (   !PvNode
-            &&  isQuiet
-            &&  played >= 1
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            continue;
             
+        isQuiet = !moveIsTactical(board, currentMove);
+        if (isQuiet) hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
+        
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. Don't include capture-promotions
@@ -532,11 +519,25 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (    depth <= 3
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
-        }
+        }       
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, currentMove, undo);
+            continue;
+        }
+        
+        if (isQuiet) quietsTried[quiets++] = currentMove;
+        
+        // Step 14. Futility Pruning. If our score is far below alpha,
+        // and we don't expect anything from this move, skip it.
+        if (   !PvNode
+            &&  isQuiet
+            &&  played >= 1
+            &&  futilityMargin <= alpha
+            &&  depth <= FutilityPruningDepth){
+                
             revertMove(board, currentMove, undo);
             continue;
         }
