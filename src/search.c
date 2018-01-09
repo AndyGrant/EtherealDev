@@ -282,7 +282,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->info->depth >= 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
@@ -293,10 +294,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the next one, would still not create a more extreme line
     rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
     rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
-    if (rAlpha >= rBeta) return rAlpha;
+    if (!RootNode && rAlpha >= rBeta) return rAlpha;
     
     // Step 3. Check for the Fifty Move Rule
-    if (board->fiftyMoveRule > 100)
+    if (!RootNode && board->fiftyMoveRule > 100)
         return 0;
     
     // Step 4. Check for three fold repetition. If the repetition occurs since
@@ -308,7 +309,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move which triggered a reset of the fifty move rule counter
         if (i < board->numMoves - board->fiftyMoveRule) break;
         
-        if (board->history[i] == board->hash){
+        if (!RootNode && board->history[i] == board->hash){
             
             // Repetition occured after the root
             if (i > board->numMoves - height)
@@ -500,20 +501,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (    !RootNode
-            && (!PvNode || !inCheck)
-            &&   isQuiet
-            &&   played >= 1
-            &&   futilityMargin <= alpha
-            &&   depth <= FutilityPruningDepth)
+        if (    isQuiet
+            &&  played >= 1
+            &&  futilityMargin <= alpha
+            &&  depth <= FutilityPruningDepth)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. Don't include capture-promotions
-        if (    !RootNode
-            && (!PvNode || !inCheck)
-            &&  !isQuiet
+        if (    !isQuiet
             &&   played >= 1
             &&   depth <= 4
             &&   MoveType(currentMove) != ENPASS_MOVE
@@ -544,13 +541,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
-        if (    !RootNode
-            && (!PvNode || !inCheck)
-            &&   isQuiet
-            &&   played >= 1
-            &&   depth <= LateMovePruningDepth
-            &&   quiets > LateMovePruningCounts[depth]
-            &&   isNotInCheck(board, board->turn)){
+        if (    isQuiet
+            &&  played >= 1
+            &&  depth <= LateMovePruningDepth
+            &&  quiets > LateMovePruningCounts[depth]
+            &&  isNotInCheck(board, board->turn)){
         
             revertMove(board, currentMove, undo);
             continue;
@@ -654,7 +649,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->info->depth >= 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
