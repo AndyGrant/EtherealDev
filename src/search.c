@@ -544,11 +544,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
-        if (   !PvNode
+        if (    !RootNode
+            &&(!PvNode || !inCheck)
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]
+            &&  quiets > LateMovePruningCounts[depth] + 2 * PvNode
             &&  isNotInCheck(board, board->turn)){
         
             revertMove(board, currentMove, undo);
