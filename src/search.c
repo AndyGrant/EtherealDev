@@ -392,14 +392,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
-        && !inCheck
         &&  depth <= BetaPruningDepth
         &&  hasNonPawnMaterial(board, board->turn)){
             
         value = eval - depth * 0.95 * PieceValues[PAWN][EG];
         
-        if (value > beta)
+        if (value > beta){
+            if (inCheck && depth > 1)
+                return search(thread, pv, alpha, beta, 1, height);
             return value;
+        }
     }
     
     // Step 10. Null Move Pruning. If our position is so good that
