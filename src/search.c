@@ -293,10 +293,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the next one, would still not create a more extreme line
     rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
     rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
-    if (rAlpha >= rBeta) return rAlpha;
+    if (!RootNode && rAlpha >= rBeta) return rAlpha;
     
     // Step 3. Check for the Fifty Move Rule
-    if (board->fiftyMoveRule > 100)
+    if (!RootNode && board->fiftyMoveRule > 100)
         return 0;
     
     // Step 4. Check for three fold repetition. If the repetition occurs since
@@ -308,7 +308,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move which triggered a reset of the fifty move rule counter
         if (i < board->numMoves - board->fiftyMoveRule) break;
         
-        if (board->history[i] == board->hash){
+        if (!RootNode && board->history[i] == board->hash){
             
             // Repetition occured after the root
             if (i > board->numMoves - height)
