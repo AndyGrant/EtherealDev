@@ -266,6 +266,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
+    int falseResearch[MAX_MOVES];
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -496,6 +497,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
+            falseResearch[quiets] = 0;
             quietsTried[quiets++] = currentMove;
             hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
         }
@@ -586,9 +588,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                
         // If the search beat alpha, we may need to research, in the event that
         // the previous search was not the full window, or was a reduced depth
-        value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
-               :  value;
+        
+        if (value > alpha && (R != 1 || (played != 1 && PvNode))){
+            value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1);
+            if (isQuiet) falseResearch[quiets-1] = value <= alpha;
+        }
         
         // REVERT MOVE FROM BOARD
         revertMove(board, currentMove, undo);
@@ -626,8 +630,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     else if (best >= beta && !moveIsTactical(board, bestMove)){
         updateHistory(thread->history, bestMove, board->turn, 1, depth*depth);
-        for (i = 0; i < quiets - 1; i++)
-            updateHistory(thread->history, quietsTried[i], board->turn, 0, depth*depth);
+        for (i = 0; i < quiets - 1; i++){
+            int penalty = (depth + falseResearch[i]) * (depth + falseResearch[i]);
+            updateHistory(thread->history, quietsTried[i], board->turn, 0, penalty);
+        }
+        
     }
     
     storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
