@@ -127,7 +127,13 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
         // Found an entry with the same hash key
         if (entries[i].hash16 == hash16){
             toReplace = &(entries[i]);
-            goto Replace;
+            if (    depth >= entries[i].depth
+                ||  type != entries[i].type
+                ||  bestMove != entries[i].bestMove)
+                //|| (type == ALLNODE && value <= entries[i].value)
+                //|| (type == CUTNODE && value >= entries[i].value))
+                goto Replace;
+            return;
         }
         
         // Search for the lowest draft of an old entry
