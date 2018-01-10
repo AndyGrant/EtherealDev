@@ -156,6 +156,8 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 };
 
 
+const int ThreatOnKnight[3][PHASE_NB] = { { -34,  -7}, {  -7,  -2}, {  -8,  -6} };
+
 const int NoneValue[PHASE_NB] = {   0,   0};
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  20,  10}, { -20, -10} };
@@ -176,6 +178,9 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     // Setup and perform the evaluation of all pieces
     initializeEvalInfo(ei, board, ptable);
     evaluatePieces(ei, board, ptable);
+    
+    evaluateThreats(ei, board, WHITE);
+    evaluateThreats(ei, board, BLACK);
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
@@ -291,7 +296,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackedByAny2[colour]   = ei->pawnAttacks[colour] & ei->attackedByAny[colour]; 
+    ei->attackedByAny2[colour]   = 0;
     ei->attackedByAny[colour]    = ei->pawnAttacks[colour];
     ei->attackedBy[colour][PAWN] = ei->pawnAttacks[colour];
     
@@ -676,6 +681,43 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+    }
+}
+
+void evaluateThreats(EvalInfo* ei, Board* board, int colour){
+    
+    
+    int sq;
+    
+    uint64_t myKnights = board->pieces[KNIGHT] & board->colours[colour];
+    
+    while (myKnights){
+        
+        sq = poplsb(&myKnights);
+        
+        if (ei->attackedBy[!colour][PAWN] & (1ull << sq)){
+            ei->midgame[colour] += ThreatOnKnight[0][MG];
+            ei->endgame[colour] += ThreatOnKnight[0][MG];
+            if (TRACE) T.threatOnKnight[colour][0]++;
+        }
+        
+        if (     ((ei->attackedBy[!colour][BISHOP] & (1ull << sq))
+               || (ei->attackedBy[!colour][ROOK  ] & (1ull << sq))
+               || (ei->attackedBy[!colour][QUEEN ] & (1ull << sq)))
+            && !(ei->attackedByAny[colour] & (1ull << sq))){
+                     
+            ei->midgame[colour] += ThreatOnKnight[1][MG];
+            ei->endgame[colour] += ThreatOnKnight[1][MG];
+            if (TRACE) T.threatOnKnight[colour][1]++;
+        }
+        
+        if (    (ei->attackedByAny2[!colour] & (1ull << sq))
+            && !(ei->attackedByAny2[ colour] & (1ull << sq))){
+                     
+            ei->midgame[colour] += ThreatOnKnight[2][MG];
+            ei->endgame[colour] += ThreatOnKnight[2][MG];
+            if (TRACE) T.threatOnKnight[colour][2]++;
+        }
     }
 }
 

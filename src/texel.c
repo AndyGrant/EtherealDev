@@ -91,7 +91,7 @@ void runTexelTuning(Thread* thread){
     
     TexelEntry* tes;
     int i, j, iteration = -1;
-    double K, thisError, baseRate = 1.0;
+    double K, thisError, baseRate = 10.0;
     double rates[NT][PHASE_NB] = {{0}, {0}};
     double params[NT][PHASE_NB] = {{0}, {0}};
     double cparams[NT][PHASE_NB] = {{0}, {0}};
@@ -195,9 +195,9 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         
         // Search, then and apply all moves in the principle variation
         initializeBoard(&thread->board, line);
-        search(thread, &thread->pv, -MATE, MATE, 1, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], &undo);
+        // search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], &undo);
             
         // Get the eval trace for the final position in the pv
         T = EmptyTrace;
@@ -228,6 +228,11 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
 void initializeCoefficients(TexelEntry* te){
     
     int i = 0, a, b, c;
+    
+    te->coeffs[0] = T.threatOnKnight[WHITE][0] - T.threatOnKnight[BLACK][0];
+    te->coeffs[1] = T.threatOnKnight[WHITE][1] - T.threatOnKnight[BLACK][1];
+    te->coeffs[2] = T.threatOnKnight[WHITE][2] - T.threatOnKnight[BLACK][2];
+    return;
     
     // Initialize coefficients for the pawns
     
@@ -343,6 +348,7 @@ void initializeCoefficients(TexelEntry* te){
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
+    return;
     
     // Initialize parameters for the pawns
     
@@ -524,7 +530,14 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     for (x = 0; x < NT; x++){
         tparams[x][MG] = params[x][MG] + cparams[x][MG];
         tparams[x][EG] = params[x][EG] + cparams[x][EG];
-    }    
+    }
+    
+    printf("\nconst int ThreatOnKnight[3][PHASE_NB] = { {%4d,%4d}, {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG],
+            (int)tparams[i+2][MG], (int)tparams[i+2][EG]);
+    return;
+            
     
     // Print Pawn Parameters
     
