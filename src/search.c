@@ -163,6 +163,9 @@ void* iterativeDeepening(void* vthread){
             // Increase our time if the pv has changed across the last two iterations
             if (depth >= 4 && info->bestmoves[depth - 1] != thread->pv.line[0])
                 info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
+            
+            if (depth >= 4 && info->bestmoves[depth - 1] == thread->pv.line[0])
+                info->idealusage = MIN(info->maxusage, info->idealusage * 0.95);
         }
         
         // Check for termination by any of the possible limits
