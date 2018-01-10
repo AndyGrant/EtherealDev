@@ -291,9 +291,9 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
-    ei->attacked[colour] |= ei->pawnAttacks[colour];
-    ei->attackedNoQueen[colour] |= attacks;
+    ei->attackedByAny2[colour]   = ei->pawnAttacks[colour] & ei->attackedByAny[colour]; 
+    ei->attackedByAny[colour]    = ei->pawnAttacks[colour];
+    ei->attackedBy[colour][PAWN] = ei->pawnAttacks[colour];
     
     // Update the attack counts and attacker counts for pawns for use in
     // the king safety calculation. We just do this for the pawns as a whole,
@@ -365,6 +365,9 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    // Initialize attacked by for the knights of this colour
+    ei->attackedBy[colour][KNIGHT] = 0ull;
+    
     // Evaluate each knight
     while (tempKnights){
         
@@ -377,9 +380,9 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the knight attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = knightAttacks(sq, ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
-        ei->attackedNoQueen[colour] |= attacks;
+        ei->attackedByAny2[colour]     |= ei->attackedByAny[colour] & attacks;
+        ei->attackedByAny[colour]      |= attacks;
+        ei->attackedBy[colour][KNIGHT] |= attacks;
         
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
@@ -418,6 +421,9 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    // Initialize attacked by for the bishops of this colour
+    ei->attackedBy[colour][BISHOP] = 0ull;
+    
     // Apply a bonus for having pawn wings and a bishop
     if (tempBishops && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
         ei->midgame[colour] += BishopWings[MG];
@@ -444,9 +450,9 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the bishop attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
-        ei->attackedNoQueen[colour] |= attacks;
+        ei->attackedByAny2[colour]     |= attacks & ei->attackedByAny[colour];
+        ei->attackedByAny[colour]      |= attacks;
+        ei->attackedBy[colour][BISHOP] |= attacks;
         
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
@@ -485,6 +491,9 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    // Initialize attacked by for the rooks of this colour
+    ei->attackedBy[colour][ROOK] = 0ull;
+    
     // Evaluate each rook
     while (tempRooks){
         
@@ -497,9 +506,9 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
-        ei->attackedNoQueen[colour] |= attacks;
+        ei->attackedByAny2[colour]   |= attacks & ei->attackedByAny[colour];
+        ei->attackedByAny[colour]    |= attacks;
+        ei->attackedBy[colour][ROOK] |= attacks;
         
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
@@ -543,6 +552,14 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
     
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
     
+    uint64_t attackedNoQueen = ei->attackedBy[!colour][PAWN  ]
+                             | ei->attackedBy[!colour][KNIGHT]
+                             | ei->attackedBy[!colour][BISHOP]
+                             | ei->attackedBy[!colour][ROOK  ];
+    
+    // Initialize attacked by for the queens of this colour
+    ei->attackedBy[colour][QUEEN] = 0ull;
+    
     // Evaluate each queen
     while (tempQueens){
         
@@ -556,11 +573,12 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // determine whether or not passed pawns may advance safely later on.
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull)
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
+        ei->attackedByAny2[colour]    |= attacks & ei->attackedByAny[colour];
+        ei->attackedByAny[colour]     |= attacks;
+        ei->attackedBy[colour][QUEEN] |= attacks;
             
         // Apply a penalty if the queen is under an attack threat
-        if ((1ull << sq) & ei->attackedNoQueen[!colour]){
+        if ((1ull << sq) & attackedNoQueen){
             ei->midgame[colour] += QueenChecked[MG];
             ei->endgame[colour] += QueenChecked[EG];
             if (TRACE) T.queenChecked[colour]++;
@@ -593,11 +611,18 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     int defenderCounts, attackCounts;
     
+    uint64_t myKing = board->pieces[KING] & board->colours[colour];
+    
+    uint64_t attacks = kingAttacks(getlsb(myKing), ~0ull);
+    ei->attackedByAny2[colour]    |= attacks & ei->attackedByAny[colour];
+    ei->attackedByAny[colour]     |= attacks;
+    ei->attackedBy[colour][KING]   = attacks;
+    
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
                           | (board->pieces[BISHOP] & board->colours[colour]);
     
-    if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
+    if (TRACE) T.kingPSQT[colour][getlsb(myKing)]++;
     
     // Bonus for our pawns and minors sitting within our king area
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
@@ -646,7 +671,7 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         canAdvance = !(destination & notEmpty);
         
         // Destination is not attacked by the opponent
-        safeAdvance = !(destination & ei->attacked[!colour]);
+        safeAdvance = !(destination & ei->attackedByAny[!colour]);
         
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
@@ -681,9 +706,6 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
-    
-    ei->attacked[WHITE] = ei->attackedNoQueen[WHITE] = kingAttacks(wKingSq, ~0ull);
-    ei->attacked[BLACK] = ei->attackedNoQueen[BLACK] = kingAttacks(bKingSq, ~0ull);
     
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));

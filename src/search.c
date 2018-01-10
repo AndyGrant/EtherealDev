@@ -519,18 +519,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   MoveType(currentMove) != ENPASS_MOVE
             &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+            && !(ei.attackedByAny2[board->turn] & (1ull << MoveTo(currentMove)))
             &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
                  
           
             // If the target piece has two or more defenders, we will prune up to depth 4
-            if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
+            if (ei.attackedByAny2[!board->turn] & (1ull << MoveTo(currentMove)))
                 continue;
             
             // Otherwise, if the piece has one defender, we will prune up to depth 3
             if (    depth <= 3
-                && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
+                && (ei.attackedByAny[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
         }
         
@@ -710,8 +710,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // the capture is also a promotion we will not perform any pruning here
         if (     MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
-            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+            &&  (ei.attackedByAny[!board->turn] & (1ull << MoveTo(currentMove)))
+            && !(ei.attackedByAny2[board->turn] & (1ull << MoveTo(currentMove)))
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
             continue;

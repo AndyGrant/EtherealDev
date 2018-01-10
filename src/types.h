@@ -33,6 +33,7 @@
 
 #define SQUARE_NB (64)
 #define COLOUR_NB ( 2)
+#define PIECE_NB  ( 6)
 #define RANK_NB   ( 8)
 #define FILE_NB   ( 8)
 #define PHASE_NB  ( 2)
