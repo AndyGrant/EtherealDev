@@ -93,8 +93,9 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour);
 void evaluateRooks(EvalInfo* ei, Board* board, int colour);
 void evaluateQueens(EvalInfo* ei, Board* board, int colour);
 void evaluateKings(EvalInfo* ei, Board* board, int colour);
-void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
-void initializeEvalInfo(EvalInfo* ei, Board * board, PawnTable* ptable);
+void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour);
+void evaluateImbalanace(EvalInfo* ei, Board* board);
+void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable);
 
 extern const int* PieceValues[8];
 

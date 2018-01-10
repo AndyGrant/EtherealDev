@@ -176,6 +176,8 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnTable* ptable){
     // Setup and perform the evaluation of all pieces
     initializeEvalInfo(ei, board, ptable);
     evaluatePieces(ei, board, ptable);
+    
+    evaluateImbalanace(ei, board);
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
@@ -425,13 +427,6 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.bishopWings[colour]++;
     }
     
-    // Apply a bonus for having a pair of bishops
-    if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
-        ei->midgame[colour] += BishopPair[MG];
-        ei->endgame[colour] += BishopPair[EG];
-        if (TRACE) T.bishopPair[colour]++;
-    }
-    
     // Evaluate each bishop
     while (tempBishops){
         
@@ -652,6 +647,33 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
+}
+
+void evaluateImbalanace(EvalInfo* ei, Board* board){
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    
+    int pawnavg = MAX(0, (popcount(board->pieces[PAWN]) - 1) / 2);
+    
+    int wknight = MIN(2, popcount(white & knights));
+    int bknight = MIN(2, popcount(black & knights));
+    
+    int wbishop = MIN(2, popcount(white & bishops));
+    int bbishop = MIN(2, popcount(black & bishops));
+    
+    int widx = wknight * 3 + wbishop;
+    int bidx = bknight * 3 + bbishop;
+    
+    static const int Imbalance[648] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, -2, -1, 2, 5, 17, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -32, -63, -64, -70, -60, -49, -32, 0, 0, 0, 0, 0, 0, 0, 0, 0, -74, -74, -74, -71, -78, -66, -54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 1, -2, -5, -17, -25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 63, 64, 70, 60, 49, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 11, -6, -5, 0, 6, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -67, -67, -67, -57, -54, -48, -36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 74, 74, 71, 78, 66, 54, 0, 0, 0, 0, 0, 0, 0, 0, 0, -12, -11, 6, 5, 0, -6, -12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 67, 67, 57, 54, 48, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    
+    ei->midgame[WHITE] += 0.6 * Imbalance[widx * 72 + bidx * 8 + pawnavg];
+    ei->endgame[WHITE] += 1.2 * Imbalance[widx * 72 + bidx * 8 + pawnavg];
+
+    
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
