@@ -514,6 +514,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // additional support for the attacker. Don't include capture-promotions
         if (    !PvNode
             &&  !isQuiet
+            &&  !inCheck
             &&   played >= 1
             &&   depth <= 4
             &&   MoveType(currentMove) != ENPASS_MOVE
