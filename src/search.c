@@ -165,7 +165,7 @@ void* iterativeDeepening(void* vthread){
                 info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
             
             if (depth >= 4 && info->bestmoves[depth - 1] == thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 0.95);
+                info->idealusage = MIN(info->maxusage, info->idealusage * 0.90);
         }
         
         // Check for termination by any of the possible limits
