@@ -282,7 +282,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->info->depth >= 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
@@ -296,7 +297,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (rAlpha >= rBeta) return rAlpha;
     
     // Step 3. Check for the Fifty Move Rule
-    if (board->fiftyMoveRule > 100)
+    if (!RootNode && board->fiftyMoveRule > 100)
         return 0;
     
     // Step 4. Check for three fold repetition. If the repetition occurs since
@@ -308,7 +309,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move which triggered a reset of the fifty move rule counter
         if (i < board->numMoves - board->fiftyMoveRule) break;
         
-        if (board->history[i] == board->hash){
+        if (!RootNode && board->history[i] == board->hash){
             
             // Repetition occured after the root
             if (i > board->numMoves - height)
@@ -653,7 +654,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->info->depth >= 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
