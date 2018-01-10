@@ -80,7 +80,7 @@ const int KnightMobility[9][PHASE_NB] = {
 
 const int BishopValue[PHASE_NB] = { 314, 302};
 
-const int BishopWings[PHASE_NB] = {  14,  19};
+const int BishopWings[PHASE_NB] = {  14,  17};
 
 const int BishopPair[PHASE_NB] = {  38,  50};
 
@@ -418,13 +418,6 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
-    // Apply a bonus for having pawn wings and a bishop
-    if (tempBishops && ((myPawns | enemyPawns) & LEFT_WING) && ((myPawns | enemyPawns) & RIGHT_WING)){
-        ei->midgame[colour] += BishopWings[MG];
-        ei->endgame[colour] += BishopWings[EG];
-        if (TRACE) T.bishopWings[colour]++;
-    }
-    
     // Apply a bonus for having a pair of bishops
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
         ei->midgame[colour] += BishopPair[MG];
@@ -447,6 +440,12 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        if (((myPawns | enemyPawns) & LEFT_WING) && ((myPawns | enemyPawns) & RIGHT_WING)){
+            ei->midgame[colour] += BishopWings[MG];
+            ei->endgame[colour] += BishopWings[EG];
+            if (TRACE) T.bishopWings[colour]++;
+        }
         
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
