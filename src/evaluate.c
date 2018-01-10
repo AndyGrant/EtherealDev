@@ -80,7 +80,7 @@ const int KnightMobility[9][PHASE_NB] = {
 
 const int BishopValue[PHASE_NB] = { 314, 302};
 
-const int BishopWings[PHASE_NB] = {  14,  17};
+const int BishopWings[PHASE_NB] = {   6,  15};
 
 const int BishopPair[PHASE_NB] = {  38,  50};
 
