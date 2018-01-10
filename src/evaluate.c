@@ -80,7 +80,7 @@ const int KnightMobility[9][PHASE_NB] = {
 
 const int BishopValue[PHASE_NB] = { 314, 302};
 
-const int BishopWings[PHASE_NB] = {  -4,   9};
+const int BishopWings[PHASE_NB] = {  14,  19};
 
 const int BishopPair[PHASE_NB] = {  38,  50};
 
@@ -419,7 +419,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
     // Apply a bonus for having pawn wings and a bishop
-    if (tempBishops && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
+    if (tempBishops && ((myPawns | enemyPawns) & LEFT_WING) && ((myPawns | enemyPawns) & RIGHT_WING)){
         ei->midgame[colour] += BishopWings[MG];
         ei->endgame[colour] += BishopWings[EG];
         if (TRACE) T.bishopWings[colour]++;
