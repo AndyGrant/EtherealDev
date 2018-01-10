@@ -282,7 +282,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->info->depth >= 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
@@ -433,12 +434,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // likely going to be good at a full depth. To save some work we will prune
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
-        && !inCheck
         &&  depth >= 5){
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
@@ -653,7 +653,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->info->depth >= 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
