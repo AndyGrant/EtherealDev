@@ -595,7 +595,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
-                          | (board->pieces[BISHOP] & board->colours[colour]);
+                          | (board->pieces[BISHOP] & board->colours[colour])
+                          | (board->pieces[ROOK  ] & board->colours[colour]);
     
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
     
