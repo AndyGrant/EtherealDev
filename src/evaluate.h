@@ -56,6 +56,7 @@ typedef struct EvalTrace {
     
     int kingPSQT[COLOUR_NB][SQUARE_NB];
     int kingDefenders[COLOUR_NB][12];
+    int kingAttackers[COLOUR_NB][12];
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
     

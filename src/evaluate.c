@@ -122,7 +122,6 @@ const int QueenMobility[28][PHASE_NB] = {
     {  11,  29}, {  11,  30}, {  12,  31}, {  15,  37},
     {  16,  38}, {  24,  39}, {  28,  43}, {  34,  42},
     {  38,  44}, {  33,  37}, {  45,  50}, {  30,  41},
-
 };
 
 
@@ -132,6 +131,12 @@ const int KingDefenders[12][PHASE_NB] = {
     {  -8,  -2}, {  -4,   0}, {   0,   2}, {   4,   4},
     {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
     {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
+};
+
+const int KingAttackers[12][PHASE_NB] = {
+    {   0,   0}, {  -4,  -7}, {  -7, -15}, { -11, -26},
+    { -19, -40}, { -37, -40}, { -40, -40}, { -40, -40},
+    { -19, -40}, { -37, -40}, { -40, -40}, { -40, -40}
 };
 
 const int KingSafety[100] = { // Taken from CPW / Stockfish
@@ -591,34 +596,41 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
+    int count;
     
-    uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
-                          | (board->pieces[KNIGHT] & board->colours[colour])
-                          | (board->pieces[BISHOP] & board->colours[colour]);
-    
+    uint64_t myDefenders = (board->pieces[PAWN  ] & board->colours[ colour])
+                         | (board->pieces[KNIGHT] & board->colours[ colour])
+                         | (board->pieces[BISHOP] & board->colours[ colour]);
+                          
+    uint64_t myAttackers = ~board->pieces[KING  ] & board->colours[!colour];
+                          
     if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
     
     // Bonus for our pawns and minors sitting within our king area
-    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->midgame[colour] += KingDefenders[defenderCounts][MG];
-    ei->endgame[colour] += KingDefenders[defenderCounts][EG];
-    if (TRACE) T.kingDefenders[colour][defenderCounts]++;
+    count = popcount(myDefenders & ei->kingAreas[colour]);
+    ei->midgame[colour] += KingDefenders[count][MG];
+    ei->endgame[colour] += KingDefenders[count][EG];
+    if (TRACE) T.kingDefenders[colour][count]++;
+    
+    // Penalty for enemy pieces sitting within our king area
+    count = popcount(myAttackers & ei->kingAreas[colour]);
+    ei->midgame[colour] += KingAttackers[count][MG];
+    ei->endgame[colour] += KingAttackers[count][EG];
+    if (TRACE) T.kingAttackers[colour][count]++;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
         // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        count = MIN(99, ei->attackCounts[!colour]);
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            count *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        ei->midgame[colour] -= KingSafety[count];
+        ei->endgame[colour] -= KingSafety[count];
     }
 }
 
