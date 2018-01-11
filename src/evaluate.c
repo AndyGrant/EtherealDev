@@ -642,9 +642,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         filePawns = myPawns & Files[file] & RanksAbove[colour][kingRank];
         
-        distance = filePawns ? colour == WHITE ? (Rank(getlsb(filePawns)) - kingRank)
-                                               : (kingRank - Rank(getmsb(filePawns)))
-                                               :  0;
+        distance = filePawns ? colour == WHITE ? 0 + Rank(getlsb(filePawns))
+                                               : 7 - Rank(getmsb(filePawns))
+                                               : 0;
                                                
         if (TRACE) T.kingShelter[colour][file == File(kingSq)][ei->attackerCounts[!colour] >= 2][distance]++;
         
