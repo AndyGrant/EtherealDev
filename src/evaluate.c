@@ -636,6 +636,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         { -20,  16,  16,  13,   0, -10, -20, -20}
     };
     
+    int shelter = 0;
+    
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
         filePawns = myPawns & Files[file] & RanksAboveOrOneBelow[colour][kingRank];
@@ -644,9 +646,15 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
                                                : MAX(1, kingRank - Rank(getmsb(filePawns)))
                                                : 0;
                                                
-        ei->midgame[colour] += KingShelter[file == File(kingSq)][distance] / 1;
-        ei->endgame[colour] += KingShelter[file == File(kingSq)][distance] / 5;
+        shelter += KingShelter[file == File(kingSq)][distance];
     }
+    
+    if (ei->attackCounts[!colour] >= 2) shelter *= 1.2;
+    if (ei->attackCounts[!colour] >= 3) shelter *= 1.4;
+    if (ei->attackCounts[!colour] >= 4) shelter *= 1.6;
+    
+    ei->midgame[colour] += shelter / 2;
+    ei->endgame[colour] += shelter / 6;
 }
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
