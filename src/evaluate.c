@@ -591,7 +591,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int shelter = 0;
+    int shelter = 0, fileCnt = 0;
     int file, distance, defenderCounts, attackCounts, kingSq, kingRank, kingFile;
     
     uint64_t filePawns;
@@ -638,7 +638,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     };
     
     
-    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
+    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++, fileCnt++){
         
         filePawns = myPawns & Files[file] & RanksAboveOrOneBelow[colour][kingRank];
         
@@ -649,8 +649,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         shelter += KingShelter[file == File(kingSq)][distance];
     }
     
-    ei->midgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : shelter;
-    ei->endgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : shelter;
+    ei->midgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : 3 * shelter / fileCnt;
+    ei->endgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : 3 * shelter / fileCnt;
 }
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
