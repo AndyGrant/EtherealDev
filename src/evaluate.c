@@ -638,7 +638,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
-        filePawns = myPawns & Files[file] & RanksAtOrAbove[colour][kingRank];
+        filePawns = myPawns & Files[file] & RanksAboveOrOneBelow[colour][kingRank];
         
         distance = filePawns ? colour == WHITE ? MAX(1, Rank(getlsb(filePawns)) - kingRank)
                                                : MAX(1, kingRank - Rank(getmsb(filePawns)))

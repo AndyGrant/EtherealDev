@@ -25,7 +25,7 @@
 
 void initializeMasks();
 
-extern uint64_t RanksAtOrAbove[COLOUR_NB][RANK_NB];
+extern uint64_t RanksAboveOrOneBelow[COLOUR_NB][RANK_NB];
 extern uint64_t IsolatedPawnMasks[SQUARE_NB];
 extern uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 extern uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
