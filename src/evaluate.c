@@ -633,8 +633,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     }
     
     static const int KingShelter[2][8] = {
-        { -10,  10,   8,   5,   1,   0,  -5, -10},
-        { -20,  16,  16,  13,   0, -10, -20, -20}
+        { -10,   8,   8,   4,   1,   0,  -5, -10},
+        { -20,  10,   9,   7,   3,  -4, -10, -14}
     };
     
     
@@ -649,8 +649,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         shelter += KingShelter[file == File(kingSq)][distance];
     }
     
-    ei->midgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : 3 * shelter / fileCnt;
-    ei->endgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : 3 * shelter / fileCnt;
+    ei->midgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 26 : 3 * shelter / fileCnt;
+    ei->endgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 26 : 5 * shelter / fileCnt;
 }
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
