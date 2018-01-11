@@ -649,8 +649,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         shelter += KingShelter[file == File(kingSq)][distance];
     }
     
-    ei->midgame[colour] += (board->castleRights & (3 << (2 * colour))) ? MAX(36, shelter / 2) : shelter / 2;
-    ei->endgame[colour] += (board->castleRights & (3 << (2 * colour))) ? MAX(36, shelter / 4) : shelter / 4;
+    ei->midgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : shelter;
+    ei->endgame[colour] += (board->castleRights & (3 << (2 * colour))) ? 36 : shelter;
 }
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
