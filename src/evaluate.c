@@ -645,7 +645,6 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
                                                : MAX(1, MIN(4, kingRank - Rank(getmsb(filePawns))))
                                                : 0;
                                                
-        ei->midgame[colour] += KingShelter[file == File(kingSq)][distance];
         ei->endgame[colour] += KingShelter[file == File(kingSq)][distance];
     }
 }
