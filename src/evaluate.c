@@ -16,10 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "board.h"
 #include "bitboards.h"
@@ -133,6 +134,8 @@ const int KingDefenders[12][PHASE_NB] = {
     {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
     {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
 };
+
+const int KingShelter[2][2][8][PHASE_NB];
 
 const int KingSafety[100] = { // Taken from CPW / Stockfish
        0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
@@ -593,6 +596,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     int defenderCounts, attackCounts;
     
+    int file, kingFile, kingRank, kingSq, distance;
+    
+    uint64_t filePawns;
+    
+    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
                           | (board->pieces[BISHOP] & board->colours[colour]);
@@ -620,6 +630,20 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] -= KingSafety[attackCounts];
         ei->endgame[colour] -= KingSafety[attackCounts];
     }
+    
+    kingSq = getlsb(myKings); kingFile = File(kingSq); kingRank = Rank(kingSq);
+    
+    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
+        
+        filePawns = myPawns & Files[file];
+        
+        distance = filePawns ? colour == WHITE ? MAX(1, abs(kingRank - Rank(getlsb(filePawns))))
+                                               : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
+                                               : 0;
+
+        if (TRACE) T.kingShelter[colour][file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance]++;
+    }
+    
 }
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
