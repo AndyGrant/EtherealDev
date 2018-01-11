@@ -632,19 +632,20 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     }
     
     static const int KingShelter[2][8] = {
-        { -17,  32,  26,  18,   9,   0,  -7, -17},
-        { -40,  32,  29,  25,  13,  -7, -17, -29}
+        { -10,  10,   8,   5,   1,   0,  -5, -10},
+        { -20,  16,  16,  13,   0, -10, -20, -20}
     };
     
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
         filePawns = myPawns & Files[file] & RanksAtOrAbove[colour][kingRank];
         
-        distance = filePawns ? colour == WHITE ? 0 + Rank(getlsb(filePawns))
-                                               : 7 - Rank(getmsb(filePawns))
+        distance = filePawns ? colour == WHITE ? MAX(1, Rank(getlsb(filePawns)) - kingRank)
+                                               : MAX(1, kingRank - Rank(getmsb(filePawns)))
                                                : 0;
                                                
         ei->midgame[colour] += KingShelter[file == File(kingSq)][distance];
+        ei->endgame[colour] += KingShelter[file == File(kingSq)][distance];
     }
 }
 
