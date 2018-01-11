@@ -18,12 +18,14 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "bitboards.h"
 #include "masks.h"
 #include "piece.h"
 #include "types.h"
 
+uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
@@ -32,8 +34,33 @@ uint64_t OutpostRanks[COLOUR_NB];
 
 void initializeMasks(){
     
-    int i, j;
+    int i, j, k;
     uint64_t files;
+    
+    for (i = 0; i < SQUARE_NB; i++){
+        for (j = 0; j < SQUARE_NB; j++){
+            
+            // Same Rank
+            if (Rank(i) == Rank(j))
+                for (k = MIN(i, j) + 1; k < MAX(i, j); k += 1)
+                    BitsBetweenMasks[i][j] |= (1ull << k);
+            
+            // Same File
+            else if (File(i) == File(j))
+                for (k = MIN(i, j) + 8; k < MAX(i, j); k += 8)
+                    BitsBetweenMasks[i][j] |= (1ull << k);
+                
+            // Same Down-Right Diagonal
+            else if (abs(i - j) % 9 == 0)
+                for (k = MIN(i, j) + 9; k < MAX(i, j); k += 9)
+                    BitsBetweenMasks[i][j] |= (1ull << k);
+                
+            // Same Up-Right Diagonal
+            else if (abs(i - j) % 7 == 0)
+                for (k = MIN(i, j) + 7; k < MAX(i, j); k += 7)
+                    BitsBetweenMasks[i][j] |= (1ull << k);
+        }
+    }
     
     // Initalize isolated pawn masks
     for (i = 0; i < SQUARE_NB; i++){
