@@ -478,12 +478,17 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
 
 void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     
-    int sq, open, mobilityCount;
-    uint64_t tempRooks, myPawns, enemyPawns, attacks;
+    int sq, open, mobilityCount, enemyKingSq, pinnedType;
     
-    tempRooks = board->pieces[ROOK] & board->colours[colour];
-    myPawns = board->pieces[PAWN] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t attacks;
+    uint64_t tempRooks = board->pieces[ROOK] & board->colours[ colour];
+    
+    const uint64_t myPawns       = board->pieces[PAWN] & board->colours[ colour];
+    const uint64_t enemyPawns    = board->pieces[PAWN] & board->colours[!colour];
+    const uint64_t enemyKing     = board->pieces[KING] & board->colours[!colour];
+    const uint64_t enemyNonPawns =~board->pieces[PAWN] & board->colours[!colour];
+    
+    enemyKingSq = getlsb(enemyKing);
     
     // Evaluate each rook
     while (tempRooks){
@@ -500,6 +505,19 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        // Rook gains a bonus if it is pinning a minor or major to the king
+        if (  !(BitsBetweenMasks[sq][enemyKingSq] & ~enemyNonPawns)
+            &&  popcount(BitsBetweenMasks[sq][enemyKingSq] & enemyNonPawns) == 1){
+            
+            static const int RookPinsPiece[4][PHASE_NB] = {
+                {  13,  17}, {  13,  17}, {   4,   4}, {  27,  37}
+            };
+            
+            pinnedType = getlsb(BitsBetweenMasks[sq][enemyKingSq] & enemyNonPawns) - 1;
+            ei->midgame[colour] += RookPinsPiece[pinnedType][MG];
+            ei->endgame[colour] += RookPinsPiece[pinnedType][EG];
+        }
         
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
