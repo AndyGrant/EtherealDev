@@ -514,7 +514,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
                 {  13,  17}, {  13,  17}, {   4,   4}, {  27,  37}
             };
             
-            pinnedType = getlsb(BitsBetweenMasks[sq][enemyKingSq] & enemyNonPawns) - 1;
+            pinnedType = PieceType(board->squares[getlsb(BitsBetweenMasks[sq][enemyKingSq] & enemyNonPawns)]) - 1;
             ei->midgame[colour] += RookPinsPiece[pinnedType][MG];
             ei->endgame[colour] += RookPinsPiece[pinnedType][EG];
         }
