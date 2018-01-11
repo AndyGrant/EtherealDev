@@ -21,9 +21,9 @@
 
 #include "types.h"
 
-#define NP (2000000)
+#define NP (7300000)
 
-#define NT (354)
+#define NT (4)
 
 typedef struct TexelEntry {
     double result;

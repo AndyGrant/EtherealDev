@@ -510,13 +510,14 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         if (  !(BitsBetweenMasks[sq][enemyKingSq] & ~enemyNonPawns)
             &&  popcount(BitsBetweenMasks[sq][enemyKingSq] & enemyNonPawns) == 1){
             
-            static const int RookPinsPiece[4][PHASE_NB] = {
-                {  13,  17}, {  13,  17}, {   4,   4}, {  27,  37}
-            };
+            // static const int RookPinsPiece[4][PHASE_NB] = {
+            //     {  13,  17}, {  13,  17}, {   4,   4}, {  27,  37}
+            // };
             
             pinnedType = PieceType(board->squares[getlsb(BitsBetweenMasks[sq][enemyKingSq] & enemyNonPawns)]) - 1;
-            ei->midgame[colour] += RookPinsPiece[pinnedType][MG];
-            ei->endgame[colour] += RookPinsPiece[pinnedType][EG];
+            // ei->midgame[colour] += RookPinsPiece[pinnedType][MG];
+            // ei->endgame[colour] += RookPinsPiece[pinnedType][EG];
+            T.rookPinsPiece[colour][pinnedType]++;
         }
         
         // Rook is on a semi-open file if there are no

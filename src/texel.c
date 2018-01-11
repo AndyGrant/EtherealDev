@@ -229,6 +229,10 @@ void initializeCoefficients(TexelEntry* te){
     
     int i = 0, a, b, c;
     
+    for (a = 0; a < 4; a++)
+        te->coeffs[i++] = T.rookPinsPiece[WHITE][a] - T.rookPinsPiece[BLACK][a];
+    return;
+    
     // Initialize coefficients for the pawns
     
     te->coeffs[i++] = T.pawnCounts[WHITE] - T.pawnCounts[BLACK];
@@ -343,6 +347,7 @@ void initializeCoefficients(TexelEntry* te){
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
+    return;
     
     // Initialize parameters for the pawns
     
@@ -525,6 +530,13 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         tparams[x][MG] = params[x][MG] + cparams[x][MG];
         tparams[x][EG] = params[x][EG] + cparams[x][EG];
     }    
+    
+    printf("\nconst int RookPinsPiece[4][PHASE_NB] = { {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG],
+            (int)tparams[i+2][MG], (int)tparams[i+2][EG],
+            (int)tparams[i+3][MG], (int)tparams[i+3][EG]);
+    return;
     
     // Print Pawn Parameters
     
