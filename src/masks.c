@@ -24,6 +24,7 @@
 #include "piece.h"
 #include "types.h"
 
+uint64_t RanksAbove[COLOUR_NB][RANK_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
@@ -34,6 +35,15 @@ void initializeMasks(){
     
     int i, j;
     uint64_t files;
+    
+    for (i = 0; i < RANK_NB; i++){
+        
+        for (j = i + 1; j < RANK_NB; j++)
+            RanksAbove[WHITE][i] |= Ranks[j];
+        
+        for (j = i - 1; j >= 0; j--)
+            RanksAbove[BLACK][i] |= Ranks[j];
+    }
     
     // Initalize isolated pawn masks
     for (i = 0; i < SQUARE_NB; i++){

@@ -229,6 +229,12 @@ void initializeCoefficients(TexelEntry* te){
     
     int i = 0, a, b, c;
     
+    for (a = 0; a < 2; a++)
+        for (b = 0; b < 2; b++)
+            for (c = 0; c < RANK_NB; c++)
+                te->coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
+    return;
+    
     // Initialize coefficients for the pawns
     
     te->coeffs[i++] = T.pawnCounts[WHITE] - T.pawnCounts[BLACK];
@@ -343,7 +349,7 @@ void initializeCoefficients(TexelEntry* te){
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
-    
+    return ;
     // Initialize parameters for the pawns
     
     cparams[i  ][MG] = PawnValue[MG];
@@ -525,6 +531,16 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         tparams[x][MG] = params[x][MG] + cparams[x][MG];
         tparams[x][EG] = params[x][EG] + cparams[x][EG];
     }    
+    
+    printf("\nconst int KingShelter[2][2][RANK_NB][PHASE_NB] = {");
+    for (x = 0; x < 4; x++){
+        printf("\n  %s", x % 2 ? " {" : "{{");
+        for (y = 0; y < RANK_NB; y++, i++){
+            printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
+            printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
+        }
+    } printf("\n};\n");
+    return;
     
     // Print Pawn Parameters
     

@@ -591,13 +591,23 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
+    int file, distance, defenderCounts, attackCounts, kingSq, kingRank, kingFile;
+    
+    uint64_t filePawns;
+    
+    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
                           | (board->pieces[BISHOP] & board->colours[colour]);
+                          
     
-    if (TRACE) T.kingPSQT[colour][getlsb(board->colours[colour] & board->pieces[KING])]++;
+    kingSq = getlsb(myKings);
+    kingRank = Rank(kingSq);
+    kingFile = File(kingSq);
+    
+    if (TRACE) T.kingPSQT[colour][kingSq]++;
     
     // Bonus for our pawns and minors sitting within our king area
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
@@ -619,6 +629,16 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
         ei->midgame[colour] -= KingSafety[attackCounts];
         ei->endgame[colour] -= KingSafety[attackCounts];
+    }
+    
+    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
+        
+        filePawns = myPawns & Files[file] & RanksAbove[colour][kingRank];
+        
+        distance = filePawns ? colour == WHITE ? (Rank(getlsb(filePawns)) - kingRank)
+                                               : (kingRank - Rank(getmsb(filePawns)))
+                                               :  0;
+        if (TRACE) T.kingShelter[colour][file == File(kingSq)][ei->attackerCounts[!colour] >= 2][distance]++;
     }
 }
 
