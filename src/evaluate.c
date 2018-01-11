@@ -631,6 +631,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] -= KingSafety[attackCounts];
     }
     
+    static const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
+      {{{  -5,  -8}, {   3,   0}, {   1,   9}, {   2,   1}, {   5,  -4}, {   3,   7}, {  20,  -7}, {   0,   0}},
+       {{ -10,   9}, {  10,  -4}, {   3,  -7}, {  -2, -10}, {  -8, -22}, {  -4, -12}, { -12, -47}, {   0,   0}}},
+      {{{  -9, -14}, {   0,   6}, {   5,   6}, {   4,   2}, {   0,   3}, {  -2,   2}, { -13, -22}, {   0,   0}},
+       {{ -20,   9}, {   8,  -3}, {   4,  -5}, {  -4, -17}, {  -7, -13}, { -28, -15}, { -55, -69}, {   0,   0}}},
+    };
+    
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
         filePawns = myPawns & Files[file] & RanksAbove[colour][kingRank];
@@ -638,7 +645,11 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         distance = filePawns ? colour == WHITE ? (Rank(getlsb(filePawns)) - kingRank)
                                                : (kingRank - Rank(getmsb(filePawns)))
                                                :  0;
+                                               
         if (TRACE) T.kingShelter[colour][file == File(kingSq)][ei->attackerCounts[!colour] >= 2][distance]++;
+        
+        ei->midgame[colour] += KingShelter[file == File(kingSq)][ei->attackerCounts[!colour] >= 2][distance][MG];
+        ei->endgame[colour] += KingShelter[file == File(kingSq)][ei->attackerCounts[!colour] >= 2][distance][EG];
     }
 }
 
