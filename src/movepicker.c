@@ -218,16 +218,16 @@ void evaluateQuietMoves(MovePicker* mp, Board* board){
         
         move = mp->moves[i];
         
-        static const int SortingTypes[KING+1] = {10, 8, 8, 4, 3, 1};
+        static const int SortingTypes[KING+1] = {10, 14, 14, 6, 4, 1};
         
         static const int SortingTable[SQUARE_NB] = {
             0, 0, 0, 0, 0, 0, 0, 0,
-            1, 2, 2, 2, 2, 2, 2, 1,
-            1, 2, 4, 4, 4, 4, 2, 1,
-            1, 2, 4, 6, 6, 4, 2, 1,
-            1, 2, 4, 6, 6, 4, 2, 1,
-            1, 2, 4, 4, 4, 4, 2, 1,
-            1, 2, 2, 2, 2, 2, 2, 1,
+            1, 0, 2, 2, 2, 2, 0, 1,
+            1, 2, 6, 4, 4, 6, 2, 1,
+            1, 2, 4, 8, 8, 4, 2, 1,
+            1, 2, 4, 8, 8, 4, 2, 1,
+            1, 2, 6, 4, 4, 6, 2, 1,
+            1, 0, 2, 2, 2, 2, 0, 1,
             0, 0, 0, 0, 0, 0, 0, 0,
         };
         
