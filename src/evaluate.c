@@ -121,7 +121,7 @@ const int QueenMobility[28][PHASE_NB] = {
     {  31,  33}, {  29,  22}, {  35,  43}, {  13,  30},
 };
 
-const int KingValue[PHASE_NB] = { 100, 100};
+const int KingValue[PHASE_NB] = {   0,   0};
 
 const int KingDefenders[12][PHASE_NB] = {
     { -16,   0}, { -11,   2}, {  -1,   0}, {   6,   0},
