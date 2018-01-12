@@ -218,10 +218,21 @@ void evaluateQuietMoves(MovePicker* mp, Board* board){
         
         move = mp->moves[i];
         
+        static const int SortingTable[SQUARE_NB] = {
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 2, 2, 2, 2, 2, 2, 1,
+            1, 2, 4, 4, 4, 4, 2, 1,
+            1, 2, 4, 6, 6, 4, 2, 1,
+            1, 2, 4, 6, 6, 4, 2, 1,
+            1, 2, 4, 4, 4, 4, 2, 1,
+            1, 2, 4, 4, 4, 4, 2, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+        };
+        
         // Use the history score and PSQT to evaluate the move
         value =  getHistoryScore(*mp->history, move, board->turn, 512);
-        value += abs(PSQTMidgame[board->squares[MoveFrom(move)]][MoveTo(move)  ]);
-        value -= abs(PSQTMidgame[board->squares[MoveFrom(move)]][MoveFrom(move)]);
+        value += 12 * SortingTable[MoveTo(move)  ];
+        value -= 12 * SortingTable[MoveFrom(move)];
         
         mp->values[i] = value;
     }
