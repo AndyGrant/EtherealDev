@@ -758,7 +758,7 @@ int weakCapture(Board* board, EvalInfo* ei, uint16_t move){
     target   =   target == BISHOP ? KNIGHT :   target;
     attacker = attacker == BISHOP ? KNIGHT : attacker;
     
-    return (target > attacker);
+    return (attacker != KING && target >= attacker);
 }
 
 
