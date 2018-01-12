@@ -296,27 +296,31 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (rAlpha >= rBeta) return rAlpha;
     
     // Step 3. Check for the Fifty Move Rule
-    if (board->fiftyMoveRule > 100)
+    if (board->fiftyMoveRule > 100 && !RootNode)
         return 0;
     
-    // Step 4. Check for three fold repetition. If the repetition occurs since
-    // the root move of this search, we will exit early as if it was a draw.
-    // Otherwise, we will look for an actual three fold repetition draw.
-    for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
-        
-        // We can't have repeated positions before the most recent
-        // move which triggered a reset of the fifty move rule counter
-        if (i < board->numMoves - board->fiftyMoveRule) break;
-        
-        if (board->history[i] == board->hash){
+    if (!RootNode){
+
+        // Step 4. Check for three fold repetition. If the repetition occurs since
+        // the root move of this search, we will exit early as if it was a draw.
+        // Otherwise, we will look for an actual three fold repetition draw.
+    
+        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
             
-            // Repetition occured after the root
-            if (i > board->numMoves - height)
-                return 0;
+            // We can't have repeated positions before the most recent
+            // move which triggered a reset of the fifty move rule counter
+            if (i < board->numMoves - board->fiftyMoveRule) break;
             
-            // An actual three fold repetition
-            if (++repetitions == 2)
-                return 0;
+            if (board->history[i] == board->hash){
+                
+                // Repetition occured after the root
+                if (i > board->numMoves - height)
+                    return 0;
+                
+                // An actual three fold repetition
+                if (++repetitions == 2)
+                    return 0;
+            }
         }
     }
     
