@@ -220,8 +220,11 @@ void evaluateQuietMoves(MovePicker* mp, Board* board){
         
         // Use the history score and PSQT to evaluate the move
         value =  getHistoryScore(*mp->history, move, board->turn, 512);
-        value += abs(PSQTMidgame[board->squares[MoveFrom(move)]][MoveTo(move)  ]);
-        value -= abs(PSQTMidgame[board->squares[MoveFrom(move)]][MoveFrom(move)]);
+        
+        int type = PieceType(board->squares[MoveFrom(move)]);
+        
+        value += abs(PSQTMidgame[board->squares[MoveTo  (move)]][MoveTo(move)  ] - PieceValues[type][MG]
+                   + PSQTMidgame[board->squares[MoveFrom(move)]][MoveFrom(move)] - PieceValues[type][MG]);
         
         mp->values[i] = value;
     }
