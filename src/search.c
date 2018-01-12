@@ -517,21 +517,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !inCheck
             &&   played >= 1
             &&   depth <= 5
-            &&   MoveType(currentMove) != ENPASS_MOVE
-            &&   MoveType(currentMove) != PROMOTION_MOVE
-            &&  !ei.positionIsDrawn
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
+            &&   weakCapture(board, &ei, currentMove)){
                  
-          
-            // If the target piece has two or more defenders, we will prune up to depth 5
-            if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
+            // One defender is needed to prune up till depth 3
+            if (depth <= 3)
                 continue;
-            
-            // Otherwise, if the piece has one defender, we will prune up to depth 3
-            if (    depth <= 3
-                && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
+                 
+            // Two defenders are needed to prune up till depth 5
+            if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
                 continue;
         }
         
@@ -706,16 +699,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (value < alpha)
             continue;
         
-        // Prune this capture if it is capturing a weaker piece which is protected,
-        // so long as we do not have any additional support for the attacker. If
-        // the capture is also a promotion we will not perform any pruning here
-        if (     MoveType(currentMove) != PROMOTION_MOVE
-            &&  !ei.positionIsDrawn
-            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
-            continue;
+        if (weakCapture(board, &ei, currentMove)) continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -758,6 +742,25 @@ int moveIsTactical(Board* board, uint16_t move){
         || MoveType(move) == PROMOTION_MOVE
         || MoveType(move) == ENPASS_MOVE;
 }
+
+int weakCapture(Board* board, EvalInfo* ei, uint16_t move){
+    
+    if (     MoveType(move) == ENPASS_MOVE
+        ||   MoveType(move) == PROMOTION_MOVE
+        ||   ei->positionIsDrawn
+        || !(ei->attacked[!board->turn] & (1ull << MoveTo(move)))
+        ||  (ei->attackedBy2[board->turn] & (1ull << MoveTo(move))))
+        return 0;
+        
+    int target   = PieceType(board->squares[MoveTo  (move)]);
+    int attacker = PieceType(board->squares[MoveFrom(move)]);
+        
+    target   =   target == BISHOP ? KNIGHT :   target;
+    attacker = attacker == BISHOP ? KNIGHT : attacker;
+    
+    return (target > attacker);
+}
+
 
 int hasNonPawnMaterial(Board* board, int turn){
     uint64_t friendly = board->colours[turn];

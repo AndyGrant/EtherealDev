@@ -54,6 +54,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 
 int moveIsTactical(Board* board, uint16_t move);
 
+int weakCapture(Board* board, EvalInfo* ei, uint16_t move);
+
 int hasNonPawnMaterial(Board* board, int turn);
 
 int valueFromTT(int value, int height);

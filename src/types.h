@@ -52,6 +52,9 @@ typedef struct Board Board;
 struct Undo;
 typedef struct Undo Undo;
 
+struct EvalInfo;
+typedef struct EvalInfo EvalInfo;
+
 struct SearchInfo;
 typedef struct SearchInfo SearchInfo;
 
