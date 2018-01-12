@@ -282,6 +282,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
+        &&  thread->depth > 1
         &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
         longjmp(thread->jbuffer, 1);
         
@@ -295,8 +296,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
     if (rAlpha >= rBeta) return rAlpha;
     
-    // Step 3. Check for the Fifty Move Rule
-    if (board->fiftyMoveRule > 100)
+    // Step 3. Check for the Fifty Move Rule. Do not exit early at
+    // a root node, to avoid returning an empty PV. There is no expectation
+    // that Ethereal plays a move in a drawn board, but why not?
+    if (board->fiftyMoveRule > 100 && !RootNode)
         return 0;
     
     // Step 4. Check for three fold repetition. If the repetition occurs since
@@ -308,7 +311,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move which triggered a reset of the fifty move rule counter
         if (i < board->numMoves - board->fiftyMoveRule) break;
         
-        if (board->history[i] == board->hash){
+        // We have a hash match, meaning there as a repeated position. Do not exit
+        // early at a root node, to avoid returning an empty PV. There is no expectation
+        // that Ethereal plays a move in a three-folded board, but why not?
+        if (board->history[i] == board->hash && !RootNode){
             
             // Repetition occured after the root
             if (i > board->numMoves - height)
@@ -654,6 +660,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
+        &&  thread->depth > 1
         &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
         longjmp(thread->jbuffer, 1);
         
