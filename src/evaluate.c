@@ -575,8 +575,8 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
             
         // Apply a bonus (or penalty) based on the mobility of the queen
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
-        ei->midgame[colour] += QueenMobility[mobilityCount][MG];
-        ei->endgame[colour] += QueenMobility[mobilityCount][EG];
+        ei->midgame[colour] += .5 * QueenMobility[mobilityCount][MG];
+        ei->endgame[colour] += .5 * QueenMobility[mobilityCount][EG];
         if (TRACE) T.queenMobility[colour][mobilityCount]++;
         
         // Update the attack and attacker counts for the
