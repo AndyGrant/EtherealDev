@@ -486,7 +486,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += (inCheck && !RootNode && (PvNode || depth <= 6));
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
@@ -558,7 +558,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Update counter of moves actually played
         played += 1;
+        
+        int extend = 0;
     
+        // Step 16.5. Determine if this move will be extended.
+        if (  (!isQuiet || hist > 64)
+            &&  played >= 4
+            &&  depth >= 3
+            && !isNotInCheck(board, board->turn))
+            extend = PvNode ? 1 : eval > beta ? 2 : 1;
+        
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
@@ -572,7 +581,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
             R -= hist / 24;
-            R  = MIN(depth - 1, MAX(R, 1));
+            R  = MIN(depth + extend - 1, MAX(R, 1));
         }
         
         else {
@@ -580,15 +589,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
         
         
+        
         // Search the move with a possibly reduced depth, on a full or null window
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, &lpv, -beta, -alpha, depth+extend-R, height+1)
+               : -search(thread, &lpv, -alpha-1, -alpha, depth+extend-R, height+1);
                
         // If the search beat alpha, we may need to research, in the event that
         // the previous search was not the full window, or was a reduced depth
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, &lpv, -beta, -alpha, depth+extend-1, height+1)
                :  value;
         
         // REVERT MOVE FROM BOARD
