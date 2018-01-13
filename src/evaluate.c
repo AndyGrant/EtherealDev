@@ -646,8 +646,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
                                                : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
                                                : 0;
 
-        ei->midgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][MG];
-        ei->endgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][EG];
+        double factor = (ei->attackerCounts[!colour] >= 2) ? 1.2 : 0.8;
+        ei->midgame[colour] += factor * KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][MG];
+        ei->endgame[colour] += factor * KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][EG];
         if (TRACE) T.kingShelter[colour][file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance]++;
     }    
 }
