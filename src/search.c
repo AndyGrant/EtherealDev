@@ -386,7 +386,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         if (     moveIsTactical(board, ttMove)
             &&  (ttEntry.type == PVNODE || ttEntry.type == ALLNODE)
-            &&   ttEntry.value + RazorMargins[depth] < alpha)
+            &&   ttEntry.value + RazorMargins[0] < alpha)
             return qsearch(thread, pv, alpha, beta, height);
         
         rAlpha = alpha - RazorMargins[depth];
