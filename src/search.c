@@ -562,11 +562,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         int extend = 0;
     
         // Step 16.5. Determine if this move will be extended.
-        if (  (!isQuiet || hist > 64)
+        if (    isQuiet
             &&  played >= 4
             &&  depth >= 3
             && !isNotInCheck(board, board->turn))
-            extend = PvNode ? 1 : eval > beta ? 2 : 1;
+            extend = 1;
+            
         
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
