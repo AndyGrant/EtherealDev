@@ -222,6 +222,9 @@ void initializeBoard(Board* board, char* fen){
     
     // Number of moves since this (root) position
     board->numMoves = 0;
+    
+    // Root position has no last move
+    board->lastMove = NONE_MOVE;
 }
 
 void printBoard(Board* board){
