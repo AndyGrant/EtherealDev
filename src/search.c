@@ -61,8 +61,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
-        info.idealusage = mtg >= 0 ? 0.3 * (time / MAX(5, (mtg + 3))) : 0.3 * (time / 25);
-        info.maxusage   = mtg >= 0 ? 4.5 * (time / MAX(5, (mtg + 1))) : 4.5 * (time / 25);
+        info.idealusage = mtg >= 0 ? 0.3 * (time / MAX(5, mtg)) : 0.3 * (time / 25);
+        info.maxusage   = mtg >= 0 ? 4.5 * (time / MAX(5, mtg)) : 4.5 * (time / 25);
         info.idealusage = MIN(info.idealusage, time - 20);
         info.maxusage   = MIN(info.maxusage,   time - 20);
     }
