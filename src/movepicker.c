@@ -218,21 +218,21 @@ void evaluateQuietMoves(MovePicker* mp, Board* board){
         
         move = mp->moves[i];
         
-        static const int SortingTypes[KING+1] = {10, 8, 8, 4, 3, 1};
+        static const int SortingTypes[KING+1] = {18, 8, 8, 12, 3, 1};
         
         static const int SortingTable[SQUARE_NB] = {
             0, 0, 0, 0, 0, 0, 0, 0,
             1, 2, 2, 2, 2, 2, 2, 1,
-            1, 2, 4, 4, 4, 4, 2, 1,
-            1, 2, 4, 6, 6, 4, 2, 1,
-            1, 2, 4, 6, 6, 4, 2, 1,
-            1, 2, 4, 4, 4, 4, 2, 1,
+            1, 2, 5, 4, 4, 5, 2, 1,
+            1, 2, 5, 7, 7, 5, 2, 1,
+            1, 2, 5, 7, 7, 5, 2, 1,
+            1, 2, 5, 4, 4, 5, 2, 1,
             1, 2, 2, 2, 2, 2, 2, 1,
             0, 0, 0, 0, 0, 0, 0, 0,
         };
         
         // Use the history score and PSQT to evaluate the move
-        value =  getHistoryScore(*mp->history, move, board->turn, 256);
+        value =  getHistoryScore(*mp->history, move, board->turn, 512);
         value += SortingTypes[PieceType(board->squares[MoveFrom(move)])] * SortingTable[MoveTo(move)  ];
         value -= SortingTypes[PieceType(board->squares[MoveFrom(move)])] * SortingTable[MoveFrom(move)];
         
