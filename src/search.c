@@ -503,7 +503,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (    !RootNode
             && (!PvNode || !inCheck)
             &&   isQuiet
-            &&   played >= (PvNode ? 4 : 1)
+            &&   played >= 1
             &&   futilityMargin <= alpha
             &&   depth <= FutilityPruningDepth)
             
