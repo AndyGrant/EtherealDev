@@ -129,9 +129,15 @@ const int KingDefenders[12][PHASE_NB] = {
     {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
 };
 
-const int KingShelter[2][RANK_NB][PHASE_NB] = {
-  {{ -15,   0}, {   8,   0}, {   1,   0}, {  -5,  -1}, {  -8,  -1}, { -12,  -3}, { -33, -10}, {   0,   0}},
-  {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}},
+const int KingShelter[FILE_NB / 2][2][RANK_NB][PHASE_NB] = {
+ {{{ -15,   0}, {   8,   0}, {   1,   0}, {  -5,  -1}, {  -8,  -1}, { -12,  -3}, { -33, -10}, {   0,   0}},
+  {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}}},
+ {{{ -18,   0}, {   9,   0}, {   1,   0}, {  -6,  -1}, {  -9,  -1}, { -14,  -3}, { -39, -12}, {   0,   0}},
+  {{  -7,  -2}, {   3,  12}, {  13,   3}, {   3,  -3}, {   0,  -4}, { -15,  13}, { -30,   2}, {   0,   0}}},
+ {{{ -13,   0}, {   7,   0}, {   0,   0}, {  -4,   0}, {  -7,   0}, { -10,  -2}, { -29,  -9}, {   0,   0}},
+  {{  -5,  -1}, {   2,   9}, {   9,   2}, {   2,  -2}, {   0,  -3}, { -11,   9}, { -22,   1}, {   0,   0}}},
+ {{{  -7,   0}, {   4,   0}, {   0,   0}, {  -2,   0}, {  -4,   0}, {  -6,  -1}, { -16,  -5}, {   0,   0}},
+  {{  -3,  -1}, {   1,   5}, {   5,   1}, {   1,  -1}, {   0,  -2}, {  -6,   5}, { -12,   1}, {   0,   0}}},
 };
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
@@ -644,9 +650,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
                                                : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
                                                : 0;
                                                
-        static const double KingShelterFileWeight[FILE_NB] = {1.0, 1.2, .9, .5, .5, .9, 1.2, 1.0};
-        ei->midgame[colour] += KingShelterFileWeight[file] * KingShelter[file == kingFile][distance][MG];
-        ei->endgame[colour] += KingShelterFileWeight[file] * KingShelter[file == kingFile][distance][EG];
+        ei->midgame[colour] += KingShelter[file <= 3 ? file : 7 - file][file == kingFile][distance][MG];
+        ei->endgame[colour] += KingShelter[file <= 3 ? file : 7 - file][file == kingFile][distance][EG];
     }    
 }
 
