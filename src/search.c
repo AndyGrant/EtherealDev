@@ -366,10 +366,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // are not looking at a PV Node, as those are not subject to futility.
     // Determine check status if not done already
     inCheck = inCheck || !isNotInCheck(board, board->turn);
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
-    }
+    eval = evaluateBoard(board, &ei, &thread->ptable);
+    futilityMargin = eval + depth * (PvNode ? 1.50 : 0.95) * PieceValues[PAWN][EG];
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -502,12 +500,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (   !PvNode
-            &&  isQuiet
-            &&  played >= 1
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            continue;
+        if (    !RootNode
+            && (!PvNode || !inCheck)
+            &&   isQuiet
+            &&   played >= (PvNode ? 4 : 1)
+            &&   futilityMargin <= alpha
+            &&   depth <= FutilityPruningDepth)
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
