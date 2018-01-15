@@ -410,21 +410,26 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  hasNonPawnMaterial(board, board->turn)){
             
         R = MIN(7, 4 + depth / 6 + (eval - beta + 200) / 400); 
+        
+        if (board->history[board->numMoves-1] == NULL_MOVE && depth - R <= 0)
+            return beta;
+        
+        if (board->history[board->numMoves-1] != NULL_MOVE){
             
-        applyNullMove(board, undo);
-        
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
-        
-        revertNullMove(board, undo);
-        
-        if (value >= beta){
-            if (value >= MATE - MAX_HEIGHT)
-                value = beta;
-            return value;
+            applyNullMove(board, undo);
+            
+            value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+            
+            revertNullMove(board, undo);
+            
+            if (value >= beta){
+                if (value >= MATE - MAX_HEIGHT)
+                    value = beta;
+                return value;
+            }
         }
     }
     
