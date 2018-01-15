@@ -263,7 +263,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, ttTactical = 0; 
+    int quiets = 0, played = 0, legalQuiets = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
@@ -542,6 +542,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
         
+        legalQuiets += isQuiet;
+        
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
@@ -549,7 +551,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]
+            &&  legalQuiets > LateMovePruningCounts[depth]
             &&  isNotInCheck(board, board->turn)){
         
             revertMove(board, currentMove, undo);
