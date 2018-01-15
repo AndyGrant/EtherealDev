@@ -263,7 +263,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, ttTactical = 0; 
+    int quiets = 0, played = 0, ttTactical = 0, skippedQS = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
@@ -325,10 +325,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (depth <= 0){
         inCheck = !isNotInCheck(board, board->turn);
         if (!inCheck) return qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the acceptable bounds
-        depth = 0; 
+        depth = 1; skippedQS = 1;
     }
     
     // If we did not exit already, we will call this a node
@@ -486,7 +483,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += inCheck && !skippedQS && !RootNode && (PvNode || depth <= 6);
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
