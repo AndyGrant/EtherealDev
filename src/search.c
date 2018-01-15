@@ -386,7 +386,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         if (     ttMove != NONE_MOVE
             &&   moveIsTactical(board, ttMove)
-            &&  (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
+            &&  (ttEntry.type == PVNODE || ttEntry.type == ALLNODE)
             &&   valueFromTT(ttEntry.value, height) < alpha)
             return qsearch(thread, pv, alpha, beta, height);
         
