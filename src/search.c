@@ -563,10 +563,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
-            &&  depth >= 3
-            &&  isQuiet){
+            &&  depth >= 3){
             
             R  = 2;
+            R -= MIN(5, depth * !isQuiet);
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
