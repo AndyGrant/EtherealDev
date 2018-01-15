@@ -561,7 +561,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                     continue;
                 }
                 
-                rBeta = ttEntry.value - 2 * ttEntry.depth - 2 * depth;
+                rBeta = ttEntry.value - 4 * ttEntry.depth - 2 * depth;
                 
                 value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2, height + 1);
                 
