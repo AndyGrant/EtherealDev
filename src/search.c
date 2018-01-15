@@ -320,16 +320,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
-    // Step 5. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
-    if (depth <= 0){
-        inCheck = !isNotInCheck(board, board->turn);
-        if (!inCheck) return qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the acceptable bounds
-        depth = 0; 
-    }
+    // Step 5. Go into the Quiescence Search if we have reached the search horizon
+    if (depth <= 0) return qsearch(thread, pv, alpha, beta, height);
     
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
@@ -365,7 +357,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // We only need the futility margin if we are not in check, and we
     // are not looking at a PV Node, as those are not subject to futility.
     // Determine check status if not done already
-    inCheck = inCheck || !isNotInCheck(board, board->turn);
+    inCheck = !isNotInCheck(board, board->turn);
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->ptable);
         futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
@@ -641,7 +633,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best, maxValueGain;
+    int eval, value, best, maxValueGain, inCheck;
     uint16_t currentMove;
     Undo undo[1];
     MovePicker movePicker;
@@ -667,14 +659,21 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_HEIGHT)
         return evaluateBoard(board, &ei, &thread->ptable);
     
+    // Evaluate check status as we will look at this node
+    inCheck = !isNotInCheck(board, board->turn);
+    
     // Get a standing eval of the current board
     best = value = eval = evaluateBoard(board, &ei, &thread->ptable);
     
-    // Update lower bound
-    if (value > alpha) alpha = value;
+    if (!inCheck){
+        
+        // Update lower bound
+        if (value > alpha) alpha = value;
+        
+        // QSearch can be terminated
+        if (alpha >= beta) return value;
     
-    // QSearch can be terminated
-    if (alpha >= beta) return value;
+    }
     
     // Take a guess at the best case gain for a non promotion capture
     if (board->colours[!board->turn] & board->pieces[QUEEN])
@@ -690,32 +689,35 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
     
-    
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
-        if (MoveType(currentMove) == PROMOTION_MOVE){
-            value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
-            value -= PieceValues[PAWN][EG];
+        if (!inCheck){
+            
+            value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+            if (MoveType(currentMove) == PROMOTION_MOVE){
+                value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
+                value -= PieceValues[PAWN][EG];
+            }
+            
+            // If the best case is not good enough, continue
+            if (value < alpha)
+                continue;
+            
+            // Prune this capture if it is capturing a weaker piece which is protected,
+            // so long as we do not have any additional support for the attacker. If
+            // the capture is also a promotion we will not perform any pruning here
+            if (     MoveType(currentMove) != PROMOTION_MOVE
+                &&  !ei.positionIsDrawn
+                &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
+                && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+                &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+                 <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+                continue;
+                
         }
-        
-        // If the best case is not good enough, continue
-        if (value < alpha)
-            continue;
-        
-        // Prune this capture if it is capturing a weaker piece which is protected,
-        // so long as we do not have any additional support for the attacker. If
-        // the capture is also a promotion we will not perform any pruning here
-        if (     MoveType(currentMove) != PROMOTION_MOVE
-            &&  !ei.positionIsDrawn
-            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
-            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
