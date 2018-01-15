@@ -321,7 +321,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 5. Go into the Quiescence Search if we have reached the search horizon
-    if (depth <= 0) return qsearch(thread, pv, alpha, beta, height);
+    if (depth <= 0) return qsearch(thread, pv, alpha, beta, 0, height);
     
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
@@ -374,10 +374,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + RazorMargins[depth] < alpha){
             
         if (depth <= 1)
-            return qsearch(thread, pv, alpha, beta, height);
+            return qsearch(thread, pv, alpha, beta, 0, height);
         
         rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
+        value = qsearch(thread, pv, rAlpha, rAlpha + 1, 0, height);
         if (value <= rAlpha) return value;
     }
     
@@ -449,7 +449,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rbeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rbeta, -rbeta+1,       0, height+1) >= rbeta
+            if (  -qsearch(thread, &lpv, -rbeta, -rbeta+1,       0, height+1) >= rbeta
                 && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1) >= rbeta){
                     
                 revertMove(board, currentMove, undo);
@@ -629,11 +629,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best, maxValueGain, inCheck;
+    int eval, value, best, maxValueGain, avoidPruning;
     uint16_t currentMove;
     Undo undo[1];
     MovePicker movePicker;
@@ -660,12 +660,12 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return evaluateBoard(board, &ei, &thread->ptable);
     
     // Evaluate check status as we will look at this node
-    inCheck = !isNotInCheck(board, board->turn);
+    avoidPruning = depth >= -2 && !isNotInCheck(board, board->turn);
     
     // Get a standing eval of the current board
     best = value = eval = evaluateBoard(board, &ei, &thread->ptable);
     
-    if (!inCheck){
+    if (!avoidPruning){
         
         // Update lower bound
         if (value > alpha) alpha = value;
@@ -689,12 +689,12 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
     
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !avoidPruning);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Take a guess at the best case value of this current move
-        if (!inCheck){
+        if (!avoidPruning){
             
             value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
             if (MoveType(currentMove) == PROMOTION_MOVE){
@@ -727,7 +727,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         }
         
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         
         // Revert move from board
         revertMove(board, currentMove, undo);
