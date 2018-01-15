@@ -381,6 +381,11 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
+        if (ei->pawnAttacks[!colour] & (1ull << sq)){
+            ei->midgame[colour] -= 24;
+            ei->endgame[colour] -= 24;
+        }
+        
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
         if (    (OutpostRanks[colour] & (1ull << sq))
@@ -447,6 +452,11 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        if (ei->pawnAttacks[!colour] & (1ull << sq)){
+            ei->midgame[colour] -= 24;
+            ei->endgame[colour] -= 24;
+        }
         
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
