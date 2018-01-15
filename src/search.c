@@ -387,6 +387,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return value;
+        
+        if (ttMove == NONE_MOVE && pv->length >= 1){
+            ttMove = pv->line[0];
+            ttTactical = moveIsTactical(board, ttMove);
+        }
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
