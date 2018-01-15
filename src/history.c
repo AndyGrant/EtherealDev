@@ -35,7 +35,7 @@ void reduceHistory(HistoryTable history){
         for (f = 0; f < SQUARE_NB; f++)
             for (t = 0; t < SQUARE_NB; t++)
                 for (i = 0; i < 2; i++)
-                    history[c][f][t][i] = 1 + history[c][f][t][i] / 64;
+                    history[c][f][t][i] = 1;
 }
 
 void updateHistory(HistoryTable history, uint16_t move, int colour, int isGood, int delta){
