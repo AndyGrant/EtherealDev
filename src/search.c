@@ -651,6 +651,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     lpv.length = 0;
     pv->length = 0;
     
+    int inCheck = !isNotInCheck(board, board->turn);
+    
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
@@ -691,25 +693,29 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return value;
     
     
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
-        if (MoveType(currentMove) == PROMOTION_MOVE){
-            value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
-            value -= PieceValues[PAWN][EG];
-        }
+        if (!inCheck){
         
-        // If the best case is not good enough, continue
-        if (value < alpha)
-            continue;
+            // Take a guess at the best case value of this current move
+            value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+            if (MoveType(currentMove) == PROMOTION_MOVE){
+                value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
+                value -= PieceValues[PAWN][EG];
+            }
+            
+            // If the best case is not good enough, continue
+            if (value < alpha)
+                continue;
+        }
         
         // Prune this capture if it is capturing a weaker piece which is protected,
         // so long as we do not have any additional support for the attacker. If
         // the capture is also a promotion we will not perform any pruning here
-        if (     MoveType(currentMove) != PROMOTION_MOVE
+        if (     board->squares[MoveTo(currentMove)] != EMPTY
+            &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
             &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
