@@ -641,11 +641,15 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
+    const int PvNode = (alpha != beta - 1);
+    
+    int rAlpha, rBeta, ttValue, ttTactical;
     int eval, value, best, maxValueGain;
-    uint16_t currentMove;
-    Undo undo[1];
-    MovePicker movePicker;
+    uint16_t currentMove, ttMove = NONE_MOVE;
     EvalInfo ei;
+    Undo undo[1];
+    TransEntry ttEntry;
+    MovePicker movePicker;
     
     PVariation lpv;
     lpv.length = 0;
@@ -689,27 +693,56 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
+        
+    // Step 6. Probe the Transposition Table for an entry
+    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+        
+        // Entry move may be good in this position
+        ttMove = ttEntry.bestMove;
+        
+        ttTactical = moveIsTactical(board, ttMove);
+        
+        // Step 6A. Check to see if this entry allows us to exit this
+        // node early. We choose not to do this in the PV line, not because
+        // we can't, but because don't want truncated PV lines
+        if (!PvNode){
+
+            rAlpha = alpha; rBeta = beta;
+            ttValue = valueFromTT(ttEntry.value, height);
+            
+            switch (ttEntry.type){
+                case  PVNODE: return ttValue;
+                case CUTNODE: rAlpha = ttValue > alpha ? ttValue : alpha; break;
+                case ALLNODE:  rBeta = ttValue <  beta ? ttValue :  beta; break;
+            }
+            
+            // Entry allows early exit
+            if (rAlpha >= rBeta) return ttValue;
+        }
+    }    
     
-    
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, ttMove, height, 1);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
-        if (MoveType(currentMove) == PROMOTION_MOVE){
-            value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
-            value -= PieceValues[PAWN][EG];
+        if (currentMove != ttMove || !ttTactical){
+            value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+            if (MoveType(currentMove) == PROMOTION_MOVE){
+                value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
+                value -= PieceValues[PAWN][EG];
+            }
+            
+            // If the best case is not good enough, continue
+            if (value < alpha)
+                continue;
         }
-        
-        // If the best case is not good enough, continue
-        if (value < alpha)
-            continue;
         
         // Prune this capture if it is capturing a weaker piece which is protected,
         // so long as we do not have any additional support for the attacker. If
         // the capture is also a promotion we will not perform any pruning here
-        if (     MoveType(currentMove) != PROMOTION_MOVE
+        if (    (currentMove != ttMove || ttTactical)
+            &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
             &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
