@@ -541,7 +541,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (    currentMove == ttMove
             &&  depth >= 6
             && !RootNode
-            &&  ttEntry.depth >= depth - 4){
+            &&  ttEntry.depth >= depth - 4
+            && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
+            &&  ttEntry.value > alpha){
                 
             MovePicker localMovePicker;
             
@@ -559,7 +561,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                     continue;
                 }
                 
-                rBeta = eval - 128;
+                rBeta = ttEntry.value - 2 * ttEntry.depth - 2 * depth;
                 
                 value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2, height + 1);
                 
