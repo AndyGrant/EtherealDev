@@ -643,7 +643,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     const int PvNode = (alpha != beta - 1);
     
-    int rAlpha, rBeta, ttValue, ttTactical;
+    int rAlpha, rBeta, ttValue, ttTactical = 0;
     int eval, value, best, maxValueGain;
     uint16_t currentMove, ttMove = NONE_MOVE;
     EvalInfo ei;
