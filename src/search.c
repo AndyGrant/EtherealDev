@@ -493,12 +493,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // If this move is quiet we will save it to a list of attemped
-        // quiets, and we will need a history score for pruning decisions
-        if ((isQuiet = !moveIsTactical(board, currentMove))){
-            quietsTried[quiets++] = currentMove;
-            hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
-        }
+        isQuiet = !moveIsTactical(board, currentMove);
+        if (isQuiet) hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
@@ -542,6 +538,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
         
+        quietsTried[quiets++] = currentMove;
+        
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
@@ -571,7 +569,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
-            R -= hist / 24;
+            R -= hist / 32;
             R  = MIN(depth - 1, MAX(R, 1));
         }
         
