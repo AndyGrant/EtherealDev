@@ -381,7 +381,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
-        if (depth <= 1)
+        if (depth <= 1 || ttTactical)
             return qsearch(thread, pv, alpha, beta, height);
         
         rAlpha = alpha - RazorMargins[depth];
