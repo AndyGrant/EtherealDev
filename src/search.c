@@ -567,7 +567,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet){
             
             R  = 2;
-            R += (played - 4) / 8;
+            R += (played - 4) / 6;
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
