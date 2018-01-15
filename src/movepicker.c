@@ -232,7 +232,7 @@ void evaluateQuietMoves(MovePicker* mp, Board* board){
         };
         
         // Use the history score and PSQT to evaluate the move
-        value =  getHistoryScore(*mp->history, move, board->turn, 256);
+        value =  getHistoryScore(*mp->history, move, board->turn, board->phash, 256);
         value += SortingTypes[PieceType(board->squares[MoveFrom(move)])] * SortingTable[MoveTo(move)  ];
         value -= SortingTypes[PieceType(board->squares[MoveFrom(move)])] * SortingTable[MoveFrom(move)];
         
