@@ -598,6 +598,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     uint64_t filePawns;
     
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myRooks = board->pieces[ROOK] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
@@ -640,7 +641,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // distance of at least one. The bonus changes by file and location of the king.
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
-        filePawns = myPawns & Files[file];
+        filePawns = (myPawns | myRooks) & Files[file];
         
         distance = filePawns ? colour == WHITE ? MAX(1, abs(kingRank - Rank(getlsb(filePawns))))
                                                : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
