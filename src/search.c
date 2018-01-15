@@ -265,7 +265,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -495,10 +494,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
-        if ((isQuiet = !moveIsTactical(board, currentMove))){
+        if ((isQuiet = !moveIsTactical(board, currentMove)))
             quietsTried[quiets++] = currentMove;
-            hist = getHistoryScore(thread->history, currentMove, board->turn, 128);
-        }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
@@ -569,9 +566,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = 1;
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
-            R += !PvNode;
+            R += !PvNode * 2;
             R += ttTactical && bestMove == ttMove;
-          //R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
         
