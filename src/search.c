@@ -535,6 +535,43 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
         }
         
+        int extend = 0;
+        uint16_t move;
+        
+        if (    currentMove == ttMove
+            &&  depth >= 6
+            && !RootNode
+            &&  ttEntry.depth >= depth - 4){
+                
+            MovePicker localMovePicker;
+            
+            initializeMovePicker(&localMovePicker, thread, ttMove, height, 0);
+    
+            while ((move = selectNextMove(&localMovePicker, board)) != NONE_MOVE){
+                
+                // Skip the move we are trying to extend
+                if (move == ttMove) continue;
+                
+                // Apply and validate move before searching
+                applyMove(board, move, undo);
+                if (!isNotInCheck(board, !board->turn)){
+                    revertMove(board, move, undo);
+                    continue;
+                }
+                
+                rBeta = eval - 128;
+                
+                value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2, height + 1);
+                
+                revertMove(board, move, undo);
+                
+                if (value >= rBeta)
+                    break;
+            }
+            
+            extend = move == NONE_MOVE;
+        }
+        
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
@@ -577,18 +614,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         else {
             R = 1;
-        }
-        
+        }        
         
         // Search the move with a possibly reduced depth, on a full or null window
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, &lpv,    -beta, -alpha, depth+extend-R, height+1)
+               : -search(thread, &lpv, -alpha-1, -alpha, depth+extend-R, height+1);
                
         // If the search beat alpha, we may need to research, in the event that
         // the previous search was not the full window, or was a reduced depth
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, &lpv, -beta, -alpha, depth+extend-1, height+1)
                :  value;
         
         // REVERT MOVE FROM BOARD
