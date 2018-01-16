@@ -391,7 +391,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
             ei->endgame[colour] += KnightAttackedByPawn[EG];
             if (TRACE) T.knightAttackedByPawn[colour]++;
         }
-        
+
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
         if (    (OutpostRanks[colour] & (1ull << sq))
@@ -402,6 +402,15 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += KnightOutpost[defended][MG];
             ei->endgame[colour] += KnightOutpost[defended][EG];
             if (TRACE) T.knightOutpost[colour][defended]++;
+        }
+        
+        
+        // Apply a penalty if the knight is not supported by a
+        // pawn, is not in an outpost, and is in the outpost ranks
+        else if (    (OutpostRanks[colour] & (1ull << sq))
+                 && !(ei->pawnAttacks[colour] & (1ull << sq))){
+            ei->midgame[colour] -= 16;
+            ei->endgame[colour] -= 16;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the knight
