@@ -71,7 +71,7 @@ const int KnightValue[PHASE_NB] = { 303, 286};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
 
-const int KnightOutpost[2][PHASE_NB] = { {  12, -14}, {  26,   5} };
+const int KnightOutpost[2][PHASE_NB] = { {  23,   4}, {  26,   5} };
 
 const int KnightMobility[9][PHASE_NB] = {
     { -68, -79}, { -31, -42}, { -13, -16},
@@ -410,7 +410,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         else if (    (OutpostRanks[colour] & (1ull << sq))
                  && !(ei->pawnAttacks[colour] & (1ull << sq))){
             ei->midgame[colour] -= 16;
-            ei->endgame[colour] -= 16;
+            ei->endgame[colour] -=  4;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the knight
