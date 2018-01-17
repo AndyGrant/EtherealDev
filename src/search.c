@@ -198,11 +198,11 @@ void updateTimeManagment(Thread* thread, SearchInfo* info){
              
     // Increase our time if the score suddently dropped by eight centipawns
     if (info->values[thread->depth-1] > info->values[thread->depth] + 8)
-        info->idealusage = MIN(info->maxusage, info->idealusage + (info->basetime * (1.0 + factor * (scoreDrop / 50.0))));
+        info->idealusage = MIN(info->maxusage, info->idealusage + (info->basetime * (1.0 + factor * (scoreDrop / 30.0))));
     
     // Increase our time if the pv has changed across the last two iterations
     if (info->bestmoves[thread->depth-1] != info->bestmoves[thread->depth])
-        info->idealusage = MIN(info->maxusage, info->idealusage + (info->basetime * (1.0 + factor * .35)));
+        info->idealusage = MIN(info->maxusage, info->idealusage + (info->basetime * (1.0 + factor * .50)));
 }
 
 int aspirationWindow(Thread* thread, int depth){
