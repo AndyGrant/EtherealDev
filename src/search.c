@@ -525,14 +525,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
 
-            weakCapture = 1;
+            weakCapture  = 1;
+            weakCapture += !!(ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)));
           
             // If the target piece has two or more defenders, we will prune up to depth 5
             if (    depth <= 5
-                && (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))){
-                weakCapture = 2;
+                && (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
-            }
             
             // Otherwise, if the piece has one defender, we will prune up to depth 3
             if (    depth <= 3
