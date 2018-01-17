@@ -211,7 +211,7 @@ int easyMover(Thread* thread){
     
     SearchInfo* const info = thread->info;
     
-    int i, value, alpha = info->values[thread->depth] - 2 * PieceValues[PAWN][MG];
+    int i, value, alpha = info->values[thread->depth] - PieceValues[PAWN][MG];
     uint16_t currentMove, candidate = info->bestmoves[thread->depth];
     
     Undo undo[1];
