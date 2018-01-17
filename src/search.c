@@ -57,6 +57,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Save the initial conditions for use by the time managment system
     info.starttime = getRealTime();
+    info.basetime  = time;
     info.movestogo = mtg;
     
     // Ethereal is responsible for choosing how much time to spend searching
@@ -197,11 +198,11 @@ void updateTimeManagment(Thread* thread, SearchInfo* info){
              
     // Increase our time if the score suddently dropped by eight centipawns
     if (info->values[thread->depth-1] > info->values[thread->depth] + 8)
-        info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * (scoreDrop / 50.0)));
+        info->idealusage = MIN(info->maxusage, info->idealusage + (info->basetime * (1.0 + factor * (scoreDrop / 50.0))));
     
     // Increase our time if the pv has changed across the last two iterations
     if (info->bestmoves[thread->depth-1] != info->bestmoves[thread->depth])
-        info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * .35));
+        info->idealusage = MIN(info->maxusage, info->idealusage + (info->basetime * (1.0 + factor * .35)));
 }
 
 int aspirationWindow(Thread* thread, int depth){
