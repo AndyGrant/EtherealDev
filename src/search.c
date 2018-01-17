@@ -191,9 +191,9 @@ void updateTimeManagment(Thread* thread, SearchInfo* info){
     
     double factor = TimeAllocFactor[!!info->movestogo];
     
-    if (depth < 4) return;
+    if (thread->depth < 4) return;
              
-    int scoreDrop = info->thread[thread->depth - 1] - info->values[thread->depth];
+    int scoreDrop = info->values[thread->depth - 1] - info->values[thread->depth];
              
     // Increase our time if the score suddently dropped by eight centipawns
     if (info->values[thread->depth-1] > info->values[thread->depth] + 8)
