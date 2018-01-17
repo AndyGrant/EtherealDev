@@ -30,6 +30,7 @@ typedef struct SearchInfo {
     int bestmoves[MAX_DEPTH];
     int timeUsage[MAX_DEPTH];
     
+    int movestogo;
     double starttime;
     double idealusage;
     double maxusage;
@@ -45,6 +46,8 @@ typedef struct PVariation {
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time, double mtg);
 
 void* iterativeDeepening(void* vthread);
+
+void updateTimeManagment(Thread* thread, SearchInfo* info);
 
 int aspirationWindow(Thread* thread, int depth);
 

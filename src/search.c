@@ -55,9 +55,9 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     pthread_t* pthreads = malloc(sizeof(pthread_t) * nthreads);
     
-    
-    // Save start point of search for reporting and time managment
+    // Save the initial conditions for use by the time managment system
     info.starttime = getRealTime();
+    info.movestogo = mtg;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
@@ -151,19 +151,8 @@ void* iterativeDeepening(void* vthread){
         // Send information about this search to the interface
         uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
         
-        // If Ethereal is managing the clock, determine if we should be spending
-        // more time on this search, based on the score difference between iterations
-        // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf){
-            
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (depth >= 4 && info->values[depth - 1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.10);
-            
-            // Increase our time if the pv has changed across the last two iterations
-            if (depth >= 4 && info->bestmoves[depth - 1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
-        }
+        // If Ethereal is managing the clock, determine if we should be spending more time
+        if (limits->limitedBySelf) updateTimeManagment(thread, info);
         
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
@@ -194,6 +183,21 @@ void* iterativeDeepening(void* vthread){
     }
     
     return NULL;
+}
+
+void updateTimeManagment(Thread* thread, SearchInfo* info){
+    
+    static const double TimeAllocFactor[2] = {1.0, 0.4};
+    
+    double factor = TimeAllocFactor[!!info->movestogo];
+             
+    // Increase our time if the score suddently dropped by eight centipawns
+    if (thread->depth >= 4 && info->values[thread->depth-1] > info->values[thread->depth] + 8)
+        info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * .10));
+    
+    // Increase our time if the pv has changed across the last two iterations
+    if (thread->depth >= 4 && info->bestmoves[thread->depth-1] != info->bestmoves[thread->depth])
+        info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * .35));
 }
 
 int aspirationWindow(Thread* thread, int depth){
