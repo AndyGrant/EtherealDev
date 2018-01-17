@@ -190,13 +190,17 @@ void updateTimeManagment(Thread* thread, SearchInfo* info){
     static const double TimeAllocFactor[2] = {1.0, 0.4};
     
     double factor = TimeAllocFactor[!!info->movestogo];
+    
+    if (depth < 4) return;
+             
+    int scoreDrop = info->thread[thread->depth - 1] - info->values[thread->depth];
              
     // Increase our time if the score suddently dropped by eight centipawns
-    if (thread->depth >= 4 && info->values[thread->depth-1] > info->values[thread->depth] + 8)
-        info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * .10));
+    if (info->values[thread->depth-1] > info->values[thread->depth] + 8)
+        info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * (scoreDrop / 50.0)));
     
     // Increase our time if the pv has changed across the last two iterations
-    if (thread->depth >= 4 && info->bestmoves[thread->depth-1] != info->bestmoves[thread->depth])
+    if (info->bestmoves[thread->depth-1] != info->bestmoves[thread->depth])
         info->idealusage = MIN(info->maxusage, info->idealusage * (1.0 + factor * .35));
 }
 
