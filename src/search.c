@@ -493,6 +493,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        int weakCapture = 0;
+        
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
@@ -516,7 +518,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !isQuiet
             &&  !inCheck
             &&   played >= 1
-            &&   depth <= 5
             &&   MoveType(currentMove) != ENPASS_MOVE
             &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
@@ -526,13 +527,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                  
           
             // If the target piece has two or more defenders, we will prune up to depth 5
-            if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
+            if (    depth <= 5
+                && (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
             
             // Otherwise, if the piece has one defender, we will prune up to depth 3
             if (    depth <= 3
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
+                
+            weakCapture = 1;
         }
         
         // Apply and validate move before searching
@@ -564,14 +568,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
             &&  depth >= 3
-            &&  isQuiet){
+            && (isQuiet || weakCapture)){
             
             R  = 2;
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
-            R -= hist / 24;
+            R -= isQuiet ? hist / 24 : 0;
+            R  = weakCapture ? MIN(R, 2) : R;
             R  = MIN(depth - 1, MAX(R, 1));
         }
         
