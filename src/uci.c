@@ -130,6 +130,7 @@ void uciGo(char* str, Thread* threads, Board* board){
     char move[6];
     int depth = -1, infinite = -1; 
     double time = 0, wtime = -1, btime = -1, mtg = -1, movetime = -1;
+    double inc = 0, winc = 0, binc = 0;
     
     char* ptr = strtok(str, " ");
     
@@ -141,6 +142,12 @@ void uciGo(char* str, Thread* threads, Board* board){
         
         else if (stringEquals(ptr, "btime"))
             btime = (double)(atoi(strtok(NULL, " ")));
+        
+        else if (stringEquals(ptr, "winc"))
+            winc = (double)(atoi(strtok(NULL, " ")));
+        
+        else if (stringEquals(ptr, "binc"))
+            binc = (double)(atoi(strtok(NULL, " ")));
         
         else if (stringEquals(ptr, "movestogo"))
             mtg = (double)(atoi(strtok(NULL, " ")));
@@ -165,9 +172,10 @@ void uciGo(char* str, Thread* threads, Board* board){
     
     // Pick the time values for the colour we are playing as
     time = (board->turn == WHITE) ? wtime : btime;
+    inc  = (board->turn == WHITE) ?  winc :  binc;
     
     // Execute the search and report the best move
-    moveToString(move, getBestMove(threads, board, &limits, time, mtg));
+    moveToString(move, getBestMove(threads, board, &limits, time, mtg, inc));
     printf("bestmove %s\n", move);
     fflush(stdout);
 }
