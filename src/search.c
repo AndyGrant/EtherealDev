@@ -218,12 +218,12 @@ int easyMover(Thread* thread){
     PVariation lpv;
     MovePicker movePicker;
     
-    // Don't consider quiets for easy moves
-    if (!moveIsTactical(board, candidate))
-        return 0;
+    //// Don't consider quiets for easy moves
+    //if (!moveIsTactical(board, candidate))
+    //    return 0;
     
     // Move is not easy if it has not been best for many plies
-    for (i = thread->depth - 1; i >= MAX(1, thread->depth - 6); i--)
+    for (i = thread->depth - 1; i >= MAX(1, thread->depth - 4); i--)
         if (info->bestmoves[i] != candidate) return 0;
     
     
