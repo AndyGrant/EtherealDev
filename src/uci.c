@@ -129,7 +129,7 @@ void uciGo(char* str, Thread* threads, Board* board){
     
     char move[6];
     int depth = -1, infinite = -1; 
-    double time = 0, wtime = -1, btime = -1, mtg = 0, movetime = -1;
+    double time = 0, wtime = -1, btime = -1, mtg = -1, movetime = -1;
     
     char* ptr = strtok(str, " ");
     

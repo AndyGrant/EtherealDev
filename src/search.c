@@ -189,7 +189,7 @@ void updateTimeManagment(Thread* thread, SearchInfo* info){
     
     static const double TimeAllocFactor[2] = {1.0, 0.4};
     
-    double factor = TimeAllocFactor[!!info->movestogo];
+    double factor = TimeAllocFactor[info->movestogo >= 0];
     
     if (thread->depth < 4) return;
              
