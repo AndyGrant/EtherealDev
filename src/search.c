@@ -191,9 +191,69 @@ void* iterativeDeepening(void* vthread){
                 return NULL;
             }
         }
+        
+        // If Ethereal is managing the clock, check if this move is easy
+        if (limits->limitedBySelf && depth >= 8 && easyMover(thread)){
+            
+            // Terminate all helper threads
+            for (i = 0; i < thread->nthreads; i++)
+                thread->threads[i].abort = 1;
+            return NULL;
+        }
     }
     
     return NULL;
+}
+
+int easyMover(Thread* thread){
+    
+    Board* const board = &thread->board;
+    
+    SearchInfo* const info = thread->info;
+    
+    int i, value, alpha = info->values[thread->depth] - 2 * PieceValues[PAWN][MG];
+    uint16_t currentMove, candidate = info->bestmoves[thread->depth];
+    
+    Undo undo[1];
+    PVariation lpv;
+    MovePicker movePicker;
+    
+    // Don't consider quiets for easy moves
+    if (!moveIsTactical(board, candidate))
+        return 0;
+    
+    // Move is not easy if it has not been best for many plies
+    for (i = thread->depth - 1; i >= MAX(1, thread->depth - 6); i--)
+        if (info->bestmoves[i] != candidate) return 0;
+    
+    
+    // Loop through ever move for the position
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, 0, 0);
+    while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        
+        // Skip over the candidate easy move
+        if (currentMove == candidate) continue;
+        
+        // Apply and validate move before searching
+        applyMove(board, currentMove, undo);
+        if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, currentMove, undo);
+            continue;
+        }
+        
+        // Search the move with the modified null margin
+        value = -search(thread, &lpv, -alpha-1, -alpha, thread->depth-1, 1);
+        
+        // REVERT MOVE FROM BOARD
+        revertMove(board, currentMove, undo);
+        
+        // We found a move that was near as good as the capture
+        if (value >= alpha)
+            return 0;
+    }
+    
+    // No move was found to refute the capture as being easy
+    return 1;
 }
 
 int aspirationWindow(Thread* thread, int depth){
