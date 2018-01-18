@@ -658,7 +658,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // distance of at least one. The bonus changes by file and location of the king.
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
-        filePawns = myPawns & Files[file];
+        filePawns = myPawns & Files[file] & (~ei->attackedBy2[!colour] | ei->attacked[colour]);
         
         distance = filePawns ? colour == WHITE ? MAX(1, abs(kingRank - Rank(getlsb(filePawns))))
                                                : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
