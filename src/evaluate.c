@@ -615,7 +615,11 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t filePawns;
     
+    uint64_t theirPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t theirRooks = board->pieces[ROOK] & board->colours[!colour];
+    
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myRooks = board->pieces[ROOK] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
@@ -667,6 +671,15 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][MG];
         ei->endgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][EG];
         if (TRACE) T.kingShelter[colour][file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance]++;
+        
+        if (    !filePawns 
+            && !(theirPawns & Files[file])
+            && !(myRooks & Files[file])
+            &&  (theirRooks & Files[file])){
+            
+            ei->midgame[colour] -= 20;
+            ei->endgame[colour] -= 20;
+        }
     }    
 }
 
