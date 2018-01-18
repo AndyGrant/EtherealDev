@@ -677,8 +677,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
             && !(myRooks & Files[file])
             &&  (theirRooks & Files[file])){
             
-            ei->midgame[colour] -= 10;
-            ei->endgame[colour] -= 10;
+            ei->midgame[colour] -= 35;
+            ei->endgame[colour] -= 35;
         }
     }    
 }
