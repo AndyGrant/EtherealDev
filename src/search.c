@@ -64,8 +64,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         
         mtg = mtg >= 0 ? mtg + 1: 25;
         
-        info.idealusage = 0.30 * (time + (mtg - 2) * inc) / MAX(5, mtg);
-        info.maxusage   = 4.50 * (time + (mtg - 2) * inc) / MAX(5, mtg);
+        info.idealusage = 0.50 * (time + (mtg - 2) * inc) / MAX(5, mtg);
+        info.maxusage   = 2.50 * (time + (mtg - 2) * inc) / MAX(5, mtg);
         
         info.idealusage = MIN(info.idealusage, time - 20);
         info.maxusage   = MIN(info.maxusage,   time - 20);
@@ -162,11 +162,11 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (depth >= 4 && info->values[depth - 1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.10);
+                info->idealusage = MIN(info->maxusage, info->idealusage * 1.05);
             
             // Increase our time if the pv has changed across the last two iterations
             if (depth >= 4 && info->bestmoves[depth - 1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
+                info->idealusage = MIN(info->maxusage, info->idealusage * 1.25);
         }
         
         // Check for termination by any of the possible limits
@@ -183,8 +183,8 @@ void* iterativeDeepening(void* vthread){
         
         // Check to see if we expect to be able to complete the next depth
         if (thread->limits->limitedBySelf){
-            double timeFactor = MIN(2, info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]));
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .25);
+            double timeFactor = MIN(3, info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]));
+            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .35);
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
             if (estiamtedEndtime > info->maxusage){
