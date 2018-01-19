@@ -695,7 +695,7 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         // Destination is not attacked by the opponent
         safeAdvance =    !(destination & ei->attacked[!colour])
-                      ||  (destination & ei->attackedBy2[colour] & ~ei->attackedBy2[!colour]);
+                      ||  (destination & ei->pawnAttacks[colour] & ~ei->attackedBy2[!colour]);
         
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
