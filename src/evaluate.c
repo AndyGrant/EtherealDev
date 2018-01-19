@@ -727,8 +727,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     ei->kingAreas[WHITE] = KingMap[wKingSq] | (1ull << wKingSq) | (KingMap[wKingSq] << 8);
     ei->kingAreas[BLACK] = KingMap[bKingSq] | (1ull << bKingSq) | (KingMap[bKingSq] >> 8);
     
-    ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
-    ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
+    ei->mobilityAreas[WHITE] = ~((ei->pawnAttacks[BLACK] & (whitePawns & ~ei->pawnAttacks[WHITE]) | (white & kings) | ei->blockedPawns[WHITE]);
+    ei->mobilityAreas[BLACK] = ~((ei->pawnAttacks[WHITE] & (blackPawns & ~ei->pawnAttacks[BLACK]) | (black & kings) | ei->blockedPawns[BLACK]);
     
     ei->attacked[WHITE] = ei->attackedNoQueen[WHITE] = kingAttacks(wKingSq, ~0ull);
     ei->attacked[BLACK] = ei->attackedNoQueen[BLACK] = kingAttacks(bKingSq, ~0ull);
