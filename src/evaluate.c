@@ -527,7 +527,6 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += RookFile[open][MG];
             ei->endgame[colour] += RookFile[open][EG];
             if (TRACE) T.rookFile[colour][open]++;
-            
         }
         
         // Rook gains a bonus for being located
@@ -645,7 +644,10 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            attackCounts *= 0.25;
+        
+        if (!(ei->kingAreas[colour] & myPawns))
+            attackCounts *= 1.35;
     
         ei->midgame[colour] -= KingSafety[attackCounts];
         ei->endgame[colour] -= KingSafety[attackCounts];
