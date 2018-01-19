@@ -292,35 +292,41 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1B. Check to see if the master thread finished
     if (thread->abort) longjmp(thread->jbuffer, 1);
     
-    // Step 2. Distance Mate Pruning. Check to see if this line is so
-    // good, or so bad, that being mated in the ply, or  mating in 
-    // the next one, would still not create a more extreme line
-    rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
-    rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
-    if (rAlpha >= rBeta) return rAlpha;
+    // If we allow these early exits in root nodes, we may
+    // end up returning an empty Principle Variation, which
+    // would result in an illegal move being played.
+    if (!RootNode || 0 >= beta || 0 <= alpha){
     
-    // Step 3. Check for the Fifty Move Rule
-    if (board->fiftyMoveRule > 100)
-        return 0;
-    
-    // Step 4. Check for three fold repetition. If the repetition occurs since
-    // the root move of this search, we will exit early as if it was a draw.
-    // Otherwise, we will look for an actual three fold repetition draw.
-    for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+        // Step 2. Distance Mate Pruning. Check to see if this line is so
+        // good, or so bad, that being mated in the ply, or  mating in 
+        // the next one, would still not create a more extreme line
+        rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
+        rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
+        if (rAlpha >= rBeta) return rAlpha;
         
-        // We can't have repeated positions before the most recent
-        // move which triggered a reset of the fifty move rule counter
-        if (i < board->numMoves - board->fiftyMoveRule) break;
+        // Step 3. Check for the Fifty Move Rule
+        if (board->fiftyMoveRule > 100)
+            return 0;
         
-        if (board->history[i] == board->hash){
+        // Step 4. Check for three fold repetition. If the repetition occurs since
+        // the root move of this search, we will exit early as if it was a draw.
+        // Otherwise, we will look for an actual three fold repetition draw.
+        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
             
-            // Repetition occured after the root
-            if (i > board->numMoves - height)
-                return 0;
+            // We can't have repeated positions before the most recent
+            // move which triggered a reset of the fifty move rule counter
+            if (i < board->numMoves - board->fiftyMoveRule) break;
             
-            // An actual three fold repetition
-            if (++repetitions == 2)
-                return 0;
+            if (board->history[i] == board->hash){
+                
+                // Repetition occured after the root
+                if (i > board->numMoves - height)
+                    return 0;
+                
+                // An actual three fold repetition
+                if (++repetitions == 2)
+                    return 0;
+            }
         }
     }
     
