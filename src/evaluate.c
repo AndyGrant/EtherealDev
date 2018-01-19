@@ -541,8 +541,8 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Rook gains a bonus for being located on the same file,
         // and being able to attack, a passed pawn of either colour
         if (attacks & Files[File(sq)] & ei->passedPawns){
-            ei->midgame[colour] += 6;
-            ei->endgame[colour] += 9;
+            ei->midgame[colour] +=  8;
+            ei->endgame[colour] += 14;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the rook
