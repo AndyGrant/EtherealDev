@@ -703,8 +703,11 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         // Bonus if the passed pawn is within the king area
         if (ei->kingAreas[colour] & (1ull << sq)){
-            ei->midgame[colour] += 16;
-            ei->endgame[colour] += 16;
+            
+            static const int PassedPawnInKingArea[RANK_NB] = {0, 0, 2, 3, 6, 15, 29, 0};
+            
+            ei->midgame[colour] += PassedPawnInKingArea[rank];
+            ei->endgame[colour] += PassedPawnInKingArea[rank];
         }
     }
 }
