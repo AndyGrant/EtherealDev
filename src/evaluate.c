@@ -702,7 +702,8 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
         
         // Bonus if the passed pawn is within the king area
-        if (ei->kingAreas[colour] & (1ull << sq)){
+        if (   (ei->kingAreas[colour] & (1ull << sq))
+            && (!safeAdvance || !canAdvance)){
             
             static const int PassedPawnInKingArea[RANK_NB] = {0, 0, 2, 3, 6, 15, 29, 0};
             
