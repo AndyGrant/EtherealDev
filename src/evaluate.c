@@ -647,7 +647,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
             attackCounts *= 0.25;
         
         if (!(ei->kingAreas[colour] & myPawns))
-            attackCounts *= 1.55;
+            attackCounts *= 1.15;
     
         ei->midgame[colour] -= KingSafety[attackCounts];
         ei->endgame[colour] -= KingSafety[attackCounts];
