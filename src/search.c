@@ -286,7 +286,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->depth > 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
@@ -658,7 +659,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 1A. Check to see if search time has expired
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 8191) == 8191
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage)
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->depth > 1)
         longjmp(thread->jbuffer, 1);
         
     // Step 1B. Check to see if the master thread finished
