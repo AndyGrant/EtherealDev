@@ -538,6 +538,13 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.rookOnSeventh[colour]++;
         }
         
+        // Rook gains a bonus for being located on the same file,
+        // and being able to attack, a passed pawn of either colour
+        if ((1ull << sq) & Files[File(sq)] & ei->passedPawns){
+            ei->midgame[colour] += 6;
+            ei->endgame[colour] += 9;
+        }
+        
         // Apply a bonus (or penalty) based on the mobility of the rook
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
         ei->midgame[colour] += RookMobility[mobilityCount][MG];
