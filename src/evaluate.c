@@ -696,9 +696,14 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
+        // Score the passed pawn based on the rank, safety, and pushability
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        // Bonus if the passed pawn is within the king area
+        ei->midgame[colour] += 16;
+        ei->endgame[colour] += 16;
     }
 }
 
