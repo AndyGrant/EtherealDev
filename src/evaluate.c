@@ -702,8 +702,10 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
         
         // Bonus if the passed pawn is within the king area
-        ei->midgame[colour] += 16;
-        ei->endgame[colour] += 16;
+        if (ei->kingAreas[colour] & (1ull << sq)){
+            ei->midgame[colour] += 16;
+            ei->endgame[colour] += 16;
+        }
     }
 }
 
