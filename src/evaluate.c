@@ -141,10 +141,10 @@ const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
 };
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
-  {{{   0,   0}, { -13,  -7}, { -15,   6}, { -11,   2}, {  16,  13}, {  38,  10}, {  79,  25}, {   0,   0}},
-   {{   0,   0}, {  -2,  -8}, { -21,  12}, { -12,  21}, {   9,  33}, {  46,  35}, { 102,  73}, {   0,   0}}},
-  {{{   0,   0}, {   0,   2}, { -11,   4}, {  -6,  15}, {  19,  20}, {  59,  39}, { 124, 113}, {   0,   0}},
-   {{   0,   0}, {  -5,  -2}, { -17,   4}, { -21,  29}, { -11,  63}, {  19, 136}, { 100, 239}, {   0,   0}}},
+  {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
+   {{   0,   0}, {  -4,  -5}, { -18,   9}, { -13,  18}, {   6,  31}, {  49,  40}, {  92,  75}, {   0,   0}}},
+  {{{   0,   0}, {  -1,   5}, { -11,   5}, {  -8,  17}, {  18,  24}, {  62,  46}, { 120, 120}, {   0,   0}},
+   {{   0,   0}, {  -2,   0}, { -12,   5}, { -15,  29}, {  -1,  68}, {  50, 157}, { 139, 254}, {   0,   0}}},
 };
 
 const int PassedPawnKingProximity[RANK_NB][PHASE_NB] = {
@@ -713,7 +713,7 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         distance = MAX(abs(Rank(sq) - Rank(kingSq)), abs(File(sq) - File(kingSq)));
         ei->midgame[colour] += PassedPawnKingProximity[distance][MG];
         ei->midgame[colour] += PassedPawnKingProximity[distance][EG];
-        if (TRACE) T.passedPawnKingProximity[colour][distance]++;
+        if (TRACE) T.passedPawnKingProximity[colour][disable]++;
     }
 }
 
