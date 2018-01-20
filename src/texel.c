@@ -88,6 +88,7 @@ extern const int KingShelter[2][2][RANK_NB][PHASE_NB];
 
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB][PHASE_NB];
+extern const int PassedPawnKingProximity[RANK_NB][PHASE_NB];
 
 
 void runTexelTuning(Thread* thread){
@@ -350,6 +351,9 @@ void initializeCoefficients(TexelEntry* te){
         for (b = 0; b < 2; b++)
             for (c = 0; c < RANK_NB; c++)
                 te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+            
+    for (a = 0; a < 8; a++)
+        te->coeffs[i++] = T.passedPawnKingProximity[WHITE][a] - T.passedPawnKingProximity[BLACK][a];
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -513,6 +517,11 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
                 cparams[i][EG] = PassedPawn[a][b][c][EG];
             }
         }
+    }
+    
+    for (a = 0; a < 8; a++, i++){
+        cparams[i][MG] = PassedPawnKingProximity[a][MG];
+        cparams[i][EG] = PassedPawnKingProximity[a][EG];
     }
 }
 
@@ -716,6 +725,13 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
             printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
         }
+    } printf("\n};\n");
+    
+    printf("\nconst int PassedPawnKingProximity[RANK_NB][PHASE_NB] = {");
+    for (x = 0; x < 2; x++){
+        printf("\n   ");
+        for (y = 0; y < 4; y++, i++)
+            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
 }
 

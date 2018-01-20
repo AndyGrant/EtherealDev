@@ -61,6 +61,7 @@ typedef struct EvalTrace {
     int kingShelter[COLOUR_NB][2][2][RANK_NB];
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
+    int passedPawnKingProximity[COLOUR_NB][RANK_NB];
     
 } EvalTrace;
 

@@ -147,6 +147,8 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -2,   0}, { -12,   5}, { -15,  29}, {  -1,  68}, {  50, 157}, { 139, 254}, {   0,   0}}},
 };
 
+const int PassedPawnKingProximity[RANK_NB][PHASE_NB];
+
 const int KingSafety[100] = { // Taken from CPW / Stockfish
        0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
       18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
@@ -678,6 +680,9 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty = board->colours[WHITE] | board->colours[BLACK];
     
+    int distance;
+    int kingSq = getlsb(board->pieces[KING] & board->colours[colour]);
+    
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
         
@@ -696,9 +701,16 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
+        // Score the passed pawn based off of rank, and ability to advance
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        // Continue scoring the passed pawn based off of distance to king
+        distance = MAX(abs(Rank(sq) - Rank(kingSq)), abs(File(sq) - File(kingSq)));
+        ei->midgame[colour] += PassedPawnKingProximity[distance][MG];
+        ei->midgame[colour] += PassedPawnKingProximity[distance][EG];
+        if (TRACE) T.passedPawnKingProximity[colour][distance]++;
     }
 }
 
