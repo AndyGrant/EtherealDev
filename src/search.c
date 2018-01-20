@@ -459,9 +459,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
-            // Skip this capture if the raw value gained from a capture will
-            // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            int capValue = PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG];
+            if (MoveType(currentMove) == ENPASS_MOVE) capValue += PieceValues[PAWN][MG];
+            if (MoveType(currentMove) == PROMOTION_MOVE) capValue += PieceValues[1 + (currentMove >> 14)][MG];
+            if (eval + capValue <= rbeta)
                 continue;
             
             // Apply and validate move before searching
