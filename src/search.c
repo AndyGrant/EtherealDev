@@ -434,14 +434,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height);
         
         revertNullMove(board, undo);
         
         if (value >= beta){
-            if (value >= MATE - MAX_HEIGHT)
-                value = beta;
-            return value;
+            
+            value = search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+            
+            if (value >= beta)
+                return MIN(value, MATE - MAX_HEIGHT);
         }
     }
     
