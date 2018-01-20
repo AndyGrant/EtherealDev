@@ -440,7 +440,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         if (value >= beta){
             
-            value = search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+            value = search(thread, &lpv, beta - 1, beta, depth - R, height + 1);
             
             if (value >= beta)
                 return MIN(value, MATE - MAX_HEIGHT);
