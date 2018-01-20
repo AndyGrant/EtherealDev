@@ -713,7 +713,7 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         distance = MAX(abs(Rank(sq) - Rank(kingSq)), abs(File(sq) - File(kingSq)));
         ei->midgame[colour] += PassedPawnKingProximity[distance][MG];
         ei->midgame[colour] += PassedPawnKingProximity[distance][EG];
-        if (TRACE) T.passedPawnKingProximity[colour][disable]++;
+        if (TRACE) T.passedPawnKingProximity[colour][distance]++;
     }
 }
 
