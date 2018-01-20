@@ -383,10 +383,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // are not looking at a PV Node, as those are not subject to futility.
     // Determine check status if not done already
     inCheck = inCheck || !isNotInCheck(board, board->turn);
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
-    }
+    thread->evalHistory[height] = eval = evaluateBoard(board, &ei, &thread->ptable);
+    futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -434,6 +432,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
+        thread->moveHistory[height] = NULL_MOVE;
+        thread->typeHistory[height] = 0;
+        
         value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
         
         revertNullMove(board, undo);
@@ -470,6 +471,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 revertMove(board, currentMove, undo);
                 continue;
             }
+            
+            thread->moveHistory[height] = currentMove;
+            thread->typeHistory[height] = 1;
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rbeta,
@@ -575,6 +579,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Update counter of moves actually played
         played += 1;
+        
+        thread->moveHistory[height] = currentMove;
+        thread->typeHistory[height] = !isQuiet;
     
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will

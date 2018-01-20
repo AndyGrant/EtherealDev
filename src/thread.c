@@ -55,6 +55,10 @@ void resetThreadPool(Thread* threads){
         memset(&threads[i].ptable,  0, sizeof(PawnTable   ));
         memset(&threads[i].killers, 0, sizeof(KillerTable ));
         memset(&threads[i].history, 0, sizeof(HistoryTable));
+        
+        memset(&threads[i].moveHistory, 0, sizeof(threads[i].moveHistory));
+        memset(&threads[i].typeHistory, 0, sizeof(threads[i].typeHistory));
+        memset(&threads[i].evalHistory, 0, sizeof(threads[i].evalHistory));
     }
 }
 

@@ -45,6 +45,10 @@ typedef struct Thread {
     KillerTable killers;
     HistoryTable history;
     
+    uint16_t moveHistory[MAX_HEIGHT];
+    int typeHistory[MAX_HEIGHT];
+    int evalHistory[MAX_HEIGHT];
+    
 } Thread;
 
 
