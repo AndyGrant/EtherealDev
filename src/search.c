@@ -362,19 +362,31 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 6A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
         // we can't, but because don't want truncated PV lines
-        if (!PvNode && ttEntry.depth >= depth){
+        if (!PvNode){
 
-            rAlpha = alpha; rBeta = beta;
             ttValue = valueFromTT(ttEntry.value, height);
             
-            switch (ttEntry.type){
-                case  PVNODE: return ttValue;
-                case CUTNODE: rAlpha = ttValue > alpha ? ttValue : alpha; break;
-                case ALLNODE:  rBeta = ttValue <  beta ? ttValue :  beta; break;
+            if (ttEntry.type == PVNODE){
+                rAlpha = MAX(ttValue, alpha);
+                rBeta  = MIN(ttValue, beta);
             }
             
-            // Entry allows early exit
-            if (rAlpha >= rBeta) return ttValue;
+            else if (ttEntry.type == CUTNODE){
+                rAlpha = MAX(ttValue, alpha);
+                rBeta  = beta;
+            }
+            
+            else { // (ttEntry.type == ALLNODE)
+                rAlpha = alpha;
+                rBeta  = MIN(ttValue, beta);
+            }
+            
+            static const int margins[6] = {0, 32, 64, 128, 256, 512};
+            
+            if (   depth - ttEntry.depth <= 5
+                && rAlpha - margins[MAX(0, depth - ttEntry.depth)] >= rBeta)
+                return ttValue;
+            
         }
     }
     
