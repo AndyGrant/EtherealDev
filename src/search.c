@@ -266,7 +266,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     Board* const board = &thread->board;
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
-    int rAlpha, rBeta, ttValue, oldAlpha = alpha;
+    int rAlpha, rBeta, ttValue = 0, oldAlpha = alpha, ttType = 0;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
@@ -359,13 +359,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         ttMove = ttEntry.bestMove;
         ttTactical = moveIsTactical(board, ttMove);
         
+        ttType = ttEntry.type;
+        ttValue = valueFromTT(ttEntry.value, height);
+        
         // Step 6A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
         // we can't, but because don't want truncated PV lines
         if (!PvNode && ttEntry.depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
-            ttValue = valueFromTT(ttEntry.value, height);
             
             switch (ttEntry.type){
                 case  PVNODE: return ttValue;
@@ -384,7 +386,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Determine check status if not done already
     inCheck = inCheck || !isNotInCheck(board, board->turn);
     if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->ptable);
+        if (ttType == PVNODE) eval = ttValue;
+        else eval = evaluateBoard(board, &ei, &thread->ptable);
+        eval = (ttValue > eval && ttType == CUTNODE) ? ttValue : eval;
+        eval = (ttValue < eval && ttType == ALLNODE) ? ttValue : eval;
         futilityMargin = eval + depth * 0.95 * PieceValues[PAWN][EG];
     }
     
