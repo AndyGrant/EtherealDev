@@ -717,10 +717,14 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         
         // Take a guess at the best case value of this current move
         value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+        
         if (MoveType(currentMove) == PROMOTION_MOVE){
             value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
             value -= PieceValues[PAWN][EG];
         }
+        
+        if (MoveType(currentMove) == ENPASS_MOVE)
+            value += PieceValues[PAWN][EG];
         
         // If the best case is not good enough, continue
         if (value < alpha)
