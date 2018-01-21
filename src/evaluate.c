@@ -128,9 +128,9 @@ const int QueenMobility[28][PHASE_NB] = {
 const int KingValue[PHASE_NB] = { 100, 100};
 
 const int KingDefenders[12][PHASE_NB] = {
-    { -16,   0}, { -11,   2}, {  -1,   0}, {   6,   0},
-    {  16,   2}, {  22,   9}, {  36,   6}, {  38,  60},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
+    { -30,  -8}, { -15,  -5}, {   0,   2}, {   7,   7},
+    {  14,   8}, {  14,   8}, {  14,   8}, {  14,   8},
+    {  14,   8}, {  14,   8}, {  14,   8}, {  14 ,   8},
 };
 
 const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
