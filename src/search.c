@@ -607,7 +607,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         int extension = 0;
         
         if (   !RootNode
-            &&  PvNode
             &&  thread->typeHistory[height-1]
             &&  MoveTo(thread->typeHistory[height-1]) == MoveTo(currentMove))
             extension = 1;
