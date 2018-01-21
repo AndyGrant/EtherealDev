@@ -711,7 +711,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return value;
     
     
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    int inCheck = !isNotInCheck(board, board->turn);
+    
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
@@ -729,7 +731,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Prune this capture if it is capturing a weaker piece which is protected,
         // so long as we do not have any additional support for the attacker. If
         // the capture is also a promotion we will not perform any pruning here
-        if (     MoveType(currentMove) != PROMOTION_MOVE
+        if (     board->squares[MoveTo(currentMove)] != EMPTY
+            &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
             &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
