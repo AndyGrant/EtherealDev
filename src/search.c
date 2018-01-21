@@ -604,15 +604,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
         
         
+        int extension = 0;
+        
+        if (   !RootNode
+            &&  PvNode
+            &&  thread->typeHistory[height-1]
+            &&  MoveTo(thread->typeHistory[height-1]) == MoveTo(currentMove))
+            extension = 1;
+        
         // Search the move with a possibly reduced depth, on a full or null window
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv, -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, &lpv,    -beta, -alpha, depth+extension-R, height+1)
+               : -search(thread, &lpv, -alpha-1, -alpha, depth+extension-R, height+1);
                
         // If the search beat alpha, we may need to research, in the event that
         // the previous search was not the full window, or was a reduced depth
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, &lpv, -beta, -alpha, depth+extension-1, height+1)
                :  value;
         
         // REVERT MOVE FROM BOARD
