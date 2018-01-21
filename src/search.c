@@ -381,9 +381,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 rBeta  = MIN(ttValue, beta);
             }
             
-            static const int margins[6] = {0, 32, 64, 128, 256, 512};
+            static const int margins[4] = {0, 128, 512, 2048};
             
-            if (   depth - ttEntry.depth <= 5
+            if (   depth - ttEntry.depth < 4
                 && rAlpha - margins[MAX(0, depth - ttEntry.depth)] >= rBeta)
                 return ttValue;
             
