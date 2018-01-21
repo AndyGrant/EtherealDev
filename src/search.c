@@ -602,11 +602,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             R -=   height >= 4
                 && thread->evalHistory[height-0] >= thread->evalHistory[height-2] + 16
-                && thread->evalHistory[height-2] >= thread->evalHistory[height-4] + 16;
+                && thread->evalHistory[height-2] >= thread->evalHistory[height-4];
                 
             R +=   height >= 4
                 && thread->evalHistory[height-0] <= thread->evalHistory[height-2] - 16
-                && thread->evalHistory[height-2] <= thread->evalHistory[height-4] - 16;
+                && thread->evalHistory[height-2] <= thread->evalHistory[height-4];
                 
             R -= hist / 24;
             
