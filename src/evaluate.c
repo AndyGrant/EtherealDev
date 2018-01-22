@@ -615,6 +615,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t filePawns;
     
+    uint64_t minors = board->pieces[KNIGHT] | board->pieces[BISHOP];
+    uint64_t majors = board->pieces[ROOK  ] | board->pieces[QUEEN ];
+    
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
@@ -641,14 +644,30 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         // Cap our attackCounts at 99 (KingSafety has 100 slots)
         attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            attackCounts *= 0.25;
+        
+        // Increase attack counts if there are no minors inside the king area
+        if (ei->kingAreas[colour] & (myDefenders ^ myPawns))
+            attackCounts *= 1.05;
+        
+        // Increase attack counts if the king area is being swarmed
+        if (  popcount(ei->kingAreas[colour] & board->colours[ colour]) - 2
+            < popcount(ei->kingAreas[colour] & board->colours[!colour]))
+            attackCounts *= 1.20;
+            
+        // Increase attack counts if they have more majors than us
+        if (popcount(majors & board->colours[colour]) < popcount(majors & board->colours[!colour]))
+            attackCounts *= 1.10;
+        
+        // Increase attack counts if they have more minors than us
+        if (popcount(minors & board->colours[colour]) < popcount(minors & board->colours[!colour]))
+            attackCounts *= 1.05;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        ei->midgame[colour] -= KingSafety[MIN(99, attackCounts)];
+        ei->endgame[colour] -= KingSafety[MIN(99, attackCounts)];
     }
     
     // Evaluate Pawn Shelter. We will evaluate the pawn setup on the king's file,
