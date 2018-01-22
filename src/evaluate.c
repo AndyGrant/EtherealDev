@@ -48,7 +48,7 @@
 
 extern PawnTable PTable;
 
-const int PawnValue[PHASE_NB] = {  77,  87};
+const int PawnValue[PHASE_NB] = {  97, 107};
 
 const int PawnIsolated[PHASE_NB] = {  -1,  -6};
 
@@ -67,7 +67,7 @@ const int PawnConnected32[32][PHASE_NB] = {
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
-const int KnightValue[PHASE_NB] = { 303, 286};
+const int KnightValue[PHASE_NB] = { 313, 296};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
 
@@ -79,11 +79,9 @@ const int KnightMobility[9][PHASE_NB] = {
     {  16,   6}, {  23,   8}, {  28,  -5},
 };
 
-const int BishopValue[PHASE_NB] = { 305, 288};
+const int BishopValue[PHASE_NB] = { 315, 298};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
-
-const int BishopWings[PHASE_NB] = {  -8,   0};
 
 const int BishopPair[PHASE_NB] = {  28,  39};
 
@@ -96,28 +94,28 @@ const int BishopMobility[14][PHASE_NB] = {
     {  30,  19}, {  16,  -1},
 };
 
-const int RookValue[PHASE_NB] = { 417, 462};
+const int RookValue[PHASE_NB] = { 457, 502};
 
 const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
 
 const int RookOnSeventh[PHASE_NB] = {   0,   6};
 
 const int RookMobility[15][PHASE_NB] = {
-    { -96, -87}, { -44, -52}, { -10, -39}, {  -7, -16},
+    { -66, -67}, { -44, -52}, { -10, -39}, {  -7, -16},
     {  -6,  -5}, {  -4,   6}, {  -4,  17}, {  -3,  22},
     {   1,  26}, {   7,  27}, {  10,  32}, {  14,  37},
     {  14,  39}, {  13,  38}, {  11,  33},
 };
 
-const int QueenValue[PHASE_NB] = { 783, 839};
+const int QueenValue[PHASE_NB] = { 833, 889};
 
 const int QueenChecked[PHASE_NB] = { -43, -30};
 
 const int QueenCheckedByPawn[PHASE_NB] = { -55, -36};
 
 const int QueenMobility[28][PHASE_NB] = {
-    {-196, -50}, { -76,-341}, { -78,-137}, { -42, -91},
-    { -29, -92}, { -26, -46}, { -19, -49}, { -14, -50},
+    { -79, -69}, { -76, -67}, { -78, -57}, { -42, -52},
+    { -29, -49}, { -26, -46}, { -19, -49}, { -14, -50},
     { -11, -46}, {  -8, -39}, {  -5, -27}, {  -3, -20},
     {  -1, -13}, {  -1,  -5}, {   1,  -1}, {   0,   7},
     {   0,  14}, {   1,  17}, {   0,  17}, {   4,  26},
@@ -428,13 +426,6 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
-    
-    // Apply a bonus for having pawn wings and a bishop
-    if (tempBishops && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
-        ei->midgame[colour] += BishopWings[MG];
-        ei->endgame[colour] += BishopWings[EG];
-        if (TRACE) T.bishopWings[colour]++;
-    }
     
     // Apply a bonus for having a pair of bishops
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
