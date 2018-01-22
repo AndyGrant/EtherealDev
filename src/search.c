@@ -339,14 +339,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
     // Step 5. Go into the Quiescence Search if we have reached
     // the search horizon and are not currently in check
-    if (depth <= 0){
-        inCheck = !isNotInCheck(board, board->turn);
-        if (!inCheck) return qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the acceptable bounds
-        depth = 0; 
-    }
+    if (depth <= 0)
+        return qsearch(thread, pv, alpha, beta, height);
     
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
