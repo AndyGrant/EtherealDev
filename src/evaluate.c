@@ -423,11 +423,12 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
 void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     
     int sq, defended, mobilityCount;
-    uint64_t tempBishops, myPawns, enemyPawns, attacks;
+    uint64_t tempBishops, pawns, myPawns, enemyPawns, attacks;
     
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    pawns = myPawns | enemyPawns;
     
     // Apply a bonus for having pawn wings and a bishop
     if (tempBishops && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
@@ -458,6 +459,16 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        if (WHITE_SQUARES & (1ull << sq)){
+            ei->midgame[colour] += 2 * (popcount(pawns & BLACK_SQUARES) - popcount(pawns & WHITE_SQUARES));
+            ei->endgame[colour] += 4 * (popcount(pawns & BLACK_SQUARES) - popcount(pawns & WHITE_SQUARES));
+        }
+        
+        else {
+            ei->midgame[colour] += 2 * (popcount(pawns & WHITE_SQUARES) - popcount(pawns & BLACK_SQUARES));
+            ei->endgame[colour] += 4 * (popcount(pawns & WHITE_SQUARES) - popcount(pawns & BLACK_SQUARES));
+        }
         
         // Apply a penalty if the bishop is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
