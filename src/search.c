@@ -64,8 +64,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         
         mtg = mtg >= 0 ? mtg + 1: 25;
         
-        info.idealusage =  0.45 * (time + (mtg - 2) * inc) / MAX(5, mtg + 3);
-        info.maxusage   = 10.00 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
+        info.idealusage = 0.45 * (time + (mtg - 2) * inc) / MAX(10, mtg + 3);
+        info.maxusage   = 7.50 * (time + (mtg - 2) * inc) / MAX(10, mtg + 0);
         
         info.idealusage = MIN(info.idealusage, time - 50);
         info.maxusage   = MIN(info.maxusage,   time - 50);
@@ -162,11 +162,11 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (depth >= 4 && info->values[depth - 1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.08);
+                info->idealusage = MIN(info->maxusage, info->idealusage * (1.00 + (info->values[depth-1]-value)/50.0));
             
             // Increase our time if the pv has changed across the last two iterations
             if (depth >= 4 && info->bestmoves[depth - 1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.30);
+                info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
         }
         
         // Check for termination by any of the possible limits
