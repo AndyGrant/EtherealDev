@@ -650,7 +650,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
             attackCounts *= 0.25;
         
         // Increase attack counts if there are no minors inside the king area
-        if (ei->kingAreas[colour] & (myDefenders ^ myPawns))
+        if (!(ei->kingAreas[colour] & (myDefenders ^ myPawns)))
             attackCounts *= 1.05;
         
         // Increase attack counts if the king area is being swarmed
