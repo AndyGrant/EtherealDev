@@ -410,14 +410,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
-        &&  depth <= BetaPruningDepth){
-            
-        value = eval - depth * 0.95 * PieceValues[PAWN][EG];
-        
-        if (value > beta)
-            return value;
-    }
-    
+        &&  depth <= BetaPruningDepth
+        &&  eval - depth * 0.95 * PieceValues[PAWN][EG] > beta)
+        return beta;
+
     // Step 10. Null Move Pruning. If our position is so good that
     // giving our opponent back-to-back moves is still not enough
     // for them to gain control of the game, we can be somewhat safe
