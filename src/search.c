@@ -213,19 +213,19 @@ int aspirationWindow(Thread* thread, int depth){
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
         
         // Dynamically compute the upper margin based on previous scores
-        upper = MAX(    4,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        upper = MAX(upper,  2.0 * (values[mainDepth-2] - values[mainDepth-3]));
+        upper = MAX(   12,  1.8 * (values[mainDepth-1] - values[mainDepth-2]));
+        upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
         upper = MAX(upper,  0.8 * (values[mainDepth-3] - values[mainDepth-4]));
         
         // Dynamically compute the lower margin based on previous scores
-        lower = MAX(    4, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        lower = MAX(lower, -2.0 * (values[mainDepth-2] - values[mainDepth-3]));
+        lower = MAX(   12, -1.8 * (values[mainDepth-1] - values[mainDepth-2]));
+        lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
         lower = MAX(lower, -0.8 * (values[mainDepth-3] - values[mainDepth-4])); 
         
         // Create the aspiration window
-        alpha = values[mainDepth-1] - lower;
-        beta  = values[mainDepth-1] + upper;
-        
+        alpha = (values[mainDepth-1] + values[mainDepth-2]) / 2 - lower;
+        beta  = (values[mainDepth-1] + values[mainDepth-2]) / 2 + upper;
+
         // Try windows until lower or upper bound exceeds a limit
         for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
             
@@ -459,9 +459,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
-            // Skip this capture if the raw value gained from a capture will
-            // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            // If our eval plus plus the best case value of the capture,
+            // still falls below rbeta, we will skip this move
+            if (eval + 55 + captureValue(board, currentMove) < rbeta)
                 continue;
             
             // Apply and validate move before searching
@@ -715,15 +715,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
-        if (MoveType(currentMove) == PROMOTION_MOVE){
-            value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
-            value -= PieceValues[PAWN][EG];
-        }
-        
-        // If the best case is not good enough, continue
-        if (value < alpha)
+        // If our eval plus a buffer of 55 centipawns, plus the best case
+        // value of the capture, still falls below alpha, skip this move
+        if (eval + 55 + captureValue(board, currentMove) < alpha)
             continue;
         
         // Prune this capture if it is capturing a weaker piece which is protected,
@@ -797,3 +791,10 @@ int valueToTT(int value, int height){
          : value <= -MATE + MAX_HEIGHT ? value - height
          : value;
 }
+
+int captureValue(Board* board, uint16_t move){
+    return (PieceValues[PieceType(board->squares[MoveTo(move)])][MG])
+         + (MoveType(move) == PROMOTION_MOVE ? PieceValues[1 + (move >> 14)][MG] : 0)
+         - (MoveType(move) == PROMOTION_MOVE ? PieceValues[PAWN][MG] : 0)
+         + (MoveType(move) == ENPASS_MOVE ? PieceValues[PAWN][MG] : 0);
+};

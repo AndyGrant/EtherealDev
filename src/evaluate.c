@@ -690,9 +690,11 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Determine where the pawn would advance to
         destination = (colour == BLACK) ? ((1ull << sq) >> 8): ((1ull << sq) << 8);
             
-        // Destination does not have any pieces on it
-        canAdvance = !(destination & notEmpty);
-        
+        // Destination does not have any pieces on it, or if we think we may have
+        // enough material to take control of the square without losing the passer
+        canAdvance = !(destination & notEmpty)
+                   || (destination & (ei->pawnAttacks[colour] | ei->attackedBy2[colour]) & ~ei->attacked[!colour]);
+                   
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
