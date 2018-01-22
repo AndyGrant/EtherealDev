@@ -403,7 +403,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return value;
+        if (value <= rAlpha) return alpha;
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -433,11 +433,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         revertNullMove(board, undo);
         
-        if (value >= beta){
-            if (value >= MATE - MAX_HEIGHT)
-                value = beta;
-            return value;
-        }
+        if (value >= beta) return beta;
     }
     
     // Step 11. ProbCut. If we have a good capture that causes a beta cutoff
