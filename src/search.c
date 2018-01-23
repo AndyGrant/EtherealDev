@@ -580,8 +580,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
             
-            R -=   currentMove == thread->killers[height][0]
-                || currentMove == thread->killers[height][1];
+            if (    currentMove == thread->killers[height][0] 
+                ||  currentMove == thread->killers[height][1])
+                R -= PvNode ? 2 : 1;
                 
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
