@@ -411,7 +411,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - depth * 0.95 * PieceValues[PAWN][EG] > beta)
+        &&  eval - depth * 1.35 * PieceValues[PAWN][MG] > beta)
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that
