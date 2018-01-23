@@ -512,6 +512,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
             &&  isQuiet
+            &&  currentMove != thread->killers[height][0]
+            &&  currentMove != thread->killers[height][1]
             &&  played >= 1
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
