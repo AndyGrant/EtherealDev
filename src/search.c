@@ -403,7 +403,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return alpha;
+        if (value <= rAlpha) return eval;
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -412,7 +412,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= BetaPruningDepth
         &&  eval - depth * 0.95 * PieceValues[PAWN][EG] > beta)
-        return beta;
+        return eval;
 
     // Step 10. Null Move Pruning. If our position is so good that
     // giving our opponent back-to-back moves is still not enough
@@ -433,7 +433,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         revertNullMove(board, undo);
         
-        if (value >= beta) return beta;
+        if (value >= beta) return eval;
     }
     
     // Step 11. ProbCut. If we have a good capture that causes a beta cutoff
