@@ -377,10 +377,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (rAlpha >= rBeta && ttEntry.depth >= depth) 
                 return ttValue;
             
-            if (ttEntry.depth + 1 == depth && rAlpha - 16 >= rBeta) 
+            if (ttEntry.depth + 1 == depth && rAlpha - 256 >= rBeta) 
                 return ttValue;
             
-            if (ttEntry.depth + 2 == depth && rAlpha - 16 >= rBeta){
+            if (ttEntry.depth + 2 == depth && rAlpha - 256 >= rBeta){
                 
                 value = search(thread, pv, alpha, beta, depth - 1, height, 1);
                 
