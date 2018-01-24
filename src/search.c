@@ -415,7 +415,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
         && !inCheck
-        && !skipTTCutoff
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
@@ -431,7 +430,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
-        && !skipTTCutoff
         &&  depth <= BetaPruningDepth
         &&  eval - 70 * depth > beta)
         return eval;
@@ -442,7 +440,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
-        && !skipTTCutoff
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
@@ -465,7 +462,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
-        && !skipTTCutoff
         &&  depth >= 5){
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
