@@ -351,6 +351,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
     
+    
+    int failedTTPrune = 0;
+    
     // Step 6. Probe the Transposition Table for an entry
     if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
         
@@ -394,6 +397,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                     ttMove = pv->line[0];
                     ttTactical = moveIsTactical(board, ttMove);
                 }
+                
+                failedTTPrune = 1;
             }
         }
     }
@@ -603,6 +608,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
+            R -= failedTTPrune;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
