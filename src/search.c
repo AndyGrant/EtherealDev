@@ -424,7 +424,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return alpha;
+        if (value <= rAlpha) return value;
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -434,7 +434,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !skipTTCutoff
         &&  depth <= BetaPruningDepth
         &&  eval - 70 * depth > beta)
-        return beta;
+        return eval;
 
     // Step 10. Null Move Pruning. If our position is so good that
     // giving our opponent back-to-back moves is still not enough
@@ -456,7 +456,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         revertNullMove(board, undo);
         
-        if (value >= beta) return beta;
+        if (value >= beta) return value;
     }
     
     // Step 11. ProbCut. If we have a good capture that causes a beta cutoff
@@ -490,10 +490,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and then with a slightly reduced search. If both searches still exceed rbeta,
             // we will prune this node's subtree with resonable assurance that we made no error
             if (   -search(thread, &lpv, -rbeta, -rbeta+1,       0, height+1, 0) >= rbeta
-                && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1, 0) >= rbeta){
+                && (value = -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1, 0)) >= rbeta){
                     
                 revertMove(board, currentMove, undo);
-                return beta;
+                return value;
             }
              
             // Revert the board state
