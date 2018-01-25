@@ -385,7 +385,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     inCheck = inCheck || !isNotInCheck(board, board->turn);
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + 70 * depth;
+        futilityMargin = eval + 60 * depth;
     }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
@@ -411,7 +411,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - 70 * depth > beta)
+        &&  eval - 60 * depth > beta)
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that
