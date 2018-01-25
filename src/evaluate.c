@@ -48,6 +48,8 @@
 
 extern PawnTable PTable;
 
+const int SafeOutpost[PHASE_NB] = {   4,   4};
+
 const int PawnValue[PHASE_NB] = {  77,  87};
 
 const int PawnIsolated[PHASE_NB] = {  -1,  -6};
@@ -398,10 +400,16 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            
             ei->midgame[colour] += KnightOutpost[defended][MG];
             ei->endgame[colour] += KnightOutpost[defended][EG];
             if (TRACE) T.knightOutpost[colour][defended]++;
+            
+            // Extra bonus if there are simply no minor pieces to attack the knight
+            if (   !(board->pieces[KNIGHT] & board->colours[!colour])
+                && !(board->pieces[BISHOP] & board->colours[!colour] & SQUARES_OF_SAME_SQ_COLOUR(sq))){
+                ei->midgame[colour] += SafeOutpost[MG];
+                ei->endgame[colour] += SafeOutpost[EG];
+            }
         }
         
         // Apply a bonus (or penalty) based on the mobility of the knight
@@ -472,10 +480,16 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            
             ei->midgame[colour] += BishopOutpost[defended][MG];
             ei->endgame[colour] += BishopOutpost[defended][EG];
             if (TRACE) T.bishopOutpost[colour][defended]++;
+            
+            // Extra bonus if there are simply no minor pieces to attack the bishop
+            if (   !(board->pieces[KNIGHT] & board->colours[!colour])
+                && !(board->pieces[BISHOP] & board->colours[!colour] & SQUARES_OF_SAME_SQ_COLOUR(sq))){
+                ei->midgame[colour] += SafeOutpost[MG];
+                ei->endgame[colour] += SafeOutpost[EG];
+            }
         }
         
         // Apply a bonus (or penalty) based on the mobility of the bishop

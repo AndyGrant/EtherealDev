@@ -47,6 +47,8 @@
 #define WHITE_SQUARES (0x55AA55AA55AA55AAull)
 #define BLACK_SQUARES (0xAA55AA55AA55AA55ull)
 
+#define SQUARES_OF_SAME_SQ_COLOUR(sq) (((1ull << (sq)) & WHITE_SQUARES) ? WHITE_SQUARES : BLACK_SQUARES)
+
 extern const uint64_t Files[FILE_NB];
 extern const uint64_t Ranks[RANK_NB];
 
