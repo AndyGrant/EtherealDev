@@ -48,7 +48,7 @@
 
 extern PawnTable PTable;
 
-const int SafeOutpost[PHASE_NB] = {  12,  12};
+const int SafeOutpost[PHASE_NB] = {  16,   8};
 
 const int PawnValue[PHASE_NB] = {  77,  87};
 
