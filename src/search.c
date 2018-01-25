@@ -213,18 +213,18 @@ int aspirationWindow(Thread* thread, int depth){
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
         
         // Dynamically compute the upper margin based on previous scores
-        upper = MAX(    4,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        upper = MAX(upper,  2.0 * (values[mainDepth-2] - values[mainDepth-3]));
+        upper = MAX(   12,  1.8 * (values[mainDepth-1] - values[mainDepth-2]));
+        upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
         upper = MAX(upper,  0.8 * (values[mainDepth-3] - values[mainDepth-4]));
         
         // Dynamically compute the lower margin based on previous scores
-        lower = MAX(    4, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        lower = MAX(lower, -2.0 * (values[mainDepth-2] - values[mainDepth-3]));
+        lower = MAX(   12, -1.8 * (values[mainDepth-1] - values[mainDepth-2]));
+        lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
         lower = MAX(lower, -0.8 * (values[mainDepth-3] - values[mainDepth-4])); 
         
         // Create the aspiration window
-        alpha = values[mainDepth-1] - lower;
-        beta  = values[mainDepth-1] + upper;
+        alpha = (values[mainDepth-1] + values[mainDepth-2]) / 2 - lower;
+        beta  = (values[mainDepth-1] + values[mainDepth-2]) / 2 + upper;
         
         // Try windows until lower or upper bound exceeds a limit
         for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
@@ -237,16 +237,12 @@ int aspirationWindow(Thread* thread, int depth){
                 return value;
             
             // Search failed low
-            if (value <= alpha){
-                beta  = (alpha + beta) / 2;
+            if (value <= alpha)
                 alpha = alpha - 2 * lower;
-            }
             
             // Search failed high
-            if (value >= beta){
-                alpha = (alpha + beta) / 2;
+            if (value >= beta)
                 beta  = beta + 2 * upper;
-            }
             
             // Result was a near mate score, force a full search
             if (abs(value) > MATE / 2)
@@ -385,7 +381,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     inCheck = inCheck || !isNotInCheck(board, board->turn);
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + 70 * depth;
+        futilityMargin = eval + 60 * depth;
     }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
@@ -411,7 +407,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - 70 * depth > beta)
+        &&  eval - 60 * depth > beta)
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that
