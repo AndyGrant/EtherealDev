@@ -368,8 +368,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttValue = valueFromTT(ttEntry.value, height);
             
             switch (ttEntry.type){
-                case  PVNODE: rAlpha = MAX(alpha, ttValue);
-                              rBeta  = MIN(beta,  ttValue); break;
+                case  PVNODE: rAlpha = rBeta; break;
                 case CUTNODE: rAlpha = MAX(alpha, ttValue); break;
                 case ALLNODE: rBeta  = MIN(beta,  ttValue); break;
             }
@@ -429,7 +428,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
-        && !skipTTCutoff
         &&  depth <= BetaPruningDepth
         &&  eval - 70 * depth > beta)
         return beta;
