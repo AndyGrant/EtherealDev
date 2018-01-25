@@ -34,6 +34,7 @@
 #include "piece.h"
 #include "psqt.h"
 #include "search.h"
+#include "square.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
@@ -444,15 +445,24 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= 5){
             
-        int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
+        int rbeta = MIN(beta + 200, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, ttMove, height, 0);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Skip this capture if the raw value gained from a capture will
             // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            
+            value = eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG]
+                         - PSQTMidgame[PieceType(board->squares[MoveFrom(currentMove)])][relativeSquare(MoveFrom(currentMove), board->turn)]
+                         + PSQTMidgame[PieceType(board->squares[MoveFrom(currentMove)])][relativeSquare(MoveTo  (currentMove), board->turn)];
+            if (MoveType(currentMove) == ENPASS_MOVE)
+                value += PieceValues[PAWN][MG];
+            if (MoveType(currentMove) == PROMOTION_MOVE)
+                value += PieceValues[1 + (currentMove >> 14)][MG];
+                         
+            if (value <= rbeta)
                 continue;
             
             // Apply and validate move before searching
