@@ -84,6 +84,10 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         
         // Reset the abort flag for the new search
         threads[i].abort = 0;
+        
+        // Reset the flag for tt pruning. It may have been left
+        // on in the event of an early exit from search while set
+        threads[i].skipTTPruning = 0;
     }
 }
 
