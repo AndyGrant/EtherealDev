@@ -517,7 +517,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= FutilityPruningDepth)
             continue;
             
-        // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
+        // Step 15A. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. Don't include capture-promotions
         if (    !PvNode
@@ -542,6 +542,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
         }
+        
+        // Step15B. 
+        if (   !PvNode
+            && !inCheck
+            && !isQuiet
+            &&  played >= 1
+            &&  depth < 8
+            && !staticExchangeEvaluationGE(board, currentMove, -80 * depth))
+            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -717,9 +726,16 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (value < alpha)
             continue;
             
-        // If the move appears to be a losing capture, skip it
-        if (!staticExchangeEvaluationGE(board, currentMove, 0))
-            continue;
+        // Prune this capture if it is capturing a weaker piece which is protected,
+        // so long as we do not have any additional support for the attacker. If
+        // the capture is also a promotion we will not perform any pruning here
+        if (     MoveType(currentMove) != PROMOTION_MOVE
+            &&  !ei.positionIsDrawn
+            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
+            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+             continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
