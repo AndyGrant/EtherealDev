@@ -364,10 +364,12 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
 void evaluateKnights(EvalInfo* ei, Board* board, int colour){
     
     int sq, defended, mobilityCount;
-    uint64_t tempKnights, enemyPawns, attacks; 
+    uint64_t tempKnights, enemyPawns, enemyKnights, enemyBishops, attacks; 
     
-    tempKnights = board->pieces[KNIGHT] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    tempKnights  = board->pieces[KNIGHT] & board->colours[ colour];
+    enemyPawns   = board->pieces[PAWN  ] & board->colours[!colour];
+    enemyKnights = board->pieces[KNIGHT] & board->colours[!colour];
+    enemyBishops = board->pieces[BISHOP] & board->colours[!colour];
     
     // Evaluate each knight
     while (tempKnights){
@@ -397,7 +399,9 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
-            defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
+            defended =   (ei->pawnAttacks[colour] & (1ull << sq))
+                      && !(enemyKnights )
+                      && !(enemyBishops & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES));
             
             ei->midgame[colour] += KnightOutpost[defended][MG];
             ei->endgame[colour] += KnightOutpost[defended][EG];
@@ -423,11 +427,13 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
 void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     
     int sq, defended, mobilityCount;
-    uint64_t tempBishops, myPawns, enemyPawns, attacks;
+    uint64_t tempBishops, myPawns, enemyPawns, enemyKnights, enemyBishops, attacks;
     
-    tempBishops = board->pieces[BISHOP] & board->colours[colour];
-    myPawns = board->pieces[PAWN] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    tempBishops  = board->pieces[BISHOP] & board->colours[ colour];
+    myPawns      = board->pieces[PAWN  ] & board->colours[ colour];
+    enemyPawns   = board->pieces[PAWN  ] & board->colours[!colour];
+    enemyKnights = board->pieces[KNIGHT] & board->colours[!colour];
+    enemyBishops = board->pieces[BISHOP] & board->colours[!colour];
     
     // Apply a bonus for having pawn wings and a bishop
     if (tempBishops && (myPawns & LEFT_WING) && (myPawns & RIGHT_WING)){
@@ -471,7 +477,9 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
-            defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
+            defended =   (ei->pawnAttacks[colour] & (1ull << sq))
+                      && !(enemyKnights )
+                      && !(enemyBishops & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES));
             
             ei->midgame[colour] += BishopOutpost[defended][MG];
             ei->endgame[colour] += BishopOutpost[defended][EG];
