@@ -549,7 +549,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !isQuiet
             &&  played >= 1
             &&  depth < 8
-            && !staticExchangeEvaluationGE(board, currentMove, -80 * depth))
+            && !staticExchangeEvaluationGE(board, currentMove, -20 * depth * depth))
             continue;
         
         // Apply and validate move before searching
