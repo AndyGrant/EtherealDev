@@ -339,14 +339,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
     // Step 5. Go into the Quiescence Search if we have reached
     // the search horizon and are not currently in check
-    if (depth <= 0){
-        inCheck = !isNotInCheck(board, board->turn);
-        if (!inCheck) return qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the acceptable bounds
-        depth = 0; 
-    }
+    if (depth <= 0 && !board->kingAttackers)
+        return qsearch(thread, pv, alpha, beta, height);
+    depth = MAX(0, depth);
     
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
@@ -379,10 +374,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 7. Determine check status, and calculate the futility margin.
-    // We only need the futility margin if we are not in check, and we
-    // are not looking at a PV Node, as those are not subject to futility.
-    // Determine check status if not done already
-    inCheck = inCheck || !isNotInCheck(board, board->turn);
+    // We only need the futility margin if we are not looking at a PV Node,
+    // as those are not subject to futility.
+    inCheck = !!board->kingAttackers;
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->ptable);
         futilityMargin = eval + 70 * depth;
@@ -558,7 +552,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth]
-            &&  isNotInCheck(board, board->turn)){
+            && !board->kingAttackers){
         
             revertMove(board, currentMove, undo);
             continue;

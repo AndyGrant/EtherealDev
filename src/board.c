@@ -222,6 +222,9 @@ void initializeBoard(Board* board, char* fen){
     
     // Number of moves since this (root) position
     board->numMoves = 0;
+    
+    // Compute attackers on our king, for use in move generation
+    board->kingAttackers = getKingAttackers(board);
 }
 
 void printBoard(Board* board){
@@ -319,3 +322,61 @@ void runBenchmark(Thread* threads, int depth){
     printf("NPS   : %d\n", (int)(nodes / ((end - start ) / 1000.0)));
     fflush(stdout);
 }
+
+
+uint64_t getPiece(Board* board, int piece){
+    return board->pieces[piece];
+}
+
+uint64_t getColour(Board* board, int colour){
+    return board->colours[colour];
+}
+
+uint64_t getKingAttackers(Board* board){
+    
+    uint64_t myPieces = getColour(board, board->turn);
+    
+    uint64_t enemyPieces = getColour(board, !board->turn);
+    
+    uint64_t notEmpty = myPieces | enemyPieces;
+    
+    uint64_t myKing = getPiece(board, KING) & myPieces;
+    
+    int kingSq = getlsb(myKing);
+    
+    return  pawnAttacks  (myKing, board->turn, getPiece(board, PAWN  ) & enemyPieces)
+          | knightAttacks(kingSq,              getPiece(board, KNIGHT) & enemyPieces)
+          | bishopAttacks(kingSq, notEmpty,   (getPiece(board, BISHOP) | getPiece(board, QUEEN)) & enemyPieces)
+          | rookAttacks  (kingSq, notEmpty,   (getPiece(board, ROOK  ) | getPiece(board, QUEEN)) & enemyPieces);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

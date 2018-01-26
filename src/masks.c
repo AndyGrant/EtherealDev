@@ -18,12 +18,15 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "bitboards.h"
 #include "masks.h"
 #include "piece.h"
 #include "types.h"
+#include "movegen.h"
 
+uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
@@ -34,6 +37,23 @@ void initializeMasks(){
     
     int i, j;
     uint64_t files;
+    
+    for (i = 0; i < SQUARE_NB; i++){
+        for (j = 0; j < SQUARE_NB; j++){
+            
+            if (bishopAttacks(i, ~0ull, 1ull << j)){
+                BitsBetweenMasks[i][j]  = bishopAttacks(i, 1ull << j, ~0ull);
+                BitsBetweenMasks[i][j] &= bishopAttacks(i, 1ull << j, ~0ull);
+                BitsBetweenMasks[i][j] |= (1ull << i) | (1ull << j);
+            }
+            
+            if (rookAttacks(i, ~0ull, 1ull << j)){
+                BitsBetweenMasks[i][j]  = rookAttacks(i, 1ull << j, ~0ull);
+                BitsBetweenMasks[i][j] &= rookAttacks(i, 1ull << j, ~0ull);
+                BitsBetweenMasks[i][j] |= (1ull << i) | (1ull << j);
+            }
+        }
+    }
     
     // Initalize isolated pawn masks
     for (i = 0; i < SQUARE_NB; i++){

@@ -42,6 +42,7 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     // or is not worth the time in order to do so
     undo->hash = board->hash;
     undo->phash = board->phash;
+    undo->kingAttackers = board->kingAttackers;
     undo->turn = board->turn;
     undo->castleRights = board->castleRights;
     undo->epSquare = board->epSquare;
@@ -61,6 +62,9 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     
     // Call the proper move application function
     table[MoveType(move) >> 12](board, move, undo);
+    
+    // Update attacks on the king of the new side to move
+    board->kingAttackers = getKingAttackers(board);
 }
 
 void applyNormalMove(Board* board, uint16_t move, Undo* undo){
@@ -379,6 +383,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
     board->numMoves--;
     board->hash = undo->hash;
     board->phash = undo->phash;
+    board->kingAttackers = undo->kingAttackers;
     board->turn = undo->turn;
     board->castleRights = undo->castleRights;
     board->epSquare = undo->epSquare;
