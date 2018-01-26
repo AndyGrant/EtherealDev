@@ -543,15 +543,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
         }
         
-        // Step15B. 
-        if (   !PvNode
-            && !inCheck
-            && !isQuiet
-            &&  played >= 1
-            &&  depth < 8
-            && !staticExchangeEvaluationGE(board, currentMove, -80 * depth))
-            continue;
-        
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
@@ -710,6 +701,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
     
+    int inCheck = !isNotInCheck(board, board->turn);
     
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     
@@ -736,6 +728,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
              continue;
+             
+        if (   !inCheck
+            && !staticExchangeEvaluationGE(board, currentMove, alpha - eval - 55))
+            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
