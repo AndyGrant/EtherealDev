@@ -525,23 +525,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !inCheck
             &&   played >= 1
             &&   depth <= 5
-            &&   MoveType(currentMove) != ENPASS_MOVE
-            &&   MoveType(currentMove) != PROMOTION_MOVE
-            &&  !ei.positionIsDrawn
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
-                 
-          
-            // If the target piece has two or more defenders, we will prune up to depth 5
-            if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
-                continue;
-            
-            // Otherwise, if the piece has one defender, we will prune up to depth 3
-            if (    depth <= 3
-                && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
-                continue;
-        }
+            &&  !staticExchangeEvaluationGE(board, currentMove, -40 * depth * depth))
+            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
