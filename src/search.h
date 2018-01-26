@@ -52,6 +52,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 
+int staticExchangeEvaluationGE(Board* board, uint16_t move, int margin);
+
 int moveIsTactical(Board* board, uint16_t move);
 
 int hasNonPawnMaterial(Board* board, int turn);

@@ -23,6 +23,7 @@
 
 #include "types.h"
 
+uint64_t pawnAttacks(int sq, int colour, uint64_t targets);
 uint64_t knightAttacks(int sq, uint64_t targets);
 uint64_t bishopAttacks(int sq, uint64_t occupied, uint64_t targets);
 uint64_t rookAttacks(int sq, uint64_t occupied, uint64_t targets);
@@ -36,5 +37,7 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size);
 
 int isNotInCheck(Board* board, int turn);
 int squareIsAttacked(Board* board, int turn, int sq);
+
+uint64_t attackersToSquare(Board* board, int sq, int occupied);
 
 #endif

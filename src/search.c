@@ -764,6 +764,125 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     return best;
 }
 
+int staticExchangeEvaluationGE(Board* board, uint16_t move, int margin){
+    
+    int balance;
+    int turn = board->turn;
+    int from = MoveFrom(move);
+    int to = MoveTo(move);
+    int victim = PieceType(board->squares[to]);
+    int nextVictim = PieceType(board->squares[from]);
+    
+    uint64_t occupied, attackers, stmAttackers;
+    uint64_t pawns, knights, bishops, rooks, queens, kings;
+    
+    // For simplicity, we will only deal with SEE for normal moves.
+    // We assume that a promotion or an enpass are worth something.
+    if (MoveType(move) != NORMAL_MOVE)
+        return 0 >= margin;
+    
+    // Our opponent may be able to recapture the attacking piece.
+    // The best we can hope for is a completly free capture, worth
+    // the value of the captured piece. If this fails to beat the
+    // margin, nothing else will succeed in beating the margin.
+    balance = PieceValues[victim][MG] - margin;
+    if (balance < 0) return 0;
+    
+    // Now assume the worse possible case: Our opponent can capture
+    // our piece for free. If we are still in a winning position,
+    // (PxN, NxQ, ect), we can stop here knowning the capture is
+    // worth at least as much as the passed margin
+    balance -= PieceValues[nextVictim][MG];
+    if (balance >= 0) return 1;
+    
+    // We have 'captured' the original,
+    // piece and now it is our opponents turn
+    turn = !turn; 
+    
+    // Get the rest of the pieces which may be able to attack the
+    // square of focus. We remove the old location of the capturing
+    // piece, and ensure the to square of the capture is set
+    occupied  = board->colours[WHITE] | board->colours[BLACK];
+    occupied ^= (1ull << from);
+    occupied |= (1ull << to);
+    attackers = attackersToSquare(board, to, occupied);
+    
+    // We are going to have to go for the long haul, so let us
+    // save off each piece type for easy access
+    pawns   = board->pieces[PAWN  ]; 
+    knights = board->pieces[KNIGHT]; 
+    bishops = board->pieces[BISHOP]; 
+    rooks   = board->pieces[ROOK  ];
+    queens  = board->pieces[QUEEN ];
+    kings   = board->pieces[KING  ];
+    
+    while (1){
+        
+        stmAttackers = attackers & board->colours[turn];
+        
+        // We have run out of potential attackers
+        if (!stmAttackers) return turn != board->turn;
+        
+        // Check to see if we have a pawn which may attack
+        if (stmAttackers & pawns){
+            occupied ^= getlsb(stmAttackers & pawns);
+            attackers |= bishopAttacks(to, occupied, occupied & (bishops | queens));
+            nextVictim = PAWN;
+        }
+            
+        // Check to see if we have a knight which may attack
+        else if (stmAttackers & knights){
+            occupied ^= getlsb(stmAttackers & knights);
+            nextVictim = KNIGHT;
+        }
+            
+        // Check to see if we have a bishop which may attack
+        else if (stmAttackers & bishops){
+            occupied ^= getlsb(stmAttackers & bishops);
+            attackers |= bishopAttacks(to, occupied, occupied & (bishops | queens));
+            nextVictim = BISHOP;
+        }
+            
+        // Check to see if we have a rook which may attack
+        else if (stmAttackers & rooks){
+            occupied ^= getlsb(stmAttackers & rooks);
+            attackers |= rookAttacks(to, occupied, occupied & (rooks | queens));
+            nextVictim = ROOK;
+        }
+        
+        // Check to see if we have a queen which may attack
+        else if (stmAttackers & queens){
+            occupied ^= getlsb(stmAttackers & queens);
+            attackers |= bishopAttacks(to, occupied, occupied & (bishops | queens));
+            attackers |= rookAttacks(to, occupied, occupied & (rooks | queens));
+            nextVictim = QUEEN;
+        }
+            
+        // Check to see if we have a king which may attack
+        else if (stmAttackers & kings)
+            nextVictim = KING;
+        
+        // If we are attacking with the king this is our last
+        // chance. If they have any remaining attackers, we lose
+        // the exchange. If they do not, we have won.
+        if (nextVictim == KING){
+            if (!(attackers & board->colours[!turn]))
+                return turn == board->turn;
+            return turn != board->turn;
+        }
+        
+        // Assume we can win the next piece for free, and update the turn
+        balance += PieceValues[nextVictim][MG];
+        turn = !turn;
+        
+        // If balance is negative after capturing a free piece, give up
+        if (balance < 0) return turn != board->turn;
+        
+        // Swap the balance around to change perspectives
+        balance = -balance-1;
+    }
+}
+
 int moveIsTactical(Board* board, uint16_t move){
     return board->squares[MoveTo(move)] != EMPTY
         || MoveType(move) == PROMOTION_MOVE

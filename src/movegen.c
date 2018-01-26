@@ -31,6 +31,11 @@
 
 /* For Generating Attack BitBoards */
 
+uint64_t pawnAttacks(int sq, int colour, uint64_t targets){
+    return colour == WHITE ? targets & ((((1ull << sq) << 7) & ~FILE_H) | (((1ull << sq) << 9) & ~FILE_A))
+                           : targets & ((((1ull << sq) >> 7) & ~FILE_A) | (((1ull >> sq) << 9) & ~FILE_H));
+}
+
 uint64_t knightAttacks(int sq, uint64_t targets){
     return KnightMap[sq] & targets;
 }
@@ -460,4 +465,24 @@ int squareIsAttacked(Board* board, int turn, int sq){
     if (kingAttacks(sq, enemyKings)) return 1;
     
     return 0;
+}
+
+uint64_t attackersToSquare(Board* board, int sq, int occupied){
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t pawns   = board->pieces[PAWN  ];
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+    uint64_t kings   = board->pieces[KING  ];
+    
+    return    pawnAttacks(sq, WHITE, occupied & pawns & black)
+          |   pawnAttacks(sq, BLACK, occupied & pawns & white)
+          | knightAttacks(sq, occupied & knights)
+          | bishopAttacks(sq, occupied, occupied & (bishops | queens))
+          |   rookAttacks(sq, occupied, occupied & (rooks   | queens))
+          |   kingAttacks(sq, occupied & kings);
 }
