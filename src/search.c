@@ -716,16 +716,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // If the best case is not good enough, continue
         if (value < alpha)
             continue;
-        
-        // Prune this capture if it is capturing a weaker piece which is protected,
-        // so long as we do not have any additional support for the attacker. If
-        // the capture is also a promotion we will not perform any pruning here
-        if (     MoveType(currentMove) != PROMOTION_MOVE
-            &&  !ei.positionIsDrawn
-            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+            
+        // If the move appears to be a losing capture, skip it
+        if (!staticExchangeEvaluationGE(board, currentMove, 0))
             continue;
         
         // Apply and validate move before searching
@@ -818,41 +811,41 @@ int staticExchangeEvaluationGE(Board* board, uint16_t move, int margin){
     
     while (1){
         
-        stmAttackers = attackers & board->colours[turn];
+        stmAttackers = occupied & attackers & board->colours[turn];
         
         // We have run out of potential attackers
         if (!stmAttackers) return turn != board->turn;
         
         // Check to see if we have a pawn which may attack
         if (stmAttackers & pawns){
-            occupied ^= getlsb(stmAttackers & pawns);
+            occupied ^= (1ull << getlsb(stmAttackers & pawns));
             attackers |= bishopAttacks(to, occupied, occupied & (bishops | queens));
             nextVictim = PAWN;
         }
             
         // Check to see if we have a knight which may attack
         else if (stmAttackers & knights){
-            occupied ^= getlsb(stmAttackers & knights);
+            occupied ^= (1ull << getlsb(stmAttackers & knights));
             nextVictim = KNIGHT;
         }
             
         // Check to see if we have a bishop which may attack
         else if (stmAttackers & bishops){
-            occupied ^= getlsb(stmAttackers & bishops);
+            occupied ^= (1ull << getlsb(stmAttackers & bishops));
             attackers |= bishopAttacks(to, occupied, occupied & (bishops | queens));
             nextVictim = BISHOP;
         }
             
         // Check to see if we have a rook which may attack
         else if (stmAttackers & rooks){
-            occupied ^= getlsb(stmAttackers & rooks);
+            occupied ^= (1ull << getlsb(stmAttackers & rooks));
             attackers |= rookAttacks(to, occupied, occupied & (rooks | queens));
             nextVictim = ROOK;
         }
         
         // Check to see if we have a queen which may attack
         else if (stmAttackers & queens){
-            occupied ^= getlsb(stmAttackers & queens);
+            occupied ^= (1ull << getlsb(stmAttackers & queens));
             attackers |= bishopAttacks(to, occupied, occupied & (bishops | queens));
             attackers |= rookAttacks(to, occupied, occupied & (rooks | queens));
             nextVictim = QUEEN;
