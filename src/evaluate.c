@@ -400,8 +400,8 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
             defended =   (ei->pawnAttacks[colour] & (1ull << sq))
-                      && !(enemyKnights )
-                      && !(enemyBishops & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES));
+                      && (    enemyKnights 
+                          || (enemyBishops & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES)));
             
             ei->midgame[colour] += KnightOutpost[defended][MG];
             ei->endgame[colour] += KnightOutpost[defended][EG];
@@ -478,8 +478,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
             defended =   (ei->pawnAttacks[colour] & (1ull << sq))
-                      && !(enemyKnights )
-                      && !(enemyBishops & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES));
+                      && (    enemyKnights 
+                          || (enemyBishops & ((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES)));
             
             ei->midgame[colour] += BishopOutpost[defended][MG];
             ei->endgame[colour] += BishopOutpost[defended][EG];
