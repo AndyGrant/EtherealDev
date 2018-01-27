@@ -23,7 +23,7 @@
 
 enum {
     STAGE_TABLE, STAGE_GENERATE_NOISY, STAGE_NOISY, STAGE_KILLER_1, 
-    STAGE_KILLER_2, STAGE_COUNTER_MOVE, STAGE_GENERATE_QUIET, STAGE_QUIET, STAGE_DONE
+    STAGE_KILLER_2, STAGE_GENERATE_QUIET, STAGE_QUIET, STAGE_DONE
 };
 
 typedef struct MovePicker {
@@ -39,7 +39,7 @@ typedef struct MovePicker {
     
 } MovePicker;
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, uint16_t cMove, int height, int skipQuiets);
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets);
 uint16_t selectNextMove(MovePicker* mp, Board* board);
 void evaluateNoisyMoves(MovePicker* mp, Board* board);
 void evaluateQuietMoves(MovePicker* mp, Board* board);

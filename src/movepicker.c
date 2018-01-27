@@ -32,13 +32,12 @@
 #include "types.h"
 #include "thread.h"
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, uint16_t cMove, int height, int skipQuiets){
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets){
     mp->skipQuiets  = skipQuiets;
     mp->stage       = STAGE_TABLE;
     mp->noisySize   = 0;
     mp->quietSize   = 0;
     mp->tableMove   = ttMove;
-    mp->counterMove = cMove;
     mp->killer1     = thread->killers[height][0];
     mp->killer2     = thread->killers[height][1];
     mp->history     = &thread->history;
@@ -98,7 +97,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 // Don't play the killer moves or counter move twice
                 if (bestMove == mp->killer1)     mp->killer1 = NONE_MOVE;
                 if (bestMove == mp->killer2)     mp->killer2 = NONE_MOVE;
-                if (bestMove == mp->counterMove) mp->counterMove = NONE_MOVE;
                 
                 return bestMove;
             }
@@ -128,23 +126,10 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = STAGE_COUNTER_MOVE;
+            mp->stage = STAGE_GENERATE_QUIET;
             if (    mp->killer2 != mp->tableMove
                 &&  moveIsPsuedoLegal(board, mp->killer2))
                 return mp->killer2;
-            
-            /* fallthrough */
-            
-        case STAGE_COUNTER_MOVE:
-        
-            // Play the counter move if it is from this
-            // position, also advance to the next stage
-            mp->stage = STAGE_GENERATE_QUIET;
-            if (   mp->counterMove != mp->tableMove
-                && mp->counterMove != mp->killer1
-                && mp->counterMove != mp->killer2
-                && moveIsPsuedoLegal(board, mp->counterMove))
-                return mp->counterMove;
             
             /* fallthrough */
         
@@ -178,7 +163,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 
                 // Don't play a move more than once
                 if (   bestMove == mp->tableMove
-                    || bestMove == mp->counterMove
                     || bestMove == mp->killer1
                     || bestMove == mp->killer2)
                     return selectNextMove(mp, board);

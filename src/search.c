@@ -446,7 +446,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
@@ -499,7 +499,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     lastMove = board->moves[board->numMoves-1];
     counterMove = thread->ctable[!board->turn][MoveFrom(lastMove)][MoveTo(lastMove)];
-    initializeMovePicker(&movePicker, thread, ttMove, counterMove, height, 0);
+    initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
@@ -581,6 +581,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
+            R -= currentMove == counterMove;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
@@ -708,7 +709,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return value;
     
     
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
