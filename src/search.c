@@ -572,8 +572,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
             &&  depth >= 3
-            && (currentMove != thread->killers[height][0] || thread->kdtable[height][0] < depth)
-            && (currentMove != thread->killers[height][1] || thread->kdtable[height][1] < depth)
             &&  isQuiet){
             
             R  = 2;
@@ -581,6 +579,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
+            R -= currentMove == thread->killers[height][0] && thread->kdtable[height][0] < depth;
+            R -= currentMove == thread->killers[height][1] && thread->kdtable[height][1] < depth;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
