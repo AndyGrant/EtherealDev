@@ -96,6 +96,8 @@ const int BishopMobility[14][PHASE_NB] = {
     {  30,  19}, {  16,  -1},
 };
 
+const int BishopPinner[5][PHASE_NB] = { {   3,   8}, {  30,  12}, {  14,   3}, {  11,  19}, {  -3,   0} };
+
 const int RookValue[PHASE_NB] = { 417, 462};
 
 const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
@@ -108,6 +110,8 @@ const int RookMobility[15][PHASE_NB] = {
     {   1,  26}, {   7,  27}, {  10,  32}, {  14,  37},
     {  14,  39}, {  13,  38}, {  11,  33},
 };
+
+const int RookPinner[5][PHASE_NB] = { {  -9,  -6}, {  10,  16}, {  10,   9}, {   0,  -1}, {  22,  22} };
 
 const int QueenValue[PHASE_NB] = { 783, 839};
 
@@ -124,6 +128,8 @@ const int QueenMobility[28][PHASE_NB] = {
     {   5,  27}, {  14,  28}, {  20,  32}, {  27,  32},
     {  31,  33}, {  29,  22}, {  35,  43}, {  13,  30},
 };
+
+const int QueenPinner[5][PHASE_NB] = { {  -7,  -4}, {  -2,  -2}, {   5,   8}, {   0,  16}, {   5,   0} };
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
@@ -488,6 +494,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (   (pinned & board->colours[!colour])
             &&  popcount(pinned) == 1){
             int pinType = PieceType(board->squares[getlsb(pinned)]);
+            ei->midgame[colour] += BishopPinner[pinType][MG];
+            ei->endgame[colour] += BishopPinner[pinType][EG];
             if (TRACE) T.bishopPinner[colour][pinType]++;
         }
         
@@ -554,6 +562,8 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         if (   (pinned & board->colours[!colour])
             &&  popcount(pinned) == 1){
             int pinType = PieceType(board->squares[getlsb(pinned)]);
+            ei->midgame[colour] += RookPinner[pinType][MG];
+            ei->endgame[colour] += RookPinner[pinType][EG];            
             if (TRACE) T.rookPinner[colour][pinType]++;
         }
         
@@ -614,6 +624,8 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         if (   (pinned & board->colours[!colour])
             &&  popcount(pinned) == 1){
             int pinType = PieceType(board->squares[getlsb(pinned)]);
+            ei->midgame[colour] += QueenPinner[pinType][MG];            
+            ei->endgame[colour] += QueenPinner[pinType][EG];            
             if (TRACE) T.queenPinner[colour][pinType]++;
         }
         
