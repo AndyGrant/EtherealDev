@@ -267,7 +267,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, ttTactical = 0; 
+    int quiets = 0, played = 0, ttTactical = 0, bestTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
@@ -578,7 +578,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
-            R += ttTactical && bestMove == ttMove;
+            R += bestTactical;
             R -= hist / 24;
             R  = MIN(depth - 1, MAX(R, 1));
         }
@@ -604,8 +604,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Improved current value
         if (value > best){
+            
             best = value;
             bestMove = currentMove;
+            bestTactical = !isQuiet;
             
             // IMPROVED CURRENT LOWER VALUE
             if (value > alpha){
