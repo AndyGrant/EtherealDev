@@ -174,7 +174,7 @@ void* iterativeDeepening(void* vthread){
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
             || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage)){
+            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealalloc)){
             
             // Terminate all helper threads
             for (i = 0; i < thread->nthreads; i++)
