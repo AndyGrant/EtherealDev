@@ -52,9 +52,11 @@ void resetThreadPool(Thread* threads){
     // needed between 'ucinewgame's in order to get deterministic results
     // between games. Between individual searches the tables aid us
     for (i = 0; i < threads[0].nthreads; i++){
-        memset(&threads[i].ptable,  0, sizeof(PawnTable   ));
-        memset(&threads[i].killers, 0, sizeof(KillerTable ));
-        memset(&threads[i].history, 0, sizeof(HistoryTable));
+        memset(&threads[i].ptable,  0, sizeof(PawnTable       ));
+        memset(&threads[i].killers, 0, sizeof(KillerTable     ));
+        memset(&threads[i].kdtable, 0, sizeof(KillerDepthTable));
+        memset(&threads[i].history, 0, sizeof(HistoryTable    ));
+        
     }
 }
 

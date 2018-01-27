@@ -572,6 +572,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
             &&  depth >= 3
+            && (currentMove != thread->killers[height][0] || thread->kdtable[height][0] < depth)
+            && (currentMove != thread->killers[height][1] || thread->kdtable[height][1] < depth)
             &&  isQuiet){
             
             R  = 2;
@@ -624,7 +626,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Update killer moves
             if (isQuiet && thread->killers[height][0] != currentMove){
                 thread->killers[height][1] = thread->killers[height][0];
+                thread->kdtable[height][1] = thread->kdtable[height][0];
                 thread->killers[height][0] = currentMove;
+                thread->killers[height][0] = depth;
             }
             
             break;

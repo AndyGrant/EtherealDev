@@ -43,6 +43,7 @@ typedef struct Thread {
     
     PawnTable ptable;
     KillerTable killers;
+    KillerDepthTable kdtable;
     HistoryTable history;
     
 } Thread;

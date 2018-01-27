@@ -84,6 +84,8 @@ typedef struct Thread Thread;
 
 typedef uint16_t KillerTable[MAX_DEPTH][2];
 
+typedef int KillerDepthTable[MAX_DEPTH][2];
+
 typedef uint32_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB][2]; 
 
 #endif
