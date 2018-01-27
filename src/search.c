@@ -64,9 +64,9 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         
         mtg = mtg >= 0 ? mtg + 1: 25;
         
-        info.idealalloc = 0.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 3);
-        info.maxalloc   = 2.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
-        info.maxusage   = 5.00 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
+        info.idealalloc = 0.40 * (time + (mtg - 2) * inc) / MAX(5, mtg + 3);
+        info.maxalloc   = 2.00 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
+        info.maxusage   = 4.25 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
         
         info.idealalloc = MIN(info.idealalloc, time - 50);
         info.maxalloc   = MIN(info.maxalloc,   time - 50);
