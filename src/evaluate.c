@@ -85,7 +85,7 @@ const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
 
 const int BishopWings[PHASE_NB] = {  -8,   0};
 
-const int BishopPair[PHASE_NB] = {  28,  39};
+const int BishopPair[PHASE_NB] = {  42,  53};
 
 const int BishopOutpost[2][PHASE_NB] = { {  12, -10}, {  28,  -7} };
 
