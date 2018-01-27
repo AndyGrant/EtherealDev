@@ -87,6 +87,7 @@ char Benchmarks[NUM_BENCHMARKS][256] = {
 
 void initializeBoard(Board* board, char* fen){
     
+    Undo undo;
     int i, j, sq;
     char rank, file;
     uint64_t enemyPawns;
@@ -222,6 +223,10 @@ void initializeBoard(Board* board, char* fen){
     
     // Number of moves since this (root) position
     board->numMoves = 0;
+    
+    // Apply two dummy null moves. This way we can always index the move or hash
+    // history by a small negative number without having undefined results
+    applyNullMove(board, &undo); applyNullMove(board, &undo);
 }
 
 void printBoard(Board* board){

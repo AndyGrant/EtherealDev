@@ -44,6 +44,7 @@ typedef struct Thread {
     PawnTable ptable;
     KillerTable killers;
     HistoryTable history;
+    CounterMoveTable ctable;
     
 } Thread;
 

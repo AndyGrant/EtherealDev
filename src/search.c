@@ -318,7 +318,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 4. Check for three fold repetition. If the repetition occurs since
         // the root move of this search, we will exit early as if it was a draw.
         // Otherwise, we will look for an actual three fold repetition draw.
-        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+        for (repetitions = 0, i = board->numMoves - 3; i >= 0; i -= 2){
             
             // We can't have repeated positions before the most recent
             // move which triggered a reset of the fifty move rule counter

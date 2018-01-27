@@ -34,6 +34,7 @@ typedef struct Board {
     int midgame;
     int endgame;
     int numMoves;
+    uint16_t moves[512];
     uint64_t history[512];
 } Board;
 

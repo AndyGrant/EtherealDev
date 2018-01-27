@@ -49,9 +49,6 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     undo->midgame = board->midgame;
     undo->endgame = board->endgame;
     
-    // Update the hash history and the move count
-    board->history[board->numMoves++] = board->hash;
-    
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
     
@@ -61,6 +58,9 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     
     // Call the proper move application function
     table[MoveType(move) >> 12](board, move, undo);
+    
+    // Update the hash history and the move count
+    board->history[board->numMoves++] = board->hash;
 }
 
 void applyNormalMove(Board* board, uint16_t move, Undo* undo){
@@ -357,9 +357,8 @@ void applyNullMove(Board* board, Undo* undo){
     undo->turn = board->turn;
     undo->epSquare = board->epSquare;
     
-    // Swap the turn and update the history
+    // Swap the turn
     board->turn = !board->turn;
-    board->history[board->numMoves++] = NULL_MOVE;
     
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
@@ -369,6 +368,9 @@ void applyNullMove(Board* board, Undo* undo){
         board->hash ^= ZorbistKeys[ENPASS][File(board->epSquare)];
         board->epSquare = -1;
     }
+    
+    // Update the hash history and the move count
+    board->history[board->numMoves++] = NULL_MOVE;
 }
 
 void revertMove(Board* board, uint16_t move, Undo* undo){
