@@ -109,18 +109,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             if (mp->skipQuiets)
                 return mp->stage = STAGE_DONE, NONE_MOVE;
             else
-                mp->stage = STAGE_COUNTER_MOVE;
-            
-            /* fallthrough */
-            
-        case STAGE_COUNTER_MOVE:
-        
-            // Play the counter move if it is from this
-            // position, also advance to the next stage
-            mp->stage = STAGE_KILLER_1;
-            if (   mp->counterMove != mp->tableMove
-                && moveIsPsuedoLegal(board, mp->counterMove))
-                return mp->counterMove;
+                mp->stage = STAGE_KILLER_1;
             
             /* fallthrough */
             
@@ -130,7 +119,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             // position, and also advance to the next stage
             mp->stage = STAGE_KILLER_2;
             if (    mp->killer1 != mp->tableMove
-                &&  mp->killer1 != mp->counterMove
                 &&  moveIsPsuedoLegal(board, mp->killer1))
                 return mp->killer1;
             
@@ -140,11 +128,23 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = STAGE_GENERATE_QUIET;
+            mp->stage = STAGE_COUNTER_MOVE;
             if (    mp->killer2 != mp->tableMove
-                &&  mp->killer2 != mp->counterMove
                 &&  moveIsPsuedoLegal(board, mp->killer2))
                 return mp->killer2;
+            
+            /* fallthrough */
+            
+        case STAGE_COUNTER_MOVE:
+        
+            // Play the counter move if it is from this
+            // position, also advance to the next stage
+            mp->stage = STAGE_GENERATE_QUIET;
+            if (   mp->counterMove != mp->tableMove
+                && mp->counterMove != mp->killer1
+                && mp->counterMove != mp->killer2
+                && moveIsPsuedoLegal(board, mp->counterMove))
+                return mp->counterMove;
             
             /* fallthrough */
         
