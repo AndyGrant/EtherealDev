@@ -293,6 +293,9 @@ void initializeCoefficients(TexelEntry* te){
     for (a = 0; a < 14; a++)
         te->coeffs[i++] = T.bishopMobility[WHITE][a] - T.bishopMobility[BLACK][a];
     
+    for (a = 0; a < 5; a++)
+        te->coeffs[i++] = T.bishopPinner[WHITE][a] - T.bishopPinner[BLACK][a];
+    
     
     // Initialize coefficients for the rooks
     
@@ -311,6 +314,9 @@ void initializeCoefficients(TexelEntry* te){
     for (a = 0; a < 15; a++)
         te->coeffs[i++] = T.rookMobility[WHITE][a] - T.rookMobility[BLACK][a];
     
+    for (a = 0; a < 5; a++)
+        te->coeffs[i++] = T.rookPinner[WHITE][a] - T.rookPinner[BLACK][a];
+    
     
     // Initialize coefficients for the queens
     
@@ -327,6 +333,9 @@ void initializeCoefficients(TexelEntry* te){
     
     for (a = 0; a < 28; a++)
         te->coeffs[i++] = T.queenMobility[WHITE][a] - T.queenMobility[BLACK][a];
+    
+    for (a = 0; a < 5; a++)
+        te->coeffs[i++] = T.queenPinner[WHITE][a] - T.queenPinner[BLACK][a];
     
     
     // Intitialize coefficients for the kings
@@ -436,6 +445,8 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         cparams[i][EG] = BishopMobility[a][EG];
     }
     
+    i += 5;
+    
     
     // Initialize parameters for the rooks
     
@@ -460,6 +471,8 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         cparams[i][EG] = RookMobility[a][EG];
     }
     
+    i += 5;
+    
     
     // Initialize parameters for the queens
     
@@ -482,6 +495,7 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         cparams[i][EG] = QueenMobility[a][EG];
     }
     
+    i += 5;
     
     // Initialize parameters for the kings
     
@@ -633,6 +647,12 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
+    printf("\nconst int BishopPinner[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG],
+            (int)tparams[i+2][MG], (int)tparams[i+2][EG],
+            (int)tparams[i+3][MG], (int)tparams[i+3][EG],
+            (int)tparams[i+4][MG], (int)tparams[i+4][EG]); i += 5;
     
     // Print Rook Parameters
     
@@ -658,6 +678,12 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
+    printf("\nconst int RookPinner[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG],
+            (int)tparams[i+2][MG], (int)tparams[i+2][EG],
+            (int)tparams[i+3][MG], (int)tparams[i+3][EG],
+            (int)tparams[i+4][MG], (int)tparams[i+4][EG]); i += 5;
     
     // Print Queen Parameters
     
@@ -681,6 +707,12 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
+    printf("\nconst int QueenPinner[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d}, {%4d,%4d} };\n",
+            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+            (int)tparams[i+1][MG], (int)tparams[i+1][EG],
+            (int)tparams[i+2][MG], (int)tparams[i+2][EG],
+            (int)tparams[i+3][MG], (int)tparams[i+3][EG],
+            (int)tparams[i+4][MG], (int)tparams[i+4][EG]); i += 5;
     
     // Print King Parameters
     

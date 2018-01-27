@@ -484,6 +484,13 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += BishopMobility[mobilityCount][EG];
         if (TRACE) T.bishopMobility[colour][mobilityCount]++;
         
+        uint64_t pinned = BitsInALineMasks[sq][ei->kingSquares[!colour]];
+        if (   (pinned & board->colours[!colour])
+            &&  popcount(pinned) == 1){
+            int pinType = PieceType(board->squares[getlsb(pinned)]);
+            if (TRACE) T.bishopPinner[colour][pinType]++;
+        }
+        
         // Update the attack and attacker counts for the
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
@@ -543,6 +550,13 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += RookMobility[mobilityCount][EG];
         if (TRACE) T.rookMobility[colour][mobilityCount]++;
         
+        uint64_t pinned = BitsInALineMasks[sq][ei->kingSquares[!colour]];
+        if (   (pinned & board->colours[!colour])
+            &&  popcount(pinned) == 1){
+            int pinType = PieceType(board->squares[getlsb(pinned)]);
+            if (TRACE) T.rookPinner[colour][pinType]++;
+        }
+        
         // Update the attack and attacker counts for the
         // rook for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
@@ -595,6 +609,13 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += QueenMobility[mobilityCount][MG];
         ei->endgame[colour] += QueenMobility[mobilityCount][EG];
         if (TRACE) T.queenMobility[colour][mobilityCount]++;
+        
+        uint64_t pinned = BitsInALineMasks[sq][ei->kingSquares[!colour]];
+        if (   (pinned & board->colours[!colour])
+            &&  popcount(pinned) == 1){
+            int pinType = PieceType(board->squares[getlsb(pinned)]);
+            if (TRACE) T.queenPinner[colour][pinType]++;
+        }
         
         // Update the attack and attacker counts for the
         // queen for use in the king safety calculation.
@@ -714,8 +735,9 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     uint64_t whitePawns = white & pawns;
     uint64_t blackPawns = black & pawns;
     
-    int wKingSq = getlsb((white & kings));
-    int bKingSq = getlsb((black & kings));
+    int wKingSq, bKingSq;
+    ei->kingSquares[WHITE] = wKingSq = getlsb((white & kings));
+    ei->kingSquares[BLACK] = bKingSq = getlsb((black & kings));
     
     ei->pawnAttacks[WHITE] = ((whitePawns << 9) & ~FILE_A) | ((whitePawns << 7) & ~FILE_H);
     ei->pawnAttacks[BLACK] = ((blackPawns >> 9) & ~FILE_H) | ((blackPawns >> 7) & ~FILE_A);

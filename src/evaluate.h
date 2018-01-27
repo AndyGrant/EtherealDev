@@ -43,18 +43,21 @@ typedef struct EvalTrace {
     int bishopPair[COLOUR_NB];
     int bishopOutpost[COLOUR_NB][2];
     int bishopMobility[COLOUR_NB][14];
+    int bishopPinner[COLOUR_NB][KING];
     
     int rookCounts[COLOUR_NB];
     int rookPSQT[COLOUR_NB][SQUARE_NB];
     int rookFile[COLOUR_NB][2];
     int rookOnSeventh[COLOUR_NB];
     int rookMobility[COLOUR_NB][15];
+    int rookPinner[COLOUR_NB][KING];
     
     int queenCounts[COLOUR_NB];
     int queenChecked[COLOUR_NB];
     int queenCheckedByPawn[COLOUR_NB];
     int queenPSQT[COLOUR_NB][SQUARE_NB];
     int queenMobility[COLOUR_NB][28];
+    int queenPinner[COLOUR_NB][KING];
     
     int kingPSQT[COLOUR_NB][SQUARE_NB];
     int kingDefenders[COLOUR_NB][12];
@@ -76,6 +79,7 @@ typedef struct EvalInfo {
     uint64_t occupiedMinusBishops[COLOUR_NB];
     uint64_t occupiedMinusRooks[COLOUR_NB];
     uint64_t passedPawns;
+    int kingSquares[COLOUR_NB];
     int attackCounts[COLOUR_NB];
     int attackerCounts[COLOUR_NB];
     int midgame[COLOUR_NB];
