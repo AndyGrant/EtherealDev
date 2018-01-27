@@ -271,7 +271,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
-    uint16_t currentMove, quietsTried[MAX_MOVES];
+    uint16_t lastMove, counterMove, currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     
     Undo undo[1];
@@ -324,7 +324,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // move which triggered a reset of the fifty move rule counter
             if (i < board->numMoves - board->fiftyMoveRule) break;
             
-            if (board->history[i] == board->hash){
+            if (board->hashes[i] == board->hash){
                 
                 // Repetition occured after the root
                 if (i > board->numMoves - height)
@@ -423,7 +423,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  board->moves[board->numMoves-1] != NULL_MOVE){
             
         R = 4 + depth / 6 + (eval - beta + 200) / 400; 
             
@@ -446,7 +446,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+        initializeMovePicker(&movePicker, thread, NONE_MOVE, NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
@@ -497,7 +497,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
     
-    initializeMovePicker(&movePicker, thread, ttMove, height, 0);
+    lastMove = board->moves[board->numMoves-1];
+    counterMove = thread->ctable[!board->turn][MoveFrom(lastMove)][MoveTo(lastMove)];
+    initializeMovePicker(&movePicker, thread, ttMove, counterMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
@@ -627,6 +629,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 thread->killers[height][0] = currentMove;
             }
             
+            // Update Counter Move Table
+            if (isQuiet)
+                thread->ctable[!board->turn][MoveFrom(lastMove)][MoveTo(lastMove)] = currentMove;
+            
             break;
         }
     }
@@ -702,7 +708,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return value;
     
     
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, NONE_MOVE, height, 1);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         

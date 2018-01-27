@@ -59,8 +59,9 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     // Call the proper move application function
     table[MoveType(move) >> 12](board, move, undo);
     
-    // Update the hash history and the move count
-    board->history[board->numMoves++] = board->hash;
+    // Update the move history, hash history and move count
+    board->moves[board->numMoves] = move;
+    board->hashes[board->numMoves++] = board->hash;
 }
 
 void applyNormalMove(Board* board, uint16_t move, Undo* undo){
@@ -369,8 +370,9 @@ void applyNullMove(Board* board, Undo* undo){
         board->epSquare = -1;
     }
     
-    // Update the hash history and the move count
-    board->history[board->numMoves++] = NULL_MOVE;
+    // Update the move history, hash history and move count
+    board->moves[board->numMoves] = NULL_MOVE;
+    board->hashes[board->numMoves++] = board->hash;
 }
 
 void revertMove(Board* board, uint16_t move, Undo* undo){
