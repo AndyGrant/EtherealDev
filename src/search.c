@@ -64,17 +64,19 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         
         mtg = mtg >= 0 ? mtg + 1: 25;
         
-        info.idealusage = 0.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 3);
-        info.maxusage   = 4.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
+        info.idealalloc = 0.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 3);
+        info.maxalloc   = 4.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
+        info.maxusage   = 9.99 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
         
-        info.idealusage = MIN(info.idealusage, time - 50);
+        info.idealalloc = MIN(info.idealalloc, time - 50);
+        info.maxalloc   = MIN(info.maxalloc,   time - 50);
         info.maxusage   = MIN(info.maxusage,   time - 50);
     }
     
     // UCI command told us to look for exactly X seconds
     if (limits->limitedByTime){
-        info.idealusage = limits->timeLimit;
-        info.maxusage   = limits->timeLimit;
+        info.idealalloc = limits->timeLimit;
+        info.maxalloc   = limits->timeLimit;
     }
     
     // Setup the thread pool for a new search with these parameters
@@ -162,17 +164,16 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (depth >= 4 && info->values[depth - 1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.10);
+                info->idealalloc = MIN(info->maxalloc, info->idealalloc * 1.10);
             
             // Increase our time if the pv has changed across the last two iterations
             if (depth >= 4 && info->bestmoves[depth - 1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
+                info->idealalloc = MIN(info->maxalloc, info->idealalloc * 1.35);
         }
         
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
             || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->maxusage)
             || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage)){
             
             // Terminate all helper threads
@@ -187,7 +188,7 @@ void* iterativeDeepening(void* vthread){
             double estimatedUsage = info->timeUsage[depth] * (timeFactor + .25);
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
-            if (estiamtedEndtime > info->maxusage){
+            if (estiamtedEndtime > info->maxalloc){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)

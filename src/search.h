@@ -31,7 +31,8 @@ typedef struct SearchInfo {
     int timeUsage[MAX_DEPTH];
     
     double starttime;
-    double idealusage;
+    double idealalloc;
+    double maxalloc;
     double maxusage;
     
 } SearchInfo;
