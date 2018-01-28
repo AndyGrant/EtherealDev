@@ -515,9 +515,7 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
-            hist = getHistoryScore(thread->history, currentMove, board->turn)
-                 + getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove);
-            hist /= 2;
+            hist = getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove);
         }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
@@ -597,8 +595,8 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
             
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
-            // expect an adjustment on the bounds of [+1, -6], with 6 being very rare
-            R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
+            // expect an adjustment on the bounds of [+1, -10], with 6 being very rare
+            R -= MAX(-3, hist / 4096);
             
             // Do not allow the reduction to take us directly into a quiescence search
             // and also ensure that R is at least one, therefore avoiding extensions
