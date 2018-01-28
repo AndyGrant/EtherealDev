@@ -108,6 +108,10 @@ void* iterativeDeepening(void* vthread){
     
     int i, count, value, depth, abort;
     
+    SearchStack fullSearchStack[MAX_HEIGHT + 4];
+    for (i = 0; i < 4; i++)
+        memset(&fullSearchStack[i], 0, sizeof(SearchStack));
+    SearchStack* ss = fullSearchStack + 4;
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
@@ -141,7 +145,7 @@ void* iterativeDeepening(void* vthread){
         
             
         // Perform the actual search for the current depth
-        value = aspirationWindow(thread, depth);
+        value = aspirationWindow(thread, ss, depth);
         
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
@@ -200,7 +204,7 @@ void* iterativeDeepening(void* vthread){
     return NULL;
 }
 
-int aspirationWindow(Thread* thread, int depth){
+int aspirationWindow(Thread* thread, SearchStack* ss, int depth){
     
     int alpha, beta, value, upper, lower;
     
@@ -230,7 +234,7 @@ int aspirationWindow(Thread* thread, int depth){
         for (; lower <= 640 && upper <= 640; lower *= 2, upper *= 2){
             
             // Perform the search on the modified window
-            value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            value = search(thread, ss, &thread->pv, alpha, beta, depth, 0);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -255,10 +259,10 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search when near mate or when depth is below or equal to 4
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    return search(thread, ss, &thread->pv, -MATE, MATE, depth, 0);
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta, int depth, int height){
     
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -282,6 +286,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     lpv.length = 0;
     pv->length = 0;
+    ss->history = 0;
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
@@ -380,14 +385,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 7. Some initialization. Determine the check status if we have
     // not already done so (happens when depth was <= 0, and we are in check,
-    // thus avoiding the quiescence search). Also, in non PvNodes, we will
-    // perform pruning based on the board eval, so we will need that, as well
-    // as a futilityMargin calculated based on the eval and current depth
+    // thus avoiding the quiescence search). Also, we will perform pruning
+    // based on the board eval, so we will need that, as well as a futilityMargin
+    // calculated based on the eval and current depth
     inCheck = inCheck || !isNotInCheck(board, board->turn);
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + 70 * depth;
-    }
+    ss->eval = eval = evaluateBoard(board, &ei, &thread->ptable);
+    futilityMargin = eval + 70 * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -430,7 +433,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        ss->currentMove = NULL_MOVE;
+        
+        value = -search(thread, ss+1, &lpv, -beta, -beta + 1, depth - R, height + 1);
         
         revertNullMove(board, undo);
         
@@ -445,15 +450,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= 5){
             
-        int rbeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
+        rBeta = MIN(beta + 150, MATE - MAX_HEIGHT - 1);
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Skip this capture if the raw value gained from a capture will
-            // not exceed rbeta, making it unlikely to cause the desired cutoff
-            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rbeta)
+            // not exceed rBeta, making it unlikely to cause the desired cutoff
+            if (eval + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][MG] <= rBeta)
                 continue;
             
             // Apply and validate move before searching
@@ -463,11 +468,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
+            // Update SearchStack with the move we are searching
+            ss->currentMove = currentMove;
+            
             // Verify the move is good with a depth zero search (qsearch, unless in check)
-            // and then with a slightly reduced search. If both searches still exceed rbeta,
+            // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rbeta, -rbeta+1,       0, height+1) >= rbeta
-                && -search(thread, &lpv, -rbeta, -rbeta+1, depth-4, height+1) >= rbeta){
+            if (   -search(thread, ss+1, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
+                && -search(thread, ss+1, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
                     
                 revertMove(board, currentMove, undo);
                 return beta;
@@ -485,7 +493,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, ss, &lpv, alpha, beta, depth-2, height);
         
         // Probe for the newly found move, and update ttMove / ttTactical
         if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
@@ -506,7 +514,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
-            hist = getHistoryScore(thread->history, currentMove, board->turn);
+            ss->history = hist = getHistoryScore(thread->history, currentMove, board->turn);
         }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
@@ -565,8 +573,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
         
-        // Update counter of moves actually played
-        played += 1;
+        // Update the current move and the number played
+        played += 1; ss->currentMove = currentMove;
     
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
@@ -589,6 +597,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // expect an adjustment on the bounds of [+1, -6], with 6 being very rare
             R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
             
+            // Decrease R by an additional ply if this move has a good history score,
+            // and our opponents last move has a poor one, meaning we should likely
+            // be able to improve our position with the played two move sequence
+            R -= ss->history >= 2048 && (ss-1)->history <= -2048;
+            
             // Do not allow the reduction to take us directly into a quiescence search
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
@@ -599,13 +612,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
         // and a null window unless this is the first move within a PvNode
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv,    -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, ss+1, &lpv,    -beta, -alpha, depth-R, height+1)
+               : -search(thread, ss+1, &lpv, -alpha-1, -alpha, depth-R, height+1);
                
         // Step 18B. Research the move if it improved alpha, and was either a reduced
         // search or a search on a null window. Otherwise, keep the current value
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, ss+1, &lpv, -beta, -alpha, depth-1, height+1)
                :  value;
         
         // Revert the board state
