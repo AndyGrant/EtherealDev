@@ -17,6 +17,7 @@
 */
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "board.h"
 #include "history.h"
@@ -32,8 +33,8 @@ void updateHistory(HistoryTable history, uint16_t move, int colour, int delta){
     // Ensure the update value is within [-400, 400]
     delta = MAX(-400, MIN(400, delta));
     
-    // Ensure the new value is within [-400 * 128, 400 * 128]
-    entry += delta - entry / 128;
+    // Ensure the new value is within [-16384, 16384]
+    entry += 32 * delta - entry * abs(delta) / 512;
     
     // Save back the adjusted history score
     history[colour][from][to] = entry;
