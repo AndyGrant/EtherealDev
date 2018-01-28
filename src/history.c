@@ -64,7 +64,7 @@ void updateCounterMoveHistory(CounterMoveHistory counter, Board* board, uint16_t
     delta = MAX(-400, MIN(400, delta));
     
     // Ensure the new value is within [-16384, 16384]
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 8 * delta - entry * abs(delta) / 2048;
     
     // Save back the adjusted history score
     counter[board->turn][lastPiece][lastTo][thisPiece][thisTo] = entry;

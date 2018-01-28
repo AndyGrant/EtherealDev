@@ -273,7 +273,7 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
+    int hist = 0, chist = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -516,6 +516,7 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
             hist = getHistoryScore(thread->history, currentMove, board->turn);
+            chist = getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove);
         }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
@@ -532,8 +533,7 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
             && !inCheck
             &&  isQuiet
             &&  played >= 1
-            &&  depth <= 4
-            &&  getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove) < -1024)
+            &&  chist < 512 - 256 * (depth + 1) * depth)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
