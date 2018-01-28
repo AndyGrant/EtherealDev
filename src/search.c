@@ -43,6 +43,8 @@
 #include "movepicker.h"
 #include "uci.h"
 
+uint64_t HTOTAL, HCOUNT;
+
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
@@ -91,6 +93,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Cleanup pthreads
     free(pthreads);
+    
+    printf("%"PRIu64" %"PRIu64" %"PRIu64"\n", HTOTAL, HCOUNT, HTOTAL / HCOUNT);
     
     // Return highest depth best move
     return info.bestmoves[info.depth];
@@ -574,14 +578,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth >= 3
             &&  isQuiet){
             
-            R  = 1;
+            R  = 2;
             R += (played - 4) / 8;
             R += (depth  - 4) / 6;
             R += 2 * !PvNode;
             R += ttTactical && bestMove == ttMove;
-            R += hist <= -8192 ? 1 : 0;
-            R -= hist >= -8192 ? (hist + 8192) / 4096 : 0;
+            R -= hist > -8196 ? 1 + (hist + 8196) / 4096 : 0;
             R  = MIN(depth - 1, MAX(R, 1));
+            
+            HTOTAL += (hist + 16384);
+            HCOUNT++;
         }
         
         else {
