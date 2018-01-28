@@ -79,7 +79,7 @@ const int KnightMobility[9][PHASE_NB] = {
     {  16,   6}, {  23,   8}, {  28,  -5},
 };
 
-const int BishopValue[PHASE_NB] = { 321, 306};
+const int BishopValue[PHASE_NB] = { 311, 299};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
 
@@ -460,8 +460,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attackedNoQueen[colour] |= attacks;
         
         uint64_t sameColour = (WHITE_SQUARES & (1ull << sq)) ? WHITE_SQUARES : ~WHITE_SQUARES;
-        ei->midgame[colour] -= 4 * popcount(myPawns & sameColour);
-        ei->endgame[colour] -= 9 * popcount(myPawns & sameColour);
+        ei->midgame[colour] -= 3 * popcount(myPawns & sameColour);
+        ei->endgame[colour] -= 5 * popcount(myPawns & sameColour);
         
         // Apply a penalty if the bishop is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
