@@ -515,7 +515,9 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
-            hist = getHistoryScore(thread->history, currentMove, board->turn);
+            hist = getHistoryScore(thread->history, currentMove, board->turn)
+                 + getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove);
+            hist /= 2;
         }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
@@ -525,15 +527,6 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
             &&  played >= 1
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
-            continue;
-            
-        // Step 14.5 Counter Move Pruning
-        if (   !PvNode
-            && !inCheck
-            &&  isQuiet
-            &&  played >= 1
-            &&  depth - 2 - (played - 4) / 8 - (depth  - 4) / 6 <= 3
-            &&  getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove) < -2048)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
