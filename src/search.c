@@ -546,8 +546,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  played >= 1
-            &&  depth <= 3
-            &&  getCounterMoveHistoryScore(thread->cmhistory, board, currentMove, 100) <= 20)
+            &&  depth <= 5
+            &&  getCounterMoveHistoryScore(thread->cmhistory, board, currentMove, 100) <= 4 + 2 * depth)
             continue;
             
         // Apply and validate move before searching
