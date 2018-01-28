@@ -52,9 +52,10 @@ void resetThreadPool(Thread* threads){
     // needed between 'ucinewgame's in order to get deterministic results
     // between games. Between individual searches the tables aid us
     for (i = 0; i < threads[0].nthreads; i++){
-        memset(&threads[i].ptable,  0, sizeof(PawnTable   ));
-        memset(&threads[i].killers, 0, sizeof(KillerTable ));
-        memset(&threads[i].history, 0, sizeof(HistoryTable));
+        memset(&threads[i].ptable,    0, sizeof(PawnTable              ));
+        memset(&threads[i].killers,   0, sizeof(KillerTable            ));
+        memset(&threads[i].history,   0, sizeof(HistoryTable           ));
+        memset(&threads[i].cmhistory, 0, sizeof(CounterMoveHistoryTable));
     }
 }
 
@@ -77,6 +78,7 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         
         // Reduce the history, which also avoids division by zero
         reduceHistory(threads[i].history);
+        reduceCounterMoveHistory(threads[i].cmhistory);
         
         // Zero our the depth, nodes for the new search
         threads[i].depth = 0;

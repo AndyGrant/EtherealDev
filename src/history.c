@@ -55,11 +55,53 @@ void updateHistory(HistoryTable history, uint16_t move, int colour, int isGood, 
 
 int getHistoryScore(HistoryTable history, uint16_t move, int colour, int factor){
     
-    // History is scored on a scale from 0 to factor, where factor is 100%
-    // We should try to choose factor to be a power of two, as to avoid division
     int from  = MoveFrom(move);
     int to    = MoveTo(move);
     int good  = history[colour][from][to][HISTORY_GOOD ];
     int total = history[colour][from][to][HISTORY_TOTAL];
+    return (factor * good) / total;
+}
+
+void reduceCounterMoveHistory(CounterMoveHistoryTable cmhistory){
+    
+    int c, p1, t1, p2, t2, i;
+    
+    for (c = 0; c < COLOUR_NB; c++)
+        for (p1 = 0; p1 < PIECE_NB + 1; p1++)
+            for (t1 = 0; t1 < SQUARE_NB; t1++)
+                for (p2 = 0; p2 < PIECE_NB + 1; p2++)
+                    for (t2 = 0; t2 < SQUARE_NB; t2++)
+                        for (i = 0; i < 2; i++)
+                            cmhistory[c][p1][t1][p2][t2][i] = 1 + cmhistory[c][p1][t1][p2][t2][i] / 4;
+}
+
+void updateCounterMoveHistory(CounterMoveHistoryTable cmhistory, Board* board, uint16_t move, int isGood, int delta){
+    
+    int c  = board->turn;
+    int p1 = (MoveType(board->lastmove) == PROMOTION_MOVE) ? PAWN : PieceType(board->squares[MoveTo(board->lastmove)]);
+    int t1 = MoveTo(board->lastmove);
+    int p2 = PieceType(board->squares[MoveFrom(move)]);
+    int t2 = MoveTo(move);
+    
+    if (isGood) cmhistory[c][p1][t1][p2][t2][HISTORY_GOOD]  += delta;
+    cmhistory[c][p1][t1][p2][t2][HISTORY_TOTAL] += delta;
+    
+    if (cmhistory[c][p1][t1][p2][t2][HISTORY_TOTAL] >= HistoryMax){
+        cmhistory[c][p1][t1][p2][t2][HISTORY_GOOD] >>= 1;
+        cmhistory[c][p1][t1][p2][t2][HISTORY_TOTAL] >>= 1;
+    }
+}
+
+int getCounterMoveHistoryScore(CounterMoveHistoryTable cmhistory, Board* board, uint16_t move, int factor){
+    
+    int c  = board->turn;
+    int p1 = PieceType(board->squares[MoveTo(board->lastmove)]);
+    int t1 = MoveTo(board->lastmove);
+    int p2 = PieceType(board->squares[MoveFrom(move)]);
+    int t2 = MoveTo(move);
+    
+    int good  = cmhistory[c][p1][t1][p2][t2][HISTORY_GOOD ];
+    int total = cmhistory[c][p1][t1][p2][t2][HISTORY_TOTAL];
+    
     return (factor * good) / total;
 }

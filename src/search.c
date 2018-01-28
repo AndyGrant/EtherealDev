@@ -269,7 +269,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
+    int hist = 0, cmhist = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -543,6 +543,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
         }
         
+        if (   !PvNode
+            &&  isQuiet
+            &&  played >= 1
+            &&  depth <= 3
+            &&  getCounterMoveHistoryScore(thread->cmhistory, board, currentMove, 100) <= 20)
+            continue;
+            
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
@@ -634,9 +641,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
     
     else if (best >= beta && !moveIsTactical(board, bestMove)){
+        
         updateHistory(thread->history, bestMove, board->turn, 1, depth*depth);
-        for (i = 0; i < quiets - 1; i++)
+        updateCounterMoveHistory(thread->cmhistory, board, bestMove, 1, depth*depth);
+        
+        for (i = 0; i < quiets - 1; i++){
             updateHistory(thread->history, quietsTried[i], board->turn, 0, depth*depth);
+            updateCounterMoveHistory(thread->cmhistory, board, quietsTried[i], 0, depth*depth);
+        }
     }
     
     storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)

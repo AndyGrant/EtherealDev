@@ -36,6 +36,7 @@
 #define RANK_NB   ( 8)
 #define FILE_NB   ( 8)
 #define PHASE_NB  ( 2)
+#define PIECE_NB  ( 6)
 
 #define PVNODE  (1)
 #define CUTNODE (2)
@@ -84,6 +85,8 @@ typedef struct Thread Thread;
 
 typedef uint16_t KillerTable[MAX_DEPTH][2];
 
-typedef uint32_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB][2]; 
+typedef uint32_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB][2];
+
+typedef uint32_t CounterMoveHistoryTable[COLOUR_NB][PIECE_NB+1][SQUARE_NB][PIECE_NB+1][SQUARE_NB][2];
 
 #endif

@@ -222,6 +222,10 @@ void initializeBoard(Board* board, char* fen){
     
     // Number of moves since this (root) position
     board->numMoves = 0;
+    
+    Undo undo;
+    applyNullMove(board, &undo);
+    applyNullMove(board, &undo);
 }
 
 void printBoard(Board* board){

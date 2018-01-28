@@ -42,6 +42,7 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     // or is not worth the time in order to do so
     undo->hash = board->hash;
     undo->phash = board->phash;
+    undo->lastmove = board->lastmove;
     undo->turn = board->turn;
     undo->castleRights = board->castleRights;
     undo->epSquare = board->epSquare;
@@ -51,6 +52,8 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     
     // Update the hash history and the move count
     board->history[board->numMoves++] = board->hash;
+    
+    board->lastmove = move;
     
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
@@ -354,12 +357,14 @@ void applyNullMove(Board* board, Undo* undo){
     
     // Store turn, hash and epSquare
     undo->hash = board->hash;
+    undo->lastmove = board->lastmove;
     undo->turn = board->turn;
     undo->epSquare = board->epSquare;
     
     // Swap the turn and update the history
     board->turn = !board->turn;
     board->history[board->numMoves++] = NULL_MOVE;
+    board->lastmove = NULL_MOVE;
     
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
@@ -379,6 +384,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
     board->numMoves--;
     board->hash = undo->hash;
     board->phash = undo->phash;
+    board->lastmove = undo->lastmove;
     board->turn = undo->turn;
     board->castleRights = undo->castleRights;
     board->epSquare = undo->epSquare;
@@ -464,6 +470,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
 
 void revertNullMove(Board* board, Undo* undo){
     board->hash = undo->hash;
+    board->lastmove = undo->lastmove;
     board->turn = !board->turn;
     board->epSquare = undo->epSquare;
     board->numMoves--;
