@@ -532,8 +532,8 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
             && !inCheck
             &&  isQuiet
             &&  played >= 1
-            &&  depth <= 4
-            &&  getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove) < -1024)
+            &&  depth - 2 - (played - 4) / 8 - (depth  - 4) / 6 <= 3
+            &&  getCounterMoveHistoryScore(thread->counter, board, (ss-1)->currentMove, currentMove) < -2048)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
