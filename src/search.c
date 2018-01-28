@@ -597,10 +597,7 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
             // expect an adjustment on the bounds of [+1, -6], with 6 being very rare
             R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
             
-            // Decrease R by an additional ply if this move has a good history score,
-            // and our opponents last move has a poor one, meaning we should likely
-            // be able to improve our position with the played two move sequence
-            R -= ss->history >= 2048 && (ss-1)->history <= -2048;
+            R -= ss->eval > (ss-2)->eval + 16;
             
             // Do not allow the reduction to take us directly into a quiescence search
             // and also ensure that R is at least one, therefore avoiding extensions
