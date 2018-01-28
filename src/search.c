@@ -533,7 +533,7 @@ int search(Thread* thread, SearchStack* ss, PVariation* pv, int alpha, int beta,
             && !inCheck
             &&  isQuiet
             &&  played >= 1
-            &&  chist < 512 - 256 * (depth + 1) * depth)
+            &&  chist < 1024 - 1024 * (depth + 1) * depth)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
