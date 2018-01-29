@@ -67,8 +67,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         info.idealusage = 0.50 * time / (mtg + 3) + inc;
         info.maxusage   = 4.50 * time / (mtg + 0) + inc;
         
-        info.idealusage = MIN(info.idealusage, time - 100);
-        info.maxusage   = MIN(info.maxusage,   time -  50);
+        info.idealusage = MIN(info.idealusage, time - 50);
+        info.maxusage   = MIN(info.maxusage,   time - 50);
     }
     
     // UCI command told us to look for exactly X seconds
