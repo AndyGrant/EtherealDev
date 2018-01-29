@@ -55,27 +55,30 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     pthread_t* pthreads = malloc(sizeof(pthread_t) * nthreads);
     
-    
     // Save start point of search for reporting and time managment
-    info.starttime = getRealTime();
+    info.startTime = getRealTime();
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
         
-        mtg = mtg >= 0 ? mtg + 1: 25;
+        // If we are not using a repeating time control, set
+        // moves to go to 25 as a way of scaling remaining time
+        mtg = mtg >= 0 ? mtg + 4: 25;
         
-        info.idealusage = 0.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 3);
-        info.maxusage   = 4.50 * (time + (mtg - 2) * inc) / MAX(5, mtg + 0);
+        info.idealUsage = 1.00 * time / mtg + inc;
+        info.idealAlloc = 1.00 * time / mtg + inc;
+        info.maxAlloc   = 2.00 * time / mtg + inc;
+        info.maxUsage   = 4.00 * time / mtg + inc;
         
-        info.idealusage = MIN(info.idealusage, time - 50);
-        info.maxusage   = MIN(info.maxusage,   time - 50);
+        info.idealUsage = MIN(info.idealUsage, time - 100);
+        info.idealAlloc = MIN(info.idealAlloc, time - 100);
+        info.maxAlloc   = MIN(info.maxAlloc,   time -  75);
+        info.maxUsage   = MIN(info.maxUsage,   time -  50);
     }
     
     // UCI command told us to look for exactly X seconds
-    if (limits->limitedByTime){
-        info.idealusage = limits->timeLimit;
-        info.maxusage   = limits->timeLimit;
-    }
+    if (limits->limitedByTime)
+        info.maxUsage = limits->timeLimit;
     
     // Setup the thread pool for a new search with these parameters
     newSearchThreadPool(threads, board, limits, &info);
@@ -150,30 +153,34 @@ void* iterativeDeepening(void* vthread){
         info->depth = depth;
         info->values[depth] = value;
         info->bestmoves[depth] = thread->pv.line[0];
-        info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
+        info->timeUsage[depth] = getRealTime() - info->startTime - info->timeUsage[depth-1];
         
         // Send information about this search to the interface
-        uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
+        uciReport(thread->threads, info->startTime, depth, value, &thread->pv);
         
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf){
+        if (limits->limitedBySelf && depth >= 4){
             
             // Increase our time if the score suddently dropped by eight centipawns
-            if (depth >= 4 && info->values[depth - 1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.10);
+            if (info->values[depth - 1] > value + 8)
+                info->idealUsage += info->idealAlloc * .15;
+            else
+                info->idealUsage -= info->idealAlloc * .02;
             
             // Increase our time if the pv has changed across the last two iterations
             if (depth >= 4 && info->bestmoves[depth - 1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.35);
+                info->idealUsage += info->idealAlloc * .50;
+            else 
+                info->idealUsage -= info->idealAlloc * .02;
         }
         
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
-            || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->maxusage)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage)){
+            || (limits->limitedByTime  && getRealTime() - info->startTime > limits->timeLimit)
+            || (limits->limitedBySelf  && getRealTime() - info->startTime > info->idealUsage)
+            || (limits->limitedBySelf  && getRealTime() - info->startTime > info->maxAlloc)){
             
             // Terminate all helper threads
             for (i = 0; i < thread->nthreads; i++)
@@ -182,12 +189,12 @@ void* iterativeDeepening(void* vthread){
         }
         
         // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
-            double timeFactor = MIN(2, info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]));
+        if (thread->limits->limitedBySelf && depth >= 4){
+            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
             double estimatedUsage = info->timeUsage[depth] * (timeFactor + .25);
-            double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+            double estiamtedEndtime = getRealTime() + estimatedUsage - info->startTime;
             
-            if (estiamtedEndtime > info->maxusage){
+            if (estiamtedEndtime > info->maxAlloc){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
@@ -288,7 +295,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // not yet completed our depth one search, and therefore would have no best move
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 4095) == 4095
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  getRealTime() >= thread->info->startTime + thread->info->maxUsage
         &&  thread->depth > 1)
         longjmp(thread->jbuffer, 1);
         
@@ -683,7 +690,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // not yet completed our depth one search, and therefore would have no best move
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
         && (thread->nodes & 4095) == 4095
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  getRealTime() >= thread->info->startTime + thread->info->maxUsage
         &&  thread->depth > 1)
         longjmp(thread->jbuffer, 1);
         

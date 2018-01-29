@@ -30,9 +30,11 @@ typedef struct SearchInfo {
     int bestmoves[MAX_DEPTH];
     int timeUsage[MAX_DEPTH];
     
-    double starttime;
-    double idealusage;
-    double maxusage;
+    double startTime;
+    double idealUsage;
+    double idealAlloc;
+    double maxAlloc;
+    double maxUsage;
     
 } SearchInfo;
 
