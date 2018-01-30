@@ -174,9 +174,9 @@ void* iterativeDeepening(void* vthread){
                 info->idealusage = MIN(info->maxusage, info->idealusage * 1.50);
             
             // Decrease our time if the pv has been steady accross many iterations
-            if (    thread->pv.line[0] == info->bestmove[depth-1]
-                &&  thread->pv.line[0] == info->bestmove[depth-2]
-                &&  thread->pv.line[0] == info->bestmove[depth-3])
+            if (    thread->pv.line[0] == info->bestmoves[depth-1]
+                &&  thread->pv.line[0] == info->bestmoves[depth-2]
+                &&  thread->pv.line[0] == info->bestmoves[depth-3])
                 info->idealusage = MIN(info->maxusage, info->idealusage * 0.95);
                 
         }
