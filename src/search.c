@@ -188,7 +188,7 @@ void* iterativeDeepening(void* vthread){
             // info->scoreStability *= delta < -8 ? 1.20 : 0.98;
             
             delta = info->bestmoves[depth-1] != thread->pv.line[0];
-            info->pvStability *= delta ? 0.75 : 1.04;
+            info->pvStability *= delta ? 1.40 : 0.95;
         }
         
         // Check for termination by any of the possible limits
