@@ -185,7 +185,7 @@ void* iterativeDeepening(void* vthread){
                 info->idealusage = MIN(info->maxusage, info->idealusage * MAX(info->pvStability, 1.30));
             
             delta = value - info->values[depth-1];
-            info->scoreStability *= delta < -8 ? 1.20 : 0.98;
+            info->scoreStability *= delta < -8 ? 1.25 : 0.90;
             
             // delta = info->bestmoves[depth-1] != thread->pv.line[0];
             // info->pvStability *= delta ? 0.85 : 1.05;
