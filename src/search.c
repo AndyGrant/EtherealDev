@@ -177,7 +177,7 @@ void* iterativeDeepening(void* vthread){
         if (limits->limitedBySelf && depth >= 4){
             
             delta = value - info->values[depth-1];
-            info->scoreStability *= abs(delta) >= 8 ? 1.20 : .97;
+            info->scoreStability *= delta < -8 ? 1.20 : .98;
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
