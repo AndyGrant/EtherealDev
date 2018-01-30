@@ -34,6 +34,9 @@ typedef struct SearchInfo {
     double idealusage;
     double maxusage;
     
+    double pvStability;
+    double scoreStability;
+    
 } SearchInfo;
 
 typedef struct PVariation {

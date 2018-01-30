@@ -74,6 +74,17 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         
         info.idealusage = MIN(info.idealusage, time - 100);
         info.maxusage   = MIN(info.maxusage,   time -  50);
+        
+        // We would like time control updates based on occurance rates of the
+        // features that earn them: Best move changes and score changes. 
+        
+        // In positions with rapidly swapping best moves, it
+        // seems likely that there is no clear winner. In positions with
+        // only one or two best move changes, further inspection is ideal
+        info.pvStability = 1;
+        
+        
+        info.scoreStability = 1;
     }
     
     // UCI command told us to look for exactly X seconds
@@ -111,7 +122,7 @@ void* iterativeDeepening(void* vthread){
    
     const int mainThread   = thread == &thread->threads[0];
     
-    int i, count, value, depth, abort;
+    int i, count, value, depth, abort, delta;
     
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
@@ -165,9 +176,12 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 4){
             
+            delta = value - info->values[depth-1];
+            info->scoreStability *= abs(delta) >= 8 ? 1.20 : .97;
+            
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.07);
+                info->idealusage = MIN(info->maxusage, info->idealusage * (1.00 + .07 * info->scoreStability));
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
