@@ -64,7 +64,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         
         mtg = mtg >= 0 ? mtg : 25;
         
-        info.idealusage =  MIN(0.50, MAX(0.00, mtg - 1)) * time / mtg + inc;
+        info.idealusage =  MIN(1.00, MAX(0.00, mtg - 1)) * time / mtg + inc;
         info.maxusage   =  MIN(4.00, MAX(0.00, mtg - 3)) * time / mtg + inc;
         
         info.idealusage = MIN(info.idealusage, time - 100);
@@ -162,11 +162,11 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.20);
+                info->idealusage = MIN(info->maxusage, info->idealusage * 1.10);
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxusage, info->idealusage * 1.75);
+                info->idealusage = MIN(info->maxusage, info->idealusage * 1.30);
             
             // Decrease our time if neither of the above conditions were hit
             if (   info->values[depth-1] <= value + 8
@@ -189,10 +189,10 @@ void* iterativeDeepening(void* vthread){
         // Check to see if we expect to be able to complete the next depth
         if (thread->limits->limitedBySelf){
             double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
+            double estimatedUsage = info->timeUsage[depth] * timeFactor;
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
-            if (estiamtedEndtime > info->maxusage){
+            if (estiamtedEndtime > info->idealusage){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
