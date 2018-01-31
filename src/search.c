@@ -63,12 +63,12 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     if (limits->limitedBySelf){
         
         if (mtg >= 0){
-            info.idealusage =  0.45 * time / (mtg +  5) + inc;
+            info.idealusage =  1.00 * time / (mtg +  5) + inc;
             info.maxusage   = 10.00 * time / (mtg + 10) + inc;
         }
         
         else {
-            info.idealusage =  0.45 * (time + 23 * inc) / 28;
+            info.idealusage =  0.75 * (time + 23 * inc) / 28;
             info.maxusage   = 10.00 * (time + 23 * inc) / 25;
         }
         
@@ -168,10 +168,14 @@ void* iterativeDeepening(void* vthread){
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
                 info->idealusage = MIN(info->maxusage, info->idealusage * 1.07);
+            else
+                info->idealusage = MIN(info->maxusage, info->idealusage * 0.98);
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
                 info->idealusage = MIN(info->maxusage, info->idealusage * 1.30);
+            else
+                info->idealusage = MIN(info->maxusage, info->idealusage * 0.97);
         }
         
         // Check for termination by any of the possible limits
@@ -189,10 +193,10 @@ void* iterativeDeepening(void* vthread){
         // Check to see if we expect to be able to complete the next depth
         if (thread->limits->limitedBySelf){
             double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
+            double estimatedUsage = info->timeUsage[depth] * timeFactor;
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
-            if (estiamtedEndtime > info->maxusage){
+            if (estiamtedEndtime > info->idealusage){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
