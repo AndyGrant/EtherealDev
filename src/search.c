@@ -63,13 +63,13 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     if (limits->limitedBySelf){
         
         if (mtg >= 0){
-            info.idealusage =  1.00 * time / (mtg +  5) + inc;
-            info.maxusage   = 10.00 * time / (mtg + 10) + inc;
+            info.idealusage = 0.55 * time / (mtg +  5) + inc;
+            info.maxusage   = 8.00 * time / (mtg + 10) + inc;
         }
         
         else {
-            info.idealusage =  0.75 * (time + 23 * inc) / 28;
-            info.maxusage   = 10.00 * (time + 23 * inc) / 25;
+            info.idealusage = 0.55 * (time + 23 * inc) / 28;
+            info.maxusage   = 8.00 * (time + 23 * inc) / 25;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
@@ -193,10 +193,10 @@ void* iterativeDeepening(void* vthread){
         // Check to see if we expect to be able to complete the next depth
         if (thread->limits->limitedBySelf){
             double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * timeFactor;
+            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .4);
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
-            if (estiamtedEndtime > info->idealusage){
+            if (estiamtedEndtime > info->maxusage){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
