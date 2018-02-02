@@ -65,13 +65,13 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     if (limits->limitedBySelf){
         
         if (mtg >= 0){
-            info.idealusage =  0.45 * time / (mtg +  5) + inc;
+            info.idealusage =  0.60 * time / (mtg +  5) + inc;
             info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
             info.maxusage   = 10.00 * time / (mtg + 10) + inc;
         }
         
         else {
-            info.idealusage =  0.45 * (time + 23 * inc) / 28;
+            info.idealusage =  0.60 * (time + 23 * inc) / 28;
             info.maxalloc   =  4.00 * (time + 23 * inc) / 27;
             info.maxusage   = 10.00 * (time + 23 * inc) / 25;
         }
@@ -181,7 +181,7 @@ void* iterativeDeepening(void* vthread){
             if (info->bestmoves[depth-1] != thread->pv.line[0])
                 info->idealusage *= MAX(info->pvStability, 1.30);
             else
-                info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
+                info->idealusage *= MAX(0.97, MIN(info->pvStability, 1.00));
             
             // Update the Score Stability depending on changes between the score of the current
             // iteration and the last one. Stability is a bit of a misnomer. Score Stability is
