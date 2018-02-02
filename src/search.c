@@ -58,8 +58,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Some initialization for time management
     info.starttime = getRealTime();
-    info.pvStability = 1;
-    info.scoreStability = 1;
+    info.pvStability = 1.30;
+    info.scoreStability = 1.10;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
@@ -173,18 +173,18 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
-                info->idealusage = MIN(info->maxalloc, info->idealusage * MAX(info->scoreStability, 0.99));
+                info->idealusage = MIN(info->maxalloc, info->idealusage * MAX(info->scoreStability, 1.00));
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxalloc, info->idealusage * MAX(info->pvStability, 1.40));
+                info->idealusage = MIN(info->maxalloc, info->idealusage * MAX(info->pvStability, 1.00));
             
             // Update the Score Stability depending on changes between the score of the current
             // iteration and the last one. Stability is a bit of a misnomer. Score Stability is
             // meant to determine when we should be concered with score drops. If we just found
             // the this iteration to be +50 from the last, we would not be surprised to find that
             // gain fall to something smaller like +30
-            info->scoreStability *= 1.00 + (info->values[depth-1] - value) / 80.00;
+            info->scoreStability *= 1.00 + (info->values[depth-1] - value) / 160.00;
             
             // Update the PV Stability depending on the best move changing. If the best move is
             // holding stable, we increase the pv stability. This way, if the best move changes
