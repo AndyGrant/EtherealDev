@@ -173,24 +173,30 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
-                info->idealusage = MIN(info->maxalloc, info->idealusage * MAX(info->scoreStability, 1.05));
+                info->idealusage *= MAX(info->scoreStability, 1.05);
+            if (info->values[depth-1] < value - 8)
+                info->idealusage *= MAX(0.99, MIN(info->pvStability, 1.00));
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage = MIN(info->maxalloc, info->idealusage * MAX(info->pvStability, 1.30));
+                info->idealusage *= MAX(info->pvStability, 1.30);
+            else
+                info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
             
             // Update the Score Stability depending on changes between the score of the current
             // iteration and the last one. Stability is a bit of a misnomer. Score Stability is
             // meant to determine when we should be concered with score drops. If we just found
             // the this iteration to be +50 from the last, we would not be surprised to find that
             // gain fall to something smaller like +30
-            info->scoreStability *= 1.00 + (info->values[depth-1] - value) / 160.00;
+            info->scoreStability *= 1.00 + (info->values[depth-1] - value) / 320.00;
             
             // Update the PV Stability depending on the best move changing. If the best move is
             // holding stable, we increase the pv stability. This way, if the best move changes
             // after holding for many iterations, more time will be allocated for the search, and
             // less time if the best move is in a constant flucation.
-            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.60 : 1.10;
+            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
+            
+            info->idealusage = MIN(info->idealusage, info->maxalloc);
         }
         
         // Check for termination by any of the possible limits
