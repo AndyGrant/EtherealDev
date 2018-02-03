@@ -302,7 +302,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, ttTactical = 0; 
+    int quiets = 0, played = 0, ttTactical = 0, ttQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
@@ -393,6 +393,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // we may use it to increase reductions later on in LMR.
         ttMove = ttEntry.bestMove;
         ttTactical = moveIsTactical(board, ttMove);
+        ttQuiet = !ttTactical;
         
         // Step 6A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
@@ -526,6 +527,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
             ttMove = ttEntry.bestMove;
             ttTactical = moveIsTactical(board, ttMove);
+            ttQuiet = !ttTactical;
         }
     }
     
@@ -574,7 +576,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             
             // Otherwise, if the piece has one defender, we will prune up to depth 3
-            if (    depth <= 3
+            if (   (depth <= 3 || ttQuiet)
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
         }
