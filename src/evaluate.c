@@ -134,10 +134,10 @@ const int KingDefenders[12][PHASE_NB] = {
 };
 
 const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
-  {{{  -7,   0}, {   5,   0}, {  -2,   0}, {  -2,  -1}, {  -2,  -4}, {   1,  -1}, { -20,  -9}, {   0,   0}},
-   {{  -3,  -1}, {   8,   3}, {   0,   2}, {   9,   0}, {   0,  -7}, { -23,  -3}, {  -6,   4}, {   0,   0}}},
-  {{{ -15,   0}, {   8,   0}, {   1,   0}, {  -5,  -1}, {  -8,  -1}, { -12,  -3}, { -33, -10}, {   0,   0}},
-   {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}}},
+  {{{  -7,   0}, {   5,   0}, {  -2,   0}, {  -2,  -1}, {  -2,  -4}, {   1,  -1}, { -20,  -9}, { -14,   0}},
+   {{  -3,  -1}, {   8,   3}, {   0,   2}, {   9,   0}, {   0,  -7}, { -23,  -3}, {  -6,   4}, {  -6,  -2}}},
+  {{{ -15,   0}, {   8,   0}, {   1,   0}, {  -5,  -1}, {  -8,  -1}, { -12,  -3}, { -33, -10}, { -30,   0}},
+   {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, { -12,  -4}}},
 };
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
@@ -661,7 +661,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         distance = filePawns ? colour == WHITE ? MAX(1, abs(kingRank - Rank(getlsb(filePawns))))
                                                : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
-                                               : 0;
+                                               : Files[file] & board->pieces[PAWN] ? 0 : 7;
 
         ei->midgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][MG];
         ei->endgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][EG];
