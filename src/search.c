@@ -690,6 +690,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
     }
     
+    else if (best > oldAlpha && !moveIsTactical(board, bestMove))
+        updateHistory(thread->history, bestMove, board->turn, depth*depth);
+    
     // Step 23. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and
     // must also convert the search value to a tt value, which handles mates
