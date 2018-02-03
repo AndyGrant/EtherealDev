@@ -576,7 +576,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             
             // Otherwise, if the piece has one defender, we will prune up to depth 3
-            if (   (depth <= 3 || ttQuiet)
+            if (    depth <= 3
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
         }
@@ -620,6 +620,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional ply if the table move is tactical and best
             R += ttTactical && bestMove == ttMove;
+            
+            R -= ttQuiet && bestMove != ttMove;
             
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
