@@ -703,7 +703,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best, maxValueGain;
+    int eval, value, best;
+    uint64_t enemyPieces = board->colours[!board->turn];
+    
     uint16_t currentMove;
     Undo undo[1];
     MovePicker movePicker;
@@ -741,16 +743,16 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // QSearch can be terminated
     if (alpha >= beta) return value;
     
-    // Take a guess at the best case gain for a non promotion capture
-    if (board->colours[!board->turn] & board->pieces[QUEEN])
-        maxValueGain = PieceValues[QUEEN ][EG] + 55;
-    else if (board->colours[!board->turn] & board->pieces[ROOK])
-        maxValueGain = PieceValues[ROOK  ][EG] + 35;
-    else
-        maxValueGain = PieceValues[BISHOP][EG] + 15;
+    // Determine the best case gain for a single capture
+    if      (enemyPieces & board->pieces[QUEEN ]) value = PieceValues[QUEEN ][EG];
+    else if (enemyPieces & board->pieces[ROOK  ]) value = PieceValues[ROOK  ][EG];
+    else if (enemyPieces & board->pieces[BISHOP]) value = PieceValues[BISHOP][EG];
+    else if (enemyPieces & board->pieces[KNIGHT]) value = PieceValues[KNIGHT][EG];
+    else if (enemyPieces & board->pieces[PAWN  ]) value = PieceValues[PAWN  ][EG];
+    else                                          value = PieceValues[KING  ][EG];
     
-    // Delta pruning when no promotions and not extreme late game
-    if (     value + maxValueGain < alpha
+    // Delta
+    if (     eval + value < alpha
         && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
