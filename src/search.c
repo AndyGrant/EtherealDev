@@ -744,12 +744,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (alpha >= beta) return value;
     
     // Determine the best case gain for a single capture
-    if      (enemyPieces & board->pieces[QUEEN ]) value = PieceValues[QUEEN ][EG];
-    else if (enemyPieces & board->pieces[ROOK  ]) value = PieceValues[ROOK  ][EG];
-    else if (enemyPieces & board->pieces[BISHOP]) value = PieceValues[BISHOP][EG];
-    else if (enemyPieces & board->pieces[KNIGHT]) value = PieceValues[KNIGHT][EG];
-    else if (enemyPieces & board->pieces[PAWN  ]) value = PieceValues[PAWN  ][EG];
-    else                                          value = PieceValues[KING  ][EG];
+    if      (enemyPieces & board->pieces[QUEEN]) value = PieceValues[QUEEN ][EG];
+    else if (enemyPieces & board->pieces[ROOK ]) value = PieceValues[ROOK  ][EG];
+    else                                         value = PieceValues[BISHOP][EG];
     
     // Delta
     if (     eval + value < alpha
