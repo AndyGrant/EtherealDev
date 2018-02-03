@@ -614,7 +614,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional ply if the best move found so far is a capture.
             // So long as the move is from the table, or we have tried to play some quiets
-            R += bestTactical && (ttMove == bestMove || quiets > 4);
+            R += bestTactical && (ttMove == bestMove || quiets > 2);
             
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
