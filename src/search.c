@@ -655,7 +655,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             bestMove = currentMove;
             
             if (value > alpha){
+                
                 alpha = value;
+                
+                // Update killer moves when we find a new best move in a PV node
+                // or we find a move that causes a beta cutoff in a non PV node
+                if (isQuiet && thread->killers[height][0] != currentMove){
+                    thread->killers[height][1] = thread->killers[height][0];
+                    thread->killers[height][0] = currentMove;
+                }
                 
                 // Copy our child's PV and prepend this move to it
                 pv->length = 1 + lpv.length;
@@ -664,16 +672,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
         }
         
-        // Step 20. Search has failed high. Update Killer Moves and exit search
-        if (alpha >= beta){
-            
-            if (isQuiet && thread->killers[height][0] != currentMove){
-                thread->killers[height][1] = thread->killers[height][0];
-                thread->killers[height][0] = currentMove;
-            }
-            
+        // Step 20. Search has failed high, exit search
+        if (alpha >= beta)
             break;
-        }
     }
     
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
