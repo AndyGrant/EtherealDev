@@ -750,7 +750,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         maxValueGain = PieceValues[BISHOP][EG];
     
     // Delta pruning when no promotions and not extreme late game
-    if (     value + maxValueGain + PieceValues[PAWN][EG] < alpha
+    if (     value + maxValueGain + 32 < alpha
         && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
         && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
         return value;
@@ -761,7 +761,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Take a guess at the best case value of this current move
-        value = eval + PieceValues[PAWN][EG] + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+        value = eval + 32 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
         if (MoveType(currentMove) == PROMOTION_MOVE){
             value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
             value -= PieceValues[PAWN][EG];
