@@ -304,7 +304,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
+    int hist = 0, ttHit = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -387,12 +387,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     thread->nodes += 1;
     
     // Step 6. Probe the Transposition Table for an entry
-    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+    if ((ttHit = getTranspositionEntry(&Table, board->hash, &ttEntry))){
         
         // Entry move may be good in this position. If it is tactical,
         // we may use it to increase reductions later on in LMR.
         ttMove = ttEntry.bestMove;
         ttTactical = moveIsTactical(board, ttMove);
+        ttValue = valueFromTT(ttEntry.value, height);
         
         // Step 6A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
@@ -400,7 +401,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!PvNode && ttEntry.depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
-            ttValue = valueFromTT(ttEntry.value, height);
             
             switch (ttEntry.type){
                 case  PVNODE: return ttValue;
@@ -421,6 +421,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     inCheck = inCheck || !isNotInCheck(board, board->turn);
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->ptable);
+        
+        if (ttHit){
+            if      (ttEntry.type == ALLNODE) eval = MIN(eval, ttValue);
+            else if (ttEntry.type == CUTNODE) eval = MAX(eval, ttValue);
+            else if (ttEntry.type == PVNODE ) eval = ttValue;
+        }
+        
         futilityMargin = eval + 70 * depth;
     }
     
