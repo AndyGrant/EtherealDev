@@ -423,8 +423,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         eval = evaluateBoard(board, &ei, &thread->ptable);
         
         if (ttHit){
-            if      (ttEntry.type == ALLNODE) eval = MIN(eval, ttValue);
-            else if (ttEntry.type == CUTNODE) eval = MAX(eval, ttValue);
+            if      (ttEntry.type == ALLNODE) eval = MAX(eval, ttValue);
+            else if (ttEntry.type == CUTNODE) eval = MIN(eval, ttValue);
             else if (ttEntry.type == PVNODE ) eval = ttValue;
         }
         
