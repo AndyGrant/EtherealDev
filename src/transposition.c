@@ -47,7 +47,6 @@ void initializeTranspositionTable(TransTable* table, uint64_t megabytes){
     table->numBuckets   = 1ull << keySize;
     table->keySize      = keySize;
     table->generation   = 0u;
-    table->used         = 0u;
 }
 
 void destroyTranspositionTable(TransTable* table){
@@ -64,7 +63,6 @@ void clearTranspositionTable(TransTable* table){
     TransEntry* entry;
     
     table->generation = 0u;
-    table->used = 0u;
     
     for (i = 0u; i < table->numBuckets; i++){
         for (j = 0; j < BUCKET_SIZE; j++){
@@ -119,7 +117,6 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
         
         // Found an unused entry
         if (entries[i].type == 0){
-            table->used += 1;
             toReplace = &(entries[i]);
             goto Replace;
         }

@@ -37,7 +37,6 @@ typedef struct TransBucket {
 typedef struct TransTable {
     TransBucket * buckets;
     uint64_t numBuckets;
-    uint64_t used;
     uint64_t keySize;
     uint8_t generation;
 } TransTable;

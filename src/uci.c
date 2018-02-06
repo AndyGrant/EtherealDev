@@ -235,12 +235,10 @@ void uciReport(Thread* threads, double startTime, int depth, int value, PVariati
     
     int i;
     int elapsed    = (int)(getRealTime() - startTime);
-    int hashfull   = (1000 * Table.used) / (Table.numBuckets * BUCKET_SIZE);
     uint64_t nodes =  nodesSearchedThreadPool(threads);
     int nps        = (int)(1000 * (nodes / (1 + elapsed)));
     
-    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d hashfull %d pv ",
-           depth, value, elapsed, nodes, nps, hashfull);
+    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d pv ", depth, value, elapsed, nodes, nps);
            
     for (i = 0; i < pv->length; i++){
         printMove(pv->line[i]);
