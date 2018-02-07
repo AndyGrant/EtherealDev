@@ -236,9 +236,11 @@ void uciReport(Thread* threads, double startTime, int depth, int value, PVariati
     int i;
     int elapsed    = (int)(getRealTime() - startTime);
     uint64_t nodes =  nodesSearchedThreadPool(threads);
+    int hashfull   = estimateHashfull(&Table);
     int nps        = (int)(1000 * (nodes / (1 + elapsed)));
     
-    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d pv ", depth, value, elapsed, nodes, nps);
+    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d hashfull %d pv ",
+            depth, value, elapsed, nodes, nps, hashfull);
            
     for (i = 0; i < pv->length; i++){
         printMove(pv->line[i]);

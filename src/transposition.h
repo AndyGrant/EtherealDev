@@ -55,6 +55,7 @@ void initializeTranspositionTable(TransTable* table, uint64_t megabytes);
 void destroyTranspositionTable(TransTable* table);
 void updateTranspositionTable(TransTable* table);
 void clearTranspositionTable(TransTable* table);
+int estimateHashfull(TransTable* table);
 
 int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry);
 void storeTranspositionEntry(TransTable* table, int depth, int type, int value, int bestMove, uint64_t hash);

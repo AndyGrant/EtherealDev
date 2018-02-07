@@ -77,6 +77,19 @@ void clearTranspositionTable(TransTable* table){
     }
 }
 
+int estimateHashfull(TransTable* table){
+    
+    int i, used = 0;
+    
+    for (i = 0; i < 1250 && i < (int64_t)table->numBuckets; i++)
+        used += (table->buckets[i].entries[0].type != 0)
+             +  (table->buckets[i].entries[1].type != 0)
+             +  (table->buckets[i].entries[2].type != 0)
+             +  (table->buckets[i].entries[3].type != 0);
+             
+    return 1000 * used / (i * 4);
+}
+
 int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry){
     
     TransBucket* bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
