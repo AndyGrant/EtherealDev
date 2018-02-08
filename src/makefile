@@ -35,19 +35,19 @@ TFLAGS = $(CFLAGS) -fopenmp -DTUNE
 SRC = *.c
 
 all:
-	$(CC) $(CFLAGS) $(SRC) -lpthread -o $(EXE)
+	$(CC) $(CFLAGS) $(SRC) -lpthread -lm -o $(EXE)
     
 profile:
-	$(CC) $(PFLAGS) $(SRC) -lpthread -o $(EXE)
+	$(CC) $(PFLAGS) $(SRC) -lpthread -lm -o $(EXE)
     
 debug:
-	$(CC) $(DFLAGS) $(SRC) -lpthread -o $(EXE)
+	$(CC) $(DFLAGS) $(SRC) -lpthread -lm -o $(EXE)
     
 tune:
 	$(CC) $(TFLAGS) $(SRC) -lpthread -lm -o $(EXE)
     
 release:
-	$(CC) $(RFLAGS) $(SRC) -lpthread -o $(EXE)$(VER)-Win64.exe
+	$(CC) $(RFLAGS) $(SRC) -lpthread -lm -o $(EXE)$(VER)-Win64.exe
     
 android:
-	$(CCDROID) $(RFLAGS) $(SRC) -march=armv5t -lpthread -o $(EXE)$(VER)-Android.exe
+	$(CCDROID) $(RFLAGS) $(SRC) -march=armv5t -lpthread -lm -o $(EXE)$(VER)-Android.exe

@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <math.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,7 @@ Thread* createThreadPool(int nthreads){
     // Provide each thread with a reference to the others,
     // as well as a counter of how many threads there are
     for (i = 0; i < nthreads; i++){
+        threads[i].idx = i;
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
     }
@@ -92,4 +94,8 @@ uint64_t nodesSearchedThreadPool(Thread* threads){
         nodes += threads[i].nodes;
     
     return nodes;
+}
+
+int threadStartDepth(Thread* thread){
+    return (int)(log2(thread->nthreads) - log2(thread->nthreads - thread->idx));
 }

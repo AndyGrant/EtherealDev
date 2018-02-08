@@ -35,6 +35,7 @@ typedef struct Thread {
     int depth;
     uint64_t nodes;
     
+    int idx;
     int abort;
     jmp_buf jbuffer;
     
@@ -55,5 +56,7 @@ void resetThreadPool(Thread* threads);
 void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchInfo* info);
                                
 uint64_t nodesSearchedThreadPool(Thread* threads);
+
+int threadStartDepth(Thread* thread);
 
 #endif
