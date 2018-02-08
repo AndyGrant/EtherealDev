@@ -510,7 +510,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
     // Apply a small penalty if we have two rooks, as they are redunent
-    if (moreThanOne(tempKnights)){
+    if (moreThanOne(tempRooks)){
         ei->midgame[colour] -=  9;
         ei->endgame[colour] -= 14;
     }
