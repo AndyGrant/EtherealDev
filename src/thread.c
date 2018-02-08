@@ -37,6 +37,7 @@ Thread* createThreadPool(int nthreads){
     for (i = 0; i < nthreads; i++){
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
+        threads[i].idx = i;
     }
     
     resetThreadPool(threads);

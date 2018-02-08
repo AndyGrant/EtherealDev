@@ -35,6 +35,7 @@ typedef struct Thread {
     int depth;
     uint64_t nodes;
     
+    int idx;
     int abort;
     jmp_buf jbuffer;
     
