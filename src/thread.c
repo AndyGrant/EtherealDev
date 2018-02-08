@@ -97,5 +97,5 @@ uint64_t nodesSearchedThreadPool(Thread* threads){
 }
 
 int threadStartDepth(Thread* thread){
-    return (int)(log2(thread->nthreads) - log2(thread->nthreads - thread->idx));
+    return 1 + (int)(log2(thread->nthreads) - log2(thread->nthreads - thread->idx));
 }
