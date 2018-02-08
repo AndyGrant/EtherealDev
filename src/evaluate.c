@@ -369,6 +369,12 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    // Apply a small penalty if we have two knights, as they are redunent
+    if (moreThanOne(tempKnights)){
+        ei->midgame[colour] -= 6;
+        ei->endgame[colour] -= 9;
+    }
+    
     // Evaluate each knight
     while (tempKnights){
         
@@ -502,6 +508,12 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
     tempRooks = board->pieces[ROOK] & board->colours[colour];
     myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    
+    // Apply a small penalty if we have two rooks, as they are redunent
+    if (moreThanOne(tempKnights)){
+        ei->midgame[colour] -=  9;
+        ei->endgame[colour] -= 14;
+    }
     
     // Evaluate each rook
     while (tempRooks){

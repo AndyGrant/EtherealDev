@@ -66,3 +66,7 @@ int poplsb(uint64_t* bb){
     *bb ^= 1ull << lsb;
     return lsb;
 }
+
+int moreThanOne(uint64_t bb){
+    return bb & (bb - 1);
+}
