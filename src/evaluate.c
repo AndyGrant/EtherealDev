@@ -636,7 +636,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts  = ei->attackCounts[!colour];
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
-        attackCounts = MIN(attackCounts, 95);
+        attackCounts = MIN(attackCounts, 55);
         
         ei->midgame[colour] += KingSafety[attackCounts][MG];
         ei->endgame[colour] += KingSafety[attackCounts][EG];
