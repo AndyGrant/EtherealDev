@@ -636,7 +636,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     ei->endgame[colour] += KingDefenders[defenderCounts][EG];
     if (TRACE) T.kingDefenders[colour][defenderCounts]++;
     
-    if (ei->attackCounts[!colour] >= 2){
+    if (ei->attackerCounts[!colour] >= 2){
         // Scale down attack count if there are no enemy queens
         attackCounts  = ei->attackCounts[!colour];
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
