@@ -48,7 +48,7 @@
 
 extern PawnTable PTable;
 
-const int PawnValue[PHASE_NB] = {  77,  87};
+const int PawnValue[PHASE_NB] = {  73,  85};
 
 const int PawnIsolated[PHASE_NB] = {  -1,  -6};
 
@@ -67,19 +67,19 @@ const int PawnConnected32[32][PHASE_NB] = {
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
-const int KnightValue[PHASE_NB] = { 303, 286};
+const int KnightValue[PHASE_NB] = { 279, 241};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
 
 const int KnightOutpost[2][PHASE_NB] = { {  12, -14}, {  26,   5} };
 
 const int KnightMobility[9][PHASE_NB] = {
-    { -68, -79}, { -31, -42}, { -13, -16},
-    {   0,  -6}, {   4,  -3}, {   7,   8},
-    {  16,   6}, {  23,   8}, {  28,  -5},
+    { -64, -64}, { -27, -27}, {  -9,  -1}, 
+    {   4,   9}, {   8,  12}, {  11,  23},
+    {  20,  21}, {  27,  23}, {  32,  10},
 };
 
-const int BishopValue[PHASE_NB] = { 305, 288};
+const int BishopValue[PHASE_NB] = { 295, 265};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
 
@@ -90,39 +90,41 @@ const int BishopPair[PHASE_NB] = {  28,  39};
 const int BishopOutpost[2][PHASE_NB] = { {  12, -10}, {  28,  -7} };
 
 const int BishopMobility[14][PHASE_NB] = {
-    { -53, -63}, { -44, -37}, { -18, -25}, {  -2, -10},
-    {   7,  -1}, {  15,   7}, {  20,  12}, {  22,  12},
-    {  25,  16}, {  24,  13}, {  24,  16}, {  29,   7},
-    {  30,  19}, {  16,  -1},
+    { -59, -60}, { -50, -34}, { -24, -22}, {  -8,  -7},
+    {   1,   2}, {   9,  10}, {  14,  15}, {  16,  15},
+    {  19,  19}, {  18,  16}, {  18,  19}, {  23,  10},
+    {  24,  22}, {  10,   2},
 };
 
-const int RookValue[PHASE_NB] = { 417, 462};
+const int RookValue[PHASE_NB] = { 394, 457};
 
 const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
 
 const int RookOnSeventh[PHASE_NB] = {   0,   6};
 
 const int RookMobility[15][PHASE_NB] = {
-    { -96, -87}, { -44, -52}, { -10, -39}, {  -7, -16},
-    {  -6,  -5}, {  -4,   6}, {  -4,  17}, {  -3,  22},
-    {   1,  26}, {   7,  27}, {  10,  32}, {  14,  37},
-    {  14,  39}, {  13,  38}, {  11,  33},
+    { -89, -92}, { -37, -57}, {  -3, -44}, {   0, -21},
+    {   1, -10}, {   3,   1}, {   3,  12}, {   4,  17},
+    {   8,  21}, {  14,  22}, {  17,  27}, {  21,  32},
+    {  21,  34}, {  20,  33}, {  18,  28},
+
 };
 
-const int QueenValue[PHASE_NB] = { 783, 839};
+const int QueenValue[PHASE_NB] = { 740, 777};
 
 const int QueenChecked[PHASE_NB] = { -43, -30};
 
 const int QueenCheckedByPawn[PHASE_NB] = { -55, -36};
 
 const int QueenMobility[28][PHASE_NB] = {
-    {-196, -50}, { -76,-341}, { -78,-137}, { -42, -91},
-    { -29, -92}, { -26, -46}, { -19, -49}, { -14, -50},
-    { -11, -46}, {  -8, -39}, {  -5, -27}, {  -3, -20},
-    {  -1, -13}, {  -1,  -5}, {   1,  -1}, {   0,   7},
-    {   0,  14}, {   1,  17}, {   0,  17}, {   4,  26},
-    {   5,  27}, {  14,  28}, {  20,  32}, {  27,  32},
-    {  31,  33}, {  29,  22}, {  35,  43}, {  13,  30},
+    {-184, -25}, { -64,-316}, { -66,-112}, { -30, -66}, 
+    { -17, -67}, { -14, -21}, {  -7, -24}, {  -2, -25},
+    {   1, -21}, {   4, -14}, {   7,  -2}, {   9,   5}, 
+    {  11,  12}, {  11,  20}, {  13,  24}, {  12,  32}, 
+    {  12,  39}, {  13,  42}, {  12,  42}, {  16,  51}, 
+    {  17,  52}, {  26,  53}, {  32,  57}, {  39,  57},
+    {  43,  58}, {  41,  47}, {  47,  68}, {  25,  55},
+
 };
 
 const int KingValue[PHASE_NB] = { 100, 100};
