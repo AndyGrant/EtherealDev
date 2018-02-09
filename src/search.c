@@ -565,7 +565,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
                  
-          
             // If the target piece has two or more defenders, we will prune up to depth 5
             if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
                 continue;
@@ -612,6 +611,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            R -= !isNotInCheck(board, board->turn);
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
