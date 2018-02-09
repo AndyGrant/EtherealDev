@@ -703,7 +703,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best, maxValueGain;
+    int eval, value, best;
     uint16_t currentMove;
     Undo undo[1];
     MovePicker movePicker;
@@ -741,19 +741,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // QSearch can be terminated
     if (alpha >= beta) return value;
     
-    // Take a guess at the best case gain for a non promotion capture
-    if (board->colours[!board->turn] & board->pieces[QUEEN])
-        maxValueGain = PieceValues[QUEEN ][EG] + 55;
-    else if (board->colours[!board->turn] & board->pieces[ROOK])
-        maxValueGain = PieceValues[ROOK  ][EG] + 35;
-    else
-        maxValueGain = PieceValues[BISHOP][EG] + 15;
+    if (hasPawnOnPromotingRank(board)) value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+    if (value + QFutilityMargin + bestCaptureValue(board) < alpha)
+        return eval;
     
-    // Delta pruning when no promotions and not extreme late game
-    if (     value + maxValueGain < alpha
-        && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
-        && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2))
-        return value;
     
     
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
@@ -761,7 +752,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Take a guess at the best case value of this current move
-        value = eval + 55 + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
+        value = eval + QFutilityMargin + PieceValues[PieceType(board->squares[MoveTo(currentMove)])][EG];
         if (MoveType(currentMove) == PROMOTION_MOVE){
             value += PieceValues[1 + (MovePromoType(currentMove) >> 14)][EG];
             value -= PieceValues[PAWN][EG];
@@ -841,4 +832,27 @@ int valueToTT(int value, int height){
     return value >=  MATE - MAX_HEIGHT ? value + height
          : value <= -MATE + MAX_HEIGHT ? value - height
          : value;
+}
+
+int bestCaptureValue(Board* board){
+    
+    uint64_t targets = board->colours[!board->turn];
+    
+    if (targets & board->pieces[QUEEN ]) return PieceValues[QUEEN][EG];
+    
+    if (targets & board->pieces[ROOK  ]) return PieceValues[ROOK ][EG];
+    
+    if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
+        return MAX(
+            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][EG],
+            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][EG]
+        );
+    
+    return PieceValues[PAWN][EG];
+}
+
+int hasPawnOnPromotingRank(Board* board){
+    return     board->pieces[PAWN] 
+            &  board->pieces[board->turn]
+            & (board->turn == WHITE ? RANK_7 : RANK_2);
 }
