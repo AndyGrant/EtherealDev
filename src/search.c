@@ -472,10 +472,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (value >= beta) return beta;
     }
     
-    // Step 11. ProbCut. If we have a good capture that causes a beta cutoff
-    // with a slightly reduced depth search it is likely that this capture is
-    // likely going to be good at a full depth. To save some work we will prune
-    // captures that won't exceed rbeta or captures that fail at a low depth
+    // Step 11. ProbCut. If we have a good enough tactical move that causes a
+    // beta cutoff with a slightly reduced search, it is likely that this tactical
+    // move is going to also cause a beta cutoff at the full depth. To save some
+    // work we will skip any tactical moves that do not exceed rBeta, and any 
+    // tactical moves which fail to exceed rBeta with a depth zero search
     if (   !PvNode
         && !inCheck
         &&  depth >= 5
@@ -487,7 +488,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
-            // 
+            // This move may not exceed rBeta in the ideal case
             if (eval + thisTacticalMoveValue(board, currentMove) < rBeta)
                 continue;
             
@@ -534,7 +535,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
-    
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // If this move is quiet we will save it to a list of attemped
@@ -728,30 +728,28 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Call this a node
     thread->nodes += 1;
     
-    // Max height reached, stop here
+    // Step 2. Max Height Reached. Stop the search if we are at the max height
     if (height >= MAX_HEIGHT)
         return evaluateBoard(board, &ei, &thread->ptable);
     
-    // Get a standing eval of the current board
+    // Step 3. Eval pruning. Get a static eval of the board. If our position
+    // is currently better than alpha, we can set alpha to the eval. This
+    // will hopfully allow us to exit here without generating any moves.
     best = value = eval = evaluateBoard(board, &ei, &thread->ptable);
-    
-    // Update lower bound
     if (value > alpha) alpha = value;
-    
-    // QSearch can be terminated
     if (alpha >= beta) return value;
     
-    // Even the best possible capture and or promotion combo with the
-    // additional of the futility margin would still fall below alpha
+    // Step 4. Delta Pruning. Even the best possible capture and or promotion 
+    // combo with the additional of the futility margin would still fall below alpha
     if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
     
+    // Step 5. Move Loop. Loop through all of the tactical moves for the position.
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
-    
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Suppose we keep any piece we capture, and we keep any piece we promote.
-        // If this value is still less than alpha (-QFutilityMargin) then we continue
+        // Step 6. Futility Pruning. Even the best case of this tactical move will
+        // still fail to beta alpha, even with an added futility margin. Skip it.
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
             continue;
         
