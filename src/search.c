@@ -741,9 +741,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // QSearch can be terminated
     if (alpha >= beta) return value;
     
+    int woulda = 0;
     if (hasPawnOnPromotingRank(board)) value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
     if (value + QFutilityMargin + bestCaptureValue(board) < alpha)
-        return eval;
+        woulda = 1; //return eval;
     
     
     
@@ -761,6 +762,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // If the best case is not good enough, continue
         if (value < alpha)
             continue;
+        
+        if (woulda && MoveType(currentMove) == PROMOTION_MOVE) printf("%d\n",currentMove);
         
         // Prune this capture if it is capturing a weaker piece which is protected,
         // so long as we do not have any additional support for the attacker. If
@@ -838,9 +841,9 @@ int bestCaptureValue(Board* board){
     
     uint64_t targets = board->colours[!board->turn];
     
-    if (targets & board->pieces[QUEEN ]) return PieceValues[QUEEN][EG];
+    if (targets & board->pieces[QUEEN]) return PieceValues[QUEEN][EG];
     
-    if (targets & board->pieces[ROOK  ]) return PieceValues[ROOK ][EG];
+    if (targets & board->pieces[ROOK]) return PieceValues[ROOK][EG];
     
     if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
         return MAX(
@@ -853,6 +856,6 @@ int bestCaptureValue(Board* board){
 
 int hasPawnOnPromotingRank(Board* board){
     return     board->pieces[PAWN] 
-            &  board->pieces[board->turn]
+            &  board->colours[board->turn]
             & (board->turn == WHITE ? RANK_7 : RANK_2);
 }
