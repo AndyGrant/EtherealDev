@@ -64,9 +64,10 @@ int valueFromTT(int value, int height);
 
 int valueToTT(int value, int height);
 
-int bestCaptureValue(Board* board);
+int thisTacticalMoveValue(Board* board, uint16_t move);
 
-int hasPawnOnPromotingRank(Board* board);
+int bestTacticalMoveValue(Board* board);
+
 
 static const int RazorDepth = 4;
 
