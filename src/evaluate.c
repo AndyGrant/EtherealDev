@@ -633,22 +633,15 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     ei->midgame[colour] += KingDefenders[defenderCounts][MG];
     ei->endgame[colour] += KingDefenders[defenderCounts][EG];
     if (TRACE) T.kingDefenders[colour][defenderCounts]++;
+
+    // Scale down attack count if there are no enemy queens
+    attackCounts  = ei->attackCounts[!colour];
+    if (!(board->colours[!colour] & board->pieces[QUEEN]))
+        attackCounts *= .25;
     
-    // If we have two or more threats to our king area, we will apply a penalty
-    // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
-        
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
-        
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
-    
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
-    }
+    if (TRACE) T.kingSafety[colour][0] += attackCounts;
+    if (TRACE) T.kingSafety[colour][1] += attackCounts * attackCounts;
+    if (TRACE) T.kingSafety[colour][2] += attackCounts * attackCounts * attackCounts;
     
     // Evaluate Pawn Shelter. We will evaluate the pawn setup on the king's file,
     // as well as the files next to the king (if there are any). We based the evaluation
