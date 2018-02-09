@@ -181,7 +181,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     for (i = 0; i < NP; i++){
         
-        if ((i + 1) % 1000 == 0 || i == NP - 1)
+        if ((i + 1) % 10000 == 0 || i == NP - 1)
             printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NP);
         
         fgets(line, 128, fin);
@@ -358,24 +358,24 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     cparams[i++][EG] = PawnValue[EG];
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = PawnPSQT32[a][MG];
-        cparams[i][EG] = PawnPSQT32[a][EG];
+        cparams[i][MG] = 0;//PawnPSQT32[a][MG];
+        cparams[i][EG] = 0;//PawnPSQT32[a][EG];
     }
     
-    cparams[i  ][MG] = PawnIsolated[MG];
-    cparams[i++][EG] = PawnIsolated[EG];
+    cparams[i  ][MG] = 0;//PawnIsolated[MG];
+    cparams[i++][EG] = 0;//PawnIsolated[EG];
     
-    cparams[i  ][MG] = PawnStacked[MG];
-    cparams[i++][EG] = PawnStacked[EG];
+    cparams[i  ][MG] = 0;//PawnStacked[MG];
+    cparams[i++][EG] = 0;//PawnStacked[EG];
     
     for (a = 0; a < 2; a++, i++){
-        cparams[i][MG] = PawnBackwards[a][MG];
-        cparams[i][EG] = PawnBackwards[a][EG];
+        cparams[i][MG] = 0;//PawnBackwards[a][MG];
+        cparams[i][EG] = 0;//PawnBackwards[a][EG];
     }
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = PawnConnected32[a][MG];
-        cparams[i][EG] = PawnConnected32[a][EG];
+        cparams[i][MG] = 0;//PawnConnected32[a][MG];
+        cparams[i][EG] = 0;//PawnConnected32[a][EG];
     }
     
     
@@ -385,21 +385,21 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     cparams[i++][EG] = KnightValue[EG];
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = KnightPSQT32[a][MG];
-        cparams[i][EG] = KnightPSQT32[a][EG];
+        cparams[i][MG] = 0;//KnightPSQT32[a][MG];
+        cparams[i][EG] = 0;//KnightPSQT32[a][EG];
     }
     
-    cparams[i  ][MG] = KnightAttackedByPawn[MG];
-    cparams[i++][EG] = KnightAttackedByPawn[EG];
+    cparams[i  ][MG] = 0;//KnightAttackedByPawn[MG];
+    cparams[i++][EG] = 0;//KnightAttackedByPawn[EG];
     
     for (a = 0; a < 2; a++, i++){
-        cparams[i][MG] = KnightOutpost[a][MG];
-        cparams[i][EG] = KnightOutpost[a][EG];
+        cparams[i][MG] = 0;//KnightOutpost[a][MG];
+        cparams[i][EG] = 0;//KnightOutpost[a][EG];
     }
     
     for (a = 0; a < 9; a++, i++){
-        cparams[i][MG] = KnightMobility[a][MG];
-        cparams[i][EG] = KnightMobility[a][EG];
+        cparams[i][MG] = 0;//KnightMobility[a][MG];
+        cparams[i][EG] = 0;//KnightMobility[a][EG];
     }
     
     
@@ -409,27 +409,27 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     cparams[i++][EG] = BishopValue[EG];
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = BishopPSQT32[a][MG];
-        cparams[i][EG] = BishopPSQT32[a][EG];
+        cparams[i][MG] = 0;//BishopPSQT32[a][MG];
+        cparams[i][EG] = 0;//BishopPSQT32[a][EG];
     }
     
-    cparams[i  ][MG] = BishopWings[MG];
-    cparams[i++][EG] = BishopWings[EG];
+    cparams[i  ][MG] = 0;//BishopWings[MG];
+    cparams[i++][EG] = 0;//BishopWings[EG];
     
-    cparams[i  ][MG] = BishopPair[MG];
-    cparams[i++][EG] = BishopPair[EG];
+    cparams[i  ][MG] = 0;//BishopPair[MG];
+    cparams[i++][EG] = 0;//BishopPair[EG];
     
-    cparams[i  ][MG] = BishopAttackedByPawn[MG];
-    cparams[i++][EG] = BishopAttackedByPawn[EG];
+    cparams[i  ][MG] = 0;//BishopAttackedByPawn[MG];
+    cparams[i++][EG] = 0;//BishopAttackedByPawn[EG];
     
     for (a = 0; a < 2; a++, i++){
-        cparams[i][MG] = BishopOutpost[a][MG];
-        cparams[i][EG] = BishopOutpost[a][EG];
+        cparams[i][MG] = 0;//BishopOutpost[a][MG];
+        cparams[i][EG] = 0;//BishopOutpost[a][EG];
     }
     
     for (a = 0; a < 14; a++, i++){
-        cparams[i][MG] = BishopMobility[a][MG];
-        cparams[i][EG] = BishopMobility[a][EG];
+        cparams[i][MG] = 0;//BishopMobility[a][MG];
+        cparams[i][EG] = 0;//BishopMobility[a][EG];
     }
     
     
@@ -439,21 +439,21 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     cparams[i++][EG] = RookValue[EG];
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = RookPSQT32[a][MG];
-        cparams[i][EG] = RookPSQT32[a][EG];
+        cparams[i][MG] = 0;//RookPSQT32[a][MG];
+        cparams[i][EG] = 0;//RookPSQT32[a][EG];
     }
     
     for (a = 0; a < 2; a++, i++){
-        cparams[i][MG] = RookFile[a][MG];
-        cparams[i][EG] = RookFile[a][EG];
+        cparams[i][MG] = 0;//RookFile[a][MG];
+        cparams[i][EG] = 0;//RookFile[a][EG];
     }
     
-    cparams[i  ][MG] = RookOnSeventh[MG];
-    cparams[i++][EG] = RookOnSeventh[EG];
+    cparams[i  ][MG] = 0;//RookOnSeventh[MG];
+    cparams[i++][EG] = 0;//RookOnSeventh[EG];
     
     for (a = 0; a < 15; a++, i++){
-        cparams[i][MG] = RookMobility[a][MG];
-        cparams[i][EG] = RookMobility[a][EG];
+        cparams[i][MG] = 0;//RookMobility[a][MG];
+        cparams[i][EG] = 0;//RookMobility[a][EG];
     }
     
     
@@ -462,40 +462,40 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     cparams[i  ][MG] = QueenValue[MG];
     cparams[i++][EG] = QueenValue[EG];
     
-    cparams[i  ][MG] = QueenChecked[MG];
-    cparams[i++][EG] = QueenChecked[EG];
+    cparams[i  ][MG] = 0;//QueenChecked[MG];
+    cparams[i++][EG] = 0;//QueenChecked[EG];
     
-    cparams[i  ][MG] = QueenCheckedByPawn[MG];
-    cparams[i++][EG] = QueenCheckedByPawn[EG];
+    cparams[i  ][MG] = 0;//QueenCheckedByPawn[MG];
+    cparams[i++][EG] = 0;//QueenCheckedByPawn[EG];
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = QueenPSQT32[a][MG];
-        cparams[i][EG] = QueenPSQT32[a][EG];
+        cparams[i][MG] = 0;//QueenPSQT32[a][MG];
+        cparams[i][EG] = 0;//QueenPSQT32[a][EG];
     }
     
     for (a = 0; a < 28; a++, i++){
-        cparams[i][MG] = QueenMobility[a][MG];
-        cparams[i][EG] = QueenMobility[a][EG];
+        cparams[i][MG] = 0;//QueenMobility[a][MG];
+        cparams[i][EG] = 0;//QueenMobility[a][EG];
     }
     
     
     // Initialize parameters for the kings
     
     for (a = 0; a < 32; a++, i++){
-        cparams[i][MG] = KingPSQT32[a][MG];
-        cparams[i][EG] = KingPSQT32[a][EG];
+        cparams[i][MG] = 0;//KingPSQT32[a][MG];
+        cparams[i][EG] = 0;//KingPSQT32[a][EG];
     }
     
     for (a = 0; a < 12; a++, i++){
-        cparams[i][MG] = KingDefenders[a][MG];
-        cparams[i][EG] = KingDefenders[a][EG];
+        cparams[i][MG] = 0;//KingDefenders[a][MG];
+        cparams[i][EG] = 0;//KingDefenders[a][EG];
     }
     
     for (a = 0; a < 2; a++){
         for (b = 0; b < 2; b++){
             for (c = 0; c < RANK_NB; c++, i++){
-                cparams[i][MG] = KingShelter[a][b][c][MG];
-                cparams[i][EG] = KingShelter[a][b][c][EG];
+                cparams[i][MG] = 0;//KingShelter[a][b][c][MG];
+                cparams[i][EG] = 0;//KingShelter[a][b][c][EG];
             }
         }
     }
@@ -505,8 +505,8 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     for (a = 0; a < 2; a++){
         for (b = 0; b < 2; b++){
             for (c = 0; c < RANK_NB; c++, i++){
-                cparams[i][MG] = PassedPawn[a][b][c][MG];
-                cparams[i][EG] = PassedPawn[a][b][c][EG];
+                cparams[i][MG] = 0;//PassedPawn[a][b][c][MG];
+                cparams[i][EG] = 0;//PassedPawn[a][b][c][EG];
             }
         }
     }

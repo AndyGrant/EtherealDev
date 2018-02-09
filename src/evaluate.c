@@ -48,7 +48,7 @@
 
 extern PawnTable PTable;
 
-const int PawnValue[PHASE_NB] = {  77,  87};
+const int PawnValue[PHASE_NB] = {  256,  256};
 
 const int PawnIsolated[PHASE_NB] = {  -1,  -6};
 
@@ -67,7 +67,7 @@ const int PawnConnected32[32][PHASE_NB] = {
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
-const int KnightValue[PHASE_NB] = { 303, 286};
+const int KnightValue[PHASE_NB] = { 256*3, 256*3};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
 
@@ -79,7 +79,7 @@ const int KnightMobility[9][PHASE_NB] = {
     {  16,   6}, {  23,   8}, {  28,  -5},
 };
 
-const int BishopValue[PHASE_NB] = { 305, 288};
+const int BishopValue[PHASE_NB] = { 256*3, 256*3};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
 
@@ -96,7 +96,7 @@ const int BishopMobility[14][PHASE_NB] = {
     {  30,  19}, {  16,  -1},
 };
 
-const int RookValue[PHASE_NB] = { 417, 462};
+const int RookValue[PHASE_NB] = { 256*5, 256*5};
 
 const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
 
@@ -109,7 +109,7 @@ const int RookMobility[15][PHASE_NB] = {
     {  14,  39}, {  13,  38}, {  11,  33},
 };
 
-const int QueenValue[PHASE_NB] = { 783, 839};
+const int QueenValue[PHASE_NB] = { 256*9, 256*9};
 
 const int QueenChecked[PHASE_NB] = { -43, -30};
 
