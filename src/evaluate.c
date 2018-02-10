@@ -98,7 +98,7 @@ const int BishopMobility[14][PHASE_NB] = {
 
 const int RookValue[PHASE_NB] = { 417, 462};
 
-const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
+const int RookFile[2][PHASE_NB] = { {  10,   8}, {  23,   0} };
 
 const int RookOnSeventh[PHASE_NB] = {   0,   6};
 
