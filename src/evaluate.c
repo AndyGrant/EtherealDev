@@ -140,24 +140,17 @@ const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
    {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}}},
 };
 
+const int KingAreaAttackScalar[PHASE_NB]     = {    0,    0};
+
+const int KingAreaAttackerScalar[PHASE_NB]   = {    0,    0};
+
+const int KingAreaUndefendedSquare[PHASE_NB] = {    0,    0};
+
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
    {{   0,   0}, {  -4,  -5}, { -18,   9}, { -13,  18}, {   6,  31}, {  49,  40}, {  92,  75}, {   0,   0}}},
   {{{   0,   0}, {  -1,   5}, { -11,   5}, {  -8,  17}, {  18,  24}, {  62,  46}, { 120, 120}, {   0,   0}},
    {{   0,   0}, {  -2,   0}, { -12,   5}, { -15,  29}, {  -1,  68}, {  50, 157}, { 139, 254}, {   0,   0}}},
-};
-
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
 const int NoneValue[PHASE_NB] = {   0,   0};
@@ -295,15 +288,14 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
-    ei->attacked[colour] |= ei->pawnAttacks[colour];
-    ei->attackedNoQueen[colour] |= attacks;
+    ei->attacked[colour] = ei->pawnAttacks[colour];
+    ei->attackedNoQueen[colour] = attacks;
     
     // Update the attack counts and attacker counts for pawns for use in
     // the king safety calculation. We just do this for the pawns as a whole,
     // and not individually, to save time, despite the loss in accuracy.
     if (attacks != 0ull){
-        ei->attackCounts[colour] += 2 * popcount(attacks);
+        ei->attackCounts[colour] += popcount(attacks);
         ei->attackerCounts[colour] += 1;
     }
     
@@ -600,7 +592,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // queen for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 4 * popcount(attacks);
+            ei->attackCounts[colour] += 3 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -608,9 +600,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
-    
-    int file, kingFile, kingRank, kingSq, distance;
+    int file, kingFile, kingRank, kingSq, distance, count;
     
     uint64_t filePawns;
     
@@ -629,26 +619,35 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.kingPSQT[colour][kingSq]++;
     
     // Bonus for our pawns and minors sitting within our king area
-    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->midgame[colour] += KingDefenders[defenderCounts][MG];
-    ei->endgame[colour] += KingDefenders[defenderCounts][EG];
-    if (TRACE) T.kingDefenders[colour][defenderCounts]++;
+    count = popcount(myDefenders & ei->kingAreas[colour]);
+    ei->midgame[colour] += KingDefenders[count][MG];
+    ei->endgame[colour] += KingDefenders[count][EG];
+    if (TRACE) T.kingDefenders[colour][count]++;
     
-    // If we have two or more threats to our king area, we will apply a penalty
-    // based on the number of squares attacked, and the strength of the attackers
+    
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        count  =  ei->attackCounts[!colour];
+        count *= (board->colours[!colour] & board->pieces[QUEEN]) ? 1.00 : 0.25;
         
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
-    
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        ei->midgame[colour] += count * KingAreaAttackScalar[MG];
+        ei->endgame[colour] += count * KingAreaAttackScalar[EG];
+        if (TRACE) T.kingAttackCounts[colour] += count;
     }
+    
+    count = ei->attackerCounts[!colour] * ei->attackerCounts[!colour];
+    ei->midgame[colour] += count * KingAreaAttackerScalar[MG];
+    ei->endgame[colour] += count * KingAreaAttackerScalar[EG];
+    if (TRACE) T.kingAttackerCounts[count] += count;
+    
+    count = popcount(    ei->kingAreas[colour]
+                     & ((ei->attacked[!colour] & ~ei->attacked[colour])
+                     |  (ei->attackedBy2[!colour] & ~ei->attackedBy2[colour])));
+    ei->midgame[colour] += count * KingAreaUndefendedSquare[MG];
+    ei->endgame[colour] += count * KingAreaUndefendedSquare[EG];
+    if (TRACE) T.kingAreaUndefended[colour] += count;
+    
+    
     
     // Evaluate Pawn Shelter. We will evaluate the pawn setup on the king's file,
     // as well as the files next to the king (if there are any). We based the evaluation
@@ -729,8 +728,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
     
-    ei->attacked[WHITE] = ei->attackedNoQueen[WHITE] = kingAttacks(wKingSq, ~0ull);
-    ei->attacked[BLACK] = ei->attackedNoQueen[BLACK] = kingAttacks(bKingSq, ~0ull);
+    ei->attackedBy2[WHITE] = 0ull;
+    ei->attackedBy2[BLACK] = 0ull;
     
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));

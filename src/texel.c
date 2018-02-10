@@ -181,7 +181,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     for (i = 0; i < NP; i++){
         
-        if ((i + 1) % 1000 == 0 || i == NP - 1)
+        if ((i + 1) % 100000 == 0 || i == NP - 1)
             printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NP);
         
         fgets(line, 128, fin);
@@ -194,9 +194,9 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         
         // Search, then and apply all moves in the principle variation
         initializeBoard(&thread->board, line);
-        search(thread, &thread->pv, -MATE, MATE, 1, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], &undo);
+        // search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], &undo);
             
         // Get the eval trace for the final position in the pv
         T = EmptyTrace;
@@ -227,6 +227,11 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
 void initializeCoefficients(TexelEntry* te){
     
     int i = 0, a, b, c;
+    
+    te->coeffs[0] = T.kingAttackCounts[WHITE]   - T.kingAttackCounts[BLACK];
+    te->coeffs[1] = T.kingAttackerCounts[WHITE] - T.kingAttackerCounts[BLACK];
+    te->coeffs[2] = T.kingAreaUndefended[WHITE] - T.kingAreaUndefended[BLACK];
+    return;
     
     // Initialize coefficients for the pawns
     
@@ -351,6 +356,8 @@ void initializeCoefficients(TexelEntry* te){
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
+    
+    return ;
     
     // Initialize parameters for the pawns
     
@@ -549,6 +556,10 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         tparams[x][EG] = params[x][EG] + cparams[x][EG];
     }    
     
+    printf("\n const int KingAreaAttackScalar[PHASE_NB]     = {%4d,%4d};\n", (int)tparams[0][MG], (int)tparams[0][EG]);
+    printf("\n const int KingAreaAttackerScalar[PHASE_NB]   = {%4d,%4d};\n", (int)tparams[1][MG], (int)tparams[1][EG]);
+    printf("\n const int KingAreaUndefendedSquare[PHASE_NB] = {%4d,%4d};\n", (int)tparams[2][MG], (int)tparams[2][EG]);
+    return ;
     // Print Pawn Parameters
     
     printf("\nconst int PawnValue[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
