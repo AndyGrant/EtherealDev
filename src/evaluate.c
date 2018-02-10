@@ -633,12 +633,12 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += count * KingAreaAttackScalar[MG];
         ei->endgame[colour] += count * KingAreaAttackScalar[EG];
         if (TRACE) T.kingAttackCounts[colour] += count;
+        
+        count = ei->attackerCounts[!colour] - 1;
+        ei->midgame[colour] += count * KingAreaAttackerScalar[MG];
+        ei->endgame[colour] += count * KingAreaAttackerScalar[EG];
+        if (TRACE) T.kingAttackerCounts[count] += count;
     }
-    
-    count = ei->attackerCounts[!colour] * ei->attackerCounts[!colour];
-    ei->midgame[colour] += count * KingAreaAttackerScalar[MG];
-    ei->endgame[colour] += count * KingAreaAttackerScalar[EG];
-    if (TRACE) T.kingAttackerCounts[count] += count;
     
     count = popcount(    ei->kingAreas[colour]
                      & ((ei->attacked[!colour] & ~ei->attacked[colour])
