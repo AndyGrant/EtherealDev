@@ -140,11 +140,11 @@ const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
    {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}}},
 };
 
-const int KingAreaAttackScalar[PHASE_NB]     = {    0,    0};
+const int KingAreaAttackScalar[PHASE_NB]     = {   -1,   -2};
 
-const int KingAreaAttackerScalar[PHASE_NB]   = {    0,    0};
+const int KingAreaAttackerScalar[PHASE_NB]   = {  -36,  -10};
 
-const int KingAreaUndefendedSquare[PHASE_NB] = {    0,    0};
+const int KingAreaUndefendedSquare[PHASE_NB] = {  -10,    3};
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
