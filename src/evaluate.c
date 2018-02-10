@@ -50,7 +50,7 @@ extern PawnTable PTable;
 
 const int PawnValue[PHASE_NB] = {  77,  87};
 
-const int PawnIsolated[PHASE_NB] = {  -1,  -6};
+const int PawnIsolated[PHASE_NB] = {  -3,  -6};
 
 const int PawnStacked[PHASE_NB] = { -12, -20};
 
@@ -69,9 +69,9 @@ const int PawnConnected32[32][PHASE_NB] = {
 
 const int KnightValue[PHASE_NB] = { 303, 286};
 
-const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
+const int KnightAttackedByPawn[PHASE_NB] = { -23, -29};
 
-const int KnightOutpost[2][PHASE_NB] = { {  12, -14}, {  26,   5} };
+const int KnightOutpost[2][PHASE_NB] = { {  12,   0}, {  26,   5} };
 
 const int KnightMobility[9][PHASE_NB] = {
     { -68, -79}, { -31, -42}, { -13, -16},
@@ -79,28 +79,28 @@ const int KnightMobility[9][PHASE_NB] = {
     {  16,   6}, {  23,   8}, {  28,  -5},
 };
 
-const int BishopValue[PHASE_NB] = { 305, 288};
+const int BishopValue[PHASE_NB] = { 300, 288};
 
-const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
+const int BishopAttackedByPawn[PHASE_NB] = { -18, -27};
 
-const int BishopWings[PHASE_NB] = {  -8,   0};
+const int BishopWings[PHASE_NB] = {   8,   0};
 
 const int BishopPair[PHASE_NB] = {  28,  39};
 
-const int BishopOutpost[2][PHASE_NB] = { {  12, -10}, {  28,  -7} };
+const int BishopOutpost[2][PHASE_NB] = { {  12,   0}, {  28,  -7} };
 
 const int BishopMobility[14][PHASE_NB] = {
     { -53, -63}, { -44, -37}, { -18, -25}, {  -2, -10},
     {   7,  -1}, {  15,   7}, {  20,  12}, {  22,  12},
-    {  25,  16}, {  24,  13}, {  24,  16}, {  29,   7},
-    {  30,  19}, {  16,  -1},
+    {  25,  16}, {  25,  16}, {  25,  16}, {  25,  16},
+    {  25,  16}, {  16,  16},
 };
 
 const int RookValue[PHASE_NB] = { 417, 462};
 
-const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
+const int RookFile[2][PHASE_NB] = { {   6,   4}, {  25,  0} };
 
-const int RookOnSeventh[PHASE_NB] = {   0,   6};
+const int RookOnSeventh[PHASE_NB] = {   0,   7};
 
 const int RookMobility[15][PHASE_NB] = {
     { -96, -87}, { -44, -52}, { -10, -39}, {  -7, -16},
@@ -129,8 +129,8 @@ const int KingValue[PHASE_NB] = { 100, 100};
 
 const int KingDefenders[12][PHASE_NB] = {
     { -16,   0}, { -11,   2}, {  -1,   0}, {   6,   0},
-    {  16,   2}, {  22,   9}, {  36,   6}, {  38,  60},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
+    {  16,   2}, {  22,   9}, {  22,   9}, {  22,   9},
+    {  22,   9}, {  22,   9}, {  22,   9}, {  22,   9},
 };
 
 const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
