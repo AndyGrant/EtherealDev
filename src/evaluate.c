@@ -295,9 +295,8 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
-    ei->attacked[colour] |= ei->pawnAttacks[colour];
-    ei->attackedNoQueen[colour] |= attacks;
+    ei->attacked[colour] = ei->pawnAttacks[colour];
+    ei->attackedNoQueen[colour] = attacks;
     
     // Update the attack counts and attacker counts for pawns for use in
     // the king safety calculation. We just do this for the pawns as a whole,
@@ -612,7 +611,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     int file, kingFile, kingRank, kingSq, distance;
     
-    uint64_t filePawns;
+    uint64_t attacks, filePawns;
     
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
@@ -627,6 +626,12 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // For Tuning Piece Square Table for Kings
     if (TRACE) T.kingPSQT[colour][kingSq]++;
+    
+    // Update the attacks array with the kings attacks. We will use this to
+    // determine whether or not passed pawns may advance safely later on.
+    attacks = kingAttacks(kingSq, ~0ull);
+    ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
+    ei->attacked[colour] |= attacks;
     
     // Bonus for our pawns and minors sitting within our king area
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
@@ -729,8 +734,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
     
-    ei->attacked[WHITE] = ei->attackedNoQueen[WHITE] = kingAttacks(wKingSq, ~0ull);
-    ei->attacked[BLACK] = ei->attackedNoQueen[BLACK] = kingAttacks(bKingSq, ~0ull);
+    ei->attackedBy2[WHITE] = 0ull;
+    ei->attackedBy2[BLACK] = 0ull;
     
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
