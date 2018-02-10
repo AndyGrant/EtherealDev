@@ -71,7 +71,7 @@ const int KnightValue[PHASE_NB] = { 303, 286};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
 
-const int KnightOutpost[2][PHASE_NB] = { {  12, -14}, {  26,   5} };
+const int KnightOutpost[2][PHASE_NB] = { {  12,   0}, {  26,   5} };
 
 const int KnightMobility[9][PHASE_NB] = {
     { -68, -79}, { -31, -42}, { -13, -16},
@@ -87,7 +87,7 @@ const int BishopWings[PHASE_NB] = {  -8,   0};
 
 const int BishopPair[PHASE_NB] = {  28,  39};
 
-const int BishopOutpost[2][PHASE_NB] = { {  12, -10}, {  28,  -7} };
+const int BishopOutpost[2][PHASE_NB] = { {  12,   0}, {  28,  -7} };
 
 const int BishopMobility[14][PHASE_NB] = {
     { -53, -63}, { -44, -37}, { -18, -25}, {  -2, -10},
