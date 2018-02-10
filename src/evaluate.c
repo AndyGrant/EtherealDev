@@ -649,7 +649,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] -= KingSafety[attackCounts];
         ei->endgame[colour] -= KingSafety[attackCounts];
         
-        uint64_t weak = ei->kingAreas[colour] & ei->attacked[!colour] & ~ei->attackedBy2[colour];
+        uint64_t weak = ei->kingAreas[colour] & ei->attackedBy2[!colour] & ~ei->attackedBy2[colour];
         ei->midgame[colour] += popcount(weak) * -7;
         ei->endgame[colour] += popcount(weak) * -3;
     }
