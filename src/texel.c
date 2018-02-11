@@ -352,16 +352,6 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
     
-    cparams[0][MG] = 100;
-    cparams[0][EG] = 100;
-    cparams[1 + 32][MG] = 300;
-    cparams[1 + 32][EG] = 300;
-    cparams[2 + 2 * 32][MG] = 300;
-    cparams[2 + 2 * 32][EG] = 300;
-    cparams[3 + 3 * 32][MG] = 500;
-    cparams[3 + 3 * 32][EG] = 500;
-    cparams[4 + 4 * 32][MG] = 900;
-    cparams[4 + 4 * 32][EG] = 900;
     return ;
     // Initialize parameters for the pawns
     
