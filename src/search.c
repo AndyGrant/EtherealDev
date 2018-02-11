@@ -49,12 +49,38 @@ extern TransTable Table;
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time, double mtg, double inc){
     
-    int i, nthreads = threads[0].nthreads;
+    int i, pieceSq, possibleMoveCnt = 0, size = 0;
+    uint16_t moves[MAX_MOVES];
+    uint16_t possibleMoves[MAX_MOVES];
+    uint64_t moveable = 0ull;
+    
+    // Generate all legal moves for the current position
+    genAllLegalMoves(board, moves, &size);
+    
+    // Set each bit corresponding to whether or not a piece may move
+    for (i = 0; i < size; i++)
+        moveable |= (1ull << MoveFrom(moves[i]));
+    
+    // Pick a random bit from moveable corresponding to square
+    i = rand() % popcount(moveable);
+    for (; i > 0; i--) poplsb(&moveable);
+    pieceSq = getlsb(moveable);
+    
+    // Copy all of the selected pieces moves to a new array
+    for (i = 0; i < size; i++)
+        if (MoveFrom(moves[i]) == pieceSq)
+            possibleMoves[possibleMoveCnt++] = moves[i];
+        
+    // Select a random move from this array
+    return possibleMoves[rand() % possibleMoveCnt];
+    
+    
+    
+    int nthreads = threads[0].nthreads;
     
     SearchInfo info; memset(&info, 0, sizeof(SearchInfo));
     
     pthread_t* pthreads = malloc(sizeof(pthread_t) * nthreads);
-    
     
     // Some initialization for time management
     info.starttime = getRealTime();
