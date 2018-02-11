@@ -181,7 +181,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     for (i = 0; i < NP; i++){
         
-        if ((i + 1) % 1000 == 0 || i == NP - 1)
+        if ((i + 1) % 50000 == 0 || i == NP - 1)
             printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NP);
         
         fgets(line, 128, fin);
@@ -194,7 +194,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         
         // Search, then and apply all moves in the principle variation
         initializeBoard(&thread->board, line);
-        search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        search(thread, &thread->pv, -MATE, MATE, 0, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], &undo);
             
@@ -236,18 +236,18 @@ void initializeCoefficients(TexelEntry* te){
         te->coeffs[i + relativeSquare32(a, WHITE)] += T.pawnPSQT[WHITE][a];
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnPSQT[BLACK][a];
     } i += 32;
-    
-    te->coeffs[i++] = T.pawnIsolated[WHITE] - T.pawnIsolated[BLACK];
-    
-    te->coeffs[i++] = T.pawnStacked[WHITE] - T.pawnStacked[BLACK];
-    
-    for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.pawnBackwards[WHITE][a] - T.pawnBackwards[BLACK][a];
-    
-    for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.pawnConnected[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnConnected[BLACK][a];
-    } i += 32;
+     
+    // te->coeffs[i++] = T.pawnIsolated[WHITE] - T.pawnIsolated[BLACK];
+    // 
+    // te->coeffs[i++] = T.pawnStacked[WHITE] - T.pawnStacked[BLACK];
+    // 
+    // for (a = 0; a < 2; a++)
+    //     te->coeffs[i++] = T.pawnBackwards[WHITE][a] - T.pawnBackwards[BLACK][a];
+    // 
+    // for (a = 0; a < 64; a++){
+    //     te->coeffs[i + relativeSquare32(a, WHITE)] += T.pawnConnected[WHITE][a];
+    //     te->coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnConnected[BLACK][a];
+    // } i += 32;
     
     
     // Initialze coefficients for the knights
@@ -259,13 +259,13 @@ void initializeCoefficients(TexelEntry* te){
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.knightPSQT[BLACK][a];
     } i += 32;
     
-    te->coeffs[i++] = T.knightAttackedByPawn[WHITE] - T.knightAttackedByPawn[BLACK];
-    
-    for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.knightOutpost[WHITE][a] - T.knightOutpost[BLACK][a];
-        
-    for (a = 0; a < 9; a++)
-        te->coeffs[i++] = T.knightMobility[WHITE][a] - T.knightMobility[BLACK][a];
+    // te->coeffs[i++] = T.knightAttackedByPawn[WHITE] - T.knightAttackedByPawn[BLACK];
+    // 
+    // for (a = 0; a < 2; a++)
+    //     te->coeffs[i++] = T.knightOutpost[WHITE][a] - T.knightOutpost[BLACK][a];
+    //     
+    // for (a = 0; a < 9; a++)
+    //     te->coeffs[i++] = T.knightMobility[WHITE][a] - T.knightMobility[BLACK][a];
     
     
     // Initialize coefficients for the bishops
@@ -277,17 +277,17 @@ void initializeCoefficients(TexelEntry* te){
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.bishopPSQT[BLACK][a];
     } i += 32;
     
-    te->coeffs[i++] = T.bishopWings[WHITE] - T.bishopWings[BLACK];
-    
-    te->coeffs[i++] = T.bishopPair[WHITE] - T.bishopPair[BLACK];
-    
-    te->coeffs[i++] = T.bishopAttackedByPawn[WHITE] - T.bishopAttackedByPawn[BLACK];
-    
-    for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.bishopOutpost[WHITE][a] - T.bishopOutpost[BLACK][a];
-        
-    for (a = 0; a < 14; a++)
-        te->coeffs[i++] = T.bishopMobility[WHITE][a] - T.bishopMobility[BLACK][a];
+    // te->coeffs[i++] = T.bishopWings[WHITE] - T.bishopWings[BLACK];
+    // 
+    // te->coeffs[i++] = T.bishopPair[WHITE] - T.bishopPair[BLACK];
+    // 
+    // te->coeffs[i++] = T.bishopAttackedByPawn[WHITE] - T.bishopAttackedByPawn[BLACK];
+    // 
+    // for (a = 0; a < 2; a++)
+    //     te->coeffs[i++] = T.bishopOutpost[WHITE][a] - T.bishopOutpost[BLACK][a];
+    //     
+    // for (a = 0; a < 14; a++)
+    //     te->coeffs[i++] = T.bishopMobility[WHITE][a] - T.bishopMobility[BLACK][a];
     
     
     // Initialize coefficients for the rooks
@@ -299,30 +299,30 @@ void initializeCoefficients(TexelEntry* te){
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.rookPSQT[BLACK][a];
     } i += 32;
     
-    for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.rookFile[WHITE][a] - T.rookFile[BLACK][a];
-        
-    te->coeffs[i++] = T.rookOnSeventh[WHITE] - T.rookOnSeventh[BLACK];
-        
-    for (a = 0; a < 15; a++)
-        te->coeffs[i++] = T.rookMobility[WHITE][a] - T.rookMobility[BLACK][a];
+    // for (a = 0; a < 2; a++)
+    //     te->coeffs[i++] = T.rookFile[WHITE][a] - T.rookFile[BLACK][a];
+    //     
+    // te->coeffs[i++] = T.rookOnSeventh[WHITE] - T.rookOnSeventh[BLACK];
+    //     
+    // for (a = 0; a < 15; a++)
+    //     te->coeffs[i++] = T.rookMobility[WHITE][a] - T.rookMobility[BLACK][a];
     
     
     // Initialize coefficients for the queens
     
     te->coeffs[i++] = T.queenCounts[WHITE] - T.queenCounts[BLACK];
     
-    te->coeffs[i++] = T.queenChecked[WHITE] - T.queenChecked[BLACK];
-    
-    te->coeffs[i++] = T.queenCheckedByPawn[WHITE] - T.queenCheckedByPawn[BLACK];
+    // te->coeffs[i++] = T.queenChecked[WHITE] - T.queenChecked[BLACK];
+    // 
+    // te->coeffs[i++] = T.queenCheckedByPawn[WHITE] - T.queenCheckedByPawn[BLACK];
     
     for (a = 0; a < 64; a++){
         te->coeffs[i + relativeSquare32(a, WHITE)] += T.queenPSQT[WHITE][a];
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.queenPSQT[BLACK][a];
     } i += 32;
     
-    for (a = 0; a < 28; a++)
-        te->coeffs[i++] = T.queenMobility[WHITE][a] - T.queenMobility[BLACK][a];
+    // for (a = 0; a < 28; a++)
+    //     te->coeffs[i++] = T.queenMobility[WHITE][a] - T.queenMobility[BLACK][a];
     
     
     // Intitialize coefficients for the kings
@@ -332,26 +332,37 @@ void initializeCoefficients(TexelEntry* te){
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.kingPSQT[BLACK][a];
     } i += 32;
     
-    for (a = 0; a < 12; a++)
-        te->coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
-    
-    for (a = 0; a < 2; a++)
-        for (b = 0; b < 2; b++)
-            for (c = 0; c < RANK_NB; c++)
-                te->coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
-    
-    // Initialize coefficients for the passed pawns
-    
-    for (a = 0; a < 2; a++)
-        for (b = 0; b < 2; b++)
-            for (c = 0; c < RANK_NB; c++)
-                te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+    // for (a = 0; a < 12; a++)
+    //     te->coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
+    // 
+    // for (a = 0; a < 2; a++)
+    //     for (b = 0; b < 2; b++)
+    //         for (c = 0; c < RANK_NB; c++)
+    //             te->coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
+    // 
+    // // Initialize coefficients for the passed pawns
+    // 
+    // for (a = 0; a < 2; a++)
+    //     for (b = 0; b < 2; b++)
+    //         for (c = 0; c < RANK_NB; c++)
+    //             te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
     
+    cparams[0][MG] = 100;
+    cparams[0][EG] = 100;
+    cparams[1 + 32][MG] = 300;
+    cparams[1 + 32][EG] = 300;
+    cparams[2 + 2 * 32][MG] = 300;
+    cparams[2 + 2 * 32][EG] = 300;
+    cparams[3 + 3 * 32][MG] = 500;
+    cparams[3 + 3 * 32][EG] = 500;
+    cparams[4 + 4 * 32][MG] = 900;
+    cparams[4 + 4 * 32][EG] = 900;
+    return ;
     // Initialize parameters for the pawns
     
     cparams[i  ][MG] = PawnValue[MG];
@@ -560,20 +571,20 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
-    printf("\nconst int PawnIsolated[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int PawnStacked[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int PawnBackwards[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
-            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
-            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
-    
-    printf("\nconst int PawnConnected32[32][PHASE_NB] = {");
-    for (x = 0; x < 8; x++){
-        printf("\n   ");
-        for (y = 0; y < 4; y++, i++)
-            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
-    } printf("\n};\n");
+    // printf("\nconst int PawnIsolated[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int PawnStacked[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int PawnBackwards[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+    //         (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+    //         (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+    // 
+    // printf("\nconst int PawnConnected32[32][PHASE_NB] = {");
+    // for (x = 0; x < 8; x++){
+    //     printf("\n   ");
+    //     for (y = 0; y < 4; y++, i++)
+    //         printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    // } printf("\n};\n");
     
     
     // Print Knight Parameters
@@ -587,18 +598,18 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
-    printf("\nconst int KnightAttackedByPawn[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int KnightOutpost[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
-            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
-            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
-            
-    printf("\nconst int KnightMobility[9][PHASE_NB] = {");
-    for (x = 0; x < 3; x++){
-        printf("\n   ");
-        for (y = 0; y < 3; y++, i++)
-            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
-    } printf("\n};\n");
+    // printf("\nconst int KnightAttackedByPawn[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int KnightOutpost[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+    //         (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+    //         (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+    //         
+    // printf("\nconst int KnightMobility[9][PHASE_NB] = {");
+    // for (x = 0; x < 3; x++){
+    //     printf("\n   ");
+    //     for (y = 0; y < 3; y++, i++)
+    //         printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    // } printf("\n};\n");
     
     
     // Print Bishop Parameters
@@ -612,22 +623,22 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
-    printf("\nconst int BishopWings[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int BishopPair[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int BishopAttackedByPawn[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int BishopOutpost[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
-            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
-            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
-            
-    printf("\nconst int BishopMobility[14][PHASE_NB] = {");
-    for (x = 0; x < 4; x++){
-        printf("\n   ");
-        for (y = 0; y < 4 && 4 * x + y < 14; y++, i++)
-            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
-    } printf("\n};\n");
+    // printf("\nconst int BishopWings[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int BishopPair[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int BishopAttackedByPawn[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int BishopOutpost[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+    //         (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+    //         (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+    //         
+    // printf("\nconst int BishopMobility[14][PHASE_NB] = {");
+    // for (x = 0; x < 4; x++){
+    //     printf("\n   ");
+    //     for (y = 0; y < 4 && 4 * x + y < 14; y++, i++)
+    //         printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    // } printf("\n};\n");
     
     
     // Print Rook Parameters
@@ -641,27 +652,27 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
-    printf("\nconst int RookFile[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
-            (int)tparams[i  ][MG], (int)tparams[i  ][EG],
-            (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
-            
-    printf("\nconst int RookOnSeventh[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-            
-    printf("\nconst int RookMobility[15][PHASE_NB] = {");
-    for (x = 0; x < 4; x++){
-        printf("\n   ");
-        for (y = 0; y < 4 && x * 4 + y < 15; y++, i++)
-            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
-    } printf("\n};\n");
+    // printf("\nconst int RookFile[2][PHASE_NB] = { {%4d,%4d}, {%4d,%4d} };\n",
+    //         (int)tparams[i  ][MG], (int)tparams[i  ][EG],
+    //         (int)tparams[i+1][MG], (int)tparams[i+1][EG]); i += 2;
+    //         
+    // printf("\nconst int RookOnSeventh[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    //         
+    // printf("\nconst int RookMobility[15][PHASE_NB] = {");
+    // for (x = 0; x < 4; x++){
+    //     printf("\n   ");
+    //     for (y = 0; y < 4 && x * 4 + y < 15; y++, i++)
+    //         printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    // } printf("\n};\n");
     
     
     // Print Queen Parameters
     
     printf("\nconst int QueenValue[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
     
-    printf("\nconst int QueenChecked[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
-    
-    printf("\nconst int QueenCheckedByPawn[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // printf("\nconst int QueenChecked[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
+    // 
+    // printf("\nconst int QueenCheckedByPawn[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
     
     printf("\nconst int QueenPSQT32[32][PHASE_NB] = {");
     for (x = 0; x < 8; x++){
@@ -670,12 +681,12 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
             
-    printf("\nconst int QueenMobility[28][PHASE_NB] = {");
-    for (x = 0; x < 7; x++){
-        printf("\n   ");
-        for (y = 0; y < 4; y++, i++)
-            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
-    } printf("\n};\n");
+    // printf("\nconst int QueenMobility[28][PHASE_NB] = {");
+    // for (x = 0; x < 7; x++){
+    //     printf("\n   ");
+    //     for (y = 0; y < 4; y++, i++)
+    //         printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    // } printf("\n};\n");
     
     
     // Print King Parameters
@@ -687,35 +698,37 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     
-    printf("\nconst int KingDefenders[12][PHASE_NB] = {");
-    for (x = 0; x < 3; x++){
-        printf("\n   ");
-        for (y = 0; y < 4; y++, i++)
-            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
-    } printf("\n};\n");
-    
-    printf("\nconst int KingShelter[2][2][RANK_NB][PHASE_NB] = {");
-    for (x = 0; x < 4; x++){
-        printf("\n  %s", x % 2 ? " {" : "{{");
-        for (y = 0; y < RANK_NB; y++, i++){
-            printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
-            printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
-        }
-    } printf("\n};\n");
-    
-    // Print Passed Pawn Parameters
-    
-    printf("\nconst int PassedPawn[2][2][RANK_NB][PHASE_NB] = {");
-    for (x = 0; x < 4; x++){
-        printf("\n  %s", x % 2 ? " {" : "{{");
-        for (y = 0; y < RANK_NB; y++, i++){
-            printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
-            printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
-        }
-    } printf("\n};\n");
+    // printf("\nconst int KingDefenders[12][PHASE_NB] = {");
+    // for (x = 0; x < 3; x++){
+    //     printf("\n   ");
+    //     for (y = 0; y < 4; y++, i++)
+    //         printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    // } printf("\n};\n");
+    // 
+    // printf("\nconst int KingShelter[2][2][RANK_NB][PHASE_NB] = {");
+    // for (x = 0; x < 4; x++){
+    //     printf("\n  %s", x % 2 ? " {" : "{{");
+    //     for (y = 0; y < RANK_NB; y++, i++){
+    //         printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
+    //         printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
+    //     }
+    // } printf("\n};\n");
+    // 
+    // // Print Passed Pawn Parameters
+    // 
+    // printf("\nconst int PassedPawn[2][2][RANK_NB][PHASE_NB] = {");
+    // for (x = 0; x < 4; x++){
+    //     printf("\n  %s", x % 2 ? " {" : "{{");
+    //     for (y = 0; y < RANK_NB; y++, i++){
+    //         printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
+    //         printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
+    //     }
+    // } printf("\n};\n");
 }
 
 double computeOptimalK(TexelEntry* tes){
+    
+    return 1.571015;
     
     int i;
     double start = -10.0, end = 10.0, delta = 1.0;
