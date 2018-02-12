@@ -128,11 +128,19 @@ const int QueenMobility[28][PHASE_NB] = {
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
-const int KingDefenders[8][PHASE_NB];
+const int KingDefenders[8][PHASE_NB] = {
+    { -16,  15}, { -26, -11}, { -11,  -3}, {  -1,   0},
+    {   6,   6}, {  13,   6}, {  11,   6}, {   9,   7},
+};
 
-const float KingSafetyPolynomial[2][PHASE_NB];
+const float KingSafetyPolynomial[2][PHASE_NB] = { {1.019552,0.311701}, {-2.477543,-2.624003} };
 
-const int KingShelter[2][2][RANK_NB][PHASE_NB];
+const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
+  {{{ -14,   3}, {   7,   0}, {   4,   2}, {  -4,   0}, {   0,  -8}, {   4,   1}, {   6,   1}, {   0,   0}},
+   {{  -7,  -5}, {  11,   5}, {   3,   5}, {   6,  -1}, {  -1, -13}, { -35, -18}, { -33, -29}, {   0,   0}}},
+  {{{ -31,   0}, {   7,   1}, {   4,   2}, {   0,   0}, {  -7,   0}, { -17,   0}, { -46, -18}, {   0,   0}},
+   {{  -8,  -5}, {   7,  11}, {  12,   8}, {   1,  -5}, {  -5, -10}, { -14,  -9}, { -57,  -3}, {   0,   0}}},
+};
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
