@@ -39,9 +39,7 @@ void initializeMasks(){
     
     // Initalize the King Area Masks
     for (i = 0; i <SQUARE_NB; i++){
-        KingAreaMasks[i] = KingMap[i] | (KingMap[i] << 8) | (KingMap[i] >> 8);
-        if (File(i) >= 2) KingAreaMasks[i] |= KingMap[i] << 1;
-        if (File(i) <= 5) KingAreaMasks[i] |= KingMap[i] >> 1;
+        KingAreaMasks[i] = KingMap[i];
     }
     
     // Initalize isolated pawn masks
