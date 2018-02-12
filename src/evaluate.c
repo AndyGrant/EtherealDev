@@ -127,19 +127,11 @@ const int QueenMobility[28][PHASE_NB] = {
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
-const int KingDefenders[8][PHASE_NB] = {
-    {  -1,   4}, { -13,  -4}, {  -5,   0}, {   0,   1},
-    {   3,   2}, {   6,   3}, {   4,   2}, {   2,   2},
-};
+const int KingDefenders[8][PHASE_NB];
 
-const float KingSafetyPolynomial[2][PHASE_NB] = { {0.471236,0.670905}, {-0.036087,-0.046724} };
+const float KingSafetyPolynomial[2][PHASE_NB];
 
-const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
-  {{{  -6,   0}, {   3,   0}, {   2,   1}, {  -5,   0}, {  -2,  -2}, {   2,   1}, {   5,   1}, {   0,   0}},
-   {{  -4,  -2}, {   6,   1}, {   0,   1}, {   2,   0}, {  -2,  -4}, { -18,  -6}, { -16,  -9}, {   0,   0}}},
-  {{{ -12,   0}, {   3,   1}, {   1,   1}, {  -2,   0}, {  -6,   0}, {  -7,   0}, { -20,  -5}, {   0,   0}},
-   {{  -4,  -2}, {   3,   3}, {   7,   3}, {  -1,  -1}, {  -5,  -3}, {  -6,  -3}, { -21,  -3}, {   0,   0}}},
-};
+const int KingShelter[2][2][RANK_NB][PHASE_NB];
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
@@ -631,12 +623,16 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Fetch the attacks of our opponent on our king area
         attackCounts = ei->attackCounts[!colour];
         
+        float foo[8] = {0.00, 0.00, 0.40, 0.60, 0.75, 0.90, 0.95, 1.00};
+        attackCounts *= foo[MIN(7, ei->attackerCounts[!colour])];
+        
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
         
-        // Scale the attack counts to the size of the attack area
-        attackCounts *= 21.0 / popcount(ei->kingAreas[colour]);
+        // Scale down attack count if there are no enemy rooks
+        if (!(board->colours[!colour] & board->pieces[ROOK]))
+            attackCounts *= .80;
         
         // Evaluate the X term of the King Safety Polynomial
         ei->midgame[colour] += attackCounts * KingSafetyPolynomial[0][MG];
