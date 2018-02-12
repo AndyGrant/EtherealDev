@@ -127,37 +127,25 @@ const int QueenMobility[28][PHASE_NB] = {
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
-const int KingDefenders[12][PHASE_NB] = {
-    { -16,   0}, { -11,   2}, {  -1,   0}, {   6,   0},
-    {  16,   2}, {  22,   9}, {  36,   6}, {  38,  60},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
+const int KingDefenders[8][PHASE_NB] = {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
-  {{{  -7,   0}, {   5,   0}, {  -2,   0}, {  -2,  -1}, {  -2,  -4}, {   1,  -1}, { -20,  -9}, {   0,   0}},
-   {{  -3,  -1}, {   8,   3}, {   0,   2}, {   9,   0}, {   0,  -7}, { -23,  -3}, {  -6,   4}, {   0,   0}}},
-  {{{ -15,   0}, {   8,   0}, {   1,   0}, {  -5,  -1}, {  -8,  -1}, { -12,  -3}, { -33, -10}, {   0,   0}},
-   {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}}},
+  {{{   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}},
+   {{   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}}},
+  {{{   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}},
+   {{   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}}},
 };
+
+const float KingSafetyPolynomial[2][PHASE_NB] = { { 0.00, 0.00}, { 0.00, 0.00} };
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
    {{   0,   0}, {  -4,  -5}, { -18,   9}, { -13,  18}, {   6,  31}, {  49,  40}, {  92,  75}, {   0,   0}}},
   {{{   0,   0}, {  -1,   5}, { -11,   5}, {  -8,  17}, {  18,  24}, {  62,  46}, { 120, 120}, {   0,   0}},
    {{   0,   0}, {  -2,   0}, { -12,   5}, { -15,  29}, {  -1,  68}, {  50, 157}, { 139, 254}, {   0,   0}}},
-};
-
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
 const int NoneValue[PHASE_NB] = {   0,   0};
@@ -628,26 +616,37 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // For Tuning Piece Square Table for Kings
     if (TRACE) T.kingPSQT[colour][kingSq]++;
     
-    // Bonus for our pawns and minors sitting within our king area
+    // Bonus for our pawns and minors sitting within our king area. This bonus is
+    // capped at 7 since we do not want to encourage every piece being with the king
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->midgame[colour] += KingDefenders[defenderCounts][MG];
-    ei->endgame[colour] += KingDefenders[defenderCounts][EG];
-    if (TRACE) T.kingDefenders[colour][defenderCounts]++;
+    ei->midgame[colour] += KingDefenders[MIN(7, defenderCounts)][MG];
+    ei->endgame[colour] += KingDefenders[MIN(7, defenderCounts)][EG];
+    if (TRACE) T.kingDefenders[colour][MIN(7, defenderCounts)]++;
     
     // If we have two or more threats to our king area, we will apply a penalty
-    // based on the number of squares attacked, and the strength of the attackers
+    // based on the number of squares attacked, and the strength of the attackers.
+    // King Safety is based on a polynomial of the form P = X + X^2
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
+        // Fetch the attacks of our opponent on our king area
         attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
-    
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        
+        // Scale the attack counts to the size of the attack area
+        attackCounts *= 21.0 / popcount(ei->kingAreas[colour]);
+        
+        // Evaluate the X term of the King Safety Polynomial
+        ei->midgame[colour] += attackCounts * KingSafetyPolynomial[0][MG];
+        ei->endgame[colour] += attackCounts * KingSafetyPolynomial[0][EG];
+        if (TRACE) T.kingSafetyPolynomial[colour][0] += attackCounts;
+        
+        // Evaluate the X^2 term of the King Safety Polynomial
+        ei->midgame[colour] += attackCounts * attackCounts * KingSafetyPolynomial[1][MG];
+        ei->endgame[colour] += attackCounts * attackCounts * KingSafetyPolynomial[1][EG];
+        if (TRACE) T.kingSafetyPolynomial[colour][0] += attackCounts * attackCounts;
     }
     
     // Evaluate Pawn Shelter. We will evaluate the pawn setup on the king's file,
@@ -723,8 +722,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnTable* ptable){
     ei->blockedPawns[WHITE] = ((whitePawns << 8) & (white | black)) >> 8;
     ei->blockedPawns[BLACK] = ((blackPawns >> 8) & (white | black)) << 8,
     
-    ei->kingAreas[WHITE] = KingMap[wKingSq] | (1ull << wKingSq) | (KingMap[wKingSq] << 8);
-    ei->kingAreas[BLACK] = KingMap[bKingSq] | (1ull << bKingSq) | (KingMap[bKingSq] >> 8);
+    ei->kingAreas[WHITE] = KingAreaMasks[wKingSq];
+    ei->kingAreas[BLACK] = KingAreaMasks[bKingSq];
     
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);

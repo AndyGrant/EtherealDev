@@ -20,10 +20,12 @@
 #include <stdio.h>
 
 #include "bitboards.h"
+#include "magics.h"
 #include "masks.h"
 #include "piece.h"
 #include "types.h"
 
+uint64_t KingAreaMasks[SQUARE_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
@@ -34,6 +36,13 @@ void initializeMasks(){
     
     int i, j;
     uint64_t files;
+    
+    // Initalize the King Area Masks
+    for (i = 0; i <SQUARE_NB; i++){
+        KingAreaMasks[i] = KingMap[i] | (KingMap[i] << 8) | (KingMap[i] >> 8);
+        if (File(i) >= 2) KingAreaMasks[i] |= KingMap[i] << 1;
+        if (File(i) <= 5) KingAreaMasks[i] |= KingMap[i] >> 1;
+    }
     
     // Initalize isolated pawn masks
     for (i = 0; i < SQUARE_NB; i++){

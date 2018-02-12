@@ -95,7 +95,7 @@ void runTexelTuning(Thread* thread){
     TexelEntry* tes;
     int i, j, iteration = -1;
     double K, thisError, baseRate = 10.0;
-    double rates[NT][PHASE_NB] = {{0}, {0}};
+    double rates[NT][PHASE_NB] = {{1}, {1}};
     double params[NT][PHASE_NB] = {{0}, {0}};
     double cparams[NT][PHASE_NB] = {{0}, {0}};
     
@@ -114,8 +114,8 @@ void runTexelTuning(Thread* thread){
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initializeCurrentParameters(cparams);
     
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    calculateLearningRates(tes, rates);
+    // printf("\n\nScaling Params For Phases and Occurance Rates...");
+    // calculateLearningRates(tes, rates);
     
     printf("\n\nComputing Optimal K Value...");
     K = computeOptimalK(tes);
@@ -181,7 +181,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     for (i = 0; i < NP; i++){
         
-        if ((i + 1) % 1000 == 0 || i == NP - 1)
+        if ((i + 1) % 100000 == 0 || i == NP - 1)
             printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NP);
         
         fgets(line, 128, fin);
@@ -194,7 +194,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         
         // Search, then and apply all moves in the principle variation
         initializeBoard(&thread->board, line);
-        search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        search(thread, &thread->pv, -MATE, MATE, 0, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], &undo);
             
@@ -228,7 +228,7 @@ void initializeCoefficients(TexelEntry* te){
     
     int i = 0, a, b, c;
     
-    // Initialize coefficients for the pawns
+    /*// Initialize coefficients for the pawns
     
     te->coeffs[i++] = T.pawnCounts[WHITE] - T.pawnCounts[BLACK];
     
@@ -330,29 +330,34 @@ void initializeCoefficients(TexelEntry* te){
     for (a = 0; a < 64; a++){
         te->coeffs[i + relativeSquare32(a, WHITE)] += T.kingPSQT[WHITE][a];
         te->coeffs[i + relativeSquare32(a, BLACK)] -= T.kingPSQT[BLACK][a];
-    } i += 32;
+    } i += 32;*/
     
-    for (a = 0; a < 12; a++)
+    for (a = 0; a < 8; a++)
         te->coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
+    
+    for (a = 0; a < 2; a++)
+        te->coeffs[i++] = T.kingSafetyPolynomial[WHITE][a] - T.kingSafetyPolynomial[BLACK][a];
     
     for (a = 0; a < 2; a++)
         for (b = 0; b < 2; b++)
             for (c = 0; c < RANK_NB; c++)
                 te->coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
     
-    // Initialize coefficients for the passed pawns
-    
-    for (a = 0; a < 2; a++)
-        for (b = 0; b < 2; b++)
-            for (c = 0; c < RANK_NB; c++)
-                te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+    // // Initialize coefficients for the passed pawns
+    // 
+    // for (a = 0; a < 2; a++)
+    //     for (b = 0; b < 2; b++)
+    //         for (c = 0; c < RANK_NB; c++)
+    //             te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
     
-    // Initialize parameters for the pawns
+    return ;
+    
+    /*// Initialize parameters for the pawns
     
     cparams[i  ][MG] = PawnValue[MG];
     cparams[i++][EG] = PawnValue[EG];
@@ -509,7 +514,7 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
                 cparams[i][EG] = PassedPawn[a][b][c][EG];
             }
         }
-    }
+    }*/
 }
 
 void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
@@ -550,7 +555,7 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     }    
     
     // Print Pawn Parameters
-    
+    /*
     printf("\nconst int PawnValue[PHASE_NB] = {%4d,%4d};\n", (int)tparams[i][MG], (int)tparams[i][EG]); i++;
     
     printf("\nconst int PawnPSQT32[32][PHASE_NB] = {");
@@ -686,13 +691,17 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         for (y = 0; y < 4; y++, i++)
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
-    
-    printf("\nconst int KingDefenders[12][PHASE_NB] = {");
-    for (x = 0; x < 3; x++){
+    */
+    printf("\nconst int KingDefenders[8][PHASE_NB] = {");
+    for (x = 0; x < 2; x++){
         printf("\n   ");
         for (y = 0; y < 4; y++, i++)
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
+    
+    printf("\nconst float KingSafetyPolynomial[2][PHASE_NB] = { {%f,%f}, {%f,%f} };\n",
+            (float)tparams[i  ][MG], (float)tparams[i  ][EG],
+            (float)tparams[i+1][MG], (float)tparams[i+1][EG]); i += 2;
     
     printf("\nconst int KingShelter[2][2][RANK_NB][PHASE_NB] = {");
     for (x = 0; x < 4; x++){
@@ -703,16 +712,16 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         }
     } printf("\n};\n");
     
-    // Print Passed Pawn Parameters
-    
-    printf("\nconst int PassedPawn[2][2][RANK_NB][PHASE_NB] = {");
-    for (x = 0; x < 4; x++){
-        printf("\n  %s", x % 2 ? " {" : "{{");
-        for (y = 0; y < RANK_NB; y++, i++){
-            printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
-            printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
-        }
-    } printf("\n};\n");
+    // // Print Passed Pawn Parameters
+    // 
+    // printf("\nconst int PassedPawn[2][2][RANK_NB][PHASE_NB] = {");
+    // for (x = 0; x < 4; x++){
+    //     printf("\n  %s", x % 2 ? " {" : "{{");
+    //     for (y = 0; y < RANK_NB; y++, i++){
+    //         printf("{%4d,%4d}", (int)tparams[i][MG], (int)tparams[i][EG]);
+    //         printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
+    //     }
+    // } printf("\n};\n");
 }
 
 double computeOptimalK(TexelEntry* tes){
