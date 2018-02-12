@@ -630,7 +630,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (ei->attackerCounts[!colour] >= 2){
         
         // Fetch the attacks of our opponent on our king area
-        attackCounts = ei->attackCounts[!colour] * 2;
+        attackCounts = ei->attackCounts[!colour] * 4;
         
         float foo[8] = {0.00, 0.00, 0.40, 0.60, 0.75, 0.90, 0.95, 1.00};
         attackCounts *= foo[MIN(7, ei->attackerCounts[!colour])];
