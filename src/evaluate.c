@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "board.h"
 #include "bitboards.h"
@@ -640,9 +641,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.kingSafetyPolynomial[colour][0] += attackCounts;
         
         // Evaluate the X^2 term of the King Safety Polynomial
-        ei->midgame[colour] += attackCounts * attackCounts * KingSafetyPolynomial[1][MG];
-        ei->endgame[colour] += attackCounts * attackCounts * KingSafetyPolynomial[1][EG];
-        if (TRACE) T.kingSafetyPolynomial[colour][1] += attackCounts * attackCounts;
+        ei->midgame[colour] += pow(attackCounts, 1.20) * KingSafetyPolynomial[1][MG];
+        ei->endgame[colour] += pow(attackCounts, 1.20) * KingSafetyPolynomial[1][EG];
+        if (TRACE) T.kingSafetyPolynomial[colour][1] += pow(attackCounts, 1.20);
     }
     
     // Evaluate Pawn Shelter. We will evaluate the pawn setup on the king's file,
