@@ -147,17 +147,15 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -2,   0}, { -12,   5}, { -15,  29}, {  -1,  68}, {  50, 157}, { 139, 254}, {   0,   0}}},
 };
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
+const int KingSafety[64] = { // Taken from CPW / Stockfish
+    0,   0,   1,   2,   3,   5,   7,   9,
+   12,  15,  18,  22,  26,  30,  35,  39,
+   44,  50,  56,  62,  68,  75,  82,  85,
+   89,  97, 105, 113, 122, 131, 140, 150,
+  169, 180, 191, 202, 213, 225, 237, 248,
+  260, 272, 283, 295, 307, 319, 330, 342,
+  354, 366, 377, 389, 401, 412, 424, 436,
+  448, 459, 471, 483, 494, 500, 500, 500
 };
 
 const int NoneValue[PHASE_NB] = {   0,   0};
@@ -638,13 +636,12 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        // Attack counts are capped at 63 (array of 64)
+        attackCounts = MIN(63, ei->attackCounts[!colour]);
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            attackCounts *= .3;
     
         ei->midgame[colour] -= KingSafety[attackCounts];
         ei->endgame[colour] -= KingSafety[attackCounts];
