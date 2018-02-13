@@ -133,12 +133,7 @@ const int KingDefenders[12][PHASE_NB] = {
     {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
 };
 
-const int KingShelter[2][2][RANK_NB][PHASE_NB] = {
-  {{{  -7,   0}, {   5,   0}, {  -2,   0}, {  -2,  -1}, {  -2,  -4}, {   1,  -1}, { -20,  -9}, {   0,   0}},
-   {{  -3,  -1}, {   8,   3}, {   0,   2}, {   9,   0}, {   0,  -7}, { -23,  -3}, {  -6,   4}, {   0,   0}}},
-  {{{ -15,   0}, {   8,   0}, {   1,   0}, {  -5,  -1}, {  -8,  -1}, { -12,  -3}, { -33, -10}, {   0,   0}},
-   {{  -6,  -2}, {   3,  10}, {  11,   3}, {   3,  -3}, {   0,  -4}, { -13,  11}, { -25,   2}, {   0,   0}}},
-};
+const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] ;
 
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
@@ -657,15 +652,16 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // distance of at least one. The bonus changes by file and location of the king.
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
-        filePawns = myPawns & Files[file];
+        filePawns = myPawns & Files[file] & RanksAtOrAboveMasks[colour][kingRank];
         
-        distance = filePawns ? colour == WHITE ? MAX(1, abs(kingRank - Rank(getlsb(filePawns))))
-                                               : MAX(1, abs(kingRank - Rank(getmsb(filePawns))))
-                                               : 0;
+        distance = filePawns ? 
+                   colour == WHITE ? Rank(getlsb(filePawns)) - kingRank
+                                   : kingRank - Rank(getmsb(filePawns))
+                                   : 7;
 
-        ei->midgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][MG];
-        ei->endgame[colour] += KingShelter[file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance][EG];
-        if (TRACE) T.kingShelter[colour][file == kingFile][!!(myKings & (FILE_D | FILE_E))][distance]++;
+        ei->midgame[colour] += KingShelter[file == kingFile][file][distance][MG];
+        ei->endgame[colour] += KingShelter[file == kingFile][file][distance][EG];
+        if (TRACE) T.kingShelter[colour][file == kingFile][file][distance]++;
     }    
 }
 
