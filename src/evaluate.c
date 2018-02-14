@@ -627,6 +627,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     uint64_t filePawns;
     
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myRooks = board->pieces[ROOK] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
@@ -671,7 +672,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
-        filePawns = myPawns & Files[file] & RanksAtOrAboveMasks[colour][kingRank];
+        filePawns = (myPawns | myRooks) & Files[file] & RanksAtOrAboveMasks[colour][kingRank];
         
         distance = filePawns ? 
                    colour == WHITE ? Rank(getlsb(filePawns)) - kingRank
