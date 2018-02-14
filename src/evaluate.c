@@ -654,6 +654,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts = ei->attackCounts[!colour];
         attackCounts = attackCounts >= 100 ? 99 : attackCounts;
         
+        attackCounts += popcount(ei->kingAreas[colour] & ei->attacked[!colour] & ~ei->attackedBy2[colour]);
+        
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
