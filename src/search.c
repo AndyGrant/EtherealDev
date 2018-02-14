@@ -512,6 +512,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
+    int didIID = 0;
+    
     // Step 12. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
@@ -524,6 +526,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
             ttMove = ttEntry.bestMove;
+        
+        didIID = 1;
     }
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
@@ -545,7 +549,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
             &&  isQuiet
-            &&  played >= 1
+            &&  played >= 1 + didIID
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             continue;
@@ -556,7 +560,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (    !PvNode
             &&  !isQuiet
             &&  !inCheck
-            &&   played >= 1
+            &&   played >= 1 + didIID
             &&   depth <= 5
             &&   MoveType(currentMove) != ENPASS_MOVE
             &&   MoveType(currentMove) != PROMOTION_MOVE
@@ -588,7 +592,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // anything from this move, we can undo it and move on.
         if (   !PvNode
             &&  isQuiet
-            &&  played >= 1
+            &&  played >= 1 + didIID
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth]
             &&  isNotInCheck(board, board->turn)){
@@ -603,7 +607,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
-        if (    played >= 4
+        if (    played >= 4 + didIID
             &&  depth >= 3
             &&  isQuiet){
             
