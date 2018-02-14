@@ -137,9 +137,16 @@ void runTexelTuning(Thread* thread){
             for (i = 0; i < NP; i++){
                 thisError = singleLinearError(tes[i], params, K);
                 
-                for (j = 0; j < NT; j++){
-                    localgradients[j][MG] += thisError * tes[i].coeffs[j] * tes[i].factors[MG];
-                    localgradients[j][EG] += thisError * tes[i].coeffs[j] * tes[i].factors[EG];
+                // Update the gradients for each of the terms used in this position
+                for (j = 0; j < tes[i].ntuples; j++){
+
+                    localgradients[tes[i].tuples[j].index][MG] += thisError 
+                                                                * tes[i].tuples[j].coeff
+                                                                * tes[i].factors[MG];
+
+                    localgradients[tes[i].tuples[j].index][EG] += thisError 
+                                                                * tes[i].tuples[j].coeff 
+                                                                * tes[i].factors[EG];
                 }
             }
             
@@ -158,11 +165,12 @@ void runTexelTuning(Thread* thread){
 
 void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
-    int i, j;
+    int i, j, k;
     Undo undo;
     EvalInfo ei;
     Limits limits;
     char line[128];
+    int coeffs[NT];
     
     // Initialize limits for the search
     limits.limitedByNone  = 0;
@@ -181,12 +189,12 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     for (i = 0; i < NP; i++){
         
-        if ((i + 1) % 1000 == 0 || i == NP - 1)
+        if ((i + 1) % 100000 == 0 || i == NP - 1)
             printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NP);
         
         fgets(line, 128, fin);
         
-        // Determine the result of the game
+           // Determine the result of the game
         if      (strstr(line, "1-0")) tes[i].result = 1.0;
         else if (strstr(line, "1/2")) tes[i].result = 0.5;
         else if (strstr(line, "0-1")) tes[i].result = 0.0;
@@ -214,138 +222,161 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         tes[i].factors[MG] = 1 - tes[i].phase / 24.0;
         tes[i].factors[EG] =     tes[i].phase / 24.0;
         
-        // Finish determining the phase
+        // Finish determining the phase to match the final phase factor
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
         
-        // Fill out tes[i].coeffs
-        initializeCoefficients(&tes[i]);
+        // Dump evaluation terms into coeffs
+        initializeCoefficients(coeffs);
+
+        // Determine how many terms actually apply to this position. We do this
+        // since the vast majority of terms are not used in a given position.
+        for (k = 0, j = 0; j < NT; j++)
+            k += coeffs[j] != 0; 
+
+        // Allocate the Texel Tuples. Could and should be wrapped with our own
+        // memory managment because this will force an allocation of NP tuple sets        
+        tes[i].tuples = malloc(sizeof(TexelTuple) * k);
+        tes[i].ntuples = k;
+
+        // Finally, initialize the tuples with the coefficients and index
+        for (k = 0, j = 0; j < NT; j++){
+            if (coeffs[j] != 0){
+                
+                // Initialize the Kth tuple
+                tes[i].tuples[k].index = j,
+                tes[i].tuples[k].coeff = coeffs[j],
+                
+                 // Clear coeffs for next use
+                coeffs[j] = 0;
+            }
+        }
     }
     
     fclose(fin);
 }
 
-void initializeCoefficients(TexelEntry* te){
+void initializeCoefficients(int* coeffs){
     
     int i = 0, a, b, c;
     
     // Initialize coefficients for the pawns
     
-    te->coeffs[i++] = T.pawnCounts[WHITE] - T.pawnCounts[BLACK];
+    coeffs[i++] = T.pawnCounts[WHITE] - T.pawnCounts[BLACK];
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.pawnPSQT[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnPSQT[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.pawnPSQT[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnPSQT[BLACK][a];
     } i += 32;
     
-    te->coeffs[i++] = T.pawnIsolated[WHITE] - T.pawnIsolated[BLACK];
+    coeffs[i++] = T.pawnIsolated[WHITE] - T.pawnIsolated[BLACK];
     
-    te->coeffs[i++] = T.pawnStacked[WHITE] - T.pawnStacked[BLACK];
+    coeffs[i++] = T.pawnStacked[WHITE] - T.pawnStacked[BLACK];
     
     for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.pawnBackwards[WHITE][a] - T.pawnBackwards[BLACK][a];
+        coeffs[i++] = T.pawnBackwards[WHITE][a] - T.pawnBackwards[BLACK][a];
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.pawnConnected[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnConnected[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.pawnConnected[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.pawnConnected[BLACK][a];
     } i += 32;
     
     
     // Initialze coefficients for the knights
     
-    te->coeffs[i++] = T.knightCounts[WHITE] - T.knightCounts[BLACK];
+    coeffs[i++] = T.knightCounts[WHITE] - T.knightCounts[BLACK];
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.knightPSQT[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.knightPSQT[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.knightPSQT[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.knightPSQT[BLACK][a];
     } i += 32;
     
-    te->coeffs[i++] = T.knightAttackedByPawn[WHITE] - T.knightAttackedByPawn[BLACK];
+    coeffs[i++] = T.knightAttackedByPawn[WHITE] - T.knightAttackedByPawn[BLACK];
     
     for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.knightOutpost[WHITE][a] - T.knightOutpost[BLACK][a];
+        coeffs[i++] = T.knightOutpost[WHITE][a] - T.knightOutpost[BLACK][a];
         
     for (a = 0; a < 9; a++)
-        te->coeffs[i++] = T.knightMobility[WHITE][a] - T.knightMobility[BLACK][a];
+        coeffs[i++] = T.knightMobility[WHITE][a] - T.knightMobility[BLACK][a];
     
     
     // Initialize coefficients for the bishops
     
-    te->coeffs[i++] = T.bishopCounts[WHITE] - T.bishopCounts[BLACK];
+    coeffs[i++] = T.bishopCounts[WHITE] - T.bishopCounts[BLACK];
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.bishopPSQT[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.bishopPSQT[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.bishopPSQT[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.bishopPSQT[BLACK][a];
     } i += 32;
     
-    te->coeffs[i++] = T.bishopWings[WHITE] - T.bishopWings[BLACK];
+    coeffs[i++] = T.bishopWings[WHITE] - T.bishopWings[BLACK];
     
-    te->coeffs[i++] = T.bishopPair[WHITE] - T.bishopPair[BLACK];
+    coeffs[i++] = T.bishopPair[WHITE] - T.bishopPair[BLACK];
     
-    te->coeffs[i++] = T.bishopAttackedByPawn[WHITE] - T.bishopAttackedByPawn[BLACK];
+    coeffs[i++] = T.bishopAttackedByPawn[WHITE] - T.bishopAttackedByPawn[BLACK];
     
     for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.bishopOutpost[WHITE][a] - T.bishopOutpost[BLACK][a];
+        coeffs[i++] = T.bishopOutpost[WHITE][a] - T.bishopOutpost[BLACK][a];
         
     for (a = 0; a < 14; a++)
-        te->coeffs[i++] = T.bishopMobility[WHITE][a] - T.bishopMobility[BLACK][a];
+        coeffs[i++] = T.bishopMobility[WHITE][a] - T.bishopMobility[BLACK][a];
     
     
     // Initialize coefficients for the rooks
     
-    te->coeffs[i++] = T.rookCounts[WHITE] - T.rookCounts[BLACK];
+    coeffs[i++] = T.rookCounts[WHITE] - T.rookCounts[BLACK];
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.rookPSQT[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.rookPSQT[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.rookPSQT[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.rookPSQT[BLACK][a];
     } i += 32;
     
     for (a = 0; a < 2; a++)
-        te->coeffs[i++] = T.rookFile[WHITE][a] - T.rookFile[BLACK][a];
+        coeffs[i++] = T.rookFile[WHITE][a] - T.rookFile[BLACK][a];
         
-    te->coeffs[i++] = T.rookOnSeventh[WHITE] - T.rookOnSeventh[BLACK];
+    coeffs[i++] = T.rookOnSeventh[WHITE] - T.rookOnSeventh[BLACK];
         
     for (a = 0; a < 15; a++)
-        te->coeffs[i++] = T.rookMobility[WHITE][a] - T.rookMobility[BLACK][a];
+        coeffs[i++] = T.rookMobility[WHITE][a] - T.rookMobility[BLACK][a];
     
     
     // Initialize coefficients for the queens
     
-    te->coeffs[i++] = T.queenCounts[WHITE] - T.queenCounts[BLACK];
+    coeffs[i++] = T.queenCounts[WHITE] - T.queenCounts[BLACK];
     
-    te->coeffs[i++] = T.queenChecked[WHITE] - T.queenChecked[BLACK];
+    coeffs[i++] = T.queenChecked[WHITE] - T.queenChecked[BLACK];
     
-    te->coeffs[i++] = T.queenCheckedByPawn[WHITE] - T.queenCheckedByPawn[BLACK];
+    coeffs[i++] = T.queenCheckedByPawn[WHITE] - T.queenCheckedByPawn[BLACK];
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.queenPSQT[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.queenPSQT[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.queenPSQT[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.queenPSQT[BLACK][a];
     } i += 32;
     
     for (a = 0; a < 28; a++)
-        te->coeffs[i++] = T.queenMobility[WHITE][a] - T.queenMobility[BLACK][a];
+        coeffs[i++] = T.queenMobility[WHITE][a] - T.queenMobility[BLACK][a];
     
     
     // Intitialize coefficients for the kings
     
     for (a = 0; a < 64; a++){
-        te->coeffs[i + relativeSquare32(a, WHITE)] += T.kingPSQT[WHITE][a];
-        te->coeffs[i + relativeSquare32(a, BLACK)] -= T.kingPSQT[BLACK][a];
+        coeffs[i + relativeSquare32(a, WHITE)] += T.kingPSQT[WHITE][a];
+        coeffs[i + relativeSquare32(a, BLACK)] -= T.kingPSQT[BLACK][a];
     } i += 32;
     
     for (a = 0; a < 12; a++)
-        te->coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
+        coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
     
     for (a = 0; a < 2; a++)
         for (b = 0; b < 2; b++)
             for (c = 0; c < RANK_NB; c++)
-                te->coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
+                coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
     
     // Initialize coefficients for the passed pawns
     
     for (a = 0; a < 2; a++)
         for (b = 0; b < 2; b++)
             for (c = 0; c < RANK_NB; c++)
-                te->coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+                coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -544,6 +575,8 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     
     double tparams[NT][PHASE_NB];
     
+    // We must first combine the original params and the update's
+    // to the params before having the final parameter outputs
     for (x = 0; x < NT; x++){
         tparams[x][MG] = params[x][MG] + cparams[x][MG];
         tparams[x][EG] = params[x][EG] + cparams[x][EG];
@@ -786,9 +819,9 @@ double linearEvaluation(TexelEntry te, double params[NT][PHASE_NB]){
     int i;
     double mg = 0, eg = 0;
     
-    for (i = 0; i < NT; i++){
-        mg += te.coeffs[i] * params[i][MG];
-        eg += te.coeffs[i] * params[i][EG];
+    for (i = 0; i < te.ntuples; i++){
+        mg += te.tuples[i].coeff * params[te.tuples[i].index][MG];
+        eg += te.tuples[i].coeff * params[te.tuples[i].index][EG];
     }
     
     return te.eval + ((mg * (256 - te.phase) + eg * te.phase) / 256.0);
