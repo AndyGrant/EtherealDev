@@ -417,10 +417,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = inCheck || !isNotInCheck(board, board->turn);
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->ptable);
-        futilityMargin = eval + 70 * depth;
-    }
+    eval = evaluateBoard(board, &ei, &thread->ptable);
+    futilityMargin = eval + 70 * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -612,6 +610,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            R -=    !inCheck 
+                 &&  eval > alpha
+                 && !isNotInCheck(board, board->turn)
+                 && squareIsAttacked(board, !board->turn, MoveTo(currentMove));
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
