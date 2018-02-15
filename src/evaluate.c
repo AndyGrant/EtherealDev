@@ -48,133 +48,69 @@
 
 extern PawnTable PTable;
 
-const int PawnValue[PHASE_NB] = {  77,  87};
+const int PawnValue[PHASE_NB] = {  128,  146};
 
-const int PawnIsolated[PHASE_NB] = {  -1,  -6};
+const int PawnIsolated[PHASE_NB];// = {  -1,  -6};
 
-const int PawnStacked[PHASE_NB] = { -12, -20};
+const int PawnStacked[PHASE_NB];// = { -12, -20};
 
-const int PawnBackwards[2][PHASE_NB] = { {   0,  -3}, { -10, -10} };
+const int PawnBackwards[2][PHASE_NB];// = { {   0,  -3}, { -10, -10} };
 
-const int PawnConnected32[32][PHASE_NB] = {
-    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
-    {  -1,  -6}, {   2,   0}, {   2,  -1}, {   2,  12},
-    {   9,   1}, {   6,   1}, {   2,   3}, {   7,   3},
-    {   5,   2}, {   7,   3}, {   4,   2}, {  11,   5},
-    {   3,   9}, {  11,  12}, {   8,  11}, {  25,  17},
-    {  12,  19}, {  24,  27}, {  52,  27}, {  41,  29},
-    {  54,  11}, {  51,   6}, {  53,  20}, {  42,  20},
-    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
-};
+const int PawnConnected32[32][PHASE_NB];
 
-const int KnightValue[PHASE_NB] = { 303, 286};
 
-const int KnightAttackedByPawn[PHASE_NB] = { -24, -24};
+const int KnightValue[PHASE_NB] = { 384, 364};
 
-const int KnightOutpost[2][PHASE_NB] = { {  12, -14}, {  26,   5} };
+const int KnightAttackedByPawn[PHASE_NB];// = { -24, -24};
 
-const int KnightMobility[9][PHASE_NB] = {
-    { -68, -79}, { -31, -42}, { -13, -16},
-    {   0,  -6}, {   4,  -3}, {   7,   8},
-    {  16,   6}, {  23,   8}, {  28,  -5},
-};
+const int KnightOutpost[2][PHASE_NB];// = { {  12, -14}, {  26,   5} };
 
-const int BishopValue[PHASE_NB] = { 305, 288};
+const int KnightMobility[9][PHASE_NB];
 
-const int BishopAttackedByPawn[PHASE_NB] = { -24, -24};
 
-const int BishopWings[PHASE_NB] = {  -8,   0};
+const int BishopValue[PHASE_NB] = { 384, 394};
 
-const int BishopPair[PHASE_NB] = {  28,  39};
+const int BishopAttackedByPawn[PHASE_NB];// = { -24, -24};
 
-const int BishopOutpost[2][PHASE_NB] = { {  12, -10}, {  28,  -7} };
+const int BishopWings[PHASE_NB];// = {  -8,   0};
 
-const int BishopMobility[14][PHASE_NB] = {
-    { -53, -63}, { -44, -37}, { -18, -25}, {  -2, -10},
-    {   7,  -1}, {  15,   7}, {  20,  12}, {  22,  12},
-    {  25,  16}, {  24,  13}, {  24,  16}, {  29,   7},
-    {  30,  19}, {  16,  -1},
-};
+const int BishopPair[PHASE_NB];// = {  28,  39};
 
-const int RookValue[PHASE_NB] = { 417, 462};
+const int BishopOutpost[2][PHASE_NB];// = { {  12, -10}, {  28,  -7} };
 
-const int RookFile[2][PHASE_NB] = { {   6,   4}, {  23,  -2} };
+const int BishopMobility[14][PHASE_NB];
 
-const int RookOnSeventh[PHASE_NB] = {   0,   6};
 
-const int RookMobility[15][PHASE_NB] = {
-    { -96, -87}, { -44, -52}, { -10, -39}, {  -7, -16},
-    {  -6,  -5}, {  -4,   6}, {  -4,  17}, {  -3,  22},
-    {   1,  26}, {   7,  27}, {  10,  32}, {  14,  37},
-    {  14,  39}, {  13,  38}, {  11,  33},
-};
+const int RookValue[PHASE_NB] = { 128*5, 128*5};
 
-const int QueenValue[PHASE_NB] = { 783, 839};
+const int RookFile[2][PHASE_NB];// = { {   6,   4}, {  23,  -2} };
 
-const int QueenChecked[PHASE_NB] = { -43, -30};
+const int RookOnSeventh[PHASE_NB];// = {   0,   6};
 
-const int QueenCheckedByPawn[PHASE_NB] = { -55, -36};
+const int RookMobility[15][PHASE_NB] ;
 
-const int QueenMobility[28][PHASE_NB] = {
-    {-196, -50}, { -76,-341}, { -78,-137}, { -42, -91},
-    { -29, -92}, { -26, -46}, { -19, -49}, { -14, -50},
-    { -11, -46}, {  -8, -39}, {  -5, -27}, {  -3, -20},
-    {  -1, -13}, {  -1,  -5}, {   1,  -1}, {   0,   7},
-    {   0,  14}, {   1,  17}, {   0,  17}, {   4,  26},
-    {   5,  27}, {  14,  28}, {  20,  32}, {  27,  32},
-    {  31,  33}, {  29,  22}, {  35,  43}, {  13,  30},
-};
+
+const int QueenValue[PHASE_NB] = { 128*9, 128*9};
+
+const int QueenChecked[PHASE_NB];// = { -43, -30};
+
+const int QueenCheckedByPawn[PHASE_NB];// = { -55, -36};
+
+const int QueenMobility[28][PHASE_NB];
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
-const int KingDefenders[12][PHASE_NB] = {
-    { -16,   0}, { -11,   2}, {  -1,   0}, {   6,   0},
-    {  16,   2}, {  22,   9}, {  36,   6}, {  38,  60},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
-};
+const int KingDefenders[12][PHASE_NB];
 
-const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {
-  {{{  -6,  -6}, {   7,  -9}, {  14,  -2}, {   5, -10}, {  15, -14}, { -14, -23}, {  25, -14}, { -14,  15}},
-   {{  -1,   2}, {   7,  -4}, {  20,  -5}, {   0,  -6}, {   3, -19}, { -60,  15}, { -88, -40}, { -13,   2}},
-   {{   5,   0}, {   2,  -1}, {  -6,   1}, {   0,  -2}, {  10,  -3}, {  42, -25}, {  -9, -35}, {  -5,   0}},
-   {{  10,  11}, {   8,  -1}, {   0,  -3}, {  11,  -2}, {   3, -11}, { -15, -17}, {  -9,   7}, {   0,  -2}},
-   {{   0,  12}, {   1,   4}, {  -8,   1}, { -13, -11}, { -21, -23}, { -17, -33}, {  14, -28}, {  -8,  -2}},
-   {{   5,   0}, {   9,   3}, {   0,   0}, {  -4,  -8}, {  12, -15}, {   4,   0}, {  15,  10}, {  -9,   0}},
-   {{   2,  -1}, {   0,  -7}, {  -8,  -5}, {  -8,  -7}, { -19, -18}, { -34,  -6}, {  35,   6}, { -16,   6}},
-   {{  -9,  -8}, {   0,  -3}, {   3,   2}, {   1,   3}, { -15,  -5}, {  -8,  24}, {   1,  26}, { -12,  10}}},
-  {{{   0,   0}, { -12, -15}, {   0, -10}, { -23,   7}, {  -8,  44}, { -25, 100}, {  51, -35}, { -25,   8}},
-   {{   0,   0}, {  11,   4}, {  15,  -1}, {  -5,   5}, {   6,   4}, { -76,  -6}, {-225,  -4}, { -21,   5}},
-   {{   0,   0}, {  11,   0}, {   4,  -5}, {  18,  -9}, {  16,   1}, { -63, -24}, { -67,-100}, {  -6,   0}},
-   {{   0,   0}, {   7,   3}, {   1,  14}, { -16, -10}, { -15,  -7}, {   0,  -5}, { -36,   8}, { -11,  -5}},
-   {{   0,   0}, {   2,  10}, {  10,   2}, {   7,  -8}, {  -2, -14}, {  -9, -17}, { -35,  12}, {  -1,  -5}},
-   {{   0,   0}, {   0,   2}, {  -3,   0}, {  -8,  -8}, {   3,  -9}, { -32,  -5}, { -43,  65}, { -13,   0}},
-   {{   0,   0}, {   5,   0}, {   1,   2}, {  -1,  -3}, { -14,  -8}, {  -5,  16}, {  13, -65}, { -26,   5}},
-   {{   0,   0}, {   0, -10}, {   4,  -6}, { -26,  -2}, { -16,  19}, { -10,  -5}, { -62, -21}, { -24,   6}}}
-};
+const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB];
 
-const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
-  {{{   0,   0}, { -11,  -8}, { -17,   5}, { -17,   3}, {  10,  17}, {  38,  17}, {  71,  35}, {   0,   0}},
-   {{   0,   0}, {  -4,  -5}, { -18,   9}, { -13,  18}, {   6,  31}, {  49,  40}, {  92,  75}, {   0,   0}}},
-  {{{   0,   0}, {  -1,   5}, { -11,   5}, {  -8,  17}, {  18,  24}, {  62,  46}, { 120, 120}, {   0,   0}},
-   {{   0,   0}, {  -2,   0}, { -12,   5}, { -15,  29}, {  -1,  68}, {  50, 157}, { 139, 254}, {   0,   0}}},
-};
+const int PassedPawn[2][2][RANK_NB][PHASE_NB];
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
-};
+const int KingSafety[100];
 
 const int NoneValue[PHASE_NB] = {   0,   0};
 
-const int Tempo[COLOUR_NB][PHASE_NB] = { {  20,  10}, { -20, -10} };
+const int Tempo[COLOUR_NB][PHASE_NB];// = { {  20,  10}, { -20, -10} };
 
 const int* PieceValues[8] = {
     PawnValue, KnightValue, BishopValue, RookValue,
