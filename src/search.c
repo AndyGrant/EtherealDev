@@ -612,7 +612,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += 2 * !PvNode;
             
             R -=    !inCheck 
-                 &&  eval > alpha
+                 &&  eval > beta
                  && !isNotInCheck(board, board->turn)
                  && squareIsAttacked(board, !board->turn, MoveTo(currentMove));
             
