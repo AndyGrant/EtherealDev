@@ -36,6 +36,11 @@
 #include "types.h"
 #include "uci.h"
 
+// Our own memory managment for Texel Tuning
+TexelTuple* TupleStack;
+int TupleStackSize;
+int TupleStackOriginalSize;
+
 // Hack so we can lower the table size for speed
 extern TransTable Table;
 
@@ -94,19 +99,24 @@ void runTexelTuning(Thread* thread){
     
     TexelEntry* tes;
     int i, j, iteration = -1;
-    double K, thisError, baseRate = 10.0;
-    double rates[NT][PHASE_NB] = {{0}, {0}};
-    double params[NT][PHASE_NB] = {{0}, {0}};
-    double cparams[NT][PHASE_NB] = {{0}, {0}};
+    float K, thisError, baseRate = 10.0;
+    float rates[NT][PHASE_NB] = {{0}, {0}};
+    float params[NT][PHASE_NB] = {{0}, {0}};
+    float cparams[NT][PHASE_NB] = {{0}, {0}};
     
     setvbuf(stdout, NULL, _IONBF, 0);
     
     printf("\nSetting Transposition Table to 1MB...");
     initializeTranspositionTable(&Table, 1);
     
-    printf("\n\nAllocating Memory for Texel Tuner [%dMB]...",
+    printf("\n\nAllocating Memory for Texel Tuner Structs [%dMB]...",
            (int)(NP * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NP, sizeof(TexelEntry));
+    
+    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]...",
+            (int)(StackSize * sizeof(TexelTuple) / (1024 * 1024)));
+    TupleStack = calloc(StackSize, sizeof(TexelTuple));
+    TupleStackOriginalSize = TupleStackSize = StackSize;
     
     printf("\n\nReading and Initializing Texel Entries from FENS...");
     initializeTexelEntries(tes, thread);
@@ -129,10 +139,10 @@ void runTexelTuning(Thread* thread){
             printf("\nIteration [%d] Error = %g \n", iteration, completeLinearError(tes, params, K));
         }
                 
-        double gradients[NT][PHASE_NB] = {{0}, {0}};
+        float gradients[NT][PHASE_NB] = {{0}, {0}};
         #pragma omp parallel shared(gradients)
         {
-            double localgradients[NT][PHASE_NB] = {{0}, {0}};
+            float localgradients[NT][PHASE_NB] = {{0}, {0}};
             #pragma omp for schedule(static, NP / 48)
             for (i = 0; i < NP; i++){
                 thisError = singleLinearError(tes[i], params, K);
@@ -202,9 +212,9 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         
         // Search, then and apply all moves in the principle variation
         initializeBoard(&thread->board, line);
-        search(thread, &thread->pv, -MATE, MATE, 1, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], &undo);
+        // search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], &undo);
             
         // Get the eval trace for the final position in the pv
         T = EmptyTrace;
@@ -233,11 +243,25 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         for (k = 0, j = 0; j < NT; j++)
             k += coeffs[j] != 0; 
 
-        // Allocate the Texel Tuples. Could and should be wrapped with our own
-        // memory managment because this will force an allocation of NP tuple sets        
-        tes[i].tuples = malloc(sizeof(TexelTuple) * k);
-        tes[i].ntuples = k;
-
+        // We have remaining Texel Tuples on our stack. Set the tuple pointer,
+        // and then update the location and size of the Tuple Stack
+        if (TupleStackSize >= k){ 
+            tes[i].tuples = TupleStack;
+            tes[i].ntuples = k;
+            TupleStack += k;
+            TupleStackSize -= k;
+        }
+        
+        // We did not have enough remaining Texel Tuples on our stack. Allocate
+        // more and then setup the texel tuples for this texel entry
+        else {
+            TupleStack = calloc(TupleStackOriginalSize, sizeof(TexelTuple));
+            tes[i].tuples = TupleStack;
+            tes[i].ntuples = k;
+            TupleStack += k;
+            TupleStackSize = TupleStackOriginalSize - k;
+        }
+        
         // Finally, initialize the tuples with the coefficients and index
         for (k = 0, j = 0; j < NT; j++){
             if (coeffs[j] != 0){
@@ -379,7 +403,7 @@ void initializeCoefficients(int* coeffs){
                 coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
 }
 
-void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
+void initializeCurrentParameters(float cparams[NT][PHASE_NB]){
     
     int i = 0, a, b, c;
     
@@ -543,18 +567,18 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     }
 }
 
-void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
+void calculateLearningRates(TexelEntry* tes, float rates[NT][PHASE_NB]){
     
     int i, j;
-    double avgByPhase[PHASE_NB] = {0};
-    double occurances[NT][PHASE_NB] = {{0}, {0}};
+    float avgByPhase[PHASE_NB] = {0};
+    float occurances[NT][PHASE_NB] = {{0}, {0}};
     
     for (i = 0; i < NP; i++){
-        for (j = 0; j < NT; j++){
-            occurances[j][MG] += abs(tes[i].coeffs[j]) * tes[i].factors[MG];
-            occurances[j][EG] += abs(tes[i].coeffs[j]) * tes[i].factors[EG];
-            avgByPhase[MG]    += abs(tes[i].coeffs[j]) * tes[i].factors[MG];
-            avgByPhase[EG]    += abs(tes[i].coeffs[j]) * tes[i].factors[EG];
+        for (j = 0; j < tes[i].ntuples; j++){
+            occurances[tes[i].tuples[j].index][MG] += abs(tes[i].tuples[j].coeff) * tes[i].factors[MG];
+            occurances[tes[i].tuples[j].index][EG] += abs(tes[i].tuples[j].coeff) * tes[i].factors[EG];
+            avgByPhase[MG] += abs(tes[i].tuples[j].coeff) * tes[i].factors[MG];
+            avgByPhase[EG] += abs(tes[i].tuples[j].coeff) * tes[i].factors[EG];
         }
     }
     
@@ -569,11 +593,11 @@ void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
     }
 }
 
-void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
+void printParameters(float params[NT][PHASE_NB], float cparams[NT][PHASE_NB]){
     
     int i = 0, x, y;
     
-    double tparams[NT][PHASE_NB];
+    float tparams[NT][PHASE_NB];
     
     // We must first combine the original params and the update's
     // to the params before having the final parameter outputs
@@ -748,13 +772,13 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     } printf("\n};\n");
 }
 
-double computeOptimalK(TexelEntry* tes){
+float computeOptimalK(TexelEntry* tes){
     
     int i;
-    double start = -10.0, end = 10.0, delta = 1.0;
-    double curr = start, thisError, bestError = completeEvaluationError(tes, start);
+    float start = -10.0, end = 10.0, delta = 1.0;
+    float curr = start, thisError, bestError = completeEvaluationError(tes, start);
     
-    for (i = 0; i < 10; i++){
+    for (i = 0; i < 6; i++){
         printf("Computing K Iteration [%d] ", i);
         
         curr = start - delta;
@@ -776,10 +800,10 @@ double computeOptimalK(TexelEntry* tes){
     return start;
 }
 
-double completeEvaluationError(TexelEntry* tes, double K){
+float completeEvaluationError(TexelEntry* tes, float K){
     
     int i;
-    double total = 0.0;
+    float total = 0.0;
     
     // Determine the error margin using the evaluation from evaluateBoard
     
@@ -790,13 +814,13 @@ double completeEvaluationError(TexelEntry* tes, double K){
             total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
     }
         
-    return total / (double)NP;
+    return total / (float)NP;
 }
 
-double completeLinearError(TexelEntry* tes, double params[NT][PHASE_NB], double K){
+float completeLinearError(TexelEntry* tes, float params[NT][PHASE_NB], float K){
     
     int i;
-    double total = 0.0;
+    float total = 0.0;
     
     // Determine the error margin using evaluation from summing up PARAMS
     
@@ -807,17 +831,17 @@ double completeLinearError(TexelEntry* tes, double params[NT][PHASE_NB], double 
             total += pow(tes[i].result - sigmoid(K, linearEvaluation(tes[i], params)), 2);
     }
         
-    return total / (double)NP;
+    return total / (float)NP;
 }
 
-double singleLinearError(TexelEntry te, double params[NT][PHASE_NB], double K){
+float singleLinearError(TexelEntry te, float params[NT][PHASE_NB], float K){
     return te.result - sigmoid(K, linearEvaluation(te, params));
 }
 
-double linearEvaluation(TexelEntry te, double params[NT][PHASE_NB]){
+float linearEvaluation(TexelEntry te, float params[NT][PHASE_NB]){
     
     int i;
-    double mg = 0, eg = 0;
+    float mg = 0, eg = 0;
     
     for (i = 0; i < te.ntuples; i++){
         mg += te.tuples[i].coeff * params[te.tuples[i].index][MG];
@@ -827,7 +851,7 @@ double linearEvaluation(TexelEntry te, double params[NT][PHASE_NB]){
     return te.eval + ((mg * (256 - te.phase) + eg * te.phase) / 256.0);
 }
 
-double sigmoid(double K, double S){
+float sigmoid(float K, float S){
     return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
 }
 

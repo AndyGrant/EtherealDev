@@ -21,20 +21,22 @@
 
 #include "types.h"
 
-#define NP (2000000)
+#define NP (7400000)
 
 #define NT (484)
 
+#define StackSize ((int)((float) NP * NT / 20))
+
 typedef struct TexelTuple {    
     int index;
-    double coeff;
+    float coeff;
 } TexelTuple;
 
 typedef struct TexelEntry {
     int ntuples;
-    double result;
-    double eval, phase;
-    double factors[PHASE_NB];
+    float result;
+    float eval, phase;
+    float factors[PHASE_NB];
     TexelTuple* tuples;
 } TexelEntry;
 
@@ -44,22 +46,22 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread);
 
 void initializeCoefficients(int* coeffs);
 
-void initializeCurrentParameters(double cparams[NT][PHASE_NB]);
+void initializeCurrentParameters(float cparams[NT][PHASE_NB]);
 
-void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]);
+void calculateLearningRates(TexelEntry* tes, float rates[NT][PHASE_NB]);
 
-void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]);
+void printParameters(float params[NT][PHASE_NB], float cparams[NT][PHASE_NB]);
 
-double computeOptimalK(TexelEntry* tes);
+float computeOptimalK(TexelEntry* tes);
 
-double completeEvaluationError(TexelEntry* tes, double K);
+float completeEvaluationError(TexelEntry* tes, float K);
 
-double completeLinearError(TexelEntry* tes, double params[NT][PHASE_NB], double K);
+float completeLinearError(TexelEntry* tes, float params[NT][PHASE_NB], float K);
 
-double singleLinearError(TexelEntry te, double params[NT][PHASE_NB], double K);
+float singleLinearError(TexelEntry te, float params[NT][PHASE_NB], float K);
 
-double linearEvaluation(TexelEntry te, double params[NT][PHASE_NB]);
+float linearEvaluation(TexelEntry te, float params[NT][PHASE_NB]);
 
-double sigmoid(double K, double S);
+float sigmoid(float K, float S);
 
 #endif
