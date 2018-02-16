@@ -305,6 +305,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
+    int triedRazoring= 0;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -438,6 +439,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return alpha;
+        
+        triedRazoring = 1;
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -554,16 +557,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. Don't include capture-promotions
         if (    !PvNode
+            &&  !triedRazoring
             &&  !isQuiet
             &&  !inCheck
             &&   played >= 1
             &&   depth <= 5
-            &&   MoveType(currentMove) != ENPASS_MOVE
-            &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
+            &&  thisTacticalMoveValue(board, currentMove) < PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][EG]){;
                  
           
             // If the target piece has two or more defenders, we will prune up to depth 5
