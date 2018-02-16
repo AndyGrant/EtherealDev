@@ -24,12 +24,18 @@
 #include "bitutils.h"
 #include "castle.h"
 #include "magics.h"
+#include "masks.h"
 #include "move.h"
 #include "movegen.h"
 #include "piece.h"
 #include "types.h"
 
 /* For Generating Attack BitBoards */
+
+uint64_t pawnAttacks(int sq, uint64_t targets, int colour){
+    return targets & (colour == WHITE ? (((1ull << sq) << 7) & ~FILE_H) | (((1ull << sq) << 9) & ~FILE_A)
+                                      : (((1ull << sq) >> 7) & ~FILE_A) | (((1ull << sq) >> 9) & ~FILE_H));
+}
 
 uint64_t knightAttacks(int sq, uint64_t targets){
     return KnightMap[sq] & targets;
@@ -256,6 +262,8 @@ void genAllMoves(Board* board, uint16_t* moves, int* size){
 
 void genAllNoisyMoves(Board* board, uint16_t* moves, int* size){
     
+    uint64_t destinations;
+    
     uint64_t pawnLeft;
     uint64_t pawnRight;
     
@@ -277,6 +285,25 @@ void genAllNoisyMoves(Board* board, uint16_t* moves, int* size){
     uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
     uint64_t myRooks   = friendly & (board->pieces[ROOK]   | board->pieces[QUEEN]);
     uint64_t myKings   = friendly &  board->pieces[KING];
+    
+    // If there are two threats to the king, the only moves which
+    // could be legal are moves made by the king, except castling,
+    // but those would all be quiet moves not noisy ones
+    if (moreThanOne(board->kingAttackers))
+        return;
+    
+    // If there is one threat to the king and we are only looking for
+    // noisy moves, then the only moves possible are captures of the
+    // attacking piece, blocking the attacking piece via promotion,
+    // and blocking the attacking piece via enpass. Therefore, we will
+    // always generate all of the promotion and enpass moves
+    else if (board->kingAttackers)
+        destinations = board->kingAttackers;
+    
+    // No threats to the king, so any target square with an enemy piece,
+    // or a move which is already noisy, is permitted in this position
+    else
+        destinations = enemy;
     
     // Generate Pawn BitBoards and Generate Enpass Moves
     if (board->turn == WHITE){
@@ -328,8 +355,8 @@ void genAllNoisyMoves(Board* board, uint16_t* moves, int* size){
     }
     
     // Generate all pawn captures that are not promotions
-    buildPawnMoves(moves, size, pawnLeft, leftShift);
-    buildPawnMoves(moves, size, pawnRight, rightShift);
+    buildPawnMoves(moves, size, pawnLeft & destinations, leftShift);
+    buildPawnMoves(moves, size, pawnRight & destinations, rightShift);
     
     // Generate all pawn promotions
     buildPawnPromotions(moves, size, pawnPromoForward, forwardShift);
@@ -337,15 +364,15 @@ void genAllNoisyMoves(Board* board, uint16_t* moves, int* size){
     buildPawnPromotions(moves, size, pawnPromoRight, rightShift);
     
     // Generate attacks for all non pawn pieces
-    buildKnightMoves(moves, size, myKnights, enemy);
-    buildBishopAndQueenMoves(moves, size, myBishops, notEmpty, enemy);
-    buildRookAndQueenMoves(moves, size, myRooks, notEmpty, enemy);
-    buildKingMoves(moves, size, myKings, enemy);
+    buildKnightMoves(moves, size, myKnights, destinations);
+    buildBishopAndQueenMoves(moves, size, myBishops, notEmpty, destinations);
+    buildRookAndQueenMoves(moves, size, myRooks, notEmpty, destinations);
+    buildKingMoves(moves, size, myKings, destinations);
 }
 
 void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
-     
-    int castleKing, castleQueen;
+    
+    uint64_t destinations;
     
     uint64_t pawnForwardOne;
     uint64_t pawnForwardTwo;
@@ -362,54 +389,83 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
     uint64_t myRooks   = friendly & (board->pieces[ROOK]   | board->pieces[QUEEN]);
     uint64_t myKings   = friendly &  board->pieces[KING];
     
+    // If there are two threats to the king, the only moves which
+    // could be legal are moves made by the king, except castling
+    if (moreThanOne(board->kingAttackers)){
+        buildKingMoves(moves, size, myKings, empty);
+        return;
+    }
+    
+    // If there is one threat to the king there are two possible cases
+    else if (board->kingAttackers){
+        
+        // If the king is attacked by a pawn or a knight, only moving the king
+        // or capturing the pawn / knight will be legal. However, here we are
+        // only generating quiet moves, thus we must move the king
+        if (board->kingAttackers & (board->pieces[PAWN] | board->pieces[KNIGHT])){
+            buildKingMoves(moves, size, myKings, empty);
+            return;
+        }
+        
+        // The attacker is a sliding piece, therefore we can either block the attack
+        // by moving a piece infront of the attacking path if the slider, or we can
+        // again simple move our kind (Castling excluded, of course)
+        destinations = empty & BitsBetweenMasks[getlsb(myKings)][getlsb(board->kingAttackers)];
+    }
+    
+    // We are not being attacked, and therefore will look at any quiet move,
+    // which means we can move to any square without a piece, again of course
+    // with promotions and enpass excluded, as they are noisy moves
+    else
+        destinations = empty;
+    
+    
     // Generate the pawn advances
     if (board->turn == WHITE){
         pawnForwardOne = (myPawns << 8) & empty & ~RANK_8;
         pawnForwardTwo = ((pawnForwardOne & RANK_3) << 8) & empty;
-        buildPawnMoves(moves, size, pawnForwardOne, -8);
-        buildPawnMoves(moves, size, pawnForwardTwo, -16);
+        buildPawnMoves(moves, size, pawnForwardOne & destinations, -8);
+        buildPawnMoves(moves, size, pawnForwardTwo & destinations, -16);
     } 
     
     else {
         pawnForwardOne = (myPawns >> 8) & empty & ~RANK_1;
         pawnForwardTwo = ((pawnForwardOne & RANK_6) >> 8) & empty;
-        buildPawnMoves(moves, size, pawnForwardOne, 8);
-        buildPawnMoves(moves, size, pawnForwardTwo, 16);
+        buildPawnMoves(moves, size, pawnForwardOne & destinations, 8);
+        buildPawnMoves(moves, size, pawnForwardTwo & destinations, 16);
     }
     
     // Generate all moves for all non pawns aside from Castles
-    buildKnightMoves(moves, size, myKnights, empty);
-    buildBishopAndQueenMoves(moves, size, myBishops, notEmpty, empty);
-    buildRookAndQueenMoves(moves, size, myRooks, notEmpty, empty);
+    buildKnightMoves(moves, size, myKnights, destinations);
+    buildBishopAndQueenMoves(moves, size, myBishops, notEmpty, destinations);
+    buildRookAndQueenMoves(moves, size, myRooks, notEmpty, destinations);
     buildKingMoves(moves, size, myKings, empty);
     
     // Generate all the castling moves
-    if (board->turn == WHITE){
-        castleKing  =   ((notEmpty & WHITE_CASTLE_KING_SIDE_MAP) == 0)
-                     && (board->castleRights & WHITE_KING_RIGHTS)
-                     && !squareIsAttacked(board, WHITE, 5);
-        castleQueen =   ((notEmpty & WHITE_CASTLE_QUEEN_SIDE_MAP) == 0)
-                     && (board->castleRights & WHITE_QUEEN_RIGHTS)
-                     && !squareIsAttacked(board, WHITE, 3);
-                     
-        if ((castleKing || castleQueen) && isNotInCheck(board, board->turn)){
-            if (castleKing)  moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE);
-            if (castleQueen) moves[(*size)++] = MoveMake(4, 2, CASTLE_MOVE);
-        }
+    if (board->turn == WHITE && !board->kingAttackers){
+        
+        if (  ((notEmpty & WHITE_CASTLE_KING_SIDE_MAP) == 0)
+            && (board->castleRights & WHITE_KING_RIGHTS)
+            && !squareIsAttacked(board, WHITE, 5))
+            moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE);
+            
+        if (  ((notEmpty & WHITE_CASTLE_QUEEN_SIDE_MAP) == 0)
+            && (board->castleRights & WHITE_QUEEN_RIGHTS)
+            && !squareIsAttacked(board, WHITE, 3))
+            moves[(*size)++] = MoveMake(4, 2, CASTLE_MOVE);
     }
     
-    else {
-        castleKing  =   ((notEmpty & BLACK_CASTLE_KING_SIDE_MAP) == 0)
-                     && (board->castleRights & BLACK_KING_RIGHTS)
-                     && !squareIsAttacked(board, BLACK, 61);
-        castleQueen =   ((notEmpty & BLACK_CASTLE_QUEEN_SIDE_MAP) == 0)
-                     && (board->castleRights & BLACK_QUEEN_RIGHTS)
-                     && !squareIsAttacked(board, BLACK, 59);
+    else if (board->turn == BLACK && !board->kingAttackers) {
+        
+        if (  ((notEmpty & BLACK_CASTLE_KING_SIDE_MAP) == 0)
+            && (board->castleRights & BLACK_KING_RIGHTS)
+            && !squareIsAttacked(board, BLACK, 61))
+            moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE);
                      
-        if ((castleKing || castleQueen) && isNotInCheck(board, board->turn)){
-            if (castleKing)  moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE);
-            if (castleQueen) moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE);
-        }
+        if (  ((notEmpty & BLACK_CASTLE_QUEEN_SIDE_MAP) == 0)
+            && (board->castleRights & BLACK_QUEEN_RIGHTS)
+            && !squareIsAttacked(board, BLACK, 59))
+            moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE);
     }
 }
 
@@ -460,4 +516,22 @@ int squareIsAttacked(Board* board, int turn, int sq){
     if (kingAttacks(sq, enemyKings)) return 1;
     
     return 0;
+}
+
+uint64_t attackersToSquare(Board* board, int colour, int sq){
+    
+    uint64_t friendly = board->colours[ colour];
+    uint64_t enemy    = board->colours[!colour];
+    uint64_t occupied = friendly | enemy;
+    
+    return      pawnAttacks(sq, enemy & board->pieces[PAWN], colour)
+           |  knightAttacks(sq, enemy & board->pieces[KNIGHT])
+           |    kingAttacks(sq, enemy & board->pieces[KING  ])
+           |  bishopAttacks(sq, occupied, enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]))
+           |    rookAttacks(sq, occupied, enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]));
+}
+
+uint64_t attackersToKingSquare(Board* board){
+    int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
+    return attackersToSquare(board, board->turn, kingsq);
 }

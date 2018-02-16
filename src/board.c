@@ -222,6 +222,8 @@ void initializeBoard(Board* board, char* fen){
     
     // Number of moves since this (root) position
     board->numMoves = 0;
+    
+    board->kingAttackers = attackersToKingSquare(board);
 }
 
 void printBoard(Board* board){

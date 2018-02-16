@@ -27,6 +27,7 @@ int popcount(uint64_t bb);
 int getlsb(uint64_t bb);
 int getmsb(uint64_t bb);
 int poplsb(uint64_t* bb);
+int moreThanOne(uint64_t bb);
 
 extern uint8_t BitCounts[0x10000];
 
