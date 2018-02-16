@@ -305,6 +305,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
+    int wasResearched[MAX_MOVES];
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -537,6 +538,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
+            wasResearched[quiets] = 0;
             quietsTried[quiets++] = currentMove;
             hist = getHistoryScore(thread->history, currentMove, board->turn);
         }
@@ -635,6 +637,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         value =  (played == 1 || !PvNode)
                ? -search(thread, &lpv,    -beta, -alpha, depth-R, height+1)
                : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+        
+        if (isQuiet) wasResearched[quiets-1] = (R != 1 && value > alpha);
                
         // Step 18B. Research the move if it improved alpha, and was either a reduced
         // search or a search on a null window. Otherwise, keep the current value
@@ -686,8 +690,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 22. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
         updateHistory(thread->history, bestMove, board->turn, depth*depth);
+        
         for (i = 0; i < quiets - 1; i++)
-            updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
+            updateHistory(thread->history, quietsTried[i], board->turn, -(depth+wasResearched[i])*(depth+wasResearched[i]));
     }
     
     // Step 23. Store the results of the search in the transposition table.
