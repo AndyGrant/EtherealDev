@@ -450,27 +450,27 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval - 70 * depth > beta)
         return beta;
 
-    // Step 10. Null Move Pruning. If our position is so good that
-    // giving our opponent back-to-back moves is still not enough
-    // for them to gain control of the game, we can be somewhat safe
-    // in saying that our position is too good to be true
-    if (   !PvNode
-        && !inCheck
-        &&  depth >= NullMovePruningDepth
-        &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
-            
-        R = 4 + depth / 6 + (eval - beta + 200) / 400; 
-            
-        applyNullMove(board, undo);
-        
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
-        
-        revertNullMove(board, undo);
-        
-        if (value >= beta) return beta;
-    }
+    // // Step 10. Null Move Pruning. If our position is so good that
+    // // giving our opponent back-to-back moves is still not enough
+    // // for them to gain control of the game, we can be somewhat safe
+    // // in saying that our position is too good to be true
+    // if (   !PvNode
+    //     && !inCheck
+    //     &&  depth >= NullMovePruningDepth
+    //     &&  eval >= beta
+    //     &&  hasNonPawnMaterial(board, board->turn)
+    //     &&  board->history[board->numMoves-1] != NULL_MOVE){
+    //         
+    //     R = 4 + depth / 6 + (eval - beta + 200) / 400; 
+    //         
+    //     applyNullMove(board, undo);
+    //     
+    //     value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+    //     
+    //     revertNullMove(board, undo);
+    //     
+    //     if (value >= beta) return beta;
+    // }
     
     // Step 11. ProbCut. If we have a good capture that causes a beta cutoff
     // with a slightly reduced depth search it is likely that this capture is
@@ -536,7 +536,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // If this move is quiet we will save it to a list of attemped
+        /*// If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
@@ -576,7 +576,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (    depth <= 3
                 && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
                 continue;
-        }
+        }*/
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -585,7 +585,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
         
-        // Step 16. Late Move Pruning / Move Count Pruning. If we have
+        /*// Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
         if (   !PvNode
@@ -597,12 +597,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             revertMove(board, currentMove, undo);
             continue;
-        }
+        }*/
         
         // Update counter of moves actually played
         played += 1;
     
-        // Step 17. Late Move Reductions. We will search some moves at a
+        /*// Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
@@ -629,7 +629,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1;
+        } else R = 1;*/ R = 1;
         
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
@@ -686,11 +686,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
     
     // Step 22. Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove)){
-        updateHistory(thread->history, bestMove, board->turn, depth*depth);
-        for (i = 0; i < quiets - 1; i++)
-            updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
-    }
+    // if (best >= beta && !moveIsTactical(board, bestMove)){
+    //     updateHistory(thread->history, bestMove, board->turn, depth*depth);
+    //     for (i = 0; i < quiets - 1; i++)
+    //         updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
+    // }
     
     // Step 23. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and

@@ -20,7 +20,7 @@
 
 #include "bitutils.h"
 
-uint8_t BitCounts[0x10000];
+int BitCounts[0x10000];
 
 int countSetBits(uint64_t bb){
     

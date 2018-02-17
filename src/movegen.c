@@ -15,7 +15,7 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <inttypes.h>
 #include <stdint.h>
 #include <assert.h>
 
@@ -286,23 +286,23 @@ void genAllNoisyMoves(Board* board, uint16_t* moves, int* size){
     uint64_t myRooks   = friendly & (board->pieces[ROOK]   | board->pieces[QUEEN]);
     uint64_t myKings   = friendly &  board->pieces[KING];
     
-    // If there are two threats to the king, the only moves which
-    // could be legal are moves made by the king, except castling,
-    // but those would all be quiet moves not noisy ones
-    if (moreThanOne(board->kingAttackers))
-        return;
-    
-    // If there is one threat to the king and we are only looking for
-    // noisy moves, then the only moves possible are captures of the
-    // attacking piece, blocking the attacking piece via promotion,
-    // and blocking the attacking piece via enpass. Therefore, we will
-    // always generate all of the promotion and enpass moves
-    else if (board->kingAttackers)
-        destinations = board->kingAttackers;
-    
-    // No threats to the king, so any target square with an enemy piece,
-    // or a move which is already noisy, is permitted in this position
-    else
+    // // If there are two threats to the king, the only moves which
+    // // could be legal are moves made by the king, except castling,
+    // // but those would all be quiet moves not noisy ones
+    // if (moreThanOne(board->kingAttackers))
+    //     return;
+    // 
+    // // If there is one threat to the king and we are only looking for
+    // // noisy moves, then the only moves possible are captures of the
+    // // attacking piece, blocking the attacking piece via promotion,
+    // // and blocking the attacking piece via enpass. Therefore, we will
+    // // always generate all of the promotion and enpass moves
+    // else if (board->kingAttackers)
+    //     destinations = board->kingAttackers;
+    // 
+    // // No threats to the king, so any target square with an enemy piece,
+    // // or a move which is already noisy, is permitted in this position
+    // else
         destinations = enemy;
     
     // Generate Pawn BitBoards and Generate Enpass Moves
@@ -391,25 +391,28 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
     
     // If there are two threats to the king, the only moves which
     // could be legal are moves made by the king, except castling
-    if (moreThanOne(board->kingAttackers)){
+    if (popcount(board->kingAttackers >= 2)){
         buildKingMoves(moves, size, myKings, empty);
         return;
     }
-    
+     
     // If there is one threat to the king there are two possible cases
-    else if (board->kingAttackers){
+    else if (popcount(board->kingAttackers) == 1){
         
-        // If the king is attacked by a pawn or a knight, only moving the king
-        // or capturing the pawn / knight will be legal. However, here we are
-        // only generating quiet moves, thus we must move the king
-        if (board->kingAttackers & (board->pieces[PAWN] | board->pieces[KNIGHT])){
-            buildKingMoves(moves, size, myKings, empty);
-            return;
-        }
+        if (popcount(board->kingAttackers) != 1) printf("%d\n", popcount(board->kingAttackers));
+        assert(board->kingAttackers & board->colours[!board->turn]);
+        
+        //// If the king is attacked by a pawn or a knight, only moving the king
+        //// or capturing the pawn / knight will be legal. However, here we are
+        //// only generating quiet moves, thus we must move the king
+        //if (board->kingAttackers & (board->pieces[PAWN] | board->pieces[KNIGHT])){
+        //    buildKingMoves(moves, size, myKings, empty);
+        //    return;
+        //}
         
         // The attacker is a sliding piece, therefore we can either block the attack
         // by moving a piece infront of the attacking path if the slider, or we can
-        // again simple move our kind (Castling excluded, of course)
+        // again simple move our king (Castling excluded, of course)
         destinations = empty & BitsBetweenMasks[getlsb(myKings)][getlsb(board->kingAttackers)];
     }
     

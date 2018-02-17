@@ -359,6 +359,7 @@ void applyNullMove(Board* board, Undo* undo){
     
     // Store turn, hash and epSquare
     undo->hash = board->hash;
+    undo->kingAttackers = board->kingAttackers;
     undo->turn = board->turn;
     undo->epSquare = board->epSquare;
     
@@ -470,6 +471,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
 
 void revertNullMove(Board* board, Undo* undo){
     board->hash = undo->hash;
+    board->kingAttackers = undo->kingAttackers;
     board->turn = !board->turn;
     board->epSquare = undo->epSquare;
     board->numMoves--;
