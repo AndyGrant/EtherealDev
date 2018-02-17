@@ -536,13 +536,37 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        int movedPieceValue = PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][EG];
-        
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
             hist = getHistoryScore(thread->history, currentMove, board->turn);
+        }
+            
+        // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
+        // a weaker piece which is protected, so long as we do not have any 
+        // additional support for the attacker. Don't include capture-promotions
+        if (    !PvNode
+            &&  !isQuiet
+            &&  !inCheck
+            &&   played >= 1
+            &&   depth <= 5
+            &&   MoveType(currentMove) != ENPASS_MOVE
+            &&   MoveType(currentMove) != PROMOTION_MOVE
+            &&  !ei.positionIsDrawn
+            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+            &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+             <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
+                 
+          
+            // If the target piece has two or more defenders, we will prune up to depth 5
+            if (ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
+                continue;
+            
+            // Otherwise, if the piece has one defender, we will prune up to depth 3
+            if (    depth <= 3
+                && (ei.attacked[!board->turn] & (1ull << MoveTo(currentMove))))
+                continue;
         }
         
         // Apply and validate move before searching
@@ -563,28 +587,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             revertMove(board, currentMove, undo);            
             continue;
-        }
-        
-        // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
-        // a weaker piece which is protected, so long as we do not have any 
-        // additional support for the attacker. Don't include capture-promotions
-        if (    !PvNode
-            &&  !isQuiet
-            &&  !inCheck
-            &&  !board->kingAttackers
-            &&   played >= 1
-            &&   depth <= 5
-            &&  !ei.positionIsDrawn
-            && !(ei.attackedBy2[!board->turn] & (1ull << MoveTo(currentMove)))
-            &&   thisTacticalMoveValue(board, currentMove) < movedPieceValue){
-                 
-            // If the target piece has two or more defenders, we will prune up to depth 5
-            if (ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-                continue;
-            
-            // Otherwise, if the piece has one defender, we will prune up to depth 3
-            if (depth <= 3 && (ei.attacked[board->turn] & (1ull << MoveTo(currentMove))))
-                continue;
         }
         
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
