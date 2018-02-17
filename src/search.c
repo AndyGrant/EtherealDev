@@ -305,6 +305,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
+    int strongRazoring = 0;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -440,6 +441,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return alpha;
+        
+        // Flag this as a strong node due to a massive eval
+        // swing within the noisy moves in the position
+        strongRazoring = value >= alpha;
     }
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -530,6 +535,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += strongRazoring;
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
