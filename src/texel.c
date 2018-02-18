@@ -89,6 +89,7 @@ extern const int QueenMobility[28][PHASE_NB];
 // To determine the starting values for the King terms
 extern const int KingPSQT32[32][PHASE_NB];
 extern const int KingDefenders[12][PHASE_NB];
+extern const int KingSafety[64];
 extern const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB];
 
 // To determine the starting values for the Passed Pawn terms
@@ -398,6 +399,9 @@ void initializeCoefficients(int coeffs[NT]){
     for (a = 0; a < 12; a++)
         coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
     
+    for (a = 0; a < 64; a++)
+        coeffs[i++] = T.kingSafety[WHITE][a] - T.kingSafety[BLACK][a];
+    
     for (a = 0; a < 2; a++)
         for (b = 0; b < FILE_NB; b++)
             for (c = 0; c < RANK_NB; c++)
@@ -552,6 +556,11 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     for (a = 0; a < 12; a++, i++){
         cparams[i][MG] = KingDefenders[a][MG];
         cparams[i][EG] = KingDefenders[a][EG];
+    }
+    
+    for (a = 0; a < 64; a++, i++){
+        cparams[i][MG] = KingSafety[a]; // No [MG];
+        cparams[i][EG] = KingSafety[a]; // No [EG];
     }
     
     for (a = 0; a < 2; a++){
@@ -759,6 +768,13 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     for (x = 0; x < 3; x++){
         printf("\n   ");
         for (y = 0; y < 4; y++, i++)
+            printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
+    } printf("\n};\n");
+    
+    printf("\nconst int KingSafety[64][PHASE_NB] = {");
+    for (x = 0; x < 8; x++){
+        printf("\n   ");
+        for (y = 0; y < 8; y++, i++)
             printf(" {%4d,%4d},", (int)tparams[i][MG], (int)tparams[i][EG]);
     } printf("\n};\n");
     

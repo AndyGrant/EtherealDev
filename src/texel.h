@@ -23,7 +23,7 @@
 
 #define NP (7400000)
 
-#define NT (484)
+#define NT (484 + 64)
 
 #define STACKSIZE ((int)((double) NP * NT / 64))
 
