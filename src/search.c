@@ -518,6 +518,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
         &&  ttMove == NONE_MOVE
+        && !inCheck
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
