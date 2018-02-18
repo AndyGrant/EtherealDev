@@ -306,6 +306,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
+    int givesCheck, bestGaveCheck = 0;
+    
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     
@@ -585,11 +587,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
         
+        givesCheck = board->kingAttackers;
+        
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
         if (   !PvNode
-            && !board->kingAttackers
+            && !givesCheck
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
@@ -614,6 +618,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            
+            R += bestGaveCheck && !givesCheck && (ttMove == bestMove || quiets > 2);
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
@@ -655,6 +662,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             best = value;
             bestMove = currentMove;
             bestWasQuiet = isQuiet;
+            bestGaveCheck = givesCheck;
             
             if (value > alpha){
                 alpha = value;
