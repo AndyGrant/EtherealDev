@@ -758,7 +758,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
-            continue;
+            if (!board->kingAttackers)
+                continue;
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
@@ -769,7 +770,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
-            continue;
+            if (!board->kingAttackers)
+                continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
