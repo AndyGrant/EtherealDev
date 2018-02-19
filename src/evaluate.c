@@ -658,7 +658,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
+        ei->midgame[colour] -= 1.2 * KingSafety[attackCounts];
     }
     
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
