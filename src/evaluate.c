@@ -159,19 +159,6 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -1,   7}, {  -5,  12}, { -12,  35}, {  -1,  71}, {  36, 147}, {  94, 230}, {   0,   0}}}
 };
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
-};
-
 const int NoneValue[PHASE_NB] = {   0,   0};
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  20,  10}, { -20, -10} };
@@ -658,8 +645,10 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        int X = attackCounts;
+    
+        ei->midgame[colour] += (int)(-0.0340 * X * X - 0.2693 * X + 0.6555);
+        ei->endgame[colour] += (int)(-0.0229 * X * X - 0.6067 * X + 2.8480);
     }
     
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
