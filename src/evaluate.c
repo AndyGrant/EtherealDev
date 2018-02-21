@@ -128,9 +128,9 @@ const int QueenMobility[28][PHASE_NB] = {
 const int KingValue[PHASE_NB] = { 100, 100};
 
 const int KingDefenders[12][PHASE_NB] = {
-    { -18,   0}, { -14,   2}, {   0,   0}, {   5,   0},
-    {  16,   0}, {  23,   6}, {  37,  -4}, {  69,  19},
-    {   8,   4}, {   8,   4}, {   8,   4}, {   8,   4},
+    { -45, -37}, {  11,  38}, {  -1,   1}, {   6,   3},
+    {  21,   0}, {  23,   6}, {  28,   0}, {  19,   0},
+    {  19,   0}, {  19,   0}, {  19,   0}, {  19,   0},
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {
@@ -620,28 +620,27 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
-    
-    int file, kingFile, kingRank, kingSq, distance;
+    int defenderCounts, attackCounts, file, distance;
     
     uint64_t filePawns;
     
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    uint64_t myPawns   = board->pieces[PAWN  ] & board->colours[colour];
+    uint64_t myKnights = board->pieces[KNIGHT] & board->colours[colour];
+    uint64_t myBishops = board->pieces[BISHOP] & board->colours[colour];
+    uint64_t myKings   = board->pieces[KING  ] & board->colours[colour];
     
-    uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
-                          | (board->pieces[KNIGHT] & board->colours[colour])
-                          | (board->pieces[BISHOP] & board->colours[colour]);
+    uint64_t myDefenders  = myPawns | ((myKnights | myBishops) & ~ei->attackedBy2[!colour]);
+             myDefenders &= ei->kingAreas[colour];
                           
-    kingSq = getlsb(myKings);
-    kingFile = File(kingSq);
-    kingRank = Rank(kingSq);
+    int kingSq = getlsb(myKings);
+    int kingFile = File(kingSq);
+    int kingRank = Rank(kingSq);
     
     // For Tuning Piece Square Table for Kings
     if (TRACE) T.kingPSQT[colour][kingSq]++;
     
     // Bonus for our pawns and minors sitting within our king area
-    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
+    defenderCounts = popcount(myDefenders);
     ei->midgame[colour] += KingDefenders[defenderCounts][MG];
     ei->endgame[colour] += KingDefenders[defenderCounts][EG];
     if (TRACE) T.kingDefenders[colour][defenderCounts]++;
