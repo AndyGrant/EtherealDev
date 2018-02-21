@@ -159,17 +159,12 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {   0,   7}, {  -7,  10}, { -10,  35}, {   0,  74}, {  38, 146}, { 103, 229}, {   0,   0}}},
 };
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
-      18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-      68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
-     140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
-     260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
-     377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
-     494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
+const int KingSafety[128] = {
+0, 0, 0, 0, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 15, 16, 18, 20, 22, 24, 26, 28, 30, 32, 35, 37, 39, 41, 44, 47
+, 50, 53, 56, 59, 62, 65, 68, 71, 75, 78, 82, 83, 85, 87, 89, 93, 97, 101, 105, 109, 113, 117, 122, 126, 131, 135, 140,
+145, 150, 159, 169, 174, 180, 185, 191, 196, 202, 207, 213, 219, 225, 231, 237, 242, 248, 254, 260, 266, 272, 277, 283,
+289, 295, 301, 307, 313, 319, 324, 330, 336, 342, 348, 354, 360, 366, 371, 377, 383, 389, 395, 401, 406, 412, 418, 424,
+430, 436, 442, 448, 453, 459, 465, 471, 477, 483, 488, 494, 497, 500, 500, 500, 500, 500, 500
 };
 
 const int NoneValue[PHASE_NB] = {   0,   0};
@@ -315,7 +310,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // the king safety calculation. We just do this for the pawns as a whole,
     // and not individually, to save time, despite the loss in accuracy.
     if (attacks != 0ull){
-        ei->attackCounts[colour] += 2 * popcount(attacks);
+        ei->attackCounts[colour] += 4 * popcount(attacks);
         ei->attackerCounts[colour] += 1;
     }
     
@@ -426,7 +421,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // knight for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += 4 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -500,7 +495,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += 4 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -559,7 +554,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // rook for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 3 * popcount(attacks);
+            ei->attackCounts[colour] += 6 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -612,7 +607,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // queen for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 4 * popcount(attacks);
+            ei->attackCounts[colour] += 8 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -650,16 +645,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
         attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
+        ei->midgame[colour] -= KingSafety[MIN(127, attackCounts)];
     }
     
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
