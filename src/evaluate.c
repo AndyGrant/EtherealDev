@@ -302,29 +302,47 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     const int forward = (colour == WHITE) ? 8 : -8;
     
     int sq, semi;
-    uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
+    uint64_t left, right;
     
-    // Update the attacks array with the pawn attacks. We will use this to
-    // determine whether or not passed pawns may advance safely later on.
-    attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
-    ei->attacked[colour] |= ei->pawnAttacks[colour];
-    ei->attackedNoQueen[colour] |= attacks;
+    uint64_t pawns      = board->pieces[PAWN];
+    uint64_t myPawns    = pawns & board->colours[ colour];
+    uint64_t tempPawns  = pawns & board->colours[ colour];
+    uint64_t enemyPawns = pawns & board->colours[!colour];
     
-    // Update the attack counts and attacker counts for pawns for use in
-    // the king safety calculation. We just do this for the pawns as a whole,
-    // and not individually, to save time, despite the loss in accuracy.
-    if (attacks != 0ull){
-        ei->attackCounts[colour] += 2 * popcount(attacks);
-        ei->attackerCounts[colour] += 1;
+    // Fetch the possible pawn attacks into any squares
+    left  =  leftPawnsAttacks(myPawns, ~0ull, colour);
+    right = rightPawnsAttacks(myPawns, ~0ull, colour);
+    
+    // First initialize attackedBy2 using the left attacks, and then
+    // update attackedBy2 using the rightward attacks. Finally, since
+    // we do not immediatly update attacked using left, we update
+    // attackedBy2 one final timing by looking at shared pawn attacks
+    ei->attackedBy2[colour]  = ei->attacked[colour] & left;
+    ei->attackedBy2[colour] |= ei->attacked[colour] & right;
+    ei->attackedBy2[colour] |= left & right;
+    
+    // Update our attack bitboards
+    ei->attacked[colour]        |= left | right;
+    ei->attackedNoQueen[colour] |= left | right;
+    
+    // Now restrict our attacks to the enemy king area
+    left  =  left & ei->kingAreas[!colour];
+    right = right & ei->kingAreas[!colour]; 
+    
+    // Update attacker counts and attack counts for leftward attacks
+    if (left){
+        ei->attackCounts[colour]   += popcount(left) * 2;
+        ei->attackerCounts[colour] += popcount(left);
     }
     
+    // Update attacker counts and attack counts for rightward attacks
+    if (right){
+        ei->attackCounts[colour]   += popcount(right) * 2;
+        ei->attackerCounts[colour] += popcount(right);
+    }
+        
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pentry != NULL) return;
-    
-    pawns = board->pieces[PAWN];
-    myPawns = tempPawns = pawns & board->colours[colour];
-    enemyPawns = pawns & board->colours[!colour];
     
     // Evaluate each pawn (but not for being passed)
     while (tempPawns != 0ull){

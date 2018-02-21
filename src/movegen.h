@@ -23,6 +23,9 @@
 
 #include "types.h"
 
+uint64_t leftPawnsAttacks(uint64_t pawns, uint64_t targets, int colour);
+uint64_t rightPawnsAttacks(uint64_t pawns, uint64_t targets, int colour);
+
 uint64_t pawnAttacks(int sq, uint64_t targets, int colour);
 uint64_t knightAttacks(int sq, uint64_t targets);
 uint64_t bishopAttacks(int sq, uint64_t occupied, uint64_t targets);

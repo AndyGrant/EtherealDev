@@ -32,6 +32,16 @@
 
 /* For Generating Attack BitBoards */
 
+uint64_t leftPawnsAttacks(uint64_t pawns, uint64_t targets, int colour){
+    return targets & (colour == WHITE ? ((pawns << 7) & ~FILE_H)
+                                      : ((pawns >> 7) & ~FILE_A));
+}
+
+uint64_t rightPawnsAttacks(uint64_t pawns, uint64_t targets, int colour){
+    return targets & (colour == WHITE ? ((pawns << 9) & ~FILE_A)
+                                      : ((pawns >> 9) & ~FILE_H));
+}
+
 uint64_t pawnAttacks(int sq, uint64_t targets, int colour){
     return targets & (colour == WHITE ? ((((1ull << sq) << 7) & ~FILE_H) | (((1ull << sq) << 9) & ~FILE_A))
                                       : ((((1ull << sq) >> 7) & ~FILE_A) | (((1ull << sq) >> 9) & ~FILE_H)));
