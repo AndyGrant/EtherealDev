@@ -647,14 +647,15 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         attackCounts = ei->attackCounts[!colour];
         
-        
-        attackCounts += popcount(board->colours[!colour] & ei->kingAreas[colour]);
+        attackCounts -= popcount(myDefenders & ei->kingAreas[colour] & 
+            ei->attacked[!colour] & ~ei->attackedBy2[!colour]
+        );
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[MIN(127, attackCounts)];
+        ei->midgame[colour] -= KingSafety[MIN(127, MAX(0, attackCounts))];
     }
     
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
