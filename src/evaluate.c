@@ -647,8 +647,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         attackCounts = ei->attackCounts[!colour];
         
-        // Extra bonus for doubly attacked squares
-        attackCounts += popcount(ei->attackedBy2[!colour] & ei->kingAreas[colour]) / 2;
+        
+        attackCounts += popcount(board->colours[!colour] & ei->kingAreas[colour]);
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
