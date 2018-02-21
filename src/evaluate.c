@@ -323,7 +323,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     
     // Update our attack bitboards
     ei->attacked[colour]        |= left | right;
-    ei->attackedNoQueen[colour] |= left | right;
+    ei->attackedNoQueen[colour] |= (left | right) & ei->kingAreas[!colour];
     
     // Now restrict our attacks to the enemy king area
     left  =  left & ei->kingAreas[!colour];
