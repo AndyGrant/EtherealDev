@@ -126,7 +126,9 @@ void* iterativeDeepening(void* vthread){
         // is needed by others to determine when to skip certain search iterations
         pthread_mutex_lock(&LOCK);
         
+        // Set thread depth and zero out selective depth
         thread->depth = depth;
+        thread->seldepth = 0;
         
         // Helper threads are subject to skipping depths in order to better help
         // the main thread, based on the number of threads already on some depths
@@ -150,7 +152,6 @@ void* iterativeDeepening(void* vthread){
         abort = setjmp(thread->jbuffer);
         if (abort) return NULL;
         
-            
         // Perform the actual search for the current depth
         value = aspirationWindow(thread, depth);
         
@@ -162,9 +163,6 @@ void* iterativeDeepening(void* vthread){
         info->values[depth] = value;
         info->bestmoves[depth] = thread->pv.line[0];
         info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
-        
-        // Send information about this search to the interface
-        uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
         
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
@@ -236,7 +234,9 @@ void* iterativeDeepening(void* vthread){
 }
 
 int aspirationWindow(Thread* thread, int depth){
-    
+
+    const int mainThread = thread == &thread->threads[0];
+
     int alpha, beta, value, upper, lower;
     
     int* const values = thread->info->values;
@@ -266,6 +266,10 @@ int aspirationWindow(Thread* thread, int depth){
             
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
+
+            // Report result of search, including upper and lower bounds
+            if (mainThread)
+                uciReport(thread, alpha, beta, value);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -290,7 +294,13 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search when near mate or when depth is below or equal to 4
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    value = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+
+    // Report full search if we are the main thread
+    if (mainThread)
+        uciReport(thread, -MATE, MATE, value);
+
+    return value;
 }
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
@@ -317,6 +327,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     lpv.length = 0;
     pv->length = 0;
+
+    // Update the deepest searched line for UCI specification
+    thread->seldepth = MAX(thread->seldepth, height);
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
@@ -714,6 +727,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     PVariation lpv;
     lpv.length = 0;
     pv->length = 0;
+
+    // Update the deepest searched line for UCI specification
+    thread->seldepth = MAX(thread->seldepth, height);
     
     // Increment the node counter even if we exit early
     thread->nodes += 1;

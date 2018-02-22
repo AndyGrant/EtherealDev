@@ -38,6 +38,6 @@ void moveToString(char* str, uint16_t move);
 
 void uciGo(char* str, Thread* threads, Board* board);
 void uciPosition(char* str, Board* board);
-void uciReport(Thread* threads, double startTime, int depth, int value, PVariation* pv);
+void uciReport(Thread* thread, int alpha, int beta, int value);
 
 #endif

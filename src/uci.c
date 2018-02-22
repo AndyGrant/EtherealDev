@@ -231,24 +231,42 @@ void uciPosition(char* str, Board* board){
     }
 }
 
-void uciReport(Thread* threads, double startTime, int depth, int value, PVariation* pv){
-    
+void uciReport(Thread* thread, int alpha, int beta, int value){
+
     int i;
-    int elapsed    = (int)(getRealTime() - startTime);
-    uint64_t nodes =  nodesSearchedThreadPool(threads);
-    int hashfull   = estimateHashfull(&Table);
-    int nps        = (int)(1000 * (nodes / (1 + elapsed)));
-    
-    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d hashfull %d pv ",
-            depth, value, elapsed, nodes, nps, hashfull);
-           
-    for (i = 0; i < pv->length; i++){
-        printMove(pv->line[i]);
+    int elapsed    = (int)(getRealTime() - thread->info->starttime);
+    uint64_t nodes =  nodesSearchedThreadPool(thread->threads);
+    int hashfull   =  estimateHashfull(&Table);
+    int nps        = (int)(1000 * nodes / (1 + elapsed));
+
+    // Print thread depth and longest searched line depth
+    printf("info depth %d seldepth %d score ", thread->depth, thread->seldepth);
+
+    // Print bound of search. A result within [alpha, beta] has no bound
+    printf("%s", value >= beta ? "upperbound " : value <= alpha ? "lowerbound " : "");
+
+    // Print the score. If the score is a MATE score, convert it
+    if (abs(value) < MATE - MAX_HEIGHT)
+        printf("cp %d ", value);
+    else if (value >=  MATE - MAX_HEIGHT)
+        printf("mate %d ",  (MATE - value + 1) / 2);
+    else if (value <= -MATE + MAX_HEIGHT)
+        printf("mate %d ", -(value + MATE + 0) / 2);
+
+    // Print the statistics from the this search
+    printf("time %d nodes %"PRIu64" nps %d hashfull %d ", elapsed, nodes, nps, hashfull);
+
+    // Thread might have an empty PV if we failed low
+    if (thread->pv.length > 0) printf("pv ");
+
+    // Print the rest of the PV
+    for (i = 0; i < thread->pv.length; i++){
+        printMove(thread->pv.line[i]);
         printf(" ");
     }
-    
-    printf("\n");
-    fflush(stdout);
+
+    // Finally add a new line and flush the output
+    printf("\n"); fflush(stdout);
 }
 
 int stringEquals(char* s1, char* s2){

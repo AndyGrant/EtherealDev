@@ -76,8 +76,9 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         memcpy(&threads[i].board, board, sizeof(Board));
         
         // Zero our the depth, nodes for the new search
-        threads[i].depth = 0;
-        threads[i].nodes = 0ull;
+        threads[i].depth    = 0;
+        threads[i].seldepth = 0;
+        threads[i].nodes    = 0ull;
         
         // Reset the abort flag for the new search
         threads[i].abort = 0;
