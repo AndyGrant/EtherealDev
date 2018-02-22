@@ -650,16 +650,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+        attackCounts = MIN(99, ei->attackCounts[!colour]);
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
         ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
     }
     
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
