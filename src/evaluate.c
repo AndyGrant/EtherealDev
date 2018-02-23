@@ -732,10 +732,10 @@ void evaluateImbalance(EvalInfo* ei, Board* board){
     
     for (own = KNIGHT; own <= QUEEN; own++){
         for (opp = PAWN; opp < own; opp++){
-            ei->midgame[WHITE] += Imbalance[own][opp][MG] * counts[WHITE][own] * counts[BLACK][opp];
-            ei->endgame[WHITE] += Imbalance[own][opp][EG] * counts[WHITE][own] * counts[BLACK][opp];
-            ei->midgame[BLACK] -= Imbalance[own][opp][MG] * counts[BLACK][opp] * counts[BLACK][own];
-            ei->endgame[BLACK] -= Imbalance[own][opp][EG] * counts[BLACK][opp] * counts[BLACK][own];
+            ei->midgame[WHITE] += Imbalance[own][opp][MG] * counts[WHITE][own] * counts[BLACK][opp] / 2;
+            ei->endgame[WHITE] += Imbalance[own][opp][EG] * counts[WHITE][own] * counts[BLACK][opp] / 2;
+            ei->midgame[BLACK] -= Imbalance[own][opp][MG] * counts[BLACK][opp] * counts[BLACK][own] / 2;
+            ei->endgame[BLACK] -= Imbalance[own][opp][EG] * counts[BLACK][opp] * counts[BLACK][own] / 2;
         }
     }
 }
