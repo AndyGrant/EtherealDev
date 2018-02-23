@@ -127,6 +127,8 @@ const int QueenMobility[28][PHASE_NB] = {
 
 const int KingValue[PHASE_NB] = { 100, 100};
 
+const int KingCastles[3][PHASE_NB] = { {  10,  10}, {  20,  20}, {  25,  25} };
+
 const int KingDefenders[12][PHASE_NB] = {
     { -18,   0}, { -14,   2}, {   0,   0}, {   5,   0},
     {  16,   0}, {  23,   6}, {  37,  -4}, {  69,  19},
@@ -620,7 +622,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
+    int castleCounts, defenderCounts, attackCounts;
     
     int file, kingFile, kingRank, kingSq, distance;
     
@@ -639,6 +641,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // For Tuning Piece Square Table for Kings
     if (TRACE) T.kingPSQT[colour][kingSq]++;
+    
+    castleCounts = (colour == WHITE && (board->castleRights & WHITE_KING_RIGHTS ))
+                 + (colour == WHITE && (board->castleRights & WHITE_QUEEN_RIGHTS))
+                 + (colour == BLACK && (board->castleRights & BLACK_KING_RIGHTS ))
+                 + (colour == BLACK && (board->castleRights & BLACK_QUEEN_RIGHTS));
+    ei->midgame[colour] += KingCastles[castleCounts][MG];
+    ei->endgame[colour] += KingCastles[castleCounts][EG];
     
     // Bonus for our pawns and minors sitting within our king area
     defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
