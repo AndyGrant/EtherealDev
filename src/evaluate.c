@@ -284,6 +284,8 @@ void evaluatePieces(EvalInfo* ei, Board* board){
     
     evaluatePassedPawns(ei, board, WHITE);
     evaluatePassedPawns(ei, board, BLACK);
+    
+    evaluateImbalance(ei, board);
 }
 
 void evaluatePawns(EvalInfo* ei, Board* board, int colour){
@@ -708,6 +710,33 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+    }
+}
+
+void evaluateImbalance(EvalInfo* ei, Board* board){
+    
+    int own, opp;
+    int colour, piece, counts[COLOUR_NB][KING];
+    
+    for (colour = WHITE; colour <= BLACK; colour++)
+        for (piece = PAWN; piece <= QUEEN; piece++)
+            counts[colour][piece] = popcount(board->colours[colour] & board->pieces[piece]);
+    
+    static const int Imbalance[5][5][PHASE_NB] = {
+       {{   0,   0}                                                    },
+       {{   3,   6}, {   0,   0}                                       },
+       {{   1,   1}, {  -5,  -1}, {   0,   0}                          },
+       {{  -1,   3}, {  -5,  -6}, { -12, -11}, {   0,   0}             },
+       {{  -1,  19}, {  -9,  -3}, {  -4,   0}, { -16,   0}, {   0,   0}},
+    };
+    
+    for (own = KNIGHT; own <= QUEEN; own++){
+        for (opp = PAWN; opp < own; opp++){
+            ei->midgame[WHITE] += Imbalance[own][opp][MG] * counts[WHITE][own] * counts[BLACK][opp];
+            ei->endgame[WHITE] += Imbalance[own][opp][EG] * counts[WHITE][own] * counts[BLACK][opp];
+            ei->midgame[BLACK] -= Imbalance[own][opp][MG] * counts[BLACK][opp] * counts[BLACK][own];
+            ei->endgame[BLACK] -= Imbalance[own][opp][EG] * counts[BLACK][opp] * counts[BLACK][own];
+        }
     }
 }
 

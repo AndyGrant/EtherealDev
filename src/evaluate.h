@@ -62,6 +62,8 @@ typedef struct EvalTrace {
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
     
+    int imbalance[COLOUR_NB][5][5];
+    
 } EvalTrace;
 
 typedef struct EvalInfo {
@@ -96,7 +98,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour);
 void evaluateRooks(EvalInfo* ei, Board* board, int colour);
 void evaluateQueens(EvalInfo* ei, Board* board, int colour);
 void evaluateKings(EvalInfo* ei, Board* board, int colour);
-void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
+void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour);
+void evaluateImbalance(EvalInfo* ei, Board* board);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
 
 extern const int* PieceValues[8];
