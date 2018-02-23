@@ -272,10 +272,8 @@ int aspirationWindow(Thread* thread, int depth){
                 return value;
             
             // Search failed low
-            if (value <= alpha){
-                beta  = (alpha + beta) / 2;
+            if (value <= alpha)
                 alpha = alpha - 2 * lower;
-            }
             
             // Search failed high
             if (value >= beta){
