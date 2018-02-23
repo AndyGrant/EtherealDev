@@ -278,10 +278,8 @@ int aspirationWindow(Thread* thread, int depth){
             }
             
             // Search failed high
-            if (value >= beta){
-                alpha = (alpha + beta) / 2;
+            if (value >= beta)
                 beta  = beta + 2 * upper;
-            }
             
             // Result was a near mate score, force a full search
             if (abs(value) > MATE / 2)
