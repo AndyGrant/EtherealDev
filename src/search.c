@@ -281,7 +281,7 @@ int aspirationWindow(Thread* thread, int depth){
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
             
-            updateBestResults(thread, alpha, value);
+            updateBestResults(thread, alpha, beta, value);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -303,7 +303,7 @@ int aspirationWindow(Thread* thread, int depth){
     
     // Full window search when near mate or when depth is below or equal to 4
     value = search(thread, &thread->pv, -MATE, MATE, depth, 0);
-    updateBestResults(thread, -MATE, value);
+    updateBestResults(thread, -MATE, MATE, value);
     return value;
 }
 

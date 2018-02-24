@@ -60,6 +60,6 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
                                
 uint64_t nodesSearchedThreadPool(Thread* threads);
 
-void updateBestResults(Thread* thread, int alpha, int value);
+void updateBestResults(Thread* thread, int alpha, int beta, int value);
 
 #endif

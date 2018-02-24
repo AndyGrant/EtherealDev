@@ -99,12 +99,26 @@ uint64_t nodesSearchedThreadPool(Thread* threads){
     return nodes;
 }
 
-void updateBestResults(Thread* thread, int alpha, int value){
+void updateBestResults(Thread* thread, int alpha, int beta, int value){
     
     // Search failed low, and therefore we cannot update a best move
     if (value <= alpha) return;
     
-    thread->bestMove  = thread->pv.line[0];
-    thread->bestValue = value;
-    thread->bestDepth = thread->depth;
+    // Search failed high, and therefore we will only overwrite an entry
+    // if the entry came from the same depth, or the value is greater than
+    // an entry from a previous depth
+    else if (value >= beta){
+        if (thread->bestDepth == thread->depth || thread->bestValue <= value){
+            thread->bestMove  = thread->pv.line[0];
+            thread->bestValue = value;
+            thread->bestDepth = thread->depth;
+        }
+    }
+    
+    // Searched returned within the alpha-beta window
+    else {
+        thread->bestMove  = thread->pv.line[0];
+        thread->bestValue = value;
+        thread->bestDepth = thread->depth;
+    }
 }
