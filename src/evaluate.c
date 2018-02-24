@@ -158,7 +158,7 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 };
 
 const int KingSafety[100] = { // Taken from CPW / Stockfish
-       0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
+     -16,  -8, - 4,   1,   2,   3,   5,   7,   9,  12,  15,
       18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
       68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
      140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
@@ -167,7 +167,7 @@ const int KingSafety[100] = { // Taken from CPW / Stockfish
      494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
+     500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
 const int NoneValue[PHASE_NB] = {   0,   0};
@@ -299,14 +299,6 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     ei->attackedBy2[colour] = ei->attacked[colour] & ei->pawnAttacks[colour];
     ei->attacked[colour] |= ei->pawnAttacks[colour];
     ei->attackedNoQueen[colour] |= attacks;
-    
-    // Update the attack counts and attacker counts for pawns for use in
-    // the king safety calculation. We just do this for the pawns as a whole,
-    // and not individually, to save time, despite the loss in accuracy.
-    if (attacks != 0ull){
-        ei->attackCounts[colour] += 2 * popcount(attacks);
-        ei->attackerCounts[colour] += 1;
-    }
     
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pkentry != NULL) return;
@@ -635,21 +627,17 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     ei->endgame[colour] += KingDefenders[defenderCounts][EG];
     if (TRACE) T.kingDefenders[colour][defenderCounts]++;
     
-    // If we have two or more threats to our king area, we will apply a penalty
-    // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
-        
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
-        
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
-    }
+        
+    // Cap our attackCounts at 99 (KingSafety has 100 slots)
+    attackCounts = ei->attackCounts[!colour];
+    attackCounts = attackCounts >= 100 ? 99 : attackCounts;
+    
+    // Scale down attack count if there are no enemy queens
+    if (!(board->colours[!colour] & board->pieces[QUEEN]))
+        attackCounts *= .25;
+    
+    ei->midgame[colour] -= KingSafety[attackCounts];
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
     if (ei->pkentry != NULL) return;
