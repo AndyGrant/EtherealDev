@@ -20,11 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "transposition.h"
-#include "history.h"
-#include "search.h"
 #include "board.h"
+#include "history.h"
+#include "move.h"
+#include "search.h"
 #include "thread.h"
+#include "transposition.h"
 #include "types.h"
 
 Thread* createThreadPool(int nthreads){
@@ -79,6 +80,10 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         threads[i].depth = 0;
         threads[i].nodes = 0ull;
         
+        threads[i].bestMove  = NONE_MOVE;
+        threads[i].bestValue = -MATE;
+        threads[i].bestDepth = 0;
+        
         // Reset the abort flag for the new search
         threads[i].abort = 0;
     }
@@ -92,4 +97,14 @@ uint64_t nodesSearchedThreadPool(Thread* threads){
         nodes += threads[i].nodes;
     
     return nodes;
+}
+
+void updateBestResults(Thread* thread, int alpha, int value){
+    
+    // Search failed low, and therefore we cannot update a best move
+    if (value <= alpha) return;
+    
+    thread->bestMove  = thread->pv.line[0];
+    thread->bestValue = value;
+    thread->bestDepth = thread->depth;
 }

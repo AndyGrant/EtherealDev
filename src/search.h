@@ -48,6 +48,8 @@ typedef struct PVariation {
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time, double mtg, double inc);
 
+uint16_t pickBestMove(Thread* threads);
+
 void* iterativeDeepening(void* vthread);
 
 int aspirationWindow(Thread* thread, int depth);

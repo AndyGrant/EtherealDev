@@ -103,8 +103,22 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     // Cleanup pthreads
     free(pthreads);
     
-    // Return highest depth best move
-    return info.bestmoves[info.depth];
+    return pickBestMove(threads);
+}
+
+uint16_t pickBestMove(Thread* threads){
+    
+    Thread* bestThread = &threads[0];
+    int i, nthreads = threads[0].nthreads;
+    
+    for (i = 1; i < nthreads; i++){
+        if (    threads[i].bestDepth > bestThread->bestDepth
+            || (    threads[i].bestDepth == bestThread->bestDepth
+                &&  threads[i].bestValue >= bestThread->bestValue))
+            bestThread = &threads[i];
+    }
+    
+    return bestThread->bestMove;
 }
 
 void* iterativeDeepening(void* vthread){
@@ -267,6 +281,8 @@ int aspirationWindow(Thread* thread, int depth){
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
             
+            updateBestResults(thread, alpha, value);
+            
             // Result was within our window
             if (value > alpha && value < beta)
                 return value;
@@ -286,7 +302,9 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search when near mate or when depth is below or equal to 4
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    value = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    updateBestResults(thread, -MATE, value);
+    return value;
 }
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
