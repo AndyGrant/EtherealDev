@@ -736,7 +736,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // eval exceeds alpha, we can call our static eval the new alpha
     best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
     alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    if (alpha >= beta && !board->kingAttackers) return value;
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
