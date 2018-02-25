@@ -94,11 +94,11 @@ const int BishopMobility[14][PHASE_NB] = {
     {  21,   1}, {   2, -23},
 };
 
-const int RookValue[PHASE_NB] = { 396, 438};
+const int RookValue[PHASE_NB] = { 396, 436};
 
 const int RookFile[2][PHASE_NB] = { {   6,   2}, {  23,  -8} };
 
-const int RookOnSeventh[PHASE_NB] = {   2,   1};
+const int RookOnSeventh[PHASE_NB] = {   9,  10};
 
 const int RookMobility[15][PHASE_NB] = {
     {-106, -94}, { -48, -75}, { -11, -42}, {  -4, -18},
@@ -530,9 +530,10 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.rookFile[colour][open]++;
         }
         
-        // Rook gains a bonus for being located
-        // on seventh rank relative to its colour
-        if (Rank(sq) == (colour == BLACK ? 1 : 6)){
+        // Rook gains a bonus for being located, on seventh rank relative to its
+        // colour so long as the enemy king is on the last two ranks of 
+        if (   Rank(sq) == (colour == BLACK ? 1 : 6)
+            && Rank(relativeSquare(getlsb(board->pieces[KING] & board->colours[!colour]), colour)) >= 6){
             ei->midgame[colour] += RookOnSeventh[MG];
             ei->endgame[colour] += RookOnSeventh[EG];
             if (TRACE) T.rookOnSeventh[colour]++;
