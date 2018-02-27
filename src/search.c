@@ -556,11 +556,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !inCheck
             &&   played >= 1
             &&   depth <= 5
-            &&   MoveType(currentMove) != ENPASS_MOVE
-            &&   MoveType(currentMove) != PROMOTION_MOVE
             &&  !ei.positionIsDrawn
             && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&   PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+            &&   thisTacticalMoveValue(board, currentMove)
              <   PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG]){
                  
           
