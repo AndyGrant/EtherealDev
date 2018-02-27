@@ -502,7 +502,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       1, height+1, 1) >= rBeta
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       1, height+1, 0) >= rBeta
                 && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, 0) >= rBeta){
                     
                 revertMove(board, currentMove, undo);
@@ -521,7 +521,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height, 0);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, 1);
         
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
