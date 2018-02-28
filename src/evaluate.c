@@ -603,7 +603,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // queen for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 4 * popcount(attacks);
+            ei->attackCounts[colour] += 5 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
