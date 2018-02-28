@@ -428,15 +428,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargins[depth] < alpha){
-            
-        if (depth <= 1)
-            return qsearch(thread, pv, alpha, beta, height);
-        
-        rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return alpha;
-    }
+        &&  eval + RazorMargins[depth] < alpha)
+        return qsearch(thread, pv, alpha, beta, height);
     
     // Step 9. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
