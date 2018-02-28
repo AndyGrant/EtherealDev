@@ -639,19 +639,19 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
-        
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
-        attackCounts = ei->attackCounts[!colour];
-        attackCounts = attackCounts >= 100 ? 99 : attackCounts;
-        
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
-    }
+    attackCounts = ei->attackCounts[!colour];
+    
+    if (ei->attackerCounts[!colour] == 1)
+        attackCounts *= .25;
+        
+    if (ei->attackerCounts[!colour] >= 3)
+        attackCounts += ei->attackerCounts[!colour];
+    
+    if (!(board->colours[!colour] & board->pieces[QUEEN]))
+        attackCounts *= .25;
+    
+    ei->midgame[colour] -= KingSafety[MIN(99, attackCounts)];
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
     if (ei->pkentry != NULL) return;
