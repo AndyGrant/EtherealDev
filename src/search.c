@@ -496,7 +496,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            R = 4 + (eval + thisTacticalMoveValue(board, currentMove) - rBeta) / 280;
+            R = 4 + (eval + thisTacticalMoveValue(board, currentMove) - rBeta) / 70;
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
