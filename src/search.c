@@ -433,7 +433,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (depth <= 1)
             return qsearch(thread, pv, alpha, beta, height);
         
-        rAlpha = alpha - RazorMargins[depth];
+        rAlpha = alpha - 3 * RazorMargins[depth] / 4;
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return alpha;
     }
