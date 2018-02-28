@@ -604,7 +604,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += 4 * popcount(attacks);
-            ei->attackerCounts[colour] += 1;
+            ei->attackerCounts[colour] += 2;
         }
     }
 }
