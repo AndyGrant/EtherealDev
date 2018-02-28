@@ -488,6 +488,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (eval + thisTacticalMoveValue(board, currentMove) < rBeta)
                 continue;
             
+            
             // Apply and validate move before searching
             applyMove(board, currentMove, undo);
             if (!isNotInCheck(board, !board->turn)){
@@ -495,11 +496,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
+            R = 4 + (eval + thisTacticalMoveValue(board, currentMove) - rBeta) / 140;
+            
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
-                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1,               0, height+1) >= rBeta
+                && -search(thread, &lpv, -rBeta, -rBeta+1, MAX(1, depth-R), height+1) >= rBeta){
                     
                 revertMove(board, currentMove, undo);
                 return beta;
