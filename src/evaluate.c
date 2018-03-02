@@ -69,7 +69,7 @@ const int KnightValue[PHASE_NB] = { 300, 271};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -30, -19};
 
-const int KnightOutpost[2][PHASE_NB] = { {  12, -20}, {  26,   8} };
+const int KnightOutpost[2][PHASE_NB] = { {  13, -19}, {  23,  12} };
 
 const int KnightMobility[9][PHASE_NB] = {
     { -54, -61}, { -24, -49}, {  -7, -24},
@@ -79,13 +79,13 @@ const int KnightMobility[9][PHASE_NB] = {
 
 const int BishopValue[PHASE_NB] = { 298, 271};
 
-const int BishopWings[PHASE_NB] = {  -1,   1};
+const int BishopWings[PHASE_NB] = {  10, -11};
 
 const int BishopPair[PHASE_NB] = {  27,  42};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -32, -18};
 
-const int BishopOutpost[2][PHASE_NB] = { {  13,  -9}, {  35,  -6} };
+const int BishopOutpost[2][PHASE_NB] = { {  14,  -7}, {  25,   7} };
 
 const int BishopMobility[14][PHASE_NB] = {
     { -32, -71}, { -27, -36}, { -12, -27}, {  -3, -13},
@@ -109,9 +109,9 @@ const int RookMobility[15][PHASE_NB] = {
 
 const int QueenValue[PHASE_NB] = { 790, 829};
 
-const int QueenChecked[PHASE_NB] = { -20,  38};
+const int QueenChecked[PHASE_NB] = { -31, -19};
 
-const int QueenCheckedByPawn[PHASE_NB] = { -27,  37};
+const int QueenCheckedByPawn[PHASE_NB] = { -10,  -1};
 
 const int QueenMobility[28][PHASE_NB] = {
     {-197, -66}, {  69,-322}, { -17,-195}, { -19, -91},
