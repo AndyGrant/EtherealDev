@@ -304,7 +304,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // the king safety calculation. We just do this for the pawns as a whole,
     // and not individually, to save time, despite the loss in accuracy.
     if (attacks != 0ull){
-        ei->attackCounts[colour] += 2 * popcount(attacks);
+        ei->attackCounts[colour] += popcount(attacks);
         ei->attackerCounts[colour] += 1;
     }
     
@@ -604,7 +604,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += 4 * popcount(attacks);
-            ei->attackerCounts[colour] += 1;
+            ei->attackerCounts[colour] += 2;
         }
     }
 }
@@ -650,7 +650,6 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
             attackCounts *= .25;
     
         ei->midgame[colour] -= KingSafety[attackCounts];
-        ei->endgame[colour] -= KingSafety[attackCounts];
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
