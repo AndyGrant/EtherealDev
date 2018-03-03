@@ -46,7 +46,20 @@
     EvalTrace T;
 #endif
 
-const int PawnValue[PHASE_NB] = {  64,  77};
+const int PawnValue[PHASE_NB]   = { 100, 120};
+
+const int KnightValue[PHASE_NB] = { 468, 423};
+
+const int BishopValue[PHASE_NB] = { 465, 423};
+
+const int RookValue[PHASE_NB]   = { 609, 687};
+
+const int QueenValue[PHASE_NB]  = {1234,1295};
+
+const int KingValue[PHASE_NB]   = { 100, 100};
+
+const int NoneValue[PHASE_NB]   = {   0,   0};
+
 
 const int PawnIsolated[PHASE_NB] = {  -2,  -5};
 
@@ -65,8 +78,6 @@ const int PawnConnected32[32][PHASE_NB] = {
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
 };
 
-const int KnightValue[PHASE_NB] = { 300, 271};
-
 const int KnightAttackedByPawn[PHASE_NB] = { -30, -19};
 
 const int KnightOutpost[2][PHASE_NB] = { {  12, -20}, {  26,   8} };
@@ -76,8 +87,6 @@ const int KnightMobility[9][PHASE_NB] = {
     {  -3,  -6}, {   2,  -8}, {   6,   1},
     {  12,  -1}, {  20,   0}, {  30, -16}
 };
-
-const int BishopValue[PHASE_NB] = { 298, 271};
 
 const int BishopWings[PHASE_NB] = {  -1,   1};
 
@@ -94,8 +103,6 @@ const int BishopMobility[14][PHASE_NB] = {
     {  20,   0}, {  19, -12}
 };
 
-const int RookValue[PHASE_NB] = { 390, 440};
-
 const int RookFile[2][PHASE_NB] = { {   6,   2}, {  27,  -5} };
 
 const int RookOnSeventh[PHASE_NB] = {   0,  13};
@@ -106,8 +113,6 @@ const int RookMobility[15][PHASE_NB] = {
     {   0,  24}, {   4,  22}, {   6,  26}, {  13,  30},
     {  12,  31}, {  15,  29}, {  12,  27}
 };
-
-const int QueenValue[PHASE_NB] = { 790, 829};
 
 const int QueenChecked[PHASE_NB] = { -20,  38};
 
@@ -122,8 +127,6 @@ const int QueenMobility[28][PHASE_NB] = {
     {   3,  18}, {   6,  17}, {  15,  10}, {  22,  11},
     {  29,  16}, {  23,   0}, {   2,   4}, {  19,  11}
 };
-
-const int KingValue[PHASE_NB] = { 100, 100};
 
 const int KingDefenders[12][PHASE_NB] = {
     { -22,  -2}, { -17,   3}, {   1,   1}, {   7,  -1},
@@ -169,8 +172,6 @@ const int KingSafety[100] = { // Taken from CPW / Stockfish
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
      500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
-
-const int NoneValue[PHASE_NB] = {   0,   0};
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  16,   8}, { -16,  -8} };
 
