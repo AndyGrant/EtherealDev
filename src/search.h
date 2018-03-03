@@ -71,15 +71,15 @@ int bestTacticalMoveValue(Board* board);
 
 static const int RazorDepth = 4;
 
-static const int RazorMargins[] = {0, 700, 750, 810, 900};
+static const int RazorMargins[] = {0, 450, 480, 550, 610};
 
 static const int BetaPruningDepth = 8;
 
-static const int FutilityMargin = 110;
+static const int FutilityMargin = 100;
 
 static const int ProbCutDepth = 5;
 
-static const int ProbCutMargin = 156;
+static const int ProbCutMargin = 140;
 
 static const int InternalIterativeDeepeningDepth = 3;
 
@@ -91,6 +91,6 @@ static const int LateMovePruningDepth = 8;
 
 static const int LateMovePruningCounts[] = {0, 5, 7, 11, 16, 24, 33, 43, 56};
 
-static const int QFutilityMargin = 86;
+static const int QFutilityMargin = 85;
 
 #endif
