@@ -46,8 +46,7 @@
     EvalTrace T;
 #endif
 
-
-const int PawnValue[PHASE_NB]   = {  93, 114};
+const int PawnValue[PHASE_NB]   = {  95, 114};
 
 const int KnightValue[PHASE_NB] = { 435, 370};
 
