@@ -740,7 +740,7 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     
     int i = 0, x, y;
     
-    int currentPawnValue = PawnValue[MG] + TunePawnValue ? cparams[0][MG] : 0;
+    int currentPawnValue = PawnValue[MG] + (TunePawnValue ? params[0][MG] : 0);
     
     int tparams[NT][PHASE_NB];
     

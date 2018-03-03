@@ -22,19 +22,19 @@
 #include "types.h"
 
 // Number of Positions in the data set
-#define NP (74000)
+#define NP (8900000)
 
 // Every tunable component of the evaluation includes a definition of
 // TuneParamName, which is equal to an ON/OFF flag, multipled by the
 // number of terms associated with the evaluation component.
 
 // Define the Piece Value Terms
-#define TunePawnValue            (1 * 1  )
-#define TuneKnightValue          (1 * 1  )
-#define TuneBishopValue          (1 * 1  )
-#define TuneRookValue            (1 * 1  )
-#define TuneQueenValue           (1 * 1  )
-#define TuneKingValue            (1 * 1  )
+#define TunePawnValue            (0 * 1  )
+#define TuneKnightValue          (0 * 1  )
+#define TuneBishopValue          (0 * 1  )
+#define TuneRookValue            (0 * 1  )
+#define TuneQueenValue           (0 * 1  )
+#define TuneKingValue            (0 * 1  )
 
 // Define the Piece Square Table Terms
 #define TunePawnPSQT             (1 * 32 )
