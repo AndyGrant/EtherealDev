@@ -740,12 +740,14 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     
     int i = 0, x, y;
     
+    int currentPawnValue = PawnValue[MG] + TunePawnValue ? cparams[0][MG] : 0;
+    
     int tparams[NT][PHASE_NB];
     
     // Combine the original params and the param deltas
     for (x = 0; x < NT; x++){
-        tparams[x][MG] = (int)(params[x][MG] + cparams[x][MG]);
-        tparams[x][EG] = (int)(params[x][EG] + cparams[x][EG]);
+        tparams[x][MG] = (int)((100.0 / currentPawnValue) * (params[x][MG] + cparams[x][MG]));
+        tparams[x][EG] = (int)((100.0 / currentPawnValue) * (params[x][EG] + cparams[x][EG]));
     }
     
     // Print Piece Values
