@@ -46,15 +46,16 @@
     EvalTrace T;
 #endif
 
-const int PawnValue[PHASE_NB]   = { 100, 120};
 
-const int KnightValue[PHASE_NB] = { 468, 423};
+const int PawnValue[PHASE_NB]   = {  93, 114};
 
-const int BishopValue[PHASE_NB] = { 465, 423};
+const int KnightValue[PHASE_NB] = { 435, 370};
 
-const int RookValue[PHASE_NB]   = { 609, 687};
+const int BishopValue[PHASE_NB] = { 438, 390};
 
-const int QueenValue[PHASE_NB]  = {1234,1295};
+const int RookValue[PHASE_NB]   = { 587, 672};
+
+const int QueenValue[PHASE_NB]  = {1186,1233};
 
 const int KingValue[PHASE_NB]   = { 156, 156};
 
