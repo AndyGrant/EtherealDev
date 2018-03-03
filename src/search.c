@@ -248,12 +248,12 @@ int aspirationWindow(Thread* thread, int depth){
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
         
         // Dynamically compute the upper margin based on previous scores
-        upper = MAX(    8,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
+        upper = MAX(  10,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
         upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
         upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
         
         // Dynamically compute the lower margin based on previous scores
-        lower = MAX(    8, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
+        lower = MAX(   10, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
         lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
         lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
         
@@ -417,7 +417,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     inCheck = !!board->kingAttackers;
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->pktable);
-        futilityMargin = eval + 70 * depth;
+        futilityMargin = eval + FutilityMargin * depth;
     }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
@@ -443,7 +443,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - 70 * depth > beta)
+        &&  eval - FutilityMargin * depth > beta)
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that

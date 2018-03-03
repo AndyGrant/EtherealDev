@@ -172,7 +172,7 @@ const int KingSafety[100] = { // Taken from CPW / Stockfish
 
 const int NoneValue[PHASE_NB] = {   0,   0};
 
-const int Tempo[COLOUR_NB][PHASE_NB] = { {  16,   8}, { -16,  -8} };
+const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  14}, { -25, -14} };
 
 const int* PieceValues[8] = {
     PawnValue, KnightValue, BishopValue, RookValue,
