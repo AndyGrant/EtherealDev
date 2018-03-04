@@ -207,11 +207,14 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
-       + ei->pawnKingMidgame[WHITE] - ei->pawnKingMidgame[BLACK] + Tempo[board->turn][MG];
+       + ei->pawnKingMidgame[WHITE] - ei->pawnKingMidgame[BLACK];
        
     // Combine evaluation terms for the end game
     eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
-       + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK] + Tempo[board->turn][EG];
+       + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK];
+       
+    mg += board->kingAttackers ? Tempo[board->turn][MG] / 2 : Tempo[board->turn][MG];
+    eg += board->kingAttackers ? Tempo[board->turn][EG] / 2 : Tempo[board->turn][EG];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
