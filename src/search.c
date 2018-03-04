@@ -408,7 +408,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (rAlpha >= rBeta){
                 
                 // Update killer moves if the move from the table was quiet
-                if (!moveIsTactical(board, ttMove) && thread->killers[height][0] != ttMove){
+                if (    ttValue >= rBeta
+                    && !moveIsTactical(board, ttMove) 
+                    &&  thread->killers[height][0] != ttMove){
                     thread->killers[height][1] = thread->killers[height][0];
                     thread->killers[height][0] = ttMove;
                 }
