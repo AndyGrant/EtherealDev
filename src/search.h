@@ -75,7 +75,7 @@ static const int RazorMargins[] = {0, 700, 750, 810, 900};
 
 static const int BetaPruningDepth = 8;
 
-static const int FutilityMargin = 110;
+static const int FutilityMargin = 85;
 
 static const int ProbCutDepth = 5;
 
