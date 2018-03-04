@@ -368,18 +368,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
         
-    // Step 5. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
-    if (depth <= 0){
-        
-        // No king attackers indicates we are not checked
-        if (!board->kingAttackers) 
-            return qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the accepktable bounds
-        depth = 0; 
-    }
+    // Step 5. Go into the Quiescence Search if we have reached the horizon
+    if (depth <= 0)
+        return qsearch(thread, pv, alpha, beta, 0, height);
     
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
@@ -431,10 +422,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + RazorMargins[depth] < alpha){
             
         if (depth <= 1)
-            return qsearch(thread, pv, alpha, beta, height);
+            return qsearch(thread, pv, alpha, beta, 0, height);
         
         rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
+        value = qsearch(thread, pv, rAlpha, rAlpha + 1, 0, height);
         if (value <= rAlpha) return alpha;
     }
     
@@ -697,7 +688,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
     
     Board* const board = &thread->board;
     
@@ -735,8 +726,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
     best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    if (!board->kingAttackers){
+        alpha = MAX(alpha, value);
+        if (alpha >= beta) return value;
+    }
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
@@ -744,8 +737,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return eval;
     
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
-    // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    // position (includes Captures, Promotions, and Enpass) and try them. If we are
+    // at or above depth negative one, we will generate quiets if in check.
+    board->kingAttackers && depth >= -1 ? initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 0)
+                                        : initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
@@ -772,7 +768,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         }
         
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         
         // Revert move from board
         revertMove(board, currentMove, undo);
