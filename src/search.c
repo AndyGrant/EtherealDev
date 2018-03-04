@@ -748,10 +748,14 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        int foo = thisTacticalMoveValue(board, currentMove);
+        
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
+        if (eval + QFutilityMargin + foo < alpha){
+            best = MAX(best, eval + QFutilityMargin + foo);
             continue;
+        }
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
