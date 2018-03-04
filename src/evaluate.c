@@ -83,9 +83,9 @@ const int KnightAttackedByPawn[PHASE_NB] = { -46, -29};
 const int KnightOutpost[2][PHASE_NB] = { {  18, -31}, {  40,  12} };
 
 const int KnightMobility[9][PHASE_NB] = {
-    { -84, -95}, { -37, -76}, { -10, -37},
-    {  -4,  -9}, {   3, -12}, {   9,   1},
-    {  18,  -1}, {  31,   0}, {  46, -25},
+    { -52, -67}, { -26, -46}, { -16, -23},
+    {   0,  -9}, {   8, -10}, {  -4,   2},
+    {   5,  -9}, {  18,  -1}, {  34, -48},
 };
 
 const int BishopWings[PHASE_NB] = {  -1,   1};
@@ -97,10 +97,10 @@ const int BishopAttackedByPawn[PHASE_NB] = { -50, -28};
 const int BishopOutpost[2][PHASE_NB] = { {  20, -14}, {  54,  -9} };
 
 const int BishopMobility[14][PHASE_NB] = {
-    { -50,-110}, { -42, -56}, { -18, -42}, {  -4, -20},
-    {   4,  -6}, {  15,   0}, {  21,   9}, {  28,   4},
-    {  29,  10}, {  35,   6}, {  42,   4}, {  56,  -6},
-    {  31,   0}, {  29, -18},
+    { -33, -48}, { -24, -36}, {  -8, -25}, {   0, -10},
+    {   6,  -3}, {  10,  -4}, {  16,   0}, {  19,   0},
+    {  25,   4}, {   8,  -5}, { -39, -27}, {   0,   0},
+    {   0,   0}, {   0,   0},
 };
 
 const int RookFile[2][PHASE_NB] = { {   9,   3}, {  42,  -7} };
@@ -108,10 +108,10 @@ const int RookFile[2][PHASE_NB] = { {   9,   3}, {  42,  -7} };
 const int RookOnSeventh[PHASE_NB] = {   0,  20};
 
 const int RookMobility[15][PHASE_NB] = {
-    {-123, -65}, { -60,-112}, { -15, -62}, { -10, -26},
-    {  -9,  -3}, {  -9,  15}, {  -7,  26}, {  -3,  31},
-    {   0,  37}, {   6,  34}, {   9,  40}, {  20,  46},
-    {  18,  48}, {  23,  45}, {  18,  42},
+    { -11, -28}, {  -4, -25}, {  -3,  -7}, {   8,   4},
+    {   5,  10}, {  12,  13}, {  18,  19}, {  24,  20},
+    {  26,  23}, {  30,  20}, {  31,  17}, {  34,   9},
+    {  24, -10}, {   0,   0}, {   0,   0},
 };
 
 const int QueenChecked[PHASE_NB] = { -31, -31};
@@ -119,13 +119,13 @@ const int QueenChecked[PHASE_NB] = { -31, -31};
 const int QueenCheckedByPawn[PHASE_NB] = { -42, -42};
 
 const int QueenMobility[28][PHASE_NB] = {
-    { -57,-243}, { -37,-213}, { -26,-162}, { -29,-142},
-    { -21,-106}, { -23, -54}, { -21, -84}, { -17, -84},
-    { -15, -54}, { -10, -50}, { -10, -26}, {  -6, -28},
-    {  -3, -15}, {  -4, -12}, {   1, -10}, {   0,   3},
-    {   0,  12}, {  -1,  12}, {  10,  23}, {   0,  25},
-    {   4,  28}, {   9,  26}, {  23,  15}, {  34,  17},
-    {  45,  25}, {  35,   0}, {   3,   6}, {  29,  17},
+    { -25, -59}, { -14, -37}, {  -6, -48}, {  -4, -29},
+    {   0, -22}, {   2,  -9}, {   4,  -4}, {   6,   0},
+    {   6,   7}, {   7,  11}, {   8,  15}, {   7,  21},
+    {   7,  24}, {  12,  21}, {  13,  22}, {  16,  16},
+    {  19,  17}, {  22,   2}, {  22,   6}, {  36,  -3},
+    {  33,  -2}, {  15, -10}, {  42,  -9}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 const int KingDefenders[12][PHASE_NB] = {
@@ -739,8 +739,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAreas[WHITE] = KingMap[wKingSq] | (1ull << wKingSq) | (KingMap[wKingSq] << 8);
     ei->kingAreas[BLACK] = KingMap[bKingSq] | (1ull << bKingSq) | (KingMap[bKingSq] >> 8);
     
-    ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
-    ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
+    ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE] | RANK_1 | RANK_2);
+    ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK] | RANK_8 | RANK_7);
     
     ei->attacked[WHITE] = ei->attackedNoQueen[WHITE] = kingAttacks(wKingSq, ~0ull);
     ei->attacked[BLACK] = ei->attackedNoQueen[BLACK] = kingAttacks(bKingSq, ~0ull);
