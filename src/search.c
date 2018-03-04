@@ -443,7 +443,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - FutilityMargin * depth > beta)
+        &&  eval - FutilityMargin * depth > beta
+        &&  hasNonPawnMaterial(board, WHITE)
+        &&  hasNonPawnMaterial(board, BLACK))
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that
