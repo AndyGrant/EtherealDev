@@ -753,7 +753,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
         if (eval + QFutilityMargin + foo < alpha){
-            best = MAX(best, eval + QFutilityMargin + foo);
+            best = MAX(best, eval + foo);
             continue;
         }
         
