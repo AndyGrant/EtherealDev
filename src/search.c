@@ -399,13 +399,22 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttValue = valueFromTT(ttEntry.value, height);
             
             switch (ttEntry.type){
-                case  PVNODE: return ttValue;
+                case  PVNODE: rAlpha = rBeta;               break;
                 case CUTNODE: rAlpha = MAX(ttValue, alpha); break;
                 case ALLNODE:  rBeta = MIN(ttValue,  beta); break;
             }
             
             // Entry allows early exit
-            if (rAlpha >= rBeta) return ttValue;
+            if (rAlpha >= rBeta){
+                
+                // Update killer moves if the move from the table was quiet
+                if (!moveIsTactical(board, ttMove) && thread->killers[height][0] != ttMove){
+                    thread->killers[height][1] = thread->killers[height][0];
+                    thread->killers[height][0] = ttMove;
+                }
+                
+                return ttValue;
+            }
         }
     }
     
