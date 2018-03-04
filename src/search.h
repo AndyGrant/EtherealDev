@@ -71,7 +71,7 @@ int bestTacticalMoveValue(Board* board);
 
 static const int RazorDepth = 4;
 
-static const int RazorMargins[] = {0, 700, 750, 810, 900};
+static const int RazorMargins[] = {0, 350, 250, 320, 400};
 
 static const int BetaPruningDepth = 8;
 
