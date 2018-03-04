@@ -542,6 +542,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
+            && !inCheck
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
