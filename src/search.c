@@ -43,6 +43,8 @@
 #include "movepicker.h"
 #include "uci.h"
 
+int TRIED[MAX_DEPTH], WORKED[MAX_DEPTH];
+
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
@@ -102,6 +104,10 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Cleanup pthreads
     free(pthreads);
+    
+    //for (i = 1; i < MAX_DEPTH; i++)
+    //    if (TRIED[i])
+    //        printf("[%2d] %10d %10d %4f \n", i, TRIED[i], WORKED[i], 100.0 * WORKED[i] / TRIED[i]);
     
     // Return highest depth best move
     return info.bestmoves[info.depth];
@@ -301,6 +307,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE;
     int hist = 0; // Fix bogus GCC warning
+    int FOO;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -530,6 +537,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        FOO = 0;
+        
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
@@ -546,9 +555,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 
             R = 2 + (played - 4) / 8 + (depth - 6) / 4;
             
-            if (    depth - R <= 6
-                &&  eval + FutilityMargin + MAX(0, depth - R) * 150 < alpha)
-                continue;
+            if (   (depth - R <= 6 || hist < 0)
+                &&  eval + 120 + MAX(0, depth - R) * 85 < alpha)
+                continue;//FOO = 1;//continue;
         }
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
@@ -642,6 +651,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
                ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
                :  value;
+               
+        //if (FOO){
+        //    TRIED[depth]++;
+        //    WORKED[depth] += value <= alpha;
+        //}
         
         // Revert the board state
         revertMove(board, currentMove, undo);
