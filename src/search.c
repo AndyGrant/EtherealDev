@@ -546,9 +546,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 
             R = 2 + !PvNode + (played - 4) / 8 + (depth - 6) / 4;
             
-            if (   (depth - R <= 6 || hist < 0)
+            if (   (depth - R <= 6 || hist < -2048)
                 && (hist < -4196 || !PvNode)
-                &&  eval + 100 + MAX(0, depth - R) * (PvNode ? 185 : 125) < alpha)
+                &&  eval + 100 + MAX(0, depth - R) * (PvNode ? 185 : 85) < alpha)
                 continue;
         }
             
