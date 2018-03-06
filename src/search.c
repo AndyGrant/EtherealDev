@@ -299,7 +299,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0; 
-    int best = -MATE, eval = -MATE, futilityMargin = -MATE;
+    int best = -MATE, eval = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
@@ -415,10 +415,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
-    if (!PvNode){
+    if (!PvNode)
         eval = evaluateBoard(board, &ei, &thread->pktable);
-        futilityMargin = eval + FutilityMargin * depth;
-    }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -542,11 +540,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
+            && !inCheck
             &&  isQuiet
-            &&  played >= 1
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            continue;
+            &&  played >= 1){
+                
+            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
+            
+            if (    depth - R <= 6
+                &&  eval + FutilityMargin + MAX(0, depth - R) * 150 < alpha)
+                continue;
+        }
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
