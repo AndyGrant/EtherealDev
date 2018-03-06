@@ -38,7 +38,6 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size);
 int moveIsLegal(Board* board, uint16_t move);
 int moveIsPsuedoLegal(Board* board, uint16_t move);
 
-int isNotInCheck(Board* board, int turn);
 int squareIsAttacked(Board* board, int turn, int sq);
 
 uint64_t attackersToSquare(Board* board, int colour, int sq);

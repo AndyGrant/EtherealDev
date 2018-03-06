@@ -122,19 +122,15 @@ void buildKingMoves(uint16_t* moves, int* size, uint64_t pieces, uint64_t target
 
 void genAllLegalMoves(Board* board, uint16_t* moves, int* size){
     
-    Undo undo[1];
     int i, psuedoSize = 0;
     uint16_t psuedoMoves[MAX_MOVES];
     
     genAllMoves(board, psuedoMoves, &psuedoSize);
     
     // Check each move for legality before copying
-    for (i = 0; i < psuedoSize; i++){
-        applyMove(board, psuedoMoves[i], undo);
-        if (isNotInCheck(board, !board->turn))
+    for (i = 0; i < psuedoSize; i++)
+        if (moveIsLegal(board, psuedoMoves[i]))
             moves[(*size)++] = psuedoMoves[i];
-        revertMove(board, psuedoMoves[i], undo);
-    }
 }
 
 void genAllMoves(Board* board, uint16_t* moves, int* size){
@@ -612,7 +608,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
                 if (to != castleEnd) return 0;
                 if (~empty & map) return 0;
                 if (!(board->castleRights & rights)) return 0;
-                if (!isNotInCheck(board, board->turn)) return 0;
+                if (!board->kingAttackers) return 0;
                 return !squareIsAttacked(board, board->turn, crossover);
             }
             
@@ -623,12 +619,6 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
             assert(0);
             return 0;
     }
-}
-
-int isNotInCheck(Board* board, int turn){
-    int kingsq = getlsb(board->colours[turn] & board->pieces[KING]);
-    assert(board->squares[kingsq] == WHITE_KING + turn);
-    return !squareIsAttacked(board, turn, kingsq);
 }
 
 int squareIsAttacked(Board* board, int turn, int sq){
