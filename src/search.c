@@ -415,7 +415,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
-    eval = evaluateBoard(board, &ei, &thread->pktable);
+    if (!PvNode)
+        eval = evaluateBoard(board, &ei, &thread->pktable);
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -538,17 +539,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (   !RootNode
-            && !inCheck
-            &&  abs(alpha) < MATE - MAX_HEIGHT
+        if (   !PvNode
             &&  isQuiet
-            &&  played >= 1){
+            &&  played >= 1
+            &&  abs(alpha) < MATE - MAX_HEIGHT){
                 
-            R = 2 + !PvNode + (played - 4) / 8 + (depth - 6) / 4;
+            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
             
-            if (   (depth - R <= 6 || hist < -2048)
-                && (hist < -4196 || !PvNode)
-                &&  eval + 100 + MAX(0, depth - R) * (PvNode ? 185 : 85) < alpha)
+            if (   (depth - R <= 6 || hist < -8196)
+                &&  eval + 100 + MAX(0, depth - R) * 85 < alpha)
                 continue;
         }
             
