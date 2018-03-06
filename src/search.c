@@ -427,6 +427,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
         && !inCheck
+        &&  hasNonPawnMaterial(board, WHITE)
+        &&  hasNonPawnMaterial(board, BLACK)
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
@@ -454,7 +456,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
+        &&  hasNonPawnMaterial(board, WHITE)
+        &&  hasNonPawnMaterial(board, BLACK)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
         R = 4 + depth / 6 + (eval - beta + 200) / 400;
