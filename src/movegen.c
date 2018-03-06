@@ -608,7 +608,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
                 if (to != castleEnd) return 0;
                 if (~empty & map) return 0;
                 if (!(board->castleRights & rights)) return 0;
-                if (!board->kingAttackers) return 0;
+                if (board->kingAttackers) return 0;
                 return !squareIsAttacked(board, board->turn, crossover);
             }
             
