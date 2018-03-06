@@ -296,7 +296,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, value, inCheck = 0, isQuiet, R, repetitions;
+    int i, value, inCheck = 0, isQuiet, R, repetitions, extension;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -378,7 +378,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // We do not cap reductions, so here we will make
         // sure that depth is within the accepktable bounds
-        depth = 0; 
+        depth = 1; 
     }
     
     // If we did not exit already, we will call this a node
@@ -524,9 +524,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttMove = ttEntry.bestMove;
     }
     
-    // Step 13. Check Extension at non Root nodes that are PV or low depth
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
-    
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
@@ -538,6 +535,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             quietsTried[quiets++] = currentMove;
             hist = getHistoryScore(thread->history, currentMove, board->turn);
         }
+        
+        // Step 13. Check Extension at non Root nodes that are PV or low depth
+        extension = inCheck && !RootNode && (PvNode || depth <= 6);
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
@@ -627,6 +627,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         } else R = 1;
         
+        R = MAX(1, R - extension);
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
         // and a null window unless this is the first move within a PvNode
