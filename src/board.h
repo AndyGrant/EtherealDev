@@ -28,6 +28,7 @@ typedef struct Board {
     uint64_t hash;
     uint64_t pkhash;
     uint64_t kingAttackers;
+    uint64_t pinnedPieces;
     int turn;
     int castleRights;
     int epSquare;
@@ -42,6 +43,7 @@ typedef struct Undo {
     uint64_t hash;
     uint64_t pkhash;
     uint64_t kingAttackers;
+    uint64_t pinnedPieces;
     int turn;
     int castleRights;
     int epSquare;

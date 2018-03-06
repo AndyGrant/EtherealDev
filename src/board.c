@@ -223,7 +223,12 @@ void initializeBoard(Board* board, char* fen){
     // Number of moves since this (root) position
     board->numMoves = 0;
     
+    // Update our attackers for legal move generation
     board->kingAttackers = attackersToKingSquare(board);
+    
+    // Figure out which, if any, of our pieces are pinned to the
+    // king. We can use this information to speed up move generation
+    board->pinnedPieces = piecesPinnedToKingSquare(board);
 }
 
 void printBoard(Board* board){
@@ -274,10 +279,16 @@ uint64_t perft(Board* board, int depth){
     
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--){
+        
+        if (!moveIsLegal(board, moves[size]))
+            continue;
+        
         applyMove(board, moves[size], undo);
-        if (isNotInCheck(board, !board->turn))
-            found += perft(board, depth-1);
+        
+        found += perft(board, depth - 1);
+        
         revertMove(board, moves[size], undo);
+        
     }
     
     return found;

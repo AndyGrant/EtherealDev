@@ -44,6 +44,7 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     undo->hash = board->hash;
     undo->pkhash = board->pkhash;
     undo->kingAttackers = board->kingAttackers;
+    undo->pinnedPieces = board->pinnedPieces;
     undo->turn = board->turn;
     undo->castleRights = board->castleRights;
     undo->epSquare = board->epSquare;
@@ -64,8 +65,12 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     // Call the proper move application function
     table[MoveType(move) >> 12](board, move, undo);
     
-    // Get attackers to the new side to move's King
+    // Update our attackers for legal move generation
     board->kingAttackers = attackersToKingSquare(board);
+    
+    // Figure out which, if any, of our pieces are pinned to the
+    // king. We can use this information to speed up move generation
+    board->pinnedPieces = piecesPinnedToKingSquare(board);
 }
 
 void applyNormalMove(Board* board, uint16_t move, Undo* undo){
@@ -364,6 +369,7 @@ void applyNullMove(Board* board, Undo* undo){
     // Store turn, hash and epSquare
     undo->hash = board->hash;
     undo->kingAttackers = board->kingAttackers;
+    undo->pinnedPieces = board->pinnedPieces;
     undo->turn = board->turn;
     undo->epSquare = board->epSquare;
     
@@ -379,6 +385,12 @@ void applyNullMove(Board* board, Undo* undo){
         board->hash ^= ZorbistKeys[ENPASS][File(board->epSquare)];
         board->epSquare = -1;
     }
+    
+    // Figure out which, if any, of our pieces are pinned to the
+    // king. We can use this information to speed up move generation.
+    // Note that we do not need to recompute king attackers, as NULL
+    // MOVEs can only be done when not in check.
+    board->pinnedPieces = piecesPinnedToKingSquare(board);
 }
 
 void revertMove(Board* board, uint16_t move, Undo* undo){
@@ -390,6 +402,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
     board->hash = undo->hash;
     board->pkhash = undo->pkhash;
     board->kingAttackers = undo->kingAttackers;
+    board->pinnedPieces = undo->pinnedPieces;
     board->turn = undo->turn;
     board->castleRights = undo->castleRights;
     board->epSquare = undo->epSquare;
@@ -476,6 +489,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
 void revertNullMove(Board* board, Undo* undo){
     board->hash = undo->hash;
     board->kingAttackers = undo->kingAttackers;
+    board->pinnedPieces = undo->pinnedPieces;
     board->turn = !board->turn;
     board->epSquare = undo->epSquare;
     board->numMoves--;

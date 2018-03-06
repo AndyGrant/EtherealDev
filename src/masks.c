@@ -25,6 +25,7 @@
 #include "piece.h"
 #include "types.h"
 
+uint64_t LineBySquaresMasks[SQUARE_NB][SQUARE_NB];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t RanksAtOrAboveMasks[COLOUR_NB][RANK_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
@@ -42,12 +43,17 @@ void initializeMasks(){
         for (j = 0; j < SQUARE_NB; j++){
             
             // Aligned on a diagonal
-            if (bishopAttacks(i, 0ull, 1ull << j))
+            if (bishopAttacks(i, 0ull, 1ull << j)){
                 BitsBetweenMasks[i][j] = bishopAttacks(i, 1ull << j, ~0ull) & bishopAttacks(j, 1ull << i, ~0ull);
+                LineBySquaresMasks[i][j] = (1ull << i) | (1ull << j) | (bishopAttacks(i, 0ull, ~0ull) & bishopAttacks(j, 0ull, ~0ull));
+            }
             
             // Aligned on a straight
-            if (rookAttacks(i, 0ull, 1ull << j))
+            if (rookAttacks(i, 0ull, 1ull << j)){
                 BitsBetweenMasks[i][j] = rookAttacks(i, 1ull << j, ~0ull) & rookAttacks(j, 1ull << i, ~0ull);
+                LineBySquaresMasks[i][j] = (1ull << i) | (1ull << j) | (rookAttacks(i, 0ull, ~0ull) & rookAttacks(j, 0ull, ~0ull));
+            }
+            
         }
     }
     

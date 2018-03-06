@@ -358,6 +358,273 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
     }
 }
 
+int moveIsLegal(Board* board, uint16_t move){
+    
+    assert(moveIsPsuedoLegal(board, move));
+    
+    int sq, ep, legal;
+    int to = MoveTo(move);
+    int from = MoveFrom(move);
+    int type = MoveType(move);
+    int piece = PieceType(board->squares[from]);
+    int pinned = !!(board->pinnedPieces & (1ull << from));
+    
+    uint64_t occupied, enemyBishops, enemyRooks;
+    
+    uint64_t friendly = board->colours[ board->turn];
+    uint64_t enemy    = board->colours[!board->turn];
+    
+    uint64_t enemyPawns = enemy    & board->pieces[PAWN];
+    uint64_t myKing     = friendly & board->pieces[KING];
+    
+    // If we are moving the King, all we must check is that the to square
+    // is not under attack by any of our opponent's pieces.
+    if (piece == KING){
+        
+        // Partially make the king move in order to use squareIsAttacked
+        board->pieces[KING]         ^= (1ull << to) | (1ull << from);
+        board->colours[board->turn] ^= (1ull << to) | (1ull << from);
+        
+        // See if our king can attack any enemy pieces from the new square
+        legal = !squareIsAttacked(board, board->turn, to);
+        
+        // Unmake the partial king move so we are back where we started
+        board->pieces[KING]         ^= (1ull << to) | (1ull << from);
+        board->colours[board->turn] ^= (1ull << to) | (1ull << from);
+        
+        return legal;
+    }
+    
+    // If we have more than one attacker, the only legal moves involve moving
+    // our King, which was the very first condition we checked in moveIsLegal
+    if (moreThanOne(board->kingAttackers))
+        return 0;
+    
+    // If our king is not under threat, and we are not pinned, then we can
+    // make any move other than enpassant moves, due to increased complexity
+    if (!board->kingAttackers && !pinned){
+        
+        if (type != ENPASS_MOVE)
+            return 1;
+        
+        sq = getlsb(myKing);
+        ep = board->epSquare - 8 + (board->turn << 4);
+        
+        occupied = (enemy | friendly) ^ (1ull << from) ^ (1ull << to) ^ (1ull << ep);
+        
+        enemyBishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+        enemyRooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+        
+        return   !bishopAttacks(sq, occupied, enemyBishops)
+              &&   !rookAttacks(sq, occupied, enemyRooks  );
+    }
+    
+    // If our king is not under threat but we are pinned, then we can make
+    // any move so long as we stay within path between the king and the pinner
+    if (!board->kingAttackers && pinned)
+        return !!(LineBySquaresMasks[getlsb(myKing)][from] & (1ull << to));
+    
+    // We now can assume that we have exactly one threat on the king. Here,
+    // the only pieces which can move are those which are not pinned (except
+    // the King, of course). The only valid destination squares lie between
+    // our King and the attacker, the square of the attacker, or in the case
+    // of enpassant, the capture of the checking pawn.
+    
+    // If we are a non pinned piece and are capturing the attacker
+    if (!pinned && (board->kingAttackers & (1ull << to)))
+        return 1;
+    
+    // If we are a non pinned piece, and are moving in the line of the attacker
+    if (!pinned && (BitsBetweenMasks[getlsb(myKing)][getlsb(board->kingAttackers)] & (1ull << to)))
+        return 1;
+    
+    // If we are a non pinned pawn, and the attacking piece is an enemy pawn, then
+    // the attacking piece must be the pawn which can be captured via enpassant
+    if (!pinned && (board->kingAttackers & enemyPawns) && type == ENPASS_MOVE)
+        return 1;
+    
+    // We have exahusted all possible ways to prove a move
+    // legal, thus this move must be an illegal one.
+    return 0;
+}
+
+int moveIsPsuedoLegal(Board* board, uint16_t move){
+    
+    int from, to, moveType, promoType, fromType; 
+    int castleStart, castleEnd, rights, crossover;
+    uint64_t friendly, enemy, empty, options, map;
+    uint64_t forwardOne, forwardTwo, leftward, rightward;
+    uint64_t promoForward, promoLeftward, promoRightward;
+    
+    if (move == NULL_MOVE || move == NONE_MOVE)
+        return 0;
+    
+    from = MoveFrom(move);
+    to = MoveTo(move);
+    moveType = MoveType(move);
+    promoType = MovePromoType(move);
+    fromType = PieceType(board->squares[from]);
+    friendly = board->colours[board->turn];
+    enemy = board->colours[!board->turn];
+    empty = ~(friendly | enemy);
+    
+    // Trying to move an empty square, or an enemy piece
+    if (PieceColour(board->squares[from]) != board->turn)
+        return 0;
+    
+    // Non promotion moves should be marked as Knight Promotions
+    if (promoType != PROMOTE_TO_KNIGHT && moveType != PROMOTION_MOVE)
+        return 0;
+    
+    switch (fromType){
+        
+        case PAWN:
+        
+            // Pawns cannot be involved in a Castle
+            if (moveType == CASTLE_MOVE)
+                return 0;
+        
+            // Compute bitboards for possible movement of a Pawn
+            if (board->turn == WHITE){
+                
+                forwardOne     = ((1ull << from) << 8) & empty;
+                forwardTwo     = ((forwardOne & RANK_3) << 8) & empty;
+                leftward       = ((1ull << from) << 7) & ~FILE_H;
+                rightward      = ((1ull << from) << 9) & ~FILE_A;
+                promoForward   = forwardOne & RANK_8;
+                promoLeftward  = leftward & RANK_8 & enemy;
+                promoRightward = rightward & RANK_8 & enemy;
+                forwardOne     = forwardOne & ~RANK_8;
+                leftward       = leftward & ~RANK_8;
+                rightward      = rightward & ~RANK_8;
+                
+            } else {
+                
+                forwardOne     = ((1ull << from) >> 8) & empty;
+                forwardTwo     = ((forwardOne & RANK_6) >> 8) & empty;
+                leftward       = ((1ull << from) >> 7) & ~FILE_A;
+                rightward      = ((1ull << from) >> 9) & ~FILE_H;
+                promoForward   = forwardOne & RANK_1;
+                promoLeftward  = leftward & RANK_1 & enemy;
+                promoRightward = rightward & RANK_1 & enemy;
+                forwardOne     = forwardOne & ~RANK_1;
+                leftward       = leftward & ~RANK_1;
+                rightward      = rightward & ~RANK_1;
+            }
+            
+            if (moveType == ENPASS_MOVE){
+                
+                // Make sure we can move to the enpass square
+                if (!((leftward | rightward) & (1ull << board->epSquare))) return 0;
+                
+                // If the square matchs the to, then the move is valid
+                return to == board->epSquare;
+            }
+            
+            // Correct the movement bitboards
+            leftward &= enemy; rightward &= enemy;
+            
+            // Determine the possible movements based on move type
+            if (moveType == NORMAL_MOVE)
+                options = forwardOne | forwardTwo | leftward | rightward;
+            else
+                options = promoForward | promoLeftward | promoRightward;
+            
+            // See if one of the possible moves includs to to square
+            return (options & (1ull << to)) >> to;
+                
+        case KNIGHT:
+            
+            // First ensure the move type is correct
+            if (moveType != NORMAL_MOVE) return 0;
+            
+            // Generate Knight attacks and compare to destination
+            options = knightAttacks(from, ~friendly);
+            return (options & (1ull << to)) >> to;
+        
+        
+        case BISHOP:
+            
+            // First ensure the move type is correct
+            if (moveType != NORMAL_MOVE) return 0;
+        
+            // Generate Bishop attacks and compare to destination
+            options = bishopAttacks(from, ~empty, ~friendly);
+            return (options & (1ull << to)) >> to;
+        
+        
+        case ROOK:
+        
+            // First ensure the move type is correct
+            if (moveType != NORMAL_MOVE) return 0;
+            
+            // Generate Rook attacks and compare to destination
+            options = rookAttacks(from, ~empty, ~friendly);
+            return (options & (1ull << to)) >> to;
+        
+        
+        case QUEEN:
+        
+            // First ensure the move type is correct
+            if (moveType != NORMAL_MOVE) return 0;
+            
+            // Generate Queen attacks and compare to destination
+            options = bishopAttacks(from, ~empty, ~friendly)
+                    | rookAttacks(from, ~empty, ~friendly);
+            return (options & (1ull << to)) >> to;
+        
+        
+        case KING:
+        
+            // If normal move, generate King attacks and compare to destination
+            if (moveType == NORMAL_MOVE){
+                options = kingAttacks(from, ~friendly);
+                return (options & (1ull << to)) >> to;
+            }
+            
+            else if (moveType == CASTLE_MOVE){
+                
+                // Determine the squares which must be unoccupied,
+                // the needed castle rights, and the crossover square
+                if (board->turn == WHITE){
+                    map = (to > from)       ? WHITE_CASTLE_KING_SIDE_MAP : WHITE_CASTLE_QUEEN_SIDE_MAP;
+                    rights = (to > from)    ? WHITE_KING_RIGHTS : WHITE_QUEEN_RIGHTS;
+                    crossover = (to > from) ? 5 : 3;
+                    castleEnd = (to > from) ? 6 : 2;
+                    castleStart = 4;
+                } 
+                
+                else {
+                    map = (to > from)       ? BLACK_CASTLE_KING_SIDE_MAP : BLACK_CASTLE_QUEEN_SIDE_MAP;
+                    rights = (to > from)    ? BLACK_KING_RIGHTS : BLACK_QUEEN_RIGHTS;
+                    crossover = (to > from) ? 61 : 59;
+                    castleEnd = (to > from) ? 62 : 58;
+                    castleStart = 60;
+                }
+                
+                // Inorder to be psuedo legal, the from square must
+                // match the starting king square, the to square
+                // must must the correct movement, the area between the king
+                // and the rook must be empty, we must have the proper
+                // castling rights, we must not current be in check,
+                // and we must also not cross through a checked square.
+                if (from != castleStart) return 0;
+                if (to != castleEnd) return 0;
+                if (~empty & map) return 0;
+                if (!(board->castleRights & rights)) return 0;
+                if (!isNotInCheck(board, board->turn)) return 0;
+                return !squareIsAttacked(board, board->turn, crossover);
+            }
+            
+            else
+                return 0;
+            
+        default:
+            assert(0);
+            return 0;
+    }
+}
+
 int isNotInCheck(Board* board, int turn){
     int kingsq = getlsb(board->colours[turn] & board->pieces[KING]);
     assert(board->squares[kingsq] == WHITE_KING + turn);
@@ -423,4 +690,29 @@ uint64_t attackersToSquare(Board* board, int colour, int sq){
 uint64_t attackersToKingSquare(Board* board){
     int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
     return attackersToSquare(board, board->turn, kingsq);
+}
+
+uint64_t piecesPinnedToKingSquare(Board* board){
+    
+    uint64_t friendly = board->colours[ board->turn];
+    uint64_t enemy    = board->colours[!board->turn];
+    
+    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
+    uint64_t kings   = board->pieces[KING  ];
+    
+    int sq, kingsq = getlsb(friendly & kings);
+    
+    uint64_t potentialPinners = bishopAttacks(kingsq, enemy, enemy & bishops)
+                               |  rookAttacks(kingsq, enemy, enemy & rooks  );
+                               
+    uint64_t pinnedPieces = 0ull;
+    
+    while (potentialPinners){
+        sq = poplsb(&potentialPinners);
+        if (exactlyOne(BitsBetweenMasks[kingsq][sq] & friendly))
+            pinnedPieces |= BitsBetweenMasks[kingsq][sq] & friendly;
+    }
+    
+    return pinnedPieces;
 }

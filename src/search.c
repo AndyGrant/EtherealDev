@@ -488,12 +488,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (eval + thisTacticalMoveValue(board, currentMove) < rBeta)
                 continue;
             
-            // Apply and validate move before searching
-            applyMove(board, currentMove, undo);
-            if (!isNotInCheck(board, !board->turn)){
-                revertMove(board, currentMove, undo);
+            // Verify the move is legal before making it
+            if (!moveIsLegal(board, currentMove))
                 continue;
-            }
+            
+            // Apply the move
+            applyMove(board, currentMove, undo);
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
@@ -505,7 +505,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 return beta;
             }
              
-            // Revert the board state
+            // Revert the move
             revertMove(board, currentMove, undo);
         }
     }
@@ -574,12 +574,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
         }
         
-        // Apply and validate move before searching
-        applyMove(board, currentMove, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, currentMove, undo);
+        // Verify the move is legal before making it
+        if (!moveIsLegal(board, currentMove))
             continue;
-        }
+        
+        // Apply the move
+        applyMove(board, currentMove, undo);
         
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -640,9 +640,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
                :  value;
         
-        // Revert the board state
+        // Revert the move
         revertMove(board, currentMove, undo);
-        
         
         // Step 19. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
@@ -763,18 +762,18 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
              <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
             continue;
-        
-        // Apply and validate move before searching
-        applyMove(board, currentMove, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, currentMove, undo);
+            
+        // Verify the move is legal before making it
+        if (!moveIsLegal(board, currentMove))
             continue;
-        }
+        
+        // Apply the move
+        applyMove(board, currentMove, undo);
         
         // Search next depth
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         
-        // Revert move from board
+        // Revert the move
         revertMove(board, currentMove, undo);
         
         // Improved current value

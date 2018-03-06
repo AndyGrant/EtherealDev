@@ -35,10 +35,15 @@ void genAllMoves(Board* board, uint16_t* moves, int* size);
 void genAllNoisyMoves(Board* board, uint16_t* moves, int* size);
 void genAllQuietMoves(Board* board, uint16_t* moves, int* size);
 
+int moveIsLegal(Board* board, uint16_t move);
+int moveIsPsuedoLegal(Board* board, uint16_t move);
+
 int isNotInCheck(Board* board, int turn);
 int squareIsAttacked(Board* board, int turn, int sq);
 
 uint64_t attackersToSquare(Board* board, int colour, int sq);
 uint64_t attackersToKingSquare(Board* board);
+
+uint64_t piecesPinnedToKingSquare(Board* board);
 
 #endif
