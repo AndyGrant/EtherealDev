@@ -627,7 +627,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         } else R = 1;
         
-        R = MAX(1, R - extension);
+        R = MAX(!PvNode, R - extension);
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
         // and a null window unless this is the first move within a PvNode
