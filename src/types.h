@@ -87,4 +87,6 @@ typedef uint16_t KillerTable[MAX_DEPTH][2];
 
 typedef int HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];
 
+typedef int CMHistoryTable[COLOUR_NB][PIECE_NB][SQUARE_NB][PIECE_NB][SQUARE_NB];
+
 #endif

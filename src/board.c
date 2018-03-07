@@ -87,6 +87,7 @@ char Benchmarks[NUM_BENCHMARKS][256] = {
 
 void initializeBoard(Board* board, char* fen){
     
+    Undo undo[1];
     int i, j, sq;
     char rank, file;
     uint64_t enemyPawns;
@@ -224,6 +225,10 @@ void initializeBoard(Board* board, char* fen){
     board->numMoves = 0;
     
     board->kingAttackers = attackersToKingSquare(board);
+
+    // Apply dummy null moves to set up the board for when we
+    // try to look back into the move or the hash histories
+    applyNullMove(board, undo); applyNullMove(board, undo);
 }
 
 void printBoard(Board* board){

@@ -43,6 +43,8 @@
 #include "movepicker.h"
 #include "uci.h"
 
+int WORKED[MAX_DEPTH], TRIED[MAX_DEPTH];
+
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
@@ -102,7 +104,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Cleanup pthreads
     free(pthreads);
-    
+
     // Return highest depth best move
     return info.bestmoves[info.depth];
 }
@@ -300,7 +302,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int hist = 0; // Fix bogus GCC warning
+    int hist = 0, cmhist = 0; // Fix bogus GCC warning
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -355,7 +357,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // move which triggered a reset of the fifty move rule counter
             if (i < board->numMoves - board->fiftyMoveRule) break;
             
-            if (board->history[i] == board->hash){
+            if (board->hashHistory[i] == board->hash){
                 
                 // Repetition occured after the root
                 if (i > board->numMoves - height)
@@ -455,7 +457,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  board->moveHistory[board->numMoves-1] != NULL_MOVE){
             
         R = 4 + depth / 6 + (eval - beta + 200) / 400;
             
@@ -531,12 +533,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
-        
+
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
             hist = getHistoryScore(thread->history, currentMove, board->turn);
+            cmhist = getCMHistoryScore(thread->cmhistory, board, currentMove);
         }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
@@ -544,6 +547,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  played >= 1
+            && (hist < 0 || cmhist < 0)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             continue;
@@ -683,9 +687,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 22. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
+
         updateHistory(thread->history, bestMove, board->turn, depth*depth);
-        for (i = 0; i < quiets - 1; i++)
+        updateCMHistory(thread->cmhistory, board, bestMove, depth*depth);
+
+        for (i = 0; i < quiets - 1; i++){
             updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
+            updateCMHistory(thread->cmhistory, board, quietsTried[i], -depth*depth);
+        }
     }
     
     // Step 23. Store the results of the search in the transposition table.

@@ -35,7 +35,8 @@ typedef struct Board {
     int midgame;
     int endgame;
     int numMoves;
-    uint64_t history[512];
+    uint16_t moveHistory[512];
+    uint64_t hashHistory[512];
 } Board;
 
 typedef struct Undo {
