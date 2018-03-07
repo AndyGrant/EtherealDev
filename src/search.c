@@ -588,6 +588,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !board->kingAttackers
             &&  isQuiet
             &&  played >= 1
+            && (eval < alpha || hist < -4096)
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth]){
             
