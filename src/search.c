@@ -606,7 +606,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet){
             
             // Baseline R based on number of moves played and current depth
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
+            R = 2 + (depth - 6) / 4;
+            
+            static const int LMRTable[64] = {
+                -3, -2, -2, -1, -1, -1, -1, -1,
+                -1, -1,  0,  1,  1,  1,  1,  1,
+                 1,  1,  1,  2,  2,  2,  2,  2,
+                 2,  2,  2,  3,  3,  4,  4,  4,
+                 4,  4,  4,  5,  5,  5,  5,  5,
+                 5,  5,  5,  6,  6,  6,  6,  6,
+                 6,  6,  6,  7,  7,  7,  7,  7,
+                 7,  7,  7,  8,  8,  8,  8,  9
+            };
+            
+            R += MAX(0, LMRTable[MIN(63, played)]);
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
