@@ -298,7 +298,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, bestWasQuiet = 0; 
+    int quiets = 0, played = 0, bestWasQuiet = 0, ttTactical = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
@@ -389,6 +389,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
+        ttTactical = moveIsTactical(board, ttMove);
         
         // Step 6A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
@@ -521,7 +522,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
-            ttMove = ttEntry.bestMove;
+            ttMove = ttEntry.bestMove,
+            ttTactical = moveIsTactical(board, ttMove);
     }
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
@@ -615,6 +617,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // move, or we are looking at an early quiet move in a situation where
             // we either have no table move, or the table move is not the best so far
             R -= bestWasQuiet || (ttMove != bestMove && quiets <= 2);
+            
+            R -= bestWasQuiet && PvNode && ttTactical;
             
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
