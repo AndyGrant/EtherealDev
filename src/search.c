@@ -495,7 +495,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            R = (depth - 5) / 4;
+            R = (depth - 5) / 3;
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
