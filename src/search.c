@@ -43,6 +43,8 @@
 #include "movepicker.h"
 #include "uci.h"
 
+int TRIED[MAX_DEPTH], WORKED[MAX_DEPTH];
+
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
@@ -102,6 +104,10 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     
     // Cleanup pthreads
     free(pthreads);
+    
+    //for (i = 1; i < MAX_DEPTH; i++)
+    //    if (TRIED[i])
+    //        printf("[%2d] %8d %8d %.4f\n", i, TRIED[i], WORKED[i], 100.0 * WORKED[i] / TRIED[i]);
     
     // Return highest depth best move
     return info.bestmoves[info.depth];
@@ -532,6 +538,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        // int tried = 0;
+        
         // If this move is quiet we will save it to a list of attemped
         // quiets, and we will need a history score for pruning decisions
         if ((isQuiet = !moveIsTactical(board, currentMove))){
@@ -585,12 +593,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
         if (   !PvNode
+            && !inCheck
             && !board->kingAttackers
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth]){
             
+            //tried = 1;
             revertMove(board, currentMove, undo);
             continue;
         }
@@ -642,6 +652,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Revert the board state
         revertMove(board, currentMove, undo);
+        
+        // if (tried)
+        //     TRIED[depth]++,
+        //     WORKED[depth]+=value<=alpha;
         
         
         // Step 19. Update search stats for the best move and its value. Update
