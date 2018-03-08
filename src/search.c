@@ -443,8 +443,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - FutilityMargin * depth > beta)
-        return beta;
+        &&  eval - FutilityMargin * depth > beta){
+            
+        return depth <= 2 ? beta
+                          : search(thread, pv, alpha, beta, 1, height);
+            
+    }
 
     // Step 10. Null Move Pruning. If our position is so good that
     // giving our opponent back-to-back moves is still not enough
