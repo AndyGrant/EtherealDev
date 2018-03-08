@@ -68,6 +68,8 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
     
 int bestTacticalMoveValue(Board* board);
 
+int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
+
 
 static const int RazorDepth = 4;
 
@@ -84,6 +86,10 @@ static const int ProbCutMargin = 156;
 static const int InternalIterativeDeepeningDepth = 3;
 
 static const int NullMovePruningDepth = 2;
+
+static const int WeakCaptureTwoAttackersDepth = 5;
+
+static const int WeakCaptureOneAttackersDepth = 3;
 
 static const int FutilityPruningDepth = 8;
 
