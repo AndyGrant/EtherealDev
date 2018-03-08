@@ -1,0 +1,878 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 29.63      5.44     5.44                             _mcount_private
+ 15.03      8.20     2.76                             __fentry__
+  6.37      9.37     1.17 21598864     0.00     0.00  selectNextMove
+  3.27      9.97     0.60 65777721     0.00     0.00  bishopAttacks
+  3.00     10.52     0.55 13536958     0.00     0.00  applyNormalMove
+  2.40     10.96     0.44 76699688     0.00     0.00  rookAttacks
+  2.40     11.40     0.44 16330052     0.00     0.00  evaluateRooks
+  2.34     11.83     0.43      594     0.00     0.02  search
+  2.29     12.25     0.42       36     0.01     0.01  clearTranspositionTable
+  2.18     12.65     0.40 16330052     0.00     0.00  evaluateBishops
+  2.02     13.02     0.37  3946745     0.00     0.00  getTranspositionEntry
+  1.91     13.37     0.35 121820385     0.00     0.00  popcount
+  1.91     13.72     0.35 16330052     0.00     0.00  evaluateKnights
+  1.61     14.02     0.29 16330052     0.00     0.00  evaluateKings
+  1.55     14.30     0.28 16330052     0.00     0.00  evaluateQueens
+  1.53     14.58     0.28  8167900     0.00     0.00  evaluateBoard
+  1.47     14.85     0.27 13684072     0.00     0.00  revertMove
+  1.47     15.12     0.27  8165026     0.00     0.00  initializeEvalInfo
+  1.47     15.39     0.27  7338639     0.00     0.00  staticExchangeEvaluation
+  1.28     15.63     0.23 124795646     0.00     0.00  poplsb
+  1.23     15.85     0.23 16330052     0.00     0.00  evaluatePawns
+  1.06     16.05     0.20 13714952     0.00     0.00  squareIsAttacked
+  1.03     16.23     0.19 16330052     0.00     0.00  evaluatePassedPawns
+  0.98     16.41     0.18  4805470     0.00     0.00  genAllNoisyMoves
+  0.82     16.57     0.15  8165026     0.00     0.00  getPawnKingEntry
+  0.76     16.70     0.14 13684072     0.00     0.00  applyMove
+  0.71     16.84     0.13  3047765     0.00     0.00  qsearch
+  0.65     16.95     0.12 192068315     0.00     0.00  getlsb
+  0.65     17.07     0.12  4805470     0.00     0.00  evaluateNoisyMoves
+  0.57     17.18     0.11 13684109     0.00     0.00  attackersToSquare
+  0.54     17.28     0.10 27648923     0.00     0.00  buildNonPawnMoves
+  0.44     17.36     0.08  6816227     0.00     0.00  moveIsPsuedoLegal
+  0.41     17.43     0.07 27316997     0.00     0.00  pawnAttacks
+  0.38     17.50     0.07 28726773     0.00     0.00  getHistoryScore
+  0.35     17.57     0.07  8165026     0.00     0.00  evaluatePieces
+  0.33     17.63     0.06 55540866     0.00     0.00  kingAttacks
+  0.33     17.69     0.06  5073455     0.00     0.00  initializeMovePicker
+  0.30     17.75     0.06 46068439     0.00     0.00  knightAttacks
+  0.30     17.80     0.06 10995576     0.00     0.00  buildPawnMoves
+  0.27     17.85     0.05 16939188     0.00     0.00  moveIsTactical
+  0.27     17.90     0.05  5497788     0.00     0.00  buildBishopAndQueenMoves
+  0.27     17.95     0.05  1893893     0.00     0.00  storeTranspositionEntry
+  0.22     17.99     0.04 13691073     0.00     0.00  isNotInCheck
+  0.22     18.03     0.04   722219     0.00     0.00  evaluateQuietMoves
+  0.19     18.07     0.04   854081     0.00     0.00  getmsb
+  0.16     18.09     0.03  5527689     0.00     0.00  buildKingMoves
+  0.16     18.13     0.03  5527689     0.00     0.00  moreThanOne
+  0.16     18.16     0.03  5497788     0.00     0.00  buildRookAndQueenMoves
+  0.14     18.18     0.03 14412054     0.00     0.00  buildPawnPromotions
+  0.11     18.20     0.02  8167900     0.00     0.00  evaluateDraws
+  0.11     18.22     0.02  5497788     0.00     0.00  buildKnightMoves
+  0.11     18.24     0.02  3193114     0.00     0.00  thisTacticalMoveValue
+  0.11     18.26     0.02   107776     0.00     0.00  getSetBits
+  0.05     18.27     0.01 13684109     0.00     0.00  attackersToKingSquare
+  0.05     18.28     0.01  4771372     0.00     0.00  relativeSquare32
+  0.05     18.29     0.01  3248024     0.00     0.00  bestTacticalMoveValue
+  0.05     18.30     0.01   838644     0.00     0.00  updateHistory
+  0.05     18.31     0.01   722219     0.00     0.00  genAllQuietMoves
+  0.05     18.32     0.01   612142     0.00     0.00  applyNullMove
+  0.05     18.33     0.01   612142     0.00     0.00  revertNullMove
+  0.05     18.34     0.01   133069     0.00     0.00  applyPromotionMove
+  0.05     18.35     0.01      468     0.00     0.00  estimateHashfull
+  0.05     18.36     0.01                             memcpy
+  0.00     18.36     0.00  4771372     0.00     0.00  square32
+  0.00     18.36     0.00  1893893     0.00     0.00  valueToTT
+  0.00     18.36     0.00   671533     0.00     0.00  hasNonPawnMaterial
+  0.00     18.36     0.00   658944     0.00     0.00  relativeSquare
+  0.00     18.36     0.00   609283     0.00     0.00  valueFromTT
+  0.00     18.36     0.00   515409     0.00     0.00  storePawnKingEntry
+  0.00     18.36     0.00    65792     0.00     0.00  countSetBits
+  0.00     18.36     0.00    22384     0.00     0.00  castleGetRookFrom
+  0.00     18.36     0.00    22384     0.00     0.00  castleGetRookTo
+  0.00     18.36     0.00    11192     0.00     0.00  applyCastleMove
+  0.00     18.36     0.00     3708     0.00     0.00  printMove
+  0.00     18.36     0.00     2853     0.00     0.00  applyEnpassMove
+  0.00     18.36     0.00      974     0.00     0.00  getRealTime
+  0.00     18.36     0.00      781     0.00     0.00  rand64
+  0.00     18.36     0.00      504     0.00     0.00  nodesSearchedThreadPool
+  0.00     18.36     0.00      468     0.00     0.02  aspirationWindow
+  0.00     18.36     0.00      468     0.00     0.00  uciReport
+  0.00     18.36     0.00       37     0.00     0.00  initializeBoard
+  0.00     18.36     0.00       36     0.00     0.27  getBestMove
+  0.00     18.36     0.00       36     0.00     0.27  iterativeDeepening
+  0.00     18.36     0.00       36     0.00     0.00  newSearchThreadPool
+  0.00     18.36     0.00        8     0.00     0.00  stringEquals
+  0.00     18.36     0.00        8     0.00     0.00  stringStartsWith
+  0.00     18.36     0.00        2     0.00     0.00  getInput
+  0.00     18.36     0.00        1     0.00     0.00  createThreadPool
+  0.00     18.36     0.00        1     0.00     0.00  generateBishopIndexes
+  0.00     18.36     0.00        1     0.00     0.00  generateKingMap
+  0.00     18.36     0.00        1     0.00     0.00  generateKnightMap
+  0.00     18.36     0.00        1     0.00     0.00  generateMoveDatabaseBishop
+  0.00     18.36     0.00        1     0.00     0.00  generateMoveDatabaseRook
+  0.00     18.36     0.00        1     0.00     0.00  generateOccupancyMaskBishop
+  0.00     18.36     0.00        1     0.00     0.00  generateOccupancyMaskRook
+  0.00     18.36     0.00        1     0.00     0.00  generateOccupancyVariationsBishop
+  0.00     18.36     0.00        1     0.00     0.02  generateOccupancyVariationsRook
+  0.00     18.36     0.00        1     0.00     0.00  generateRookIndexes
+  0.00     18.36     0.00        1     0.00     0.02  initializeMagics
+  0.00     18.36     0.00        1     0.00     0.00  initializeMasks
+  0.00     18.36     0.00        1     0.00     0.00  initializePSQT
+  0.00     18.36     0.00        1     0.00     0.00  initializeTranspositionTable
+  0.00     18.36     0.00        1     0.00     0.00  initializeZorbist
+  0.00     18.36     0.00        1     0.00     0.00  resetThreadPool
+  0.00     18.36     0.00        1     0.00    10.13  runBenchmark
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.05% of 18.36 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     55.3    0.00   10.15                 main [1]
+                0.00   10.13       1/1           runBenchmark [2]
+                0.00    0.02       1/1           initializeMagics [58]
+                0.00    0.00       1/1           initializeMasks [74]
+                0.00    0.00       1/1           initializePSQT [78]
+                0.00    0.00       1/37          initializeBoard [75]
+                0.00    0.00       8/8           stringEquals [94]
+                0.00    0.00       8/8           stringStartsWith [95]
+                0.00    0.00       2/2           getInput [96]
+                0.00    0.00       1/1           createThreadPool [97]
+                0.00    0.00       1/1           initializeZorbist [105]
+                0.00    0.00       1/1           initializeTranspositionTable [104]
+-----------------------------------------------
+                0.00   10.13       1/1           main [1]
+[2]     55.2    0.00   10.13       1         runBenchmark [2]
+                0.00    9.71      36/36          getBestMove [3]
+                0.42    0.00      36/36          clearTranspositionTable [26]
+                0.00    0.00      36/37          initializeBoard [75]
+                0.00    0.00      36/504         nodesSearchedThreadPool [92]
+                0.00    0.00       2/974         getRealTime [90]
+-----------------------------------------------
+                0.00    9.71      36/36          runBenchmark [2]
+[3]     52.9    0.00    9.71      36         getBestMove [3]
+                0.00    9.71      36/36          iterativeDeepening [4]
+                0.00    0.00      36/974         getRealTime [90]
+                0.00    0.00      36/36          newSearchThreadPool [93]
+-----------------------------------------------
+                0.00    9.71      36/36          getBestMove [3]
+[4]     52.9    0.00    9.71      36         iterativeDeepening [4]
+                0.00    9.70     468/468         aspirationWindow [6]
+                0.00    0.01     468/468         uciReport [70]
+                0.00    0.00     468/974         getRealTime [90]
+-----------------------------------------------
+                             6796904             search [5]
+                0.43    9.27     594/594         aspirationWindow [6]
+[5]     52.8    0.43    9.27     594+6796904 search [5]
+                0.13    3.36 3047765/3047765     qsearch [9]
+                0.89    1.17 16373082/21598864     selectNextMove [12]
+                0.11    1.51 3300098/8167900     evaluateBoard [8]
+                0.12    0.82 11785291/13684072     applyMove [13]
+                0.37    0.00 3946745/3946745     getTranspositionEntry [31]
+                0.03    0.33 11785291/13691073     isNotInCheck [25]
+                0.23    0.00 11785291/13684072     revertMove [34]
+                0.05    0.00 16939188/16939188     moveIsTactical [53]
+                0.05    0.00 1893893/1893893     storeTranspositionEntry [54]
+                0.03    0.00 13635057/28726773     getHistoryScore [47]
+                0.02    0.00 2050965/5073455     initializeMovePicker [50]
+                0.01    0.00  838644/838644      updateHistory [65]
+                0.01    0.00  612142/612142      applyNullMove [66]
+                0.01    0.00  612142/612142      revertNullMove [67]
+                0.00    0.00  102647/3193114     thisTacticalMoveValue [62]
+                0.00    0.00  121054/3248024     bestTacticalMoveValue [64]
+                0.00    0.00 1893893/1893893     valueToTT [80]
+                0.00    0.00  671533/671533      hasNonPawnMaterial [81]
+                0.00    0.00  609283/609283      valueFromTT [83]
+                             6796904             search [5]
+-----------------------------------------------
+                0.00    9.70     468/468         iterativeDeepening [4]
+[6]     52.8    0.00    9.70     468         aspirationWindow [6]
+                0.43    9.27     594/594         search [5]
+-----------------------------------------------
+                                                 <spontaneous>
+[7]     29.6    5.44    0.00                 _mcount_private [7]
+-----------------------------------------------
+                0.11    1.51 3300098/8167900     search [5]
+                0.17    2.22 4867802/8167900     qsearch [9]
+[8]     21.8    0.28    3.73 8167900         evaluateBoard [8]
+                0.07    3.12 8165026/8165026     evaluatePieces [10]
+                0.27    0.18 8165026/8165026     initializeEvalInfo [22]
+                0.07    0.00 24495078/121820385     popcount [32]
+                0.02    0.00 8167900/8167900     evaluateDraws [60]
+                0.00    0.00  515409/515409      storePawnKingEntry [84]
+-----------------------------------------------
+                             1820037             qsearch [9]
+                0.13    3.36 3047765/3047765     search [5]
+[9]     19.0    0.13    3.36 3047765+1820037 qsearch [9]
+                0.17    2.22 4867802/8167900     evaluateBoard [8]
+                0.28    0.37 5225782/21598864     selectNextMove [12]
+                0.02    0.13 1898781/13684072     applyMove [13]
+                0.01    0.05 1898781/13691073     isNotInCheck [25]
+                0.04    0.00 1898781/13684072     revertMove [34]
+                0.04    0.00 3022490/5073455     initializeMovePicker [50]
+                0.02    0.00 3090467/3193114     thisTacticalMoveValue [62]
+                0.01    0.00 3126970/3248024     bestTacticalMoveValue [64]
+                             1820037             qsearch [9]
+-----------------------------------------------
+                0.07    3.12 8165026/8165026     evaluateBoard [8]
+[10]    17.4    0.07    3.12 8165026         evaluatePieces [10]
+                0.44    0.26 16330052/16330052     evaluateRooks [15]
+                0.40    0.23 16330052/16330052     evaluateBishops [16]
+                0.28    0.21 16330052/16330052     evaluateQueens [20]
+                0.35    0.09 16330052/16330052     evaluateKnights [23]
+                0.29    0.09 16330052/16330052     evaluateKings [28]
+                0.23    0.04 16330052/16330052     evaluatePawns [35]
+                0.19    0.01 16330052/16330052     evaluatePassedPawns [36]
+-----------------------------------------------
+                                                 <spontaneous>
+[11]    15.0    2.76    0.00                 __fentry__ [11]
+-----------------------------------------------
+                              671927             selectNextMove [12]
+                0.28    0.37 5225782/21598864     qsearch [9]
+                0.89    1.17 16373082/21598864     search [5]
+[12]    14.8    1.17    1.55 21598864+671927  selectNextMove [12]
+                0.18    0.54 4805470/4805470     genAllNoisyMoves [14]
+                0.12    0.46 4805470/4805470     evaluateNoisyMoves [18]
+                0.08    0.01 6816227/6816227     moveIsPsuedoLegal [42]
+                0.01    0.08  722219/722219      genAllQuietMoves [43]
+                0.04    0.04  722219/722219      evaluateQuietMoves [45]
+                              671927             selectNextMove [12]
+-----------------------------------------------
+                0.02    0.13 1898781/13684072     qsearch [9]
+                0.12    0.82 11785291/13684072     search [5]
+[13]     6.0    0.14    0.96 13684072         applyMove [13]
+                0.55    0.00 13536958/13536958     applyNormalMove [19]
+                0.01    0.39 13684072/13684109     attackersToKingSquare [27]
+                0.01    0.00  133069/133069      applyPromotionMove [68]
+                0.00    0.00   11192/11192       applyCastleMove [87]
+                0.00    0.00    2853/2853        applyEnpassMove [89]
+-----------------------------------------------
+                0.18    0.54 4805470/4805470     selectNextMove [12]
+[14]     3.9    0.18    0.54 4805470         genAllNoisyMoves [14]
+                0.04    0.12 4804018/5497788     buildBishopAndQueenMoves [37]
+                0.03    0.12 4804018/5497788     buildRookAndQueenMoves [38]
+                0.03    0.04 4805470/5527689     buildKingMoves [44]
+                0.05    0.01 9608036/10995576     buildPawnMoves [48]
+                0.02    0.03 4804018/5497788     buildKnightMoves [51]
+                0.03    0.00 4805470/5527689     moreThanOne [56]
+                0.03    0.00 14412054/14412054     buildPawnPromotions [57]
+-----------------------------------------------
+                0.44    0.26 16330052/16330052     evaluatePieces [10]
+[15]     3.8    0.44    0.26 16330052         evaluateRooks [15]
+                0.13    0.00 22504278/76699688     rookAttacks [24]
+                0.07    0.00 25528613/121820385     popcount [32]
+                0.04    0.01 22504278/124795646     poplsb [33]
+                0.00    0.00  658944/192068315     getlsb [41]
+                0.00    0.00  658944/658944      relativeSquare [82]
+-----------------------------------------------
+                0.40    0.23 16330052/16330052     evaluatePieces [10]
+[16]     3.5    0.40    0.23 16330052         evaluateBishops [16]
+                0.14    0.00 15174026/65777721     bishopAttacks [17]
+                0.06    0.00 20317864/121820385     popcount [32]
+                0.03    0.01 15174026/124795646     poplsb [33]
+-----------------------------------------------
+                0.00    0.00    5216/65777721     initializeMasks [74]
+                0.00    0.00  310465/65777721     moveIsPsuedoLegal [42]
+                0.07    0.00 7775221/65777721     buildBishopAndQueenMoves [37]
+                0.08    0.00 9086107/65777721     staticExchangeEvaluation [21]
+                0.09    0.00 9515915/65777721     evaluateQueens [20]
+                0.09    0.00 10226662/65777721     squareIsAttacked [29]
+                0.12    0.00 13684109/65777721     attackersToSquare [30]
+                0.14    0.00 15174026/65777721     evaluateBishops [16]
+[17]     3.3    0.60    0.00 65777721         bishopAttacks [17]
+-----------------------------------------------
+                0.12    0.46 4805470/4805470     selectNextMove [12]
+[18]     3.1    0.12    0.46 4805470         evaluateNoisyMoves [18]
+                0.27    0.19 7338639/7338639     staticExchangeEvaluation [21]
+-----------------------------------------------
+                0.55    0.00 13536958/13536958     applyMove [13]
+[19]     3.0    0.55    0.00 13536958         applyNormalMove [19]
+-----------------------------------------------
+                0.28    0.21 16330052/16330052     evaluatePieces [10]
+[20]     2.7    0.28    0.21 16330052         evaluateQueens [20]
+                0.09    0.00 9515915/65777721     bishopAttacks [17]
+                0.05    0.00 9515915/76699688     rookAttacks [24]
+                0.04    0.00 13999217/121820385     popcount [32]
+                0.02    0.01 9515915/124795646     poplsb [33]
+-----------------------------------------------
+                0.27    0.19 7338639/7338639     evaluateNoisyMoves [18]
+[21]     2.5    0.27    0.19 7338639         staticExchangeEvaluation [21]
+                0.08    0.00 9086107/65777721     bishopAttacks [17]
+                0.05    0.00 8605591/76699688     rookAttacks [24]
+                0.04    0.00 13632888/27316997     pawnAttacks [46]
+                0.01    0.00 6816444/46068439     knightAttacks [52]
+                0.01    0.00 6816444/55540866     kingAttacks [49]
+                0.00    0.00 4882749/192068315     getlsb [41]
+-----------------------------------------------
+                0.27    0.18 8165026/8165026     evaluateBoard [8]
+[22]     2.4    0.27    0.18 8165026         initializeEvalInfo [22]
+                0.15    0.00 8165026/8165026     getPawnKingEntry [40]
+                0.02    0.00 16330052/55540866     kingAttacks [49]
+                0.01    0.00 16330052/192068315     getlsb [41]
+-----------------------------------------------
+                0.35    0.09 16330052/16330052     evaluatePieces [10]
+[23]     2.4    0.35    0.09 16330052         evaluateKnights [23]
+                0.05    0.00 15958045/121820385     popcount [32]
+                0.02    0.01 13152985/124795646     poplsb [33]
+                0.02    0.00 13152985/46068439     knightAttacks [52]
+-----------------------------------------------
+                0.00    0.00    5888/76699688     initializeMasks [74]
+                0.00    0.00  397691/76699688     moveIsPsuedoLegal [42]
+                0.05    0.00 8605591/76699688     staticExchangeEvaluation [21]
+                0.05    0.00 9515915/76699688     evaluateQueens [20]
+                0.06    0.00 10196819/76699688     buildRookAndQueenMoves [38]
+                0.07    0.00 11789397/76699688     squareIsAttacked [29]
+                0.08    0.00 13684109/76699688     attackersToSquare [30]
+                0.13    0.00 22504278/76699688     evaluateRooks [15]
+[24]     2.4    0.44    0.00 76699688         rookAttacks [24]
+-----------------------------------------------
+                0.00    0.00    7001/13691073     moveIsPsuedoLegal [42]
+                0.01    0.05 1898781/13691073     qsearch [9]
+                0.03    0.33 11785291/13691073     search [5]
+[25]     2.3    0.04    0.39 13691073         isNotInCheck [25]
+                0.19    0.18 13691073/13714952     squareIsAttacked [29]
+                0.01    0.00 13691073/192068315     getlsb [41]
+-----------------------------------------------
+                0.42    0.00      36/36          runBenchmark [2]
+[26]     2.3    0.42    0.00      36         clearTranspositionTable [26]
+-----------------------------------------------
+                0.00    0.00      37/13684109     initializeBoard [75]
+                0.01    0.39 13684072/13684109     applyMove [13]
+[27]     2.2    0.01    0.39 13684109         attackersToKingSquare [27]
+                0.11    0.27 13684109/13684109     attackersToSquare [30]
+                0.01    0.00 13684109/192068315     getlsb [41]
+-----------------------------------------------
+                0.29    0.09 16330052/16330052     evaluatePieces [10]
+[28]     2.1    0.29    0.09 16330052         evaluateKings [28]
+                0.05    0.00 16330052/121820385     popcount [32]
+                0.04    0.00  854081/854081      getmsb [55]
+                0.01    0.00 17125970/192068315     getlsb [41]
+-----------------------------------------------
+                0.00    0.00    5369/13714952     moveIsPsuedoLegal [42]
+                0.00    0.00   18510/13714952     genAllQuietMoves [43]
+                0.19    0.18 13691073/13714952     isNotInCheck [25]
+[29]     2.1    0.20    0.18 13714952         squareIsAttacked [29]
+                0.09    0.00 10226662/65777721     bishopAttacks [17]
+                0.07    0.00 11789397/76699688     rookAttacks [24]
+                0.01    0.00 12790496/55540866     kingAttacks [49]
+                0.01    0.00 8096767/46068439     knightAttacks [52]
+-----------------------------------------------
+                0.11    0.27 13684109/13684109     attackersToKingSquare [27]
+[30]     2.1    0.11    0.27 13684109         attackersToSquare [30]
+                0.12    0.00 13684109/65777721     bishopAttacks [17]
+                0.08    0.00 13684109/76699688     rookAttacks [24]
+                0.04    0.00 13684109/27316997     pawnAttacks [46]
+                0.02    0.00 13684109/46068439     knightAttacks [52]
+                0.01    0.00 13684109/55540866     kingAttacks [49]
+-----------------------------------------------
+                0.37    0.00 3946745/3946745     search [5]
+[31]     2.0    0.37    0.00 3946745         getTranspositionEntry [31]
+-----------------------------------------------
+                0.00    0.00  352026/121820385     evaluateDraws [60]
+                0.01    0.00 4839490/121820385     evaluatePawns [35]
+                0.04    0.00 13999217/121820385     evaluateQueens [20]
+                0.05    0.00 15958045/121820385     evaluateKnights [23]
+                0.05    0.00 16330052/121820385     evaluateKings [28]
+                0.06    0.00 20317864/121820385     evaluateBishops [16]
+                0.07    0.00 24495078/121820385     evaluateBoard [8]
+                0.07    0.00 25528613/121820385     evaluateRooks [15]
+[32]     1.9    0.35    0.00 121820385         popcount [32]
+-----------------------------------------------
+                0.00    0.00  112416/124795646     buildPawnPromotions [57]
+                0.00    0.00  572876/124795646     getSetBits [59]
+                0.01    0.00 4059848/124795646     buildPawnMoves [48]
+                0.01    0.00 4149194/124795646     buildKnightMoves [51]
+                0.01    0.00 4952706/124795646     evaluatePawns [35]
+                0.01    0.00 5527689/124795646     buildKingMoves [44]
+                0.01    0.00 5794992/124795646     evaluatePassedPawns [36]
+                0.01    0.00 7775221/124795646     buildBishopAndQueenMoves [37]
+                0.02    0.01 9515915/124795646     evaluateQueens [20]
+                0.02    0.01 10196819/124795646     buildRookAndQueenMoves [38]
+                0.02    0.01 13152985/124795646     evaluateKnights [23]
+                0.03    0.01 15174026/124795646     evaluateBishops [16]
+                0.04    0.01 21306681/124795646     buildNonPawnMoves [39]
+                0.04    0.01 22504278/124795646     evaluateRooks [15]
+[33]     1.7    0.23    0.08 124795646         poplsb [33]
+                0.08    0.00 124795646/192068315     getlsb [41]
+-----------------------------------------------
+                0.04    0.00 1898781/13684072     qsearch [9]
+                0.23    0.00 11785291/13684072     search [5]
+[34]     1.5    0.27    0.00 13684072         revertMove [34]
+                0.00    0.00   11192/22384       castleGetRookTo [86]
+                0.00    0.00   11192/22384       castleGetRookFrom [85]
+-----------------------------------------------
+                0.23    0.04 16330052/16330052     evaluatePieces [10]
+[35]     1.4    0.23    0.04 16330052         evaluatePawns [35]
+                0.01    0.00 4839490/121820385     popcount [32]
+                0.01    0.00 4952706/124795646     poplsb [33]
+                0.01    0.00 4771244/4771372     relativeSquare32 [63]
+-----------------------------------------------
+                0.19    0.01 16330052/16330052     evaluatePieces [10]
+[36]     1.1    0.19    0.01 16330052         evaluatePassedPawns [36]
+                0.01    0.00 5794992/124795646     poplsb [33]
+-----------------------------------------------
+                0.01    0.02  693770/5497788     genAllQuietMoves [43]
+                0.04    0.12 4804018/5497788     genAllNoisyMoves [14]
+[37]     1.0    0.05    0.13 5497788         buildBishopAndQueenMoves [37]
+                0.07    0.00 7775221/65777721     bishopAttacks [17]
+                0.03    0.02 7775221/27648923     buildNonPawnMoves [39]
+                0.01    0.00 7775221/124795646     poplsb [33]
+-----------------------------------------------
+                0.00    0.02  693770/5497788     genAllQuietMoves [43]
+                0.03    0.12 4804018/5497788     genAllNoisyMoves [14]
+[38]     0.9    0.03    0.14 5497788         buildRookAndQueenMoves [38]
+                0.06    0.00 10196819/76699688     rookAttacks [24]
+                0.04    0.02 10196819/27648923     buildNonPawnMoves [39]
+                0.02    0.01 10196819/124795646     poplsb [33]
+-----------------------------------------------
+                0.02    0.01 4149194/27648923     buildKnightMoves [51]
+                0.02    0.01 5527689/27648923     buildKingMoves [44]
+                0.03    0.02 7775221/27648923     buildBishopAndQueenMoves [37]
+                0.04    0.02 10196819/27648923     buildRookAndQueenMoves [38]
+[39]     0.8    0.10    0.05 27648923         buildNonPawnMoves [39]
+                0.04    0.01 21306681/124795646     poplsb [33]
+-----------------------------------------------
+                0.15    0.00 8165026/8165026     initializeEvalInfo [22]
+[40]     0.8    0.15    0.00 8165026         getPawnKingEntry [40]
+-----------------------------------------------
+                0.00    0.00  373412/192068315     genAllQuietMoves [43]
+                0.00    0.00  526360/192068315     countSetBits [73]
+                0.00    0.00  658944/192068315     evaluateRooks [15]
+                0.00    0.00 4882749/192068315     staticExchangeEvaluation [21]
+                0.01    0.00 13684109/192068315     attackersToKingSquare [27]
+                0.01    0.00 13691073/192068315     isNotInCheck [25]
+                0.01    0.00 16330052/192068315     initializeEvalInfo [22]
+                0.01    0.00 17125970/192068315     evaluateKings [28]
+                0.08    0.00 124795646/192068315     poplsb [33]
+[41]     0.7    0.12    0.00 192068315         getlsb [41]
+-----------------------------------------------
+                0.08    0.01 6816227/6816227     selectNextMove [12]
+[42]     0.5    0.08    0.01 6816227         moveIsPsuedoLegal [42]
+                0.00    0.00  310465/65777721     bishopAttacks [17]
+                0.00    0.00  397691/76699688     rookAttacks [24]
+                0.00    0.00  392076/55540866     kingAttacks [49]
+                0.00    0.00    7001/13691073     isNotInCheck [25]
+                0.00    0.00  168940/46068439     knightAttacks [52]
+                0.00    0.00    5369/13714952     squareIsAttacked [29]
+-----------------------------------------------
+                0.01    0.08  722219/722219      selectNextMove [12]
+[43]     0.5    0.01    0.08  722219         genAllQuietMoves [43]
+                0.01    0.02  693770/5497788     buildBishopAndQueenMoves [37]
+                0.00    0.02  693770/5497788     buildRookAndQueenMoves [38]
+                0.00    0.01  722219/5527689     buildKingMoves [44]
+                0.01    0.00 1387540/10995576     buildPawnMoves [48]
+                0.00    0.00  693770/5497788     buildKnightMoves [51]
+                0.00    0.00  722219/5527689     moreThanOne [56]
+                0.00    0.00   18510/13714952     squareIsAttacked [29]
+                0.00    0.00  373412/192068315     getlsb [41]
+-----------------------------------------------
+                0.00    0.01  722219/5527689     genAllQuietMoves [43]
+                0.03    0.04 4805470/5527689     genAllNoisyMoves [14]
+[44]     0.4    0.03    0.05 5527689         buildKingMoves [44]
+                0.02    0.01 5527689/27648923     buildNonPawnMoves [39]
+                0.01    0.00 5527689/124795646     poplsb [33]
+                0.01    0.00 5527689/55540866     kingAttacks [49]
+-----------------------------------------------
+                0.04    0.04  722219/722219      selectNextMove [12]
+[45]     0.4    0.04    0.04  722219         evaluateQuietMoves [45]
+                0.04    0.00 15091716/28726773     getHistoryScore [47]
+-----------------------------------------------
+                0.04    0.00 13632888/27316997     staticExchangeEvaluation [21]
+                0.04    0.00 13684109/27316997     attackersToSquare [30]
+[46]     0.4    0.07    0.00 27316997         pawnAttacks [46]
+-----------------------------------------------
+                0.03    0.00 13635057/28726773     search [5]
+                0.04    0.00 15091716/28726773     evaluateQuietMoves [45]
+[47]     0.4    0.07    0.00 28726773         getHistoryScore [47]
+-----------------------------------------------
+                0.01    0.00 1387540/10995576     genAllQuietMoves [43]
+                0.05    0.01 9608036/10995576     genAllNoisyMoves [14]
+[48]     0.4    0.06    0.01 10995576         buildPawnMoves [48]
+                0.01    0.00 4059848/124795646     poplsb [33]
+-----------------------------------------------
+                0.00    0.00  392076/55540866     moveIsPsuedoLegal [42]
+                0.01    0.00 5527689/55540866     buildKingMoves [44]
+                0.01    0.00 6816444/55540866     staticExchangeEvaluation [21]
+                0.01    0.00 12790496/55540866     squareIsAttacked [29]
+                0.01    0.00 13684109/55540866     attackersToSquare [30]
+                0.02    0.00 16330052/55540866     initializeEvalInfo [22]
+[49]     0.3    0.06    0.00 55540866         kingAttacks [49]
+-----------------------------------------------
+                0.02    0.00 2050965/5073455     search [5]
+                0.04    0.00 3022490/5073455     qsearch [9]
+[50]     0.3    0.06    0.00 5073455         initializeMovePicker [50]
+-----------------------------------------------
+                0.00    0.00  693770/5497788     genAllQuietMoves [43]
+                0.02    0.03 4804018/5497788     genAllNoisyMoves [14]
+[51]     0.3    0.02    0.04 5497788         buildKnightMoves [51]
+                0.02    0.01 4149194/27648923     buildNonPawnMoves [39]
+                0.01    0.00 4149194/124795646     poplsb [33]
+                0.00    0.00 4149194/46068439     knightAttacks [52]
+-----------------------------------------------
+                0.00    0.00  168940/46068439     moveIsPsuedoLegal [42]
+                0.00    0.00 4149194/46068439     buildKnightMoves [51]
+                0.01    0.00 6816444/46068439     staticExchangeEvaluation [21]
+                0.01    0.00 8096767/46068439     squareIsAttacked [29]
+                0.02    0.00 13152985/46068439     evaluateKnights [23]
+                0.02    0.00 13684109/46068439     attackersToSquare [30]
+[52]     0.3    0.06    0.00 46068439         knightAttacks [52]
+-----------------------------------------------
+                0.05    0.00 16939188/16939188     search [5]
+[53]     0.3    0.05    0.00 16939188         moveIsTactical [53]
+-----------------------------------------------
+                0.05    0.00 1893893/1893893     search [5]
+[54]     0.3    0.05    0.00 1893893         storeTranspositionEntry [54]
+-----------------------------------------------
+                0.04    0.00  854081/854081      evaluateKings [28]
+[55]     0.2    0.04    0.00  854081         getmsb [55]
+-----------------------------------------------
+                0.00    0.00  722219/5527689     genAllQuietMoves [43]
+                0.03    0.00 4805470/5527689     genAllNoisyMoves [14]
+[56]     0.2    0.03    0.00 5527689         moreThanOne [56]
+-----------------------------------------------
+                0.03    0.00 14412054/14412054     genAllNoisyMoves [14]
+[57]     0.1    0.03    0.00 14412054         buildPawnPromotions [57]
+                0.00    0.00  112416/124795646     poplsb [33]
+-----------------------------------------------
+                0.00    0.02       1/1           main [1]
+[58]     0.1    0.00    0.02       1         initializeMagics [58]
+                0.00    0.02       1/1           generateOccupancyVariationsRook [61]
+                0.00    0.00       1/1           generateOccupancyVariationsBishop [72]
+                0.00    0.00   65536/65792       countSetBits [73]
+                0.00    0.00       1/1           generateMoveDatabaseRook [77]
+                0.00    0.00       1/1           generateMoveDatabaseBishop [76]
+                0.00    0.00       1/1           generateKnightMap [100]
+                0.00    0.00       1/1           generateKingMap [99]
+                0.00    0.00       1/1           generateRookIndexes [103]
+                0.00    0.00       1/1           generateBishopIndexes [98]
+                0.00    0.00       1/1           generateOccupancyMaskRook [102]
+                0.00    0.00       1/1           generateOccupancyMaskBishop [101]
+-----------------------------------------------
+                0.00    0.00    5312/107776      generateOccupancyVariationsBishop [72]
+                0.02    0.00  102464/107776      generateOccupancyVariationsRook [61]
+[59]     0.1    0.02    0.00  107776         getSetBits [59]
+                0.00    0.00  572876/124795646     poplsb [33]
+-----------------------------------------------
+                0.02    0.00 8167900/8167900     evaluateBoard [8]
+[60]     0.1    0.02    0.00 8167900         evaluateDraws [60]
+                0.00    0.00  352026/121820385     popcount [32]
+-----------------------------------------------
+                0.00    0.02       1/1           initializeMagics [58]
+[61]     0.1    0.00    0.02       1         generateOccupancyVariationsRook [61]
+                0.02    0.00  102464/107776      getSetBits [59]
+                0.00    0.00      64/65792       countSetBits [73]
+-----------------------------------------------
+                0.00    0.00  102647/3193114     search [5]
+                0.02    0.00 3090467/3193114     qsearch [9]
+[62]     0.1    0.02    0.00 3193114         thisTacticalMoveValue [62]
+-----------------------------------------------
+                0.00    0.00     128/4771372     initializePSQT [78]
+                0.01    0.00 4771244/4771372     evaluatePawns [35]
+[63]     0.1    0.01    0.00 4771372         relativeSquare32 [63]
+                0.00    0.00 4771372/4771372     square32 [79]
+-----------------------------------------------
+                0.00    0.00  121054/3248024     search [5]
+                0.01    0.00 3126970/3248024     qsearch [9]
+[64]     0.1    0.01    0.00 3248024         bestTacticalMoveValue [64]
+-----------------------------------------------
+                0.01    0.00  838644/838644      search [5]
+[65]     0.1    0.01    0.00  838644         updateHistory [65]
+-----------------------------------------------
+                0.01    0.00  612142/612142      search [5]
+[66]     0.1    0.01    0.00  612142         applyNullMove [66]
+-----------------------------------------------
+                0.01    0.00  612142/612142      search [5]
+[67]     0.1    0.01    0.00  612142         revertNullMove [67]
+-----------------------------------------------
+                0.01    0.00  133069/133069      applyMove [13]
+[68]     0.1    0.01    0.00  133069         applyPromotionMove [68]
+-----------------------------------------------
+                0.01    0.00     468/468         uciReport [70]
+[69]     0.1    0.01    0.00     468         estimateHashfull [69]
+-----------------------------------------------
+                0.00    0.01     468/468         iterativeDeepening [4]
+[70]     0.1    0.00    0.01     468         uciReport [70]
+                0.01    0.00     468/468         estimateHashfull [69]
+                0.00    0.00    3708/3708        printMove [88]
+                0.00    0.00     468/974         getRealTime [90]
+                0.00    0.00     468/504         nodesSearchedThreadPool [92]
+-----------------------------------------------
+                                                 <spontaneous>
+[71]     0.1    0.01    0.00                 memcpy [71]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[72]     0.0    0.00    0.00       1         generateOccupancyVariationsBishop [72]
+                0.00    0.00    5312/107776      getSetBits [59]
+                0.00    0.00      64/65792       countSetBits [73]
+-----------------------------------------------
+                0.00    0.00      64/65792       generateOccupancyVariationsRook [61]
+                0.00    0.00      64/65792       generateOccupancyVariationsBishop [72]
+                0.00    0.00      64/65792       generateMoveDatabaseRook [77]
+                0.00    0.00      64/65792       generateMoveDatabaseBishop [76]
+                0.00    0.00   65536/65792       initializeMagics [58]
+[73]     0.0    0.00    0.00   65792         countSetBits [73]
+                0.00    0.00  526360/192068315     getlsb [41]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[74]     0.0    0.00    0.00       1         initializeMasks [74]
+                0.00    0.00    5216/65777721     bishopAttacks [17]
+                0.00    0.00    5888/76699688     rookAttacks [24]
+-----------------------------------------------
+                0.00    0.00       1/37          main [1]
+                0.00    0.00      36/37          runBenchmark [2]
+[75]     0.0    0.00    0.00      37         initializeBoard [75]
+                0.00    0.00      37/13684109     attackersToKingSquare [27]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[76]     0.0    0.00    0.00       1         generateMoveDatabaseBishop [76]
+                0.00    0.00      64/65792       countSetBits [73]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[77]     0.0    0.00    0.00       1         generateMoveDatabaseRook [77]
+                0.00    0.00      64/65792       countSetBits [73]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[78]     0.0    0.00    0.00       1         initializePSQT [78]
+                0.00    0.00     128/4771372     relativeSquare32 [63]
+-----------------------------------------------
+                0.00    0.00 4771372/4771372     relativeSquare32 [63]
+[79]     0.0    0.00    0.00 4771372         square32 [79]
+-----------------------------------------------
+                0.00    0.00 1893893/1893893     search [5]
+[80]     0.0    0.00    0.00 1893893         valueToTT [80]
+-----------------------------------------------
+                0.00    0.00  671533/671533      search [5]
+[81]     0.0    0.00    0.00  671533         hasNonPawnMaterial [81]
+-----------------------------------------------
+                0.00    0.00  658944/658944      evaluateRooks [15]
+[82]     0.0    0.00    0.00  658944         relativeSquare [82]
+-----------------------------------------------
+                0.00    0.00  609283/609283      search [5]
+[83]     0.0    0.00    0.00  609283         valueFromTT [83]
+-----------------------------------------------
+                0.00    0.00  515409/515409      evaluateBoard [8]
+[84]     0.0    0.00    0.00  515409         storePawnKingEntry [84]
+-----------------------------------------------
+                0.00    0.00   11192/22384       applyCastleMove [87]
+                0.00    0.00   11192/22384       revertMove [34]
+[85]     0.0    0.00    0.00   22384         castleGetRookFrom [85]
+-----------------------------------------------
+                0.00    0.00   11192/22384       applyCastleMove [87]
+                0.00    0.00   11192/22384       revertMove [34]
+[86]     0.0    0.00    0.00   22384         castleGetRookTo [86]
+-----------------------------------------------
+                0.00    0.00   11192/11192       applyMove [13]
+[87]     0.0    0.00    0.00   11192         applyCastleMove [87]
+                0.00    0.00   11192/22384       castleGetRookTo [86]
+                0.00    0.00   11192/22384       castleGetRookFrom [85]
+-----------------------------------------------
+                0.00    0.00    3708/3708        uciReport [70]
+[88]     0.0    0.00    0.00    3708         printMove [88]
+-----------------------------------------------
+                0.00    0.00    2853/2853        applyMove [13]
+[89]     0.0    0.00    0.00    2853         applyEnpassMove [89]
+-----------------------------------------------
+                0.00    0.00       2/974         runBenchmark [2]
+                0.00    0.00      36/974         getBestMove [3]
+                0.00    0.00     468/974         iterativeDeepening [4]
+                0.00    0.00     468/974         uciReport [70]
+[90]     0.0    0.00    0.00     974         getRealTime [90]
+-----------------------------------------------
+                0.00    0.00     781/781         initializeZorbist [105]
+[91]     0.0    0.00    0.00     781         rand64 [91]
+-----------------------------------------------
+                0.00    0.00      36/504         runBenchmark [2]
+                0.00    0.00     468/504         uciReport [70]
+[92]     0.0    0.00    0.00     504         nodesSearchedThreadPool [92]
+-----------------------------------------------
+                0.00    0.00      36/36          getBestMove [3]
+[93]     0.0    0.00    0.00      36         newSearchThreadPool [93]
+-----------------------------------------------
+                0.00    0.00       8/8           main [1]
+[94]     0.0    0.00    0.00       8         stringEquals [94]
+-----------------------------------------------
+                0.00    0.00       8/8           main [1]
+[95]     0.0    0.00    0.00       8         stringStartsWith [95]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[96]     0.0    0.00    0.00       2         getInput [96]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[97]     0.0    0.00    0.00       1         createThreadPool [97]
+                0.00    0.00       1/1           resetThreadPool [106]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[98]     0.0    0.00    0.00       1         generateBishopIndexes [98]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[99]     0.0    0.00    0.00       1         generateKingMap [99]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[100]    0.0    0.00    0.00       1         generateKnightMap [100]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[101]    0.0    0.00    0.00       1         generateOccupancyMaskBishop [101]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[102]    0.0    0.00    0.00       1         generateOccupancyMaskRook [102]
+-----------------------------------------------
+                0.00    0.00       1/1           initializeMagics [58]
+[103]    0.0    0.00    0.00       1         generateRookIndexes [103]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[104]    0.0    0.00    0.00       1         initializeTranspositionTable [104]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[105]    0.0    0.00    0.00       1         initializeZorbist [105]
+                0.00    0.00     781/781         rand64 [91]
+-----------------------------------------------
+                0.00    0.00       1/1           createThreadPool [97]
+[106]    0.0    0.00    0.00       1         resetThreadPool [106]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [11] __fentry__             [20] evaluateQueens         [49] kingAttacks
+   [7] _mcount_private        [45] evaluateQuietMoves     [52] knightAttacks
+  [87] applyCastleMove        [15] evaluateRooks          [71] memcpy
+  [89] applyEnpassMove        [14] genAllNoisyMoves       [56] moreThanOne
+  [13] applyMove              [43] genAllQuietMoves       [42] moveIsPsuedoLegal
+  [19] applyNormalMove        [98] generateBishopIndexes  [53] moveIsTactical
+  [66] applyNullMove          [99] generateKingMap        [93] newSearchThreadPool
+  [68] applyPromotionMove    [100] generateKnightMap      [92] nodesSearchedThreadPool
+   [6] aspirationWindow       [76] generateMoveDatabaseBishop [46] pawnAttacks
+  [27] attackersToKingSquare  [77] generateMoveDatabaseRook [32] popcount
+  [30] attackersToSquare     [101] generateOccupancyMaskBishop [33] poplsb
+  [64] bestTacticalMoveValue [102] generateOccupancyMaskRook [88] printMove
+  [17] bishopAttacks          [72] generateOccupancyVariationsBishop [9] qsearch
+  [37] buildBishopAndQueenMoves [61] generateOccupancyVariationsRook [91] rand64
+  [44] buildKingMoves        [103] generateRookIndexes    [82] relativeSquare
+  [51] buildKnightMoves        [3] getBestMove            [63] relativeSquare32
+  [39] buildNonPawnMoves      [47] getHistoryScore       [106] resetThreadPool
+  [48] buildPawnMoves         [96] getInput               [34] revertMove
+  [57] buildPawnPromotions    [40] getPawnKingEntry       [67] revertNullMove
+  [38] buildRookAndQueenMoves [90] getRealTime            [24] rookAttacks
+  [85] castleGetRookFrom      [59] getSetBits              [2] runBenchmark
+  [86] castleGetRookTo        [31] getTranspositionEntry   [5] search
+  [26] clearTranspositionTable [41] getlsb                [12] selectNextMove
+  [73] countSetBits           [55] getmsb                 [79] square32
+  [97] createThreadPool       [81] hasNonPawnMaterial     [29] squareIsAttacked
+  [69] estimateHashfull       [75] initializeBoard        [21] staticExchangeEvaluation
+  [16] evaluateBishops        [22] initializeEvalInfo     [84] storePawnKingEntry
+   [8] evaluateBoard          [58] initializeMagics       [54] storeTranspositionEntry
+  [60] evaluateDraws          [74] initializeMasks        [94] stringEquals
+  [28] evaluateKings          [50] initializeMovePicker   [95] stringStartsWith
+  [23] evaluateKnights        [78] initializePSQT         [62] thisTacticalMoveValue
+  [18] evaluateNoisyMoves    [104] initializeTranspositionTable [70] uciReport
+  [36] evaluatePassedPawns   [105] initializeZorbist      [65] updateHistory
+  [35] evaluatePawns          [25] isNotInCheck           [83] valueFromTT
+  [10] evaluatePieces          [4] iterativeDeepening     [80] valueToTT

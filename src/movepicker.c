@@ -108,7 +108,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             // search, we have exhausted all moves already. Otherwise,
             // we should move onto the quiet moves (+ killers)
             if (mp->skipQuiets)
-                return mp->stage = STAGE_BAD_NOISY, NONE_MOVE;
+                return mp->stage = STAGE_BAD_NOISY, selectNextMove(mp, board);
             else
                 mp->stage = STAGE_KILLER_1;
             
@@ -194,13 +194,11 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 mp->moves[best] = mp->moves[mp->noisySize];
                 mp->values[best] = mp->values[mp->noisySize];
                 
-                // Don't play the table move twice
-                if (bestMove == mp->tableMove)
+                // Don't play a move more than once
+                if (   bestMove == mp->tableMove
+                    || bestMove == mp->killer1
+                    || bestMove == mp->killer2)
                     return selectNextMove(mp, board);
-                
-                // Don't play the killer moves twice
-                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
                 
                 return bestMove;
             }
