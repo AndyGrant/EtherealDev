@@ -800,29 +800,29 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     return best;
 }
 
-int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
+
+int staticExchangeEvaluation(Board* board, uint16_t move){
     
-    if (MoveType(move) != NORMAL_MOVE)
-        return 0 >= threshold;
+    int count = 0;
+    int attacker;
+    int balances[32];
     
-    int from = MoveFrom(move), to = MoveTo(move);
-    int nextVictim = PieceType(board->squares[from]);
-    int stm = !board->turn;
+    int type = MoveType(move);
+    int from = MoveFrom(move);
+    int to   = MoveTo(move);
+    int turn = board->turn;
+
+    // Establish our moved piece as the current victim. If we are promoting,
+    // then the victim is whatever we have promoted to, which is stored in move
+    int victim = type != PROMOTION_MOVE ? PieceType(board->squares[from])
+                                        : 1 + (move >> 14);
     
-    // Best case for us is taking the to-square without re-capture
-    int balance = PieceValues[PieceType(board->squares[to])][MG]
-                - PieceValues[nextVictim][MG];
+    // Establish a baseline for how good our move is
+    balances[0] = thisTacticalMoveValue(board, move);
     
-    // Even the worst case has us beating the threshold. Note that since
-    // the value of a king is zero, if the next victim is our king we will
-    // always return here. This is fine since if the king has an attacker,
-    // then the move will simply not be attempted once we legality check it
-    if (balance >= 0)
-        return balance;
-    
+    // Fetch the colours and pieces from the board
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
-    
     uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
@@ -830,73 +830,76 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     uint64_t queens  = board->pieces[QUEEN ];
     uint64_t kings   = board->pieces[KING  ];
     
-    uint64_t stmAttackers;
+    // Compute the occupied bitboard by taking all pieces,
+    // removing the one we moved, and removing any enpass
+    // captures. We do not need to remove pieces at the target
+    // square because they can't capture themselves
+    uint64_t occupied = (white | black) ^ (1ull << from);
+    if (type == ENPASS_MOVE) 
+        occupied ^= (1ull << (board->epSquare - 8 + (board->turn << 4)));
     
-    uint64_t occupied = (white | black) ^ (1ull << from) ^ (1ull << to);
-    
+    // Compute any attackers to the to-square for both colours. Pawns
+    // are computed for each colour, and note that we use the updated
+    // occupancy bitboard in order to allow some x-ray attackers
     uint64_t attackers =    pawnAttacks(to, white & pawns, WHITE)
                        |    pawnAttacks(to, black & pawns, BLACK)
                        |  knightAttacks(to, knights)
                        |  bishopAttacks(to, occupied, bishops | queens)
                        |    rookAttacks(to, occupied, rooks | queens)
                        |    kingAttacks(to, kings);
-                       
+    
     while (1){
         
-        stmAttackers = attackers & board->colours[stm];
+        // Swap the turn
+        turn = !turn; 
         
-        // If we have no more attackers left, give up
-        if (!stmAttackers) break;
+        // Break out if we are out of attackers
+        if (!(attackers & board->colours[turn]))
+            break;
         
-        // Find our weakest piece to attack with
-        for (nextVictim = PAWN; nextVictim <= QUEEN; nextVictim++)
-            if (stmAttackers & board->pieces[nextVictim])
+        // Find our weakest attacker to the to-square. If no non-queen attacker
+        // is found, then the attacking piece must then be the king.
+        for (attacker = PAWN; attacker <= QUEEN; attacker++)
+            if (attackers & board->colours[turn] & board->pieces[attacker])
                 break;
             
-        // Update attackers to include any revealed attackers
-        switch (nextVictim){
-            case PAWN:
-                attackers |= bishopAttacks(to, occupied, bishops | queens);
-                break;
-                
-            case BISHOP:
-                attackers |= bishopAttacks(to, occupied, bishops | queens);
-                break;
-                
-            case ROOK:
-                attackers |=   rookAttacks(to, occupied, rooks   | queens);
-                break;
-                
-            case QUEEN:
-                attackers |= bishopAttacks(to, occupied, bishops | queens);
-                attackers |=   rookAttacks(to, occupied, rooks   | queens);
-                break;
-        }
+        // Remove our attacking piece from the occupied bitboard
+        occupied ^= (1ull << getlsb(attackers & board->colours[turn] & board->pieces[attacker]));
+            
+        // Include any diagnol x-rays we have discovered
+        if (attacker == PAWN || attacker == BISHOP || attacker == QUEEN)
+            attackers |= bishopAttacks(to, occupied, bishops | queens);
         
-        // Remove this attacker from the occupied
-        occupied ^= (1ull << getlsb(stmAttackers & board->pieces[nextVictim]));
+        // Inlcude any vertical or horizontal x-rays we have discovered
+        if (attacker == ROOK || attacker == QUEEN)
+            attackers |= rookAttacks(to, occupied, rooks | queens);
         
-        // Exclude attackers that have already attacked
+        // Make sure we did not add already used attackers back
         attackers &= occupied;
         
-        // Update the side to move
-        stm = !stm;
+        // Update the count for the new swap
+        count += 1;
         
-        // Negamax the balance and add the value of the next victim
-        balance = -balance - 1 - PieceValues[MG][nextVictim];
+        // Update the balance for the count-th swap
+        balances[count] = PieceValues[victim][EG] - balances[count-1];
         
-        // If balance is non negative after giving away our piece,
-        // then we have won. We swap the side to move if we attacked
-        // with our king, and our opponent can attack back. This way,
-        // we will (when pruning before move legality check) save time.
-        if (balance >= 0){
-            if (nextVictim == KING && (attackers & board->colours[stm]))
-                stm = !stm;
-            break;
-        }
+        // Set the next victim. Note that we will set the victim a second time
+        // if we are promoting a pawn. We will assume a promotion to a Queen.
+        
+        // Update the balance when our attacker is also promotion
+        if (attacker == PAWN && ((RANK_1 | RANK_8) & (1ull << to))){
+            balances[count] += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+            victim = QUEEN;
+        } else victim = attacker;
     }
     
-    return board->turn == stm ? balance : -balance;
+    while (count){
+        if (balances[count] >= -balances[count-1])
+            balances[count-1] = -balances[count];
+        count--;
+    }
+    
+    return balances[0];
 }
 
 int moveIsTactical(Board* board, uint16_t move){

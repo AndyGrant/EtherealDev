@@ -240,7 +240,7 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
             value = 100 * (PieceValues[PAWN][EG] - PAWN);
         
         else if (fromType > toType && (fromType != BISHOP || toType != KNIGHT))
-            value = staticExchangeEvaluation(board, move, 0);
+            value = staticExchangeEvaluation(board, move);
         
         mp->values[i] = value;
     }
