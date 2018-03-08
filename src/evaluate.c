@@ -56,7 +56,7 @@ const int RookValue[PHASE_NB]   = { 587, 672};
 
 const int QueenValue[PHASE_NB]  = {1186,1233};
 
-const int KingValue[PHASE_NB]   = { 156, 156};
+const int KingValue[PHASE_NB]   = {   0,   0};
 
 const int NoneValue[PHASE_NB]   = {   0,   0};
 

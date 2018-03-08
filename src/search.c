@@ -748,21 +748,24 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
-        // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
+        if (!staticExchangeEvaluation(board, currentMove, alpha - eval - QFutilityMargin))
             continue;
         
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
-        // in skipping this move so long as we are capturing a weaker piece
-        if (     MoveType(currentMove) != PROMOTION_MOVE
-            &&  !ei.positionIsDrawn
-            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
-            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
-            continue;
+        //// Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
+        //// best case would still fail to beat alpha minus some margin, we can skip it
+        //if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
+        //    continue;
+        //
+        //// Step 7. Weak Capture Pruning. If we are trying to capture a piece which
+        //// is protected, and we are the sole attacker, then we can be somewhat safe
+        //// in skipping this move so long as we are capturing a weaker piece
+        //if (     MoveType(currentMove) != PROMOTION_MOVE
+        //    &&  !ei.positionIsDrawn
+        //    &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
+        //    && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+        //    &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+        //     <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+        //    continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -798,6 +801,110 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     }
     
     return best;
+}
+
+int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
+    
+    if (MoveType(move) != NORMAL_MOVE)
+        return 0 >= threshold;
+    
+    int from = MoveFrom(move), to = MoveTo(move);
+    int nextVictim = PieceType(board->squares[from]);
+    int stm = !board->turn;
+    
+    // Best case for us is taking the to-square without re-capture
+    int balance = PieceValues[PieceType(board->squares[to])][MG] - threshold;
+    
+    // Best case fails to beat our threshold
+    if (balance < 0) return 0;
+    
+    // Worst case is our opponent re-captures for free
+    balance -= PieceValues[nextVictim][MG];
+    
+    // Even the worst case has us beating the threshold. Note that since
+    // the value of a king is zero, if the next victim is our king we will
+    // always return here. This is fine since if the king has an attacker,
+    // then the move will simply not be attempted once we legality check it
+    if (balance >= 0)
+        return 1;
+    
+    uint64_t white   = board->colours[WHITE];
+    uint64_t black   = board->colours[BLACK];
+    
+    uint64_t pawns   = board->pieces[PAWN  ];
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+    uint64_t kings   = board->pieces[KING  ];
+    
+    uint64_t stmAttackers;
+    
+    uint64_t occupied = (white | black) ^ (1ull << from) ^ (1ull << to);
+    
+    uint64_t attackers =    pawnAttacks(to, white & pawns, WHITE)
+                       |    pawnAttacks(to, black & pawns, BLACK)
+                       |  knightAttacks(to, knights)
+                       |  bishopAttacks(to, occupied, bishops | queens)
+                       |    rookAttacks(to, occupied, rooks | queens)
+                       |    kingAttacks(to, kings);
+                       
+    while (1){
+        
+        stmAttackers = attackers & board->colours[stm];
+        
+        // If we have no more attackers left, give up
+        if (!stmAttackers) break;
+        
+        // Find our weakest piece to attack with
+        for (nextVictim = PAWN; nextVictim <= QUEEN; nextVictim++)
+            if (stmAttackers & board->pieces[nextVictim])
+                break;
+            
+        // Update attackers to include any revealed attackers
+        switch (nextVictim){
+            case PAWN:
+                attackers |= bishopAttacks(to, occupied, bishops | queens);
+                break;
+                
+            case BISHOP:
+                attackers |= bishopAttacks(to, occupied, bishops | queens);
+                break;
+                
+            case ROOK:
+                attackers |=   rookAttacks(to, occupied, rooks   | queens);
+                break;
+                
+            case QUEEN:
+                attackers |= bishopAttacks(to, occupied, bishops | queens);
+                attackers |=   rookAttacks(to, occupied, rooks   | queens);
+                break;
+        }
+        
+        // Remove this attacker from the occupied
+        occupied ^= (1ull << getlsb(stmAttackers & board->pieces[nextVictim]));
+        
+        // Exclude attackers that have already attacked
+        attackers &= occupied;
+        
+        // Update the side to move
+        stm = !stm;
+        
+        // Negamax the balance and add the value of the next victim
+        balance = -balance - 1 - PieceValues[MG][nextVictim];
+        
+        // If balance is non negative after giving away our piece,
+        // then we have won. We swap the side to move if we attacked
+        // with our king, and our opponent can attack back. This way,
+        // we will (when pruning before move legality check) save time.
+        if (balance >= 0){
+            if (nextVictim == KING && (attackers & board->pieces[stm]))
+                stm = !stm;
+            break;
+        }
+    }
+    
+    return board->turn != stm;
 }
 
 int moveIsTactical(Board* board, uint16_t move){
