@@ -810,20 +810,15 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     int stm = !board->turn;
     
     // Best case for us is taking the to-square without re-capture
-    int balance = PieceValues[PieceType(board->squares[to])][MG] - threshold;
-    
-    // Best case fails to beat our threshold
-    if (balance < 0) return 0;
-    
-    // Worst case is our opponent re-captures for free
-    balance -= PieceValues[nextVictim][MG];
+    int balance = PieceValues[PieceType(board->squares[to])][MG]
+                - PieceValues[nextVictim][MG];
     
     // Even the worst case has us beating the threshold. Note that since
     // the value of a king is zero, if the next victim is our king we will
     // always return here. This is fine since if the king has an attacker,
     // then the move will simply not be attempted once we legality check it
     if (balance >= 0)
-        return 1;
+        return balance;
     
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -901,7 +896,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         }
     }
     
-    return board->turn != stm;
+    return board->turn == stm ? balance : -balance;
 }
 
 int moveIsTactical(Board* board, uint16_t move){
