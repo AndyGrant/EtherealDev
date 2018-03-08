@@ -298,7 +298,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, bestWasQuiet = 0; 
+    int quiets = 0, quietsPlayed = 0, played = 0, bestWasQuiet = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     int hist = 0; // Fix bogus GCC warning
     
@@ -589,7 +589,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]){
+            &&  quietsPlayed > LateMovePruningCounts[depth]){
             
             revertMove(board, currentMove, undo);
             continue;
@@ -597,6 +597,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Update counter of moves actually played
         played += 1;
+        quietsPlayed += isQuiet;
     
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
