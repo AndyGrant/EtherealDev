@@ -539,13 +539,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, currentMove, board->turn);
         }
         
+        static const int FPM[9] = {  0,  85, 170,
+                                  265, 360, 465,
+                                  590, 755, 999};
+        
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
             &&  isQuiet
-            &&  played >= 1
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  played >= 1            
+            &&  depth <= FutilityPruningDepth
+            &&  eval + FPM[depth] <= alpha)
             continue;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
