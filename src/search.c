@@ -474,7 +474,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth >= ProbCutDepth
-        &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
+        &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
             
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_HEIGHT - 1);
             
@@ -724,7 +724,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
-    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+    if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
         return eval;
     
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
@@ -817,11 +817,11 @@ int thisTacticalMoveValue(Board* board, uint16_t move){
     return value;
 }
 
-int bestTacticalMoveValue(Board* board){
+int bestTacticalMoveValue(Board* board, EvalInfo* ei){
     
     int value = 0;
     
-    uint64_t targets = board->colours[!board->turn];
+    uint64_t targets = ei->attacked[board->turn];
     
     if (targets & board->pieces[QUEEN]) value += PieceValues[QUEEN][EG];
     
@@ -861,7 +861,6 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
     // This capture is not weak if we are attacking an equal or greater valued piece, 
     if (thisTacticalMoveValue(board, move) >= attackerValue)
         return 0;
-    
     
     // Thus, the capture is weak if there are sufficient attackers for a given depth
     return (   (depth <= WeakCaptureTwoAttackersDepth
