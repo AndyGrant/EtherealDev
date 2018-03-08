@@ -898,7 +898,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         // with our king, and our opponent can attack back. This way,
         // we will (when pruning before move legality check) save time.
         if (balance >= 0){
-            if (nextVictim == KING && (attackers & board->pieces[stm]))
+            if (nextVictim == KING && (attackers & board->colours[stm]))
                 stm = !stm;
             break;
         }
