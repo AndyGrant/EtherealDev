@@ -229,16 +229,17 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
         toType   = PieceType(board->squares[MoveTo(move)]);
         
         // Use the standard MVV-LVA
-        value = 100 * (PieceValues[toType][EG] - fromType);
+        value = PieceValues[toType][EG] - fromType;
         
         // A bonus is in order for queen promotions
         if ((move & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
-            value += 100 * (PieceValues[QUEEN][EG]);
+            value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
         
         // Enpass is a special case of MVV-LVA
         else if (MoveType(move) == ENPASS_MOVE)
-            value = 100 * (PieceValues[PAWN][EG] - PAWN);
+            value = PieceValues[PAWN][EG] - PAWN;
         
+        // Otherwise if we are attacking a weaker piece, use SEE
         else if (fromType > toType && (fromType != BISHOP || toType != KNIGHT))
             value = staticExchangeEvaluation(board, move);
         
