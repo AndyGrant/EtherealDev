@@ -547,7 +547,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  played >= 1
-            && (hist < 0 || cmhist < 0)
+            && (hist <= 4196 || cmhist <= 4196)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             continue;
