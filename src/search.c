@@ -601,12 +601,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
-        if (    played > 1
+        if (    played >= 3
             &&  depth >= 3
             &&  isQuiet){
             
             // Baseline R based on number of moves played and current depth
-            R = 2 + (played - 2) / 8 + (depth - 6) / 4;
+            R = 2 + (played - 3) / 8 + (depth - 6) / 4;
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
