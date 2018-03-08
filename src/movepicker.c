@@ -205,6 +205,9 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
         else if (MoveType(move) == ENPASS_MOVE)
             value = PieceValues[PAWN][EG] - PAWN;
         
+        if (fromType > toType && (fromType != BISHOP || toType != KNIGHT))
+            value = staticExchangeEvaluation(board, move, 0);
+        
         mp->values[i] = value;
     }
 }

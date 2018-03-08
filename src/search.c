@@ -748,24 +748,21 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        if (!staticExchangeEvaluation(board, currentMove, alpha - eval - QFutilityMargin))
+        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
+        // best case would still fail to beat alpha minus some margin, we can skip it
+        if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
             continue;
         
-        //// Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
-        //// best case would still fail to beat alpha minus some margin, we can skip it
-        //if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
-        //    continue;
-        //
-        //// Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        //// is protected, and we are the sole attacker, then we can be somewhat safe
-        //// in skipping this move so long as we are capturing a weaker piece
-        //if (     MoveType(currentMove) != PROMOTION_MOVE
-        //    &&  !ei.positionIsDrawn
-        //    &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
-        //    && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
-        //    &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
-        //     <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
-        //    continue;
+        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
+        // is protected, and we are the sole attacker, then we can be somewhat safe
+        // in skipping this move so long as we are capturing a weaker piece
+        if (     MoveType(currentMove) != PROMOTION_MOVE
+            &&  !ei.positionIsDrawn
+            &&  (ei.attacked[!board->turn]   & (1ull << MoveTo(currentMove)))
+            && !(ei.attackedBy2[board->turn] & (1ull << MoveTo(currentMove)))
+            &&  PieceValues[PieceType(board->squares[MoveTo  (currentMove)])][MG]
+             <  PieceValues[PieceType(board->squares[MoveFrom(currentMove)])][MG])
+            continue;
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
