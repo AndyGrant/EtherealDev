@@ -542,11 +542,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth
-            &&  currentMove != movePicker.killer1
-            &&  currentMove != movePicker.killer2){
+            &&  depth <= FutilityPruningDepth){
+                
+            // Do not try generate or try any more quiets
+            // except for the killer moves we have found
             skipQuiets = 1;
-            continue;
+            
+            if (    currentMove != movePicker.killer1
+                &&  currentMove != movePicker.killer2)
+                continue;
         }
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
