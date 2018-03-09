@@ -43,7 +43,7 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->history    = &thread->history;
 }
 
-uint16_t selectNextMove(MovePicker* mp, Board* board){
+uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     
     int i, best;
     uint16_t bestMove;
@@ -92,7 +92,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 
                 // Don't play the table move twice
                 if (bestMove == mp->tableMove)
-                    return selectNextMove(mp, board);
+                    return selectNextMove(mp, board, skipQuiets);
                 
                 // Don't play the killer moves twice
                 if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
@@ -125,7 +125,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = STAGE_GENERATE_QUIET;
+            mp->stage = skipQuiets ? STAGE_DONE : STAGE_GENERATE_QUIET;
             if (moveIsPsuedoLegal(board, mp->killer2))
                 return mp->killer2;
             
@@ -144,7 +144,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
         case STAGE_QUIET:
         
             // Check to see if there are still more quiet moves
-            if (mp->quietSize != 0){
+            if (!skipQuiets && mp->quietSize != 0){
                 
                 // Find highest scoring move
                 for (i = 1 + mp->split, best = mp->split; i < mp->split + mp->quietSize; i++)
@@ -163,7 +163,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 if (   bestMove == mp->tableMove
                     || bestMove == mp->killer1
                     || bestMove == mp->killer2)
-                    return selectNextMove(mp, board);
+                    return selectNextMove(mp, board, skipQuiets);
                 
                 return bestMove;
             }

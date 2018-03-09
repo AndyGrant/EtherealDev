@@ -40,7 +40,7 @@ typedef struct MovePicker {
 } MovePicker;
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets);
-uint16_t selectNextMove(MovePicker* mp, Board* board);
+uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets);
 void evaluateNoisyMoves(MovePicker* mp, Board* board);
 void evaluateQuietMoves(MovePicker* mp, Board* board);
 int moveIsPsuedoLegal(Board* board, uint16_t move);

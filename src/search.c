@@ -300,6 +300,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
+    int skipQuiets = 0;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -480,7 +481,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
-        while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        while ((currentMove = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
             
             // Even if we keep the capture piece and or the promotion piece
             // we will fail to exceed rBeta, then we will skip this move
@@ -529,7 +530,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
-    while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+    while ((currentMove = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
         
         // If this move is quiet we will save it to a list of attemped quiets
         if ((isQuiet = !moveIsTactical(board, currentMove)))
@@ -541,8 +542,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            &&  currentMove != movePicker.killer1
+            &&  currentMove != movePicker.killer2){
+            skipQuiets = 1;
             continue;
+        }
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
@@ -730,7 +735,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
-    while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+    while ((currentMove = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
