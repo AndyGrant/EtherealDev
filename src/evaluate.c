@@ -224,7 +224,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Scale the evaluation based on remaining material
     scale = evaluateScaleFactor(board, rawphase);
     
-    eval = (eval * scale) / MAX_SCALE_FACTOR;
+    eval = (int)((eval * scale) / MAX_SCALE_FACTOR);
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -724,7 +724,7 @@ int evaluateScaleFactor(Board* board, int phase){
         &&  exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
         &&  exactlyOne(bishops & WHITE_SQUARES))
-        return (MAX_SCALE_FACTOR / 2) * (2.0 - (phase * phase) / (MAX_OCB_PHASE * MAX_OCB_PHASE));
+        return (int)((MAX_SCALE_FACTOR / 2) * (2.0 - (phase * phase) / (MAX_OCB_PHASE * MAX_OCB_PHASE)));
         
     return MAX_SCALE_FACTOR;
         
