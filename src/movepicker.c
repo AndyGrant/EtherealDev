@@ -104,7 +104,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             // If we are using this move picker for the quiescence
             // search, we have exhausted all moves already. Otherwise,
             // we should move onto the quiet moves (+ killers)
-            if (mp->skipQuiets)
+            if (mp->skipQuiets || skipQuiets)
                 return mp->stage = STAGE_DONE, NONE_MOVE;
             else
                 mp->stage = STAGE_KILLER_1;
@@ -115,7 +115,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = STAGE_KILLER_2;
+            mp->stage = skipQuiets ? STAGE_DONE : STAGE_KILLER_2;
             if (moveIsPsuedoLegal(board, mp->killer1))
                 return mp->killer1;
             
