@@ -366,19 +366,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
         }
     }
-        
-    // Step 5. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
-    if (depth <= 0){
-        
-        // No king attackers indicates we are not checked
-        if (!board->kingAttackers) 
-            return qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the accepktable bounds
-        depth = 0; 
-    }
     
     // If we did not exit already, we will call this a node
     thread->nodes += 1;
@@ -406,6 +393,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Entry allows early exit
             if (rAlpha >= rBeta) return ttValue;
         }
+    }
+        
+    // Step 5. Go into the Quiescence Search if we have reached
+    // the search horizon and are not currently in check
+    if (depth <= 0){
+        
+        // No king attackers indicates we are not checked
+        if (!board->kingAttackers){
+            thread->nodes--;
+            return qsearch(thread, pv, alpha, beta, height);
+        }
+        
+        // We do not cap reductions, so here we will make
+        // sure that depth is within the accepktable bounds
+        depth = 0; 
     }
     
     // Step 7. Some initialization. Determine the check status if we have
