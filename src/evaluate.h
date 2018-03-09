@@ -21,6 +21,8 @@
 
 #include "types.h"
 
+#define MAX_SCALE_FACTOR (128)
+
 typedef struct EvalTrace {
     
     int pawnCounts[COLOUR_NB];
@@ -96,7 +98,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour);
 void evaluateQueens(EvalInfo* ei, Board* board, int colour);
 void evaluateKings(EvalInfo* ei, Board* board, int colour);
 void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
-void evaluateImbalanceScaling(Board* board, int* eval);
+int evaluateScaleFactor(Board* board, int phase);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
 
 extern const int* PieceValues[8];

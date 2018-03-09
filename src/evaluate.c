@@ -180,7 +180,7 @@ const int* PieceValues[8] = {
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
-    int mg, eg, phase, eval;
+    int mg, eg, phase, rawphase, eval, scale;
     
     // evaluateDraws handles obvious drawn positions
     ei->positionIsDrawn = evaluateDraws(board);
@@ -211,17 +211,20 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
        + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK] + Tempo[board->turn][EG];
        
-    // Calcuate the game phase based on remaining material (Fruit Method)
-    phase = 24 - popcount(board->pieces[QUEEN]) * 4
+    // Calcuate the game raw phase based on remaining material (Fruit Method)
+    rawphase = 24 - popcount(board->pieces[QUEEN]) * 4
                - popcount(board->pieces[ROOK]) * 2
                - popcount(board->pieces[KNIGHT] | board->pieces[BISHOP]);
-    phase = (phase * 256 + 12) / 24;
+               
+    phase = (rawphase * 256 + 12) / 24;
           
     // Compute the interpolated evaluation
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
     // Scale the evaluation based on remaining material
-    evaluateImbalanceScaling(board, &eval);
+    scale = evaluateScaleFactor(board, rawphase);
+    
+    eval = (eval * scale) / MAX_SCALE_FACTOR;
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -707,15 +710,11 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     }
 }
 
-void evaluateImbalanceScaling(Board* board, int* eval){
+int evaluateScaleFactor(Board* board, int phase){
     
     uint64_t white = board->colours[WHITE];
     uint64_t black = board->colours[BLACK];
-    
-    uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
-    uint64_t rooks   = board->pieces[ROOK  ];
-    uint64_t queens  = board->pieces[QUEEN ];
     
     // If both players have exactly one bishop, and they are on oppisite
     // coloured squares, we will scale down the evaluation to be closer to
@@ -724,13 +723,11 @@ void evaluateImbalanceScaling(Board* board, int* eval){
     
     if (    exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
-        &&  exactlyOne(bishops & WHITE_SQUARES)){
+        &&  exactlyOne(bishops & WHITE_SQUARES))
+        return MAX_SCALE_FACTOR - 3 * phase;
         
-        if (rooks | queens | knights)
-            *eval = (*eval * 100) / 100.0;
-        else
-            *eval = (*eval * 75) / 100.0;
-    }
+    return MAX_SCALE_FACTOR;
+        
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
