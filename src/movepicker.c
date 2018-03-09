@@ -115,7 +115,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = skipQuiets ? STAGE_DONE : STAGE_KILLER_2;
+            mp->stage = STAGE_KILLER_2;
             if (!skipQuiets && moveIsPsuedoLegal(board, mp->killer1))
                 return mp->killer1;
             
@@ -125,14 +125,14 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = skipQuiets ? STAGE_DONE : STAGE_GENERATE_QUIET;
+            mp->stage = STAGE_GENERATE_QUIET;
             if (!skipQuiets && moveIsPsuedoLegal(board, mp->killer2))
                 return mp->killer2;
             
             // If we want to skip quiets, but did not return a killer, we
             // would fall into generating quiets when we do not want to. Thus,
             // we will return a NONE_MOVE here to indicate the finished pick
-            if (skipQuiets) return NONE_MOVE;
+            if (skipQuiets) return mp->stage = STAGE_DONE, NONE_MOVE;
             
             /* fallthrough */
         
