@@ -536,13 +536,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             quietsTried[quiets++] = currentMove;
         
         // Step 14. Futility Pruning. If our score is far below alpha,
-        // and we don't expect anything from this move, skip it.
+        // and we don't expect anything from this move, skip it. We break
+        // instead of continue because all moves after this one will be quiet
+        // as a result of the order in the move picker. If we are to change
+        // this, for example do bad captures after quiets, break must be changed
         if (   !PvNode
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
-            continue;
+            break;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
