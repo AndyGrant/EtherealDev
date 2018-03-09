@@ -723,10 +723,10 @@ void evaluateMisc(EvalInfo* ei, Board* board){
         &&   exactlyOne(black & bishops)
         &&   exactlyOne(bishops & WHITE_SQUARES)){
             
-        ei->midgame[WHITE] = ei->midgame[WHITE] * 65 / 100.0;
-        ei->midgame[BLACK] = ei->midgame[BLACK] * 65 / 100.0;
-        ei->endgame[WHITE] = ei->endgame[WHITE] * 65 / 100.0;
-        ei->endgame[BLACK] = ei->endgame[BLACK] * 65 / 100.0;
+        ei->midgame[WHITE] = ei->midgame[WHITE] * 85 / 100.0;
+        ei->midgame[BLACK] = ei->midgame[BLACK] * 85 / 100.0;
+        ei->endgame[WHITE] = ei->endgame[WHITE] * 85 / 100.0;
+        ei->endgame[BLACK] = ei->endgame[BLACK] * 85 / 100.0;
     }
 }
 
