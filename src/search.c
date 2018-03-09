@@ -726,7 +726,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
-    if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
+    if (value + QFutilityMargin[PvNode] + bestTacticalMoveValue(board, &ei) < alpha)
         return eval;
     
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
@@ -736,13 +736,13 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
+        if (eval + QFutilityMargin[PvNode] + thisTacticalMoveValue(board, currentMove) < alpha)
             continue;
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (!PvNode && captureIsWeak(board, &ei, currentMove, 0))
+        if (captureIsWeak(board, &ei, currentMove, 0))
             continue;
         
         // Apply and validate move before searching
