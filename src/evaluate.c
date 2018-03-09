@@ -720,7 +720,8 @@ int evaluateScaleFactor(Board* board, int phase){
     // coloured squares, we will scale down the evaluation to be closer to
     // a drawn score. We scale this quadratically as a function of material
     
-    if (    exactlyOne(white & bishops)
+    if (    phase > MAX_PHASE / 4
+        &&  exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
         &&  exactlyOne(bishops & WHITE_SQUARES))
         return (MAX_SCALE_FACTOR / 2) * (2.0 - (phase * phase) / (MAX_OCB_PHASE * MAX_OCB_PHASE));
