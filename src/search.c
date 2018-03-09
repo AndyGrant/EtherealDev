@@ -806,13 +806,13 @@ int valueToTT(int value, int height){
 
 int thisTacticalMoveValue(Board* board, uint16_t move){
     
-    int value = PieceValues[PieceType(board->squares[MoveTo(move)])][EG];
+    int value = PieceValues[PieceType(board->squares[MoveTo(move)])][MG];
     
     if (MoveType(move) == PROMOTION_MOVE)
-        value += PieceValues[MovePromoPiece(move)][EG] - PieceValues[PAWN][EG];
+        value += PieceValues[MovePromoPiece(move)][MG] - PieceValues[PAWN][MG];
     
     if (MoveType(move) == ENPASS_MOVE)
-        value += PieceValues[PAWN][EG];
+        value += PieceValues[PAWN][MG];
     
     return value;
 }
@@ -823,24 +823,24 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei){
     
     uint64_t targets = ei->attacked[board->turn];
     
-    if (targets & board->pieces[QUEEN]) value += PieceValues[QUEEN][EG];
+    if (targets & board->pieces[QUEEN]) value += PieceValues[QUEEN][MG];
     
-    else if (targets & board->pieces[ROOK]) value += PieceValues[ROOK][EG];
+    else if (targets & board->pieces[ROOK]) value += PieceValues[ROOK][MG];
     
     else if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
         value += MAX(
-            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][EG],
-            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][EG]
+            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][MG],
+            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][MG]
         );
         
     else 
-        value += PieceValues[PAWN][EG];
+        value += PieceValues[PAWN][MG];
         
         
     if (   board->pieces[PAWN] 
         &  board->colours[board->turn]
         & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+        value += PieceValues[QUEEN][MG] - PieceValues[PAWN][MG];
             
     return value;
 }
@@ -856,7 +856,7 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
         return 0;
         
     // Determine how valuable our attacking piece is
-    int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][EG];
+    int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][MG];
         
     // This capture is not weak if we are attacking an equal or greater valued piece, 
     if (thisTacticalMoveValue(board, move) >= attackerValue)
