@@ -220,6 +220,9 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Compute the interpolated evaluation
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
+    // Scale the evaluation based on remaining material
+    evaluateImbalanceScaling(board, &eval);
+    
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
 }
@@ -283,8 +286,6 @@ void evaluatePieces(EvalInfo* ei, Board* board){
     
     evaluatePassedPawns(ei, board, WHITE);
     evaluatePassedPawns(ei, board, BLACK);
-    
-    evaluateMisc(ei, board);
 }
 
 void evaluatePawns(EvalInfo* ei, Board* board, int colour){
@@ -706,7 +707,7 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     }
 }
 
-void evaluateMisc(EvalInfo* ei, Board* board){
+void evaluateImbalanceScaling(Board* board, int* eval){
     
     uint64_t white = board->colours[WHITE];
     uint64_t black = board->colours[BLACK];
@@ -721,13 +722,8 @@ void evaluateMisc(EvalInfo* ei, Board* board){
     if (   !(rooks | queens | knights)
         &&   exactlyOne(white & bishops)
         &&   exactlyOne(black & bishops)
-        &&   exactlyOne(bishops & WHITE_SQUARES)){
-            
-        ei->midgame[WHITE] = ei->midgame[WHITE] * 85 / 100.0;
-        ei->midgame[BLACK] = ei->midgame[BLACK] * 85 / 100.0;
-        ei->endgame[WHITE] = ei->endgame[WHITE] * 85 / 100.0;
-        ei->endgame[BLACK] = ei->endgame[BLACK] * 85 / 100.0;
-    }
+        &&   exactlyOne(bishops & WHITE_SQUARES))
+        *eval = (*eval * 85) / 100.0;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
