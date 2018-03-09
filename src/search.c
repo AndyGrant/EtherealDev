@@ -685,6 +685,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
+    const int PvNode = (alpha != beta - 1);
+    
     int eval, value, best;
     uint16_t currentMove;
     Undo undo[1];
@@ -740,7 +742,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, currentMove, 0))
+        if (!PvNode && captureIsWeak(board, &ei, currentMove, 0))
             continue;
         
         // Apply and validate move before searching
