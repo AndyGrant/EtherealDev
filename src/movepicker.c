@@ -129,6 +129,11 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             if (moveIsPsuedoLegal(board, mp->killer2))
                 return mp->killer2;
             
+            // If we want to skip quiets, but did not return a killer, we
+            // would fall into generating quiets when we do not want to. Thus,
+            // we will return a NONE_MOVE here to indicate the finished pick
+            if (skipQuiets) return NONE_MOVE;
+            
             /* fallthrough */
         
         case STAGE_GENERATE_QUIET:
