@@ -21,7 +21,9 @@
 
 #include "types.h"
 
-#define MAX_SCALE_FACTOR (128)
+#define MAX_OCB_PHASE    ( 22.0)
+#define MAX_PHASE        ( 24.0)
+#define MAX_SCALE_FACTOR (128.0)
 
 typedef struct EvalTrace {
     

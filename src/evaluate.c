@@ -718,13 +718,12 @@ int evaluateScaleFactor(Board* board, int phase){
     
     // If both players have exactly one bishop, and they are on oppisite
     // coloured squares, we will scale down the evaluation to be closer to
-    // a drawn score. If there is only bishops and pawns, we will scale
-    // very heavily torwards a drawn score, less so if there is other material
+    // a drawn score. We scale this quadratically as a function of material
     
     if (    exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
         &&  exactlyOne(bishops & WHITE_SQUARES))
-        return MAX_SCALE_FACTOR - 3 * phase;
+        return (MAX_SCALE_FACTOR / 2) * (2.0 - (phase * phase) / (MAX_OCB_PHASE * MAX_OCB_PHASE));
         
     return MAX_SCALE_FACTOR;
         
