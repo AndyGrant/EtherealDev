@@ -283,6 +283,8 @@ void evaluatePieces(EvalInfo* ei, Board* board){
     
     evaluatePassedPawns(ei, board, WHITE);
     evaluatePassedPawns(ei, board, BLACK);
+    
+    evaluateMisc(ei, board);
 }
 
 void evaluatePawns(EvalInfo* ei, Board* board, int colour){
@@ -701,6 +703,30 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+    }
+}
+
+void evaluateMisc(EvalInfo* ei, Board* board){
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+    
+    // If both players only have pawns and exactly one bishop, and the
+    // bishops are on opposite coloured squrares, 
+    if (   !(rooks | queens | knights)
+        &&   exactlyOne(white & bishops)
+        &&   exactlyOne(black & bishops)
+        &&   exactlyOne(bishops & WHITE_SQUARES)){
+            
+        ei->midgame[WHITE] = ei->midgame[WHITE] * 65 / 100.0;
+        ei->midgame[BLACK] = ei->midgame[BLACK] * 65 / 100.0;
+        ei->endgame[WHITE] = ei->endgame[WHITE] * 65 / 100.0;
+        ei->endgame[BLACK] = ei->endgame[BLACK] * 65 / 100.0;
     }
 }
 
