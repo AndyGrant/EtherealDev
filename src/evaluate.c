@@ -717,13 +717,20 @@ void evaluateImbalanceScaling(Board* board, int* eval){
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
     
-    // If both players only have pawns and exactly one bishop, and the
-    // bishops are on opposite coloured squrares, 
-    if (   !(rooks | queens | knights)
-        &&   exactlyOne(white & bishops)
-        &&   exactlyOne(black & bishops)
-        &&   exactlyOne(bishops & WHITE_SQUARES))
-        *eval = (*eval * 85) / 100.0;
+    // If both players have exactly one bishop, and they are on oppisite
+    // coloured squares, we will scale down the evaluation to be closer to
+    // a drawn score. If there is only bishops and pawns, we will scale
+    // very heavily torwards a drawn score, less so if there is other material
+    
+    if (    exactlyOne(white & bishops)
+        &&  exactlyOne(black & bishops)
+        &&  exactlyOne(bishops & WHITE_SQUARES)){
+        
+        if (rooks | queens | knights)
+            *eval = (*eval * 95) / 100.0;
+        else
+            *eval = (*eval * 50) / 100.0;
+    }
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
