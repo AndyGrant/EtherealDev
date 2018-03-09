@@ -727,9 +727,9 @@ void evaluateImbalanceScaling(Board* board, int* eval){
         &&  exactlyOne(bishops & WHITE_SQUARES)){
         
         if (rooks | queens | knights)
-            *eval = (*eval * 95) / 100.0;
+            *eval = (*eval * 100) / 100.0;
         else
-            *eval = (*eval * 50) / 100.0;
+            *eval = (*eval * 75) / 100.0;
     }
 }
 
