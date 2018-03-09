@@ -541,7 +541,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            &&  currentMove != movePicker.killer1
+            &&  currentMove != movePicker.killer2)
             break;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
