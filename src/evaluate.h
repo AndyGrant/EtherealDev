@@ -23,8 +23,8 @@
 
 #define SCALE_FACTOR        (100)
 #define SCALE_OCB_Q_OR_N    (105)
-#define SCALE_OCB_BRVBR     ( 95)
-#define SCALE_OCB_BVB       ( 85)
+#define SCALE_OCB_BRVBR     ( 90)
+#define SCALE_OCB_BVB       ( 70)
 #define SCALE_OCB_ROOK_ADV  (110)
 
 typedef struct EvalTrace {
