@@ -381,7 +381,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 5A. Check to see if this entry allows us to exit this
         // node early. We choose not to do this in the PV line, not because
         // we can't, but because don't want truncated PV lines
-        if (!PvNode && ttEntry.depth >= depth){
+        if (   (depth == 0 || !PvNode)
+            &&  ttEntry.depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
             ttValue = valueFromTT(ttEntry.value, height);
