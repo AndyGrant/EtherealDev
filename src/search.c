@@ -298,7 +298,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
+    int quiets = 0, played = 0, pondered = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
@@ -533,6 +533,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        pondered++;
+        
         // If this move is quiet we will save it to a list of attemped quiets
         if ((isQuiet = !moveIsTactical(board, currentMove)))
             quietsTried[quiets++] = currentMove;
@@ -588,7 +590,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet){
             
             // Baseline R based on number of moves played and current depth
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
+            R = 2 + (pondered - 4) / 8 + (depth - 6) / 4;
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
