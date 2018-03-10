@@ -236,26 +236,32 @@ int evaluateDraws(Board* board){
     uint64_t kings   = board->pieces[KING];
     
     // Unlikely to have a draw if we have pawns, rooks, or queens left
-    if (pawns | rooks | queens)
+    if (pawns | queens)
         return 0;
     
     // Check for King Vs. King
     if (kings == (white | black)) return 1;
     
     if ((white & kings) == white){
+        
         // Check for King Vs King and Knight/Bishop
-        if (popcount(black & (knights | bishops)) <= 1) return 1;
+        if (!rooks && popcount(black & (knights | bishops)) <= 1) return 1;
         
         // Check for King Vs King and two Knights
-        if (popcount(black & knights) == 2 && (black & bishops) == 0ull) return 1;
+        if (!rooks && popcount(black & knights) == 2 && (black & bishops) == 0ull) return 1;
+        
+        if (!knights && !bishops && exactlyOne(rooks & white) && exactlyOne(rooks & black)) return 1;
     }
     
     if ((black & kings) == black){
+        
         // Check for King Vs King and Knight/Bishop
-        if (popcount(white & (knights | bishops)) <= 1) return 1;
+        if (!rooks && popcount(white & (knights | bishops)) <= 1) return 1;
         
         // Check for King Vs King and two Knights
-        if (popcount(white & knights) == 2 && (white & bishops) == 0ull) return 1;
+        if (!rooks && popcount(white & knights) == 2 && (white & bishops) == 0ull) return 1;
+        
+        if (!knights && !bishops && exactlyOne(rooks & white) && exactlyOne(rooks & black)) return 1;
     }
     
     return 0;

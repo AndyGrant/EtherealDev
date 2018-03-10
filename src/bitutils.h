@@ -28,6 +28,7 @@ int getlsb(uint64_t bb);
 int getmsb(uint64_t bb);
 int poplsb(uint64_t* bb);
 int moreThanOne(uint64_t bb);
+int exactlyOne(uint64_t bb);
 
 int BitCounts[0x10000];
 
