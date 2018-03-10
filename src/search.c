@@ -378,7 +378,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
 
-        if (   (depth == 0 || !PvNode || ttEntry.node == PVNODE)
+        if (   !RootNode
+            && (depth == 0 || !PvNode || ttEntry.node == PVNODE)
             &&  ttEntry.depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
