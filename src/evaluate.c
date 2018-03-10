@@ -221,7 +221,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
     // Scale based on remaining material
-    eval = (int)(eval * evaluateScaleFactor(board) / MAX_SCALE_FACTOR);
+    eval = (int)(eval * evaluateScaleFactor(board) / SCALE_FACTOR);
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -717,10 +717,14 @@ int evaluateScaleFactor(Board* board){
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
     
-    if (  !(queens | knights)
-        &&  exactlyOne(white & bishops)
+    // Check for an opposite coloured bishop imbalance
+    if (    exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
         &&  exactlyOne(bishops & WHITE_SQUARES)){
+            
+            // Opposite coloured favours the strong side
+            if (queens | knights)
+                return 105;
             
 			if (moreThanOne(white & rooks) && moreThanOne(black & rooks))
                 return 95;
@@ -732,7 +736,7 @@ int evaluateScaleFactor(Board* board){
                 return 75;
 		}
         
-    return MAX_SCALE_FACTOR;
+    return SCALE_FACTOR;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){

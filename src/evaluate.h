@@ -21,7 +21,7 @@
 
 #include "types.h"
 
-#define MAX_SCALE_FACTOR (100)
+#define SCALE_FACTOR (100)
 
 typedef struct EvalTrace {
     
