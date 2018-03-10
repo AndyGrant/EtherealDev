@@ -221,7 +221,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
     // Scale based on remaining material
-    eval = eval * evaluateScaleFactor(board) / MAX_SCALE_FACTOR;
+    eval = (int)(eval * evaluateScaleFactor(board) / MAX_SCALE_FACTOR);
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
