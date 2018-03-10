@@ -300,6 +300,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
+    int ttHit = 0;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -373,7 +374,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 5. Probe the Transposition Table for an entry
-    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+    if ((ttHit = getTranspositionEntry(&Table, board->hash, &ttEntry))){
         
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
@@ -406,7 +407,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
         
         // We do not cap reductions, so here we will make
-        // sure that depth is within the accepktable bounds
+        // sure that depth is within the acceptable bounds
         depth = 0; 
     }
     
@@ -417,7 +418,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
     if (!PvNode){
+        
         eval = evaluateBoard(board, &ei, &thread->pktable);
+        
+        if (ttHit)
+            switch (ttEntry.type){
+                case  PVNODE: eval =           ttEntry.value ; break;
+                case CUTNODE: eval = MAX(eval, ttEntry.value); break;
+                case ALLNODE: eval = MIN(eval, ttEntry.value); break;
+            }
+        
         futilityMargin = eval + FutilityMargin * depth;
     }
     
