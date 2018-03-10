@@ -220,6 +220,10 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Compute the interpolated evaluation
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
+    // Scale down the eval as we approach the fifty move rule
+    if (board->fiftyMoveRule >= 50)
+        eval = (int)(eval * (50 + board->fiftyMoveRule) / 100);
+    
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
 }
