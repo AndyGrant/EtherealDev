@@ -54,7 +54,7 @@ void destroyTranspositionTable(TransTable* table){
 }
 
 void updateTranspositionTable(TransTable* table){
-    table->generation = (table->generation + 1) % 64;
+    table->generation = (table->generation + 1) % 32;
 }
 
 void clearTranspositionTable(TransTable* table){
@@ -71,6 +71,7 @@ void clearTranspositionTable(TransTable* table){
             entry->depth = 0u;
             entry->age = 0u;
             entry->type = 0u;
+            entry->node = 0u;
             entry->bestMove = 0u;
             entry->hash16 = 0u;
         }
@@ -111,11 +112,12 @@ int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry)
     return 0;
 }
 
-void storeTranspositionEntry(TransTable* table, int depth, int type, int value, int bestMove, uint64_t hash){
+void storeTranspositionEntry(TransTable* table, int depth, int type, int node, int value, int bestMove, uint64_t hash){
     
     // Validate Parameters
     assert(depth < MAX_DEPTH && depth >= 0);
     assert(type == PVNODE || type == CUTNODE || type == ALLNODE);
+    assert(node == PVNODE || node == !PVNODE);
     assert(value <= MATE && value >= -MATE);
     
     TransBucket* bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
@@ -159,6 +161,7 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
         toReplace->depth    = depth;
         toReplace->age      = table->generation;
         toReplace->type     = type;
+        toReplace->node     = node;
         toReplace->bestMove = bestMove;
         toReplace->hash16   = hash16;
 }

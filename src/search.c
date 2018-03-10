@@ -377,13 +377,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
-        
-        // Step 5A. Check to see if this entry allows us to exit this
-        // node early. We choose not to do this in the PV line, not because
-        // we can't, but because don't want truncated PV lines. Except in
-        // the case where we would otherwise fall into a qsearch. A table
-        // entry is going to provide a better return value than qsearch
-        if (   (depth == 0 || !PvNode)
+
+        if (   (depth == 0 || !PvNode || ttEntry.node == PVNODE)
             &&  ttEntry.depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
@@ -682,7 +677,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // must also convert the search value to a tt value, which handles mates
     storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
                             ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
-                            valueToTT(best, height), bestMove, board->hash);
+                            PvNode, valueToTT(best, height), bestMove, board->hash);
     return best;
 }
 

@@ -26,7 +26,7 @@
 typedef struct TransEntry {
     int16_t value;
     uint8_t depth;
-    uint8_t age: 6, type: 2;
+    uint8_t age: 5, type: 2, node: 1;
     uint16_t bestMove, hash16;
 } TransEntry;
 
@@ -58,7 +58,7 @@ void clearTranspositionTable(TransTable* table);
 int estimateHashfull(TransTable* table);
 
 int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry);
-void storeTranspositionEntry(TransTable* table, int depth, int type, int value, int bestMove, uint64_t hash);
+void storeTranspositionEntry(TransTable* table, int depth, int type, int node, int value, int bestMove, uint64_t hash);
 
 PawnKingEntry * getPawnKingEntry(PawnKingTable* pktable, uint64_t pkhash);
 void storePawnKingEntry(PawnKingTable* pktable, uint64_t pkhash, uint64_t passed, int mg, int eg);
