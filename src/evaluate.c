@@ -220,6 +220,9 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Compute the interpolated evaluation
     eval  = (mg * (256 - phase) + eg * phase) / 256;
     
+    // Scale based on remaining material
+    eval = eval * evaluateScaleFactor(board) / MAX_SCALE_FACTOR;
+    
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
 }
@@ -702,6 +705,34 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
+}
+
+int evaluateScaleFactor(Board* board){
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+    
+    if (  !(queens | knights)
+        &&  exactlyOne(white & bishops)
+        &&  exactlyOne(black & bishops)
+        &&  exactlyOne(bishops & WHITE_SQUARES)){
+            
+			if (moreThanOne(white & rooks) && moreThanOne(black & rooks))
+                return 95;
+            
+			else if (exactlyOne(white & rooks) && exactlyOne(black & rooks))
+                return 85;
+            
+            else if (!rooks)
+                return 75;
+		}
+        
+    return MAX_SCALE_FACTOR;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
