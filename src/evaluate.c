@@ -721,20 +721,28 @@ int evaluateScaleFactor(Board* board){
     if (    exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
         &&  exactlyOne(bishops & WHITE_SQUARES)){
-            
-            // Opposite coloured favours the strong side
-            if (queens | knights)
-                return 105;
-            
-			if (moreThanOne(white & rooks) && moreThanOne(black & rooks))
-                return 95;
-            
-			else if (exactlyOne(white & rooks) && exactlyOne(black & rooks))
-                return 85;
-            
-            else if (!rooks)
-                return 75;
-		}
+
+        // Opposite coloured favours stronger side when
+        // there is material remaining on the board
+        if (queens | knights)
+            return SCALE_OCB_Q_OR_N;
+
+        // KBR vs KBR is drawish, scale down slightly
+        if (   exactlyOne(white & rooks) 
+            && exactlyOne(black & rooks))
+            return SCALE_OCB_BRVBR;
+
+        // Only pawns and the opposite bishops remain,
+        // therefore the position is very drawish.
+        if (!rooks)
+            return SCALE_OCB_BVB;
+
+        // Finally, if we do not have queens or knights, but
+        // we have a rook imbalance, the position is once again
+        // favourable for the stronger side in this position
+        if (popcount(white & rooks) != popcount(black & rooks))
+            return SCALE_OCB_ROOK_ADV;
+    }
         
     return SCALE_FACTOR;
 }
