@@ -725,15 +725,6 @@ int evaluateScaleFactor(Board* board){
             // Opposite coloured favours the strong side
             if (queens | knights)
                 return 105;
-            
-			if (moreThanOne(white & rooks) && moreThanOne(black & rooks))
-                return 95;
-            
-			else if (exactlyOne(white & rooks) && exactlyOne(black & rooks))
-                return 85;
-            
-            else if (!rooks)
-                return 75;
 		}
         
     return SCALE_FACTOR;
