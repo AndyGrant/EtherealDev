@@ -300,7 +300,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
-    int ttHit = 0;
+    int ttHit = 0, staticEval = -MATE;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -419,7 +419,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     inCheck = !!board->kingAttackers;
     if (!PvNode){
         
-        eval = evaluateBoard(board, &ei, &thread->pktable);
+        staticEval = eval = evaluateBoard(board, &ei, &thread->pktable);
         
         if (ttHit)
             switch (ttEntry.type){
@@ -428,7 +428,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 case ALLNODE: eval = MIN(eval, ttEntry.value); break;
             }
         
-        futilityMargin = eval + FutilityMargin * depth;
+        futilityMargin = staticEval + FutilityMargin * depth;
     }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
@@ -464,11 +464,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth >= NullMovePruningDepth
-        &&  eval >= beta
+        &&  staticEval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
-        R = 4 + depth / 6 + (eval - beta + 200) / 400;
+        R = 4 + depth / 6 + (staticEval - beta + 200) / 400;
             
         applyNullMove(board, undo);
         
@@ -486,7 +486,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth >= ProbCutDepth
-        &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
+        &&  staticEval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
             
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_HEIGHT - 1);
             
@@ -496,7 +496,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Even if we keep the capture piece and or the promotion piece
             // we will fail to exceed rBeta, then we will skip this move
-            if (eval + thisTacticalMoveValue(board, currentMove) < rBeta)
+            if (staticEval + thisTacticalMoveValue(board, currentMove) < rBeta)
                 continue;
             
             // Apply and validate move before searching
