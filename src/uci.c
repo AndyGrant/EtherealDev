@@ -246,7 +246,7 @@ void uciPosition(char* str, Board* board){
         while (*ptr == ' ') ptr++;
         
         // Reset move history whenever we reset the fifty move rule
-        if (board->fiftyMoveRule == 0) board->numMoves = 0;
+        if (board->fiftyMoveRule == 0) board->movesSinceRoot = 0;
     }
 }
 

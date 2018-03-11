@@ -64,16 +64,27 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
         
+        // Allocate time in the case of X/Y or X/Y + Z
         if (mtg >= 0){
             info.idealusage =  0.65 * time / (mtg +  5) + inc;
             info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
             info.maxusage   = 10.00 * time / (mtg + 10) + inc;
         }
         
+        // Allocate time in the case of X+Y or X
         else {
             info.idealusage =  0.45 * (time + 23 * inc) / 28;
             info.maxalloc   =  4.00 * (time + 23 * inc) / 27;
             info.maxusage   = 10.00 * (time + 23 * inc) / 25;
+        }
+        
+        // If we are near the start position we are likely to encounter
+        // many additional time allocations than normal, thus we will
+        // reduce the base amount of time for these first ten moves
+        if (board->fullMoveCount < 10){
+            info.idealusage *= 0.75;
+            info.maxalloc   *= 0.75;
+            info.maxusage   *= 0.75;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
@@ -353,16 +364,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 4. Check for three fold repetition. If the repetition occurs since
         // the root move of this search, we will exit early as if it was a draw.
         // Otherwise, we will look for an actual three fold repetition draw.
-        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+        for (repetitions = 0, i = board->movesSinceRoot - 2; i >= 0; i -= 2){
             
             // We can't have repeated positions before the most recent
             // move which triggered a reset of the fifty move rule counter
-            if (i < board->numMoves - board->fiftyMoveRule) break;
+            if (i < board->movesSinceRoot - board->fiftyMoveRule) break;
             
             if (board->history[i] == board->hash){
                 
                 // Repetition occured after the root
-                if (i > board->numMoves - height)
+                if (i > board->movesSinceRoot - height)
                     return 0;
                 
                 // An actual three fold repetition
@@ -459,7 +470,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  board->history[board->movesSinceRoot-1] != NULL_MOVE){
             
         R = 4 + depth / 6 + (eval - beta + 200) / 400;
             

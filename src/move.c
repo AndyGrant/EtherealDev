@@ -52,7 +52,8 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     undo->endgame = board->endgame;
     
     // Update the hash history and the move count
-    board->history[board->numMoves++] = board->hash;
+    board->history[board->movesSinceRoot++] = board->hash;
+    board->fullMoveCount += board->turn == BLACK;
     
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
@@ -369,7 +370,8 @@ void applyNullMove(Board* board, Undo* undo){
     
     // Swap the turn and update the history
     board->turn = !board->turn;
-    board->history[board->numMoves++] = NULL_MOVE;
+    board->history[board->movesSinceRoot++] = NULL_MOVE;
+    board->fullMoveCount += board->turn == BLACK;
     
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
@@ -386,7 +388,8 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
     int to, from, rTo, rFrom, fromType, toType, promotype, ep;
     uint64_t shiftFrom, shiftTo, rShiftFrom, rShiftTo, shiftEnpass;
     
-    board->numMoves--;
+    board->movesSinceRoot--;
+    board->fullMoveCount -= board->turn == WHITE;
     board->hash = undo->hash;
     board->pkhash = undo->pkhash;
     board->kingAttackers = undo->kingAttackers;
@@ -474,11 +477,12 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
 }
 
 void revertNullMove(Board* board, Undo* undo){
+    board->movesSinceRoot--;
+    board->fullMoveCount -= board->turn == WHITE;
     board->hash = undo->hash;
     board->kingAttackers = undo->kingAttackers;
     board->turn = !board->turn;
     board->epSquare = undo->epSquare;
-    board->numMoves--;
 }
 
 void printMove(uint16_t move){

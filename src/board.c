@@ -16,10 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <assert.h>
-#include <string.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "bitboards.h"
 #include "bitutils.h"
@@ -88,7 +89,7 @@ char Benchmarks[NUM_BENCHMARKS][256] = {
 void initializeBoard(Board* board, char* fen){
     
     int i, j, sq;
-    char rank, file;
+    char* ptr, str[256], rank, file;
     uint64_t enemyPawns;
     
     // Initialze board->squares from FEN notation;
@@ -153,23 +154,17 @@ void initializeBoard(Board* board, char* fen){
     }
     
     i++; // Skip over space between ensquare and halfmove count
-        
-    // Determine number of half moves into the fifty move rule
-    if (fen[++i] != '-'){
-        
-        // Two Digit Number
-        if (fen[i+1] != ' '){ 
-            board->fiftyMoveRule = (10 * (fen[i] - '0')) + fen[i+1] - '0';
-            i++;
-        }
-        
-        // One Digit Number
-        else
-            board->fiftyMoveRule = fen[i] - '0';
-    }
+
+    strcpy(str, &fen[++i]);
+    ptr = strtok(str, " ");
     
-    else
-        board->fiftyMoveRule = 0;
+    // Determine number of half moves into the fifty move rule
+    ptr = strtok(NULL, " ");
+    board->fiftyMoveRule = ptr == NULL ? 0 : atoi(ptr);
+    
+    // Determine number of full moves made this game
+    ptr = strtok(NULL, " ");
+    board->fullMoveCount = ptr == NULL ? 0 : atoi(ptr);
     
     // Zero out each of the used BitBoards
     board->colours[WHITE] = 0ull;
@@ -220,8 +215,9 @@ void initializeBoard(Board* board, char* fen){
         board->endgame += PSQTEndgame[board->squares[i]][i];
     }
     
-    // Number of moves since this (root) position
-    board->numMoves = 0;
+    // Number of moves since this (root) position, useful
+    // for when we store hash history for checking for 3-fold
+    board->movesSinceRoot = 0;
     
     board->kingAttackers = attackersToKingSquare(board);
 }
