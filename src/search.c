@@ -82,9 +82,9 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
         // many additional time allocations than normal, thus we will
         // reduce the base amount of time for these first ten moves
         if (board->fullMoveCount < 10){
-            info.idealusage *= 0.75;
-            info.maxalloc   *= 0.75;
-            info.maxusage   *= 0.75;
+            info.idealusage *= 0.875;
+            info.maxalloc   *= 0.875;
+            info.maxusage   *= 0.875;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
