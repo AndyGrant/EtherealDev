@@ -23,10 +23,13 @@
 
 #include "types.h"
 
+#define TransEntryAge(e)  ((e).info >>  2)
+#define TransEntryType(e) ((e).info & 0x3)
+
 typedef struct TransEntry {
     int16_t value;
     uint8_t depth;
-    uint8_t age: 6, type: 2;
+    uint8_t info;
     uint16_t bestMove, hash16;
 } TransEntry;
 

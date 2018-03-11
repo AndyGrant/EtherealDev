@@ -389,7 +389,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             rAlpha = alpha; rBeta = beta;
             ttValue = valueFromTT(ttEntry.value, height);
             
-            switch (ttEntry.type){
+            switch (TransEntryType(ttEntry)){
                 case  PVNODE: return ttValue;
                 case CUTNODE: rAlpha = MAX(ttValue, alpha); break;
                 case ALLNODE:  rBeta = MIN(ttValue,  beta); break;

@@ -69,8 +69,7 @@ void clearTranspositionTable(TransTable* table){
             entry = &(table->buckets[i].entries[j]);
             entry->value = 0;
             entry->depth = 0u;
-            entry->age = 0u;
-            entry->type = 0u;
+            entry->info = 0u;
             entry->bestMove = 0u;
             entry->hash16 = 0u;
         }
@@ -82,10 +81,10 @@ int estimateHashfull(TransTable* table){
     int i, used = 0;
     
     for (i = 0; i < 1250 && i < (int64_t)table->numBuckets; i++)
-        used += (table->buckets[i].entries[0].type != 0)
-             +  (table->buckets[i].entries[1].type != 0)
-             +  (table->buckets[i].entries[2].type != 0)
-             +  (table->buckets[i].entries[3].type != 0);
+        used += (TransEntryType(table->buckets[i].entries[0]) != 0)
+             +  (TransEntryType(table->buckets[i].entries[1]) != 0)
+             +  (TransEntryType(table->buckets[i].entries[2]) != 0)
+             +  (TransEntryType(table->buckets[i].entries[3]) != 0);
              
     return 1000 * used / (i * 4);
 }
@@ -102,7 +101,7 @@ int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry)
     // Search for a matching entry. Update the generation if found.
     for (i = 0; i < BUCKET_SIZE; i++){
         if (bucket->entries[i].hash16 == hash16){
-            bucket->entries[i].age = table->generation;
+            bucket->entries[i].info = (table->generation << 2) | TransEntryType(bucket->entries[i]);
             memcpy(ttEntry, &bucket->entries[i], sizeof(TransEntry));
             return 1;
         }
@@ -120,47 +119,36 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     
     TransBucket* bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
     TransEntry* entries = bucket->entries;
-    TransEntry* oldOption = NULL;
-    TransEntry* lowDraftOption = NULL;
-    TransEntry* toReplace = NULL;
+    TransEntry* replace = NULL;
     
     int i; uint16_t hash16 = hash >> 48;
+    
+    replace = &entries[0];
     
     for (i = 0; i < BUCKET_SIZE; i++){
         
         // Found an unused entry
-        if (entries[i].type == 0){
-            toReplace = &(entries[i]);
-            goto Replace;
+        if (TransEntryType(entries[i]) == 0){
+            replace = &(entries[i]);
+            break;
         }
         
         // Found an entry with the same hash key
         if (entries[i].hash16 == hash16){
-            toReplace = &(entries[i]);
-            goto Replace;
+            replace = &(entries[i]);
+            break;
         }
         
-        // Search for the lowest draft of an old entry
-        if (entries[i].age != table->generation)
-            if (oldOption == NULL || oldOption->depth >= entries[i].depth)
-                oldOption = &(entries[i]);
-        
-        // Search for the lowest draft if no old entry has been found yet
-        if (oldOption == NULL)
-            if (lowDraftOption == NULL || lowDraftOption->depth >= entries[i].depth)
-                lowDraftOption = &(entries[i]);
+        if (   replace->depth   - (64 + table->generation - TransEntryAge(  *replace)) * 2
+            >= entries[i].depth - (64 + table->generation - TransEntryAge(entries[i])) * 2)
+            replace = &entries[i];
     }
     
-    // If no old option, use the lowest draft
-    toReplace = oldOption != NULL ? oldOption : lowDraftOption;
-    
-    Replace:
-        toReplace->value    = value;
-        toReplace->depth    = depth;
-        toReplace->age      = table->generation;
-        toReplace->type     = type;
-        toReplace->bestMove = bestMove;
-        toReplace->hash16   = hash16;
+    replace->value    = value;
+    replace->depth    = depth;
+    replace->info     = (table->generation << 2) | type;
+    replace->bestMove = bestMove;
+    replace->hash16   = hash16;
 }
 
 PawnKingEntry * getPawnKingEntry(PawnKingTable* pktable, uint64_t pkhash){
