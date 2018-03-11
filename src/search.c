@@ -181,11 +181,11 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
+                info->idealusage *= MAX(info->pvStability, 1.20);
             
             // Decrease our time if the pv has stayed the same between iterations
             if (info->bestmoves[depth-1] == thread->pv.line[0])
-                info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
+                info->idealusage *= MAX(0.97, MIN(info->pvStability, 1.00));
             
             // Cap our ideal usage at the max allocation of time
             info->idealusage = MIN(info->idealusage, info->maxalloc);
@@ -201,7 +201,7 @@ void* iterativeDeepening(void* vthread){
             // holding stable, we increase the pv stability. This way, if the best move changes
             // after holding for many iterations, more time will be allocated for the search, and
             // less time if the best move is in a constant flucation.
-            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
+            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.50 : 1.05;
         }
         
         // Check for termination by any of the possible limits
