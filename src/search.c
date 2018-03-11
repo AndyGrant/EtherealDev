@@ -173,7 +173,7 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
-                info->idealusage *= MAX(info->scoreStability, 1.05);
+                info->idealusage *= MAX(info->scoreStability, 1.03);
             
             // Decrease our time if the score suddently jumped by eight centipawns
             if (info->values[depth-1] < value - 8)
@@ -181,7 +181,7 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
+                info->idealusage *= MAX(info->pvStability, 1.10);
             
             // Decrease our time if the pv has stayed the same between iterations
             if (info->bestmoves[depth-1] == thread->pv.line[0])
