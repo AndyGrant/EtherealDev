@@ -419,10 +419,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->pktable);
-        futilityMargin = eval + FutilityMargin * depth;
-    }
+    eval = evaluateBoard(board, &ei, &thread->pktable);
+    futilityMargin = eval + FutilityMargin * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -558,6 +556,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   played >= 1
             &&   captureIsWeak(board, &ei, currentMove, depth))
             continue;
+            
+        int foobar = captureIsWeak(board, &ei, currentMove, WeakCaptureTwoAttackersDepth);
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -614,7 +614,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1;
+        }
+        
+        else if (    played > 4
+                 &&  depth >= 3
+                 && !isQuiet 
+                 &&  foobar)
+            R = 2;
+            
+        else
+            R = 1;
+                 
+        
+        
         
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
