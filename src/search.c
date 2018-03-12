@@ -300,6 +300,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
+    int weakLMR;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -558,6 +559,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   played >= 1
             &&   captureIsWeak(board, &ei, currentMove, depth))
             continue;
+            
+        weakLMR =   !PvNode
+                 && !isQuiet
+                 &&  played >= 1
+                 &&  captureIsWeak(board, &ei, currentMove, depth - 7);
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -614,7 +620,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1;
+        } else R = weakLMR ? 2 : 1;
         
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
@@ -811,13 +817,13 @@ int valueToTT(int value, int height){
 
 int thisTacticalMoveValue(Board* board, uint16_t move){
     
-    int value = PieceValues[PieceType(board->squares[MoveTo(move)])][EG];
+    int value = PieceValues[PieceType(board->squares[MoveTo(move)])][MG];
     
     if (MoveType(move) == PROMOTION_MOVE)
-        value += PieceValues[MovePromoPiece(move)][EG] - PieceValues[PAWN][EG];
+        value += PieceValues[MovePromoPiece(move)][MG] - PieceValues[PAWN][MG];
     
     if (MoveType(move) == ENPASS_MOVE)
-        value += PieceValues[PAWN][EG];
+        value += PieceValues[PAWN][MG];
     
     return value;
 }
@@ -828,29 +834,32 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei){
     
     uint64_t targets = ei->attacked[board->turn];
     
-    if (targets & board->pieces[QUEEN]) value += PieceValues[QUEEN][EG];
+    if (targets & board->pieces[QUEEN]) value += PieceValues[QUEEN][MG];
     
-    else if (targets & board->pieces[ROOK]) value += PieceValues[ROOK][EG];
+    else if (targets & board->pieces[ROOK]) value += PieceValues[ROOK][MG];
     
     else if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
         value += MAX(
-            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][EG],
-            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][EG]
+            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][MG],
+            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][MG]
         );
         
     else 
-        value += PieceValues[PAWN][EG];
+        value += PieceValues[PAWN][MG];
         
         
     if (   board->pieces[PAWN] 
         &  board->colours[board->turn]
         & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+        value += PieceValues[QUEEN][MG] - PieceValues[PAWN][MG];
             
     return value;
 }
 
 int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
+    
+    // We fudge the scores in order to not call NxB or BxN bad captures
+    int MinorBuffer = abs(PieceValues[KNIGHT][MG] - PieceValues[BISHOP][MG]);
     
     // If we lack the sufficient depth, the position was drawn and thus
     // no attackers were computed, or the capture we are looking at is
@@ -861,10 +870,10 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
         return 0;
         
     // Determine how valuable our attacking piece is
-    int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][EG];
+    int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][MG];
         
     // This capture is not weak if we are attacking an equal or greater valued piece, 
-    if (thisTacticalMoveValue(board, move) >= attackerValue)
+    if (thisTacticalMoveValue(board, move) + MinorBuffer >= attackerValue)
         return 0;
     
     // Thus, the capture is weak if there are sufficient attackers for a given depth
