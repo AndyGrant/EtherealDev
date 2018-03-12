@@ -559,6 +559,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   captureIsWeak(board, &ei, currentMove, depth))
             continue;
         
+        int tried =   !PvNode 
+                   && !isQuiet
+                   &&  played >= 1
+                   &&  captureIsWeak(board, &ei, currentMove, depth - 5);
+        
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
         if (!isNotInCheck(board, !board->turn)){
@@ -614,7 +619,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1;
+        } else R = tried ? 2 : 1;
         
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
