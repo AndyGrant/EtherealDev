@@ -196,6 +196,7 @@ void runTexelTuning(Thread* thread){
 void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     
     int i, j, k;
+    Undo undo[1];
     EvalInfo ei;
     Limits limits;
     int coeffs[NT];
@@ -245,9 +246,12 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 4, 0);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
-        // Get our evaluation terms from the starting position
+        // Now collect an evaluation from a quiet position
+        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        for (j = 0; j < thread->pv.length; j++)
+            applyMove(&thread->board, thread->pv.line[j], undo);
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, &ei, NULL);
+        evaluateBoard(&thread->board, &ei, NULL);
                           
         // When updating gradients, we use the coefficients for each
         // term, as well as the phase of the position it came from
