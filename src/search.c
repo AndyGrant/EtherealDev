@@ -561,9 +561,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
             
         weakLMR =   !PvNode
-                 && !isQuiet
-                 &&  played >= 1
-                 &&  captureIsWeak(board, &ei, currentMove, depth - 7);
+                 &&  isQuiet
+                 &&  played + 1 >= 4
+                 &&  depth >= 3
+                 &&  captureIsWeak(board, &ei, currentMove, WeakCaptureTwoAttackersDepth);
         
         // Apply and validate move before searching
         applyMove(board, currentMove, undo);
@@ -616,11 +617,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // expect an adjustment on the bounds of [+1, -6], with 6 being very rare
             R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
             
+            R += weakLMR;
+            
             // Do not allow the reduction to take us directly into a quiescence search
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = weakLMR ? 2 : 1;
+        } else R = 1;
         
         
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
