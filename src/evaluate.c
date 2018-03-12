@@ -69,12 +69,12 @@ const int PawnBackwards[2][PHASE_NB] = { {   3,  -4}, { -15, -10} };
 
 const int PawnConnected32[32][PHASE_NB] = {
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
-    {   0, -15}, {   6,   1}, {   3,  -3}, {   4,  17},
-    {   7,   0}, {  20,   0}, {  14,   7}, {  15,  23},
-    {   7,   0}, {  18,   4}, {  17,  10}, {  18,  17},
-    {   6,  15}, {  17,  17}, {  18,  23}, {  39,  25},
-    {  28,  53}, {  34,  59}, { 101,  59}, {  70,  76},
-    { 231,  40}, { 168,  26}, { 178,  37}, { 181,  96},
+    {   0,  -3}, {   2,   0}, {   0,   0}, {   0,   4},
+    {   1,   0}, {   9,   2}, {   7,   3}, {  11,   7},
+    {   2,   0}, {   5,   2}, {   9,   2}, {  10,   6},
+    {   4,   4}, {   9,   9}, {  10,   8}, {  19,   8},
+    {  19,  24}, {  24,  31}, {  31,  28}, {  39,  32},
+    {  62,  29}, {  74,  56}, {  98,  42}, { 138,  45},
     {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
@@ -151,11 +151,36 @@ const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {   7, -25}, {  10, -12}, { -26,   4}, { -39,   0}, {   1, -25}, { -88, -25}, { -46,  17}}},
 };
 
-const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
-  {{{   0,   0}, { -37, -31}, { -26,   7}, { -14,  -3}, {  28,   0}, {  78,  -3}, { 168,  31}, {   0,   0}},
-   {{   0,   0}, {  -3,  -1}, { -15,  21}, { -20,  32}, {   6,  40}, {  73,  54}, { 192, 123}, {   0,   0}}},
-  {{{   0,   0}, {  -7,  10}, { -14,   3}, { -14,  25}, {  26,  29}, {  96,  60}, { 240, 143}, {   0,   0}},
-   {{   0,   0}, {  -3,   7}, { -12,  15}, { -25,  48}, { -20, 100}, {  25, 189}, { 117, 350}, {   0,   0}}},
+const int PassedPawn32[32][PHASE_NB] = {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {  -3,   0}, {   0,   4}, {   0,   0}, {  10,   5},
+    {   0,   2}, {  -1,   3}, {  -6,   2}, {   0,   1},
+    {   8,   8}, {   0,   9}, {  -5,   3}, {  -1,   2},
+    {  12,  18}, {  13,  16}, {   4,  10}, {   7,   7},
+    {  26,  33}, {  28,  32}, {  17,  24}, {  22,  22},
+    {  53,  51}, {  43,  46}, {  46,  44}, {  52,  41},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+};
+
+const int PassedPawnConnected32[32][PHASE_NB] = {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   1,  -2}, {   1,   0}, {   4,   0}, {  18,   4},
+    {   8,   0}, {  -2,  -3}, {   3,   3}, {  13,   4},
+    {  12,   6}, {   1,   7}, {   6,   7}, {  17,  10},
+    {  29,  21}, {  20,  21}, {  18,  17}, {  22,  17},
+    {  27,  46}, {  36,  42}, {  43,  35}, {  32,  31},
+    {  62,  29}, {  74,  56}, {  98,  43}, { 139,  45},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+};
+
+const int PassedPawnCanAdvance[2][RANK_NB][PHASE_NB] = {
+   {{   0,   0}, {  -2,   0}, {   0,   4}, {  -2,   4}, {  -1,   2}, {  -2,   0}, {   7,   7}, {   0,   0}},
+   {{   0,   0}, {   0,   1}, {  -1,   1}, {   1,   7}, {  12,  16}, {  34,  38}, {  75,  66}, {   0,   0}},
+};
+
+const int PassedPawnSafeAdvance[2][RANK_NB][PHASE_NB] = {
+   {{   0,   0}, {  -2,   2}, {  -4,   2}, {  -3,   3}, {   4,   4}, {  10,   8}, {  30,  25}, {   0,   0}},
+   {{   0,   0}, {   0,   0}, {   0,   2}, {   5,   8}, {  15,  20}, {  44,  44}, {  89,  67}, {   0,   0}},
 };
 
 const int KingSafety[100] = { // Taken from CPW / Stockfish
@@ -672,11 +697,12 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
     int sq, rank, canAdvance, safeAdvance;
-    uint64_t tempPawns, destination, notEmpty;
+    uint64_t myPawns, tempPawns, destination, notEmpty;
     
     // Fetch Passed Pawns from the Pawn King Entry if we have one
     if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
     
+    myPawns   = board->colours[colour] & board->pieces[PAWN];
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
     
@@ -692,15 +718,29 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Determine where the pawn would advance to
         destination = (colour == BLACK) ? ((1ull << sq) >> 8): ((1ull << sq) << 8);
             
+        // Score the pawn passed on Rank and File (file is mirrored)
+        ei->midgame[colour] += PassedPawn32[relativeSquare32(sq, colour)][MG];
+        ei->endgame[colour] += PassedPawn32[relativeSquare32(sq, colour)][EG];
+        if (TRACE) T.passedPawn[colour][sq]++;
+        
+        // Give a bonus to the pawn if it is a passed pawn
+        if (PawnConnectedMasks[colour][sq] & myPawns){
+            ei->midgame[colour] += PassedPawnConnected32[relativeSquare32(sq, colour)][MG];
+            ei->endgame[colour] += PassedPawnConnected32[relativeSquare32(sq, colour)][EG];    
+            if (TRACE) T.passedPawnConnected[colour][sq]++;
+        }
+        
         // Destination does not have any pieces on it
         canAdvance = !(destination & notEmpty);
+        ei->midgame[colour] += PassedPawnCanAdvance[canAdvance][rank][MG];
+        ei->endgame[colour] += PassedPawnCanAdvance[canAdvance][rank][EG];
+        if (TRACE) T.passedPawnCanAdvance[colour][canAdvance][rank]++;
         
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
-        
-        ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
-        ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
-        if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        ei->midgame[colour] += PassedPawnSafeAdvance[safeAdvance][rank][MG];
+        ei->endgame[colour] += PassedPawnSafeAdvance[safeAdvance][rank][EG];
+        if (TRACE) T.passedPawnSafeAdvance[colour][safeAdvance][rank]++;
     }
 }
 

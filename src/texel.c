@@ -96,7 +96,10 @@ extern const int KingDefenders[12][PHASE_NB];
 extern const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB];
 
 // To determine the starting values for the Passed Pawn terms
-extern const int PassedPawn[2][2][RANK_NB][PHASE_NB];
+extern const int PassedPawn32[32][PHASE_NB];
+extern const int PassedPawnConnected32[32][PHASE_NB];
+extern const int PassedPawnCanAdvance[2][RANK_NB][PHASE_NB];
+extern const int PassedPawnSafeAdvance[2][RANK_NB][PHASE_NB];
 
 
 void runTexelTuning(Thread* thread){
@@ -453,12 +456,33 @@ void initializeCoefficients(int coeffs[NT]){
                     coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
     
     // Initialize coefficients for the Passed Pawn evaluation terms
+                
+    if (TunePassedPawn){
+        for (a = 0; a < 64; a++){
+            coeffs[i + relativeSquare32(a, WHITE)] += T.passedPawn[WHITE][a];
+            coeffs[i + relativeSquare32(a, BLACK)] -= T.passedPawn[BLACK][a];
+        } i += 32;
+    }
     
-    if (TunePassedPawn)
+    if (TunePassedPawnConnected){
+        for (a = 0; a < 64; a++){
+            coeffs[i + relativeSquare32(a, WHITE)] += T.passedPawnConnected[WHITE][a];
+            coeffs[i + relativeSquare32(a, BLACK)] -= T.passedPawnConnected[BLACK][a];
+        } i += 32;
+    }
+    
+    if (TunePassedPawnCanAvance)
         for (a = 0; a < 2; a++)
-            for (b = 0; b < 2; b++)
-                for (c = 0; c < RANK_NB; c++)
-                    coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+            for (b = 0; b < 8; b++)
+                coeffs[i++] = T.passedPawnCanAdvance[WHITE][a][b] - T.passedPawnCanAdvance[BLACK][a][b];
+        
+    if (TunePassedPawnSafeAdvance)
+        for (a = 0; a < 2; a++)
+            for (b = 0; b < 8; b++)
+                coeffs[i++] = T.passedPawnSafeAdvance[WHITE][a][b] - T.passedPawnSafeAdvance[BLACK][a][b];
+            
+    if (i != NT)            
+        printf("\nFATAL ERROR NT=%d i=%d\n", NT, i);
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -685,15 +709,39 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     // Grab the current parameters for the Passed Pawn evaluation terms
     
     if (TunePassedPawn){
+        for (a = 0; a < 32; a++, i++){
+            cparams[i][MG] = PassedPawn32[a][MG];
+            cparams[i][EG] = PassedPawn32[a][EG];
+        }
+    }
+    
+    if (TunePassedPawnConnected){
+        for (a = 0; a < 32; a++, i++){
+            cparams[i][MG] = PassedPawnConnected32[a][MG];
+            cparams[i][EG] = PassedPawnConnected32[a][EG];
+        }
+    }
+    
+    if (TunePassedPawnCanAvance){
         for (a = 0; a < 2; a++){
-            for (b = 0; b < 2; b++){
-                for (c = 0; c < RANK_NB; c++, i++){
-                    cparams[i][MG] = PassedPawn[a][b][c][MG];
-                    cparams[i][EG] = PassedPawn[a][b][c][EG];
-                }
+            for (b = 0; b < 8; b++, i++){
+                cparams[i][MG] = PassedPawnCanAdvance[a][b][MG];
+                cparams[i][EG] = PassedPawnCanAdvance[a][b][EG];
             }
         }
     }
+    
+    if (TunePassedPawnSafeAdvance){
+        for (a = 0; a < 2; a++){
+            for (b = 0; b < 8; b++, i++){
+                cparams[i][MG] = PassedPawnSafeAdvance[a][b][MG];
+                cparams[i][EG] = PassedPawnSafeAdvance[a][b][EG];
+            }
+        }
+    }
+    
+    if (i != NT)
+        printf("\nFATAL ERROR NT=%d i=%d\n", NT, i);
 }
 
 void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
@@ -736,10 +784,10 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     int pvalue = PawnValue[MG] + (TunePawnValue ? params[0][MG] : 0);
     
     // Combine the original params and the param deltas. Scale the params so
-    // that the mid game value of a pawn is always 100 centipawns
+    // that the mid game value of a pawn is always 95 centipawns
     for (x = 0; x < NT; x++){
-        tparams[x][MG] = (int)((100.0 / pvalue) * (params[x][MG] + cparams[x][MG]));
-        tparams[x][EG] = (int)((100.0 / pvalue) * (params[x][EG] + cparams[x][EG]));
+        tparams[x][MG] = (int)((95.0 / pvalue) * (params[x][MG] + cparams[x][MG]));
+        tparams[x][EG] = (int)((95.0 / pvalue) * (params[x][EG] + cparams[x][EG]));
     }
     
     // Print Piece Values
@@ -968,15 +1016,45 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     // Print Passed Pawn Values
     
     if (TunePassedPawn){
-        printf("\nconst int PassedPawn[2][2][RANK_NB][PHASE_NB] = {");
-        for (x = 0; x < 4; x++){
-            printf("\n  %s", x % 2 ? " {" : "{{");
-            for (y = 0; y < RANK_NB; y++, i++){
-                printf("{%4d,%4d}", tparams[i][MG], tparams[i][EG]);
-                printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
-            }
+        printf("\nconst int PassedPawn32[32][PHASE_NB] = {");
+        for (x = 0; x < 8; x++){
+            printf("\n   ");
+            for (y = 0; y < 4; y++, i++)
+                printf(" {%4d,%4d},", tparams[i][MG], tparams[i][EG]);
         } printf("\n};\n");
     }
+    
+    if (TunePassedPawnConnected){
+        printf("\nconst int PassedPawnConnected[32][PHASE_NB] = {");
+        for (x = 0; x < 8; x++){
+            printf("\n   ");
+            for (y = 0; y < 4; y++, i++)
+                printf(" {%4d,%4d},", tparams[i][MG], tparams[i][EG]);
+        } printf("\n};\n");
+    }
+    
+    if (TunePassedPawnCanAvance){
+        printf("\nconst int PassedPawnCanAdvance32[2][RANK_NB][PHASE_NB] = {");
+        for (x = 0; x < 2; x++){
+            printf("\n  {");
+            for (y = 0; y < 8; y++, i++)
+                printf(" {%4d,%4d},", tparams[i][MG], tparams[i][EG]);
+            printf("}");
+        } printf("\n};\n");
+    }
+    
+    if (TunePassedPawnSafeAdvance){
+        printf("\nconst int PassedPawnSafeAdvance[2][RANK_NB][PHASE_NB] = {");
+        for (x = 0; x < 2; x++){
+            printf("\n  {");
+            for (y = 0; y < 8; y++, i++)
+                printf(" {%4d,%4d},", tparams[i][MG], tparams[i][EG]);
+            printf("}");
+        } printf("\n};\n");
+    }
+    
+    if (i != NT)
+        printf("\nFATAL ERROR NT=%d i=%d\n", NT, i);    
 }
 
 double computeOptimalK(TexelEntry* tes){
