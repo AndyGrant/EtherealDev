@@ -73,7 +73,7 @@
 
 // Define the King Terms
 #define TuneKingDefenders        (0 * 12 )
-#define TuneKingShelter          (1 * 64 )
+#define TuneKingShelter          (0 * 64 )
 #define TuneKingStormDanger      (1 * 64 )
 
 // Define the Passed Pawn Terms
