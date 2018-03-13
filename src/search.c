@@ -117,7 +117,9 @@ void* iterativeDeepening(void* vthread){
    
     const int mainThread   = thread == &thread->threads[0];
     
-    int i, count, value, depth, abort;
+    int i, count, lastValue, value, depth, abort;
+    
+    uint16_t thisBest, lastBest;
     
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
@@ -171,20 +173,25 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 4){
             
+            // Save these for ease of usage
+            thisBest  = thread->pv.line[0];
+            lastBest  = info->bestmoves[depth-1];
+            lastValue = info->values[depth-1];
+            
             // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 8)
+            if (lastValue > value + 8)
                 info->idealusage *= MAX(info->scoreStability, 1.05);
             
             // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 8)
-                info->idealusage *= MAX(0.99, MIN(info->pvStability, 1.00));
+            if (lastValue < value - 8)
+                info->idealusage *= MAX(0.99, MIN(info->scoreStability, 1.00));
             
             // Increase our time if the pv has changed across the last two iterations
-            if (info->bestmoves[depth-1] != thread->pv.line[0])
+            if (thisBest != lastBest)
                 info->idealusage *= MAX(info->pvStability, 1.30);
             
             // Decrease our time if the pv has stayed the same between iterations
-            if (info->bestmoves[depth-1] == thread->pv.line[0])
+            if (thisBest == lastBest)
                 info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
             
             // Cap our ideal usage at the max allocation of time
@@ -195,13 +202,17 @@ void* iterativeDeepening(void* vthread){
             // meant to determine when we should be concered with score drops. If we just found
             // the this iteration to be +50 from the last, we would not be surprised to find that
             // gain fall to something smaller like +30
-            info->scoreStability *= 1.00 + (info->values[depth-1] - value) / 500.00;
+            info->scoreStability *= 1.00 + (lastValue - value) / 500.00;
             
             // Update the PV Stability depending on the best move changing. If the best move is
             // holding stable, we increase the pv stability. This way, if the best move changes
             // after holding for many iterations, more time will be allocated for the search, and
             // less time if the best move is in a constant flucation.
-            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
+            info->pvStability *= (lastBest != thisBest) ? 0.95 : 1.05;
+            
+            // As a final part of the PV Stability update, the PV Stability at 1.00 whenever
+            // a new best move comes out of a search. IE, we reset the stability counter.
+            if (lastBest != thisBest) info->pvStability = MIN(info->pvStability, 1.00);
         }
         
         // Check for termination by any of the possible limits
