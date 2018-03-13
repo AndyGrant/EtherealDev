@@ -119,7 +119,6 @@ void* iterativeDeepening(void* vthread){
     
     int i, count, value, depth, abort;
     
-    
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
         // Always acquire the lock before setting thread->depth. thread->depth
@@ -150,7 +149,6 @@ void* iterativeDeepening(void* vthread){
         abort = setjmp(thread->jbuffer);
         if (abort) return NULL;
         
-            
         // Perform the actual search for the current depth
         value = aspirationWindow(thread, depth);
         
@@ -165,6 +163,33 @@ void* iterativeDeepening(void* vthread){
         
         // Send information about this search to the interface
         uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
+        
+        // Check for termination by any of the possible limits
+        if (   (limits->limitedByDepth && depth >= limits->depthLimit)
+            || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
+            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->maxusage)
+            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage)){
+            
+            // Terminate all helper threads
+            for (i = 0; i < thread->nthreads; i++)
+                thread->threads[i].abort = 1;
+            return NULL;
+        }
+        
+        // Check to see if we expect to be able to complete the next depth
+        if (thread->limits->limitedBySelf){
+            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
+            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
+            double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+            
+            if (estiamtedEndtime > info->maxusage){
+                
+                // Terminate all helper threads
+                for (i = 0; i < thread->nthreads; i++)
+                    thread->threads[i].abort = 1;
+                return NULL;
+            }
+        }
         
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
@@ -203,33 +228,6 @@ void* iterativeDeepening(void* vthread){
             // less time if the best move is in a constant flucation.
             info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
         }
-        
-        // Check for termination by any of the possible limits
-        if (   (limits->limitedByDepth && depth >= limits->depthLimit)
-            || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->maxusage)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage)){
-            
-            // Terminate all helper threads
-            for (i = 0; i < thread->nthreads; i++)
-                thread->threads[i].abort = 1;
-            return NULL;
-        }
-        
-        // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
-            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
-            double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
-            
-            if (estiamtedEndtime > info->maxusage){
-                
-                // Terminate all helper threads
-                for (i = 0; i < thread->nthreads; i++)
-                    thread->threads[i].abort = 1;
-                return NULL;
-            }
-        }
     }
     
     return NULL;
@@ -242,6 +240,8 @@ int aspirationWindow(Thread* thread, int depth){
     int* const values = thread->info->values;
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
+    
+    const int mainThread = thread == &thread->threads[0];
     
     // Aspiration window only after we have completed the first four
     // depths, and so long as the last score is not near a mate score
@@ -276,8 +276,15 @@ int aspirationWindow(Thread* thread, int depth){
                 alpha = alpha - 2 * lower;
             
             // Search failed high
-            if (value >= beta)
+            if (value >= beta){
                 beta  = beta + 2 * upper;
+                
+                // Skip resolving fail high if we have exceeded our ideal time
+                if (    mainThread
+                    &&  thread->limits->limitedBySelf
+                    &&  getRealTime() - thread->info->starttime > thread->info->idealusage)
+                    return value;
+            }
             
             // Result was a near mate score, force a full search
             if (abs(value) > MATE / 2)
