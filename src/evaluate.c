@@ -476,6 +476,15 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.bishopOutpost[colour][defended]++;
         }
         
+        // Apply a bonus if the bishop has command of the squares in the center
+        // of the board which have a matching colour to the bishop
+        if (   ((attacks & CENTER_FOUR & WHITE_SQUARES) == (CENTER_FOUR & WHITE_SQUARES))
+            || ((attacks & CENTER_FOUR & BLACK_SQUARES) == (CENTER_FOUR & BLACK_SQUARES))){
+                
+            ei->midgame[colour] += 19;
+            ei->endgame[colour] +=  0;
+        }
+        
         // Apply a bonus (or penalty) based on the mobility of the bishop
         mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
         ei->midgame[colour] += BishopMobility[mobilityCount][MG];

@@ -47,6 +47,8 @@
 #define WHITE_SQUARES (0x55AA55AA55AA55AAull)
 #define BLACK_SQUARES (0xAA55AA55AA55AA55ull)
 
+#define CENTER_FOUR ((RANK_4 & RANK_5) & (FILE_D | FILE_E))
+
 extern const uint64_t Files[FILE_NB];
 extern const uint64_t Ranks[RANK_NB];
 
