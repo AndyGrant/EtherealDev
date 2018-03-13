@@ -50,6 +50,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time,
 
 void* iterativeDeepening(void* vthread);
 
+int easyMover(Thread* thread);
+
 int aspirationWindow(Thread* thread, int depth);
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);

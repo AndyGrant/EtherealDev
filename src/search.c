@@ -230,9 +230,61 @@ void* iterativeDeepening(void* vthread){
                 return NULL;
             }
         }
+        
+        if (limits->limitedBySelf && depth >= 10 && easyMover(thread)){
+            // Terminate all helper threads
+            for (i = 0; i < thread->nthreads; i++)
+                thread->threads[i].abort = 1;
+            return NULL;
+        }
     }
     
     return NULL;
+}
+
+int easyMover(Thread* thread){
+    
+    Board* const board = &thread->board;
+    SearchInfo* const info = thread->info;
+    
+    int i, value, ralpha = info->values[thread->depth] - 2 * PieceValues[PAWN][MG];
+    uint16_t currentMove, candidate = info->bestmoves[thread->depth];
+    
+    Undo undo[1];
+    PVariation lpv;
+    MovePicker movePicker;
+    
+    // Move is not easy if it has not held for at least 7 plies
+    for (i = thread->depth - 1; i >= MAX(1, thread->depth - 7); i--)
+        if (info->bestmoves[i] != candidate) return 0;
+    
+    // Generate every move for the position, we will skip the candidate later
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, 0, 0);
+    
+    while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+
+        // Skip over the candidate easy move
+        if (currentMove == candidate) continue;
+        
+        // Apply the move, and skip illegal ones
+        applyMove(board, currentMove, undo);
+        if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, currentMove, undo);
+            continue;
+        }
+        
+        // Search for a value greater tha ralpha
+        value = -search(thread, &lpv, -ralpha-1, -ralpha, thread->depth-1, 1);
+        
+        // Undo the move
+        revertMove(board, currentMove, undo);
+        
+        // Move failed high, and this our candidate move is not easy
+        if (value >= ralpha) return 0;
+    }
+    
+    // No move managed to beat ralpha, thus candidate is an easy move
+    return 1;
 }
 
 int aspirationWindow(Thread* thread, int depth){
