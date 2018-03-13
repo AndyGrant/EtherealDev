@@ -432,6 +432,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     uint64_t tempBishops, enemyPawns, attacks;
     
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
+    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
     // Apply a bonus for having a pair of bishops
@@ -474,6 +475,16 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += BishopOutpost[defended][MG];
             ei->endgame[colour] += BishopOutpost[defended][EG];
             if (TRACE) T.bishopOutpost[colour][defended]++;
+        }
+        
+        // Apply a penalty if the bishop is sitting in front of two
+        // of our pawns
+        if (    moreThanOne(pawnAttacks(sq, myPawns, !colour))
+            || (    pawnAttacks(sq, myPawns, !colour)
+                && ((1ull << sq) & (FILE_A | FILE_H)))){
+                    
+            ei->midgame[colour] += -23;
+            ei->endgame[colour] +=  -5;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the bishop
