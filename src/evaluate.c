@@ -481,8 +481,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (   ((attacks & CENTER_FOUR & WHITE_SQUARES) == (CENTER_FOUR & WHITE_SQUARES))
             || ((attacks & CENTER_FOUR & BLACK_SQUARES) == (CENTER_FOUR & BLACK_SQUARES))){
                 
-            ei->midgame[colour] += 19;
-            ei->endgame[colour] +=  0;
+            ei->midgame[colour] +=  7;
+            ei->endgame[colour] +=  3;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the bishop
