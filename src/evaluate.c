@@ -106,6 +106,8 @@ const int BishopMobility[14][PHASE_NB] = {
 
 const int RookFile[2][PHASE_NB] = { {  12,   2}, {  41,  -8} };
 
+const int RookStackedOnStrongFile[PHASE_NB] = {  17,   7};
+
 const int RookOnSeventh[PHASE_NB] = {   0,  23};
 
 const int RookMobility[15][PHASE_NB] = {
@@ -518,14 +520,24 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
-        // Rook is on a semi-open file if there are no
-        // pawns of the Rook's colour on the file. If
-        // there are no pawns at all, it is an open file
+        // Rook is on a semi-open file if there are no pawns of the Rook's
+        // colour on the file. If there are no pawns at all, it is an open file.
         if (!(myPawns & Files[File(sq)])){
             open = !(enemyPawns & Files[File(sq)]);
             ei->midgame[colour] += RookFile[open][MG];
             ei->endgame[colour] += RookFile[open][EG];
             if (TRACE) T.rookFile[colour][open]++;
+        }
+        
+        // Rooks gain a bonus being stacked on an open file, or stacked
+        // on a semiopen file which has a enemy pawn which is not defended
+        // by any other enemy pawns. 
+        if (    !(myPawns & Files[File(sq)])
+            &&   (attacks & tempRooks)
+            &&  !(enemyPawns & Files[File(sq)) & ei->pawnAttacks[!colour]){
+            
+            ei->midgame[colour] += RookStackedOnStrongFile[MG];
+            ei->endgame[colour] += RookStackedOnStrongFile[EG];
         }
         
         // Rook gains a bonus for being located on seventh rank relative to its
