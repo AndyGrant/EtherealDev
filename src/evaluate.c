@@ -116,6 +116,8 @@ const int RookMobility[15][PHASE_NB] = {
 };
 
 
+const int QueenOnSeventh[PHASE_NB] = {  10,  33};
+
 const int QueenChecked[PHASE_NB] = { -35, -32};
 
 const int QueenCheckedByPawn[PHASE_NB] = { -49, -45};
@@ -556,9 +558,10 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
 void evaluateQueens(EvalInfo* ei, Board* board, int colour){
     
     int sq, mobilityCount;
-    uint64_t tempQueens, attacks;
+    uint64_t attacks;
     
-    tempQueens = board->pieces[QUEEN] & board->colours[colour];
+    uint64_t tempQueens = board->pieces[QUEEN] & board->colours[ colour];
+    uint64_t enemyKings = board->pieces[KING ] & board->colours[!colour];
     
     // Evaluate each queen
     while (tempQueens){
@@ -575,6 +578,15 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
+        
+        // Queen gains a bonus for being located on seventh rank relative to its
+        // colour so long as the enemy king is on the last two ranks of the board
+        if (   Rank(sq) == (colour == BLACK ? 1 : 6)
+            && Rank(relativeSquare(getlsb(enemyKings), colour)) >= 6){
+            ei->midgame[colour] += QueenOnSeventh[MG];
+            ei->endgame[colour] += QueenOnSeventh[EG];
+          //if (TRACE) T.rookOnSeventh[colour]++;
+        }
             
         // Apply a penalty if the queen is under an attack threat
         if ((1ull << sq) & ei->attackedNoQueen[!colour]){
