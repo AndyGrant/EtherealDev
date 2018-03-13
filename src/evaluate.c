@@ -534,7 +534,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // by any other enemy pawns. 
         if (    !(myPawns & Files[File(sq)])
             &&   (attacks & tempRooks)
-            &&  !(enemyPawns & Files[File(sq)) & ei->pawnAttacks[!colour]){
+            &&  !(enemyPawns & Files[File(sq)] & ei->pawnAttacks[!colour])){
             
             ei->midgame[colour] += RookStackedOnStrongFile[MG];
             ei->endgame[colour] += RookStackedOnStrongFile[EG];
