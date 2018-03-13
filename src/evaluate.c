@@ -116,7 +116,7 @@ const int RookMobility[15][PHASE_NB] = {
 };
 
 
-const int QueenOnSeventh[PHASE_NB] = {  10,  33};
+const int QueenOnSeventh[PHASE_NB] = {   0,  13};
 
 const int QueenChecked[PHASE_NB] = { -35, -32};
 
