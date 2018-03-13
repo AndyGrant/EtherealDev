@@ -171,13 +171,13 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 4){
             
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 8)
-                info->idealusage *= MAX(info->scoreStability, 1.05);
+            // Increase our time if the score suddently dropped by twelve centipawns
+            if (info->values[depth-1] > value + 12)
+                info->idealusage *= MAX(info->scoreStability, 1.050);
             
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 8)
-                info->idealusage *= MAX(0.99, MIN(info->pvStability, 1.00));
+            // Decrease our time if the score suddently jumped by twelve centipawns
+            if (info->values[depth-1] < value - 12)
+                info->idealusage *= MIN(info->scoreStability, 0.950);
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
@@ -195,7 +195,7 @@ void* iterativeDeepening(void* vthread){
             // meant to determine when we should be concered with score drops. If we just found
             // the this iteration to be +50 from the last, we would not be surprised to find that
             // gain fall to something smaller like +30
-            info->scoreStability *= 1.00 + (info->values[depth-1] - value) / 500.00;
+            info->scoreStability *= 1.00 + MIN(1.00, (info->values[depth-1] - value) / 500.00);
             
             // Update the PV Stability depending on the best move changing. If the best move is
             // holding stable, we increase the pv stability. This way, if the best move changes
