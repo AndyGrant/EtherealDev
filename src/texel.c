@@ -97,7 +97,7 @@ extern const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB];
 
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB][PHASE_NB];
-
+extern const int PassedPawnKingDistance[RANK_NB][PHASE_NB];
 
 void runTexelTuning(Thread* thread){
     
@@ -243,7 +243,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         // Use the search value as the evaluation, to provide a better
         // understanding the potential of a position's eval terms. Make
         // sure the evaluation is from the perspective of WHITE
-        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 4, 0);
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 3, 0);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
         // Now collect an evaluation from a quiet position
@@ -465,6 +465,10 @@ void initializeCoefficients(int coeffs[NT]){
             for (b = 0; b < 2; b++)
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+                
+    if (TunePassedPawnKingDistance)
+        for (a = 0; a < RANK_NB; a++)
+            coeffs[i++] = T.passedPawnKingDistance[WHITE][a] - T.passedPawnKingDistance[BLACK][a];
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -698,6 +702,13 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
                     cparams[i][EG] = PassedPawn[a][b][c][EG];
                 }
             }
+        }
+    }
+    
+    if (TunePassedPawnKingDistance){
+        for (a = 0; a < RANK_NB; a++, i++){
+            cparams[i][MG] = PassedPawnKingDistance[a][MG];
+            cparams[i][EG] = PassedPawnKingDistance[a][EG];
         }
     }
 }
@@ -981,6 +992,15 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
                 printf("{%4d,%4d}", tparams[i][MG], tparams[i][EG]);
                 printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
             }
+        } printf("\n};\n");
+    }
+    
+    if (TunePassedPawnKingDistance){
+        printf("\nconst int PassedPawnKingDistance[RANK_NB][PHASE_NB] = {");
+        for (x = 0; x < 2; x++){
+            printf("\n   ");
+            for (y = 0; y < 4; y++, i++)
+                printf(" {%4d,%4d},", tparams[i][MG], tparams[i][EG]);
         } printf("\n};\n");
     }
 }

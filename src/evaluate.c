@@ -164,6 +164,11 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -5,   8}, { -12,  17}, { -21,  52}, { -14, 109}, {  28, 202}, { 119, 369}, {   0,   0}}},
 };
 
+const int PassedPawnKingDistance[RANK_NB][PHASE_NB] = {
+    {   0,   0}, {   7,  12}, {   5,   6}, {  -1,  -2},
+    {  -4,  -4}, {  -6,  -2}, {   2,   0}, {  -5,  -1},
+};
+
 const int KingSafety[100] = { // Taken from CPW / Stockfish
       0,   0,   1,   3,   4,   7,  10,  14,  18,  23, 
      28,  34,  40,  46,  54,  60,  68,  78,  87,  96, 
@@ -677,16 +682,16 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
-    int sq, rank, canAdvance, safeAdvance;
-    uint64_t tempPawns, destination, notEmpty;
+    int sq, rank, canAdvance, safeAdvance, distance;
+    uint64_t destination;
     
     // Fetch Passed Pawns from the Pawn King Entry if we have one
     if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
     
-    tempPawns = board->colours[colour] & ei->passedPawns;
-    notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
+    uint64_t tempPawns = board->colours[colour] & ei->passedPawns;
+    uint64_t myKings   = board->colours[colour] & board->pieces[KING];
+    uint64_t notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
     
-    uint64_t myKings = board->colours[colour] & board->pieces[KING];
     int kingsq = getlsb(myKings);
     
     // Evaluate each passed pawn
@@ -711,12 +716,12 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
         
-        int distance = MAX(abs(Rank(sq) - Rank(kingsq)), abs(File(sq) - File(kingsq)));
-        
-        static const int FooBar[8] = {0, 21, 13,  7,  3,  2,  1,  0};
-        
-        ei->midgame[colour] += FooBar[distance];
-        ei->endgame[colour] += FooBar[distance];
+        // Additional scoring the the passed pawn based on distance to the king.
+        // The closer we are to the King, the greater threat we are on the board
+        distance = MAX(abs(Rank(sq) - Rank(kingsq)), abs(File(sq) - File(kingsq)));
+        ei->midgame[colour] += PassedPawnKingDistance[distance][MG];
+        ei->endgame[colour] += PassedPawnKingDistance[distance][EG];
+        if (TRACE) T.passedPawnKingDistance[colour][distance]++;
     }
 }
 
