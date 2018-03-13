@@ -531,7 +531,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 13. Check Extension at non Root nodes that are PV or low depth
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
-    
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
@@ -595,6 +594,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            R -= !PvNode && eval >= beta && board->history[board->numMoves-2] == NULL_MOVE;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
