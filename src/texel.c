@@ -93,13 +93,16 @@ extern const int QueenMobility[28][PHASE_NB];
 
 // To determine the starting values for the King terms
 extern const int KingDefenders[12][PHASE_NB];
-extern const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB];
+extern const int KingShelter[2][FILE_NB/2][RANK_NB][PHASE_NB];
+extern const int KingStormDanger[2][FILE_NB/2][RANK_NB][PHASE_NB];
 
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB][PHASE_NB];
 
 
 void runTexelTuning(Thread* thread){
+    
+    omp_set_num_threads(1);
     
     TexelEntry* tes;
     int i, j, iteration = -1;
@@ -238,20 +241,6 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
                           - 2 * popcount(thread->board.pieces[ROOK  ])
                           - 1 * popcount(thread->board.pieces[KNIGHT])
                           - 1 * popcount(thread->board.pieces[BISHOP]);
-        
-        
-        // Use the search value as the evaluation, to provide a better
-        // understanding the potential of a position's eval terms. Make
-        // sure the evaluation is from the perspective of WHITE
-        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 4, 0);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
-        
-        // Now collect an evaluation from a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
-        T = EmptyTrace;
-        evaluateBoard(&thread->board, &ei, NULL);
                           
         // When updating gradients, we use the coefficients for each
         // term, as well as the phase of the position it came from
@@ -260,6 +249,19 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         
         // Finish determining the phase
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
+        
+        // Use the search value as the evaluation, to provide a better
+        // understanding the potential of a position's eval terms. Make
+        // sure the evaluation is from the perspective of WHITE
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 2, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+        
+        // Now collect an evaluation from a quiet position
+        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        for (j = 0; j < thread->pv.length; j++)
+            applyMove(&thread->board, thread->pv.line[j], undo);
+        T = EmptyTrace;
+        evaluateBoard(&thread->board, &ei, NULL);
         
         // Vectorize the evaluation coefficients into coeffs
         initializeCoefficients(coeffs);
@@ -454,9 +456,15 @@ void initializeCoefficients(int coeffs[NT]){
     
     if (TuneKingShelter)
         for (a = 0; a < 2; a++)
-            for (b = 0; b < FILE_NB; b++)
+            for (b = 0; b < FILE_NB / 2; b++)
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
+                
+    if (TuneKingStormDanger)
+        for (a = 0; a < 2; a++)
+            for (b = 0; b < FILE_NB / 2; b++)
+                for (c = 0; c < RANK_NB; c++)
+                    coeffs[i++] = T.kingStormDanger[WHITE][a][b][c] - T.kingStormDanger[BLACK][a][b][c];
     
     // Initialize coefficients for the Passed Pawn evaluation terms
     
@@ -465,6 +473,8 @@ void initializeCoefficients(int coeffs[NT]){
             for (b = 0; b < 2; b++)
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+                
+    if (i != NT) printf("ERROR IN FETCH COEFFS\n");
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -678,10 +688,21 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     if (TuneKingShelter){
         for (a = 0; a < 2; a++){
-            for (b = 0; b < FILE_NB; b++){
+            for (b = 0; b < FILE_NB / 2; b++){
                 for (c = 0; c < RANK_NB; c++, i++){
                     cparams[i][MG] = KingShelter[a][b][c][MG];
                     cparams[i][EG] = KingShelter[a][b][c][EG];
+                }
+            }
+        }
+    }
+    
+    if (TuneKingStormDanger){
+        for (a = 0; a < 2; a++){
+            for (b = 0; b < FILE_NB / 2; b++){
+                for (c = 0; c < RANK_NB; c++, i++){
+                    cparams[i][MG] = KingStormDanger[a][b][c][MG];
+                    cparams[i][EG] = KingStormDanger[a][b][c][EG];
                 }
             }
         }
@@ -700,6 +721,8 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
             }
         }
     }
+    
+    if (i != NT) printf("ERROR IN FETCH PARAMETERS\n");
 }
 
 void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
@@ -960,12 +983,23 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     }
     
     if (TuneKingShelter){
-        printf("\nconst int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {");
-        for (x = 0; x < 16; x++){
-            printf("\n  %s", x % 8 ? " {" : "{{");
+        printf("\nconst int KingShelter[2][FILE_NB/2][RANK_NB][PHASE_NB] = {");
+        for (x = 0; x < 8; x++){
+            printf("\n  %s", x % 4 ? " {" : "{{");
             for (y = 0; y < RANK_NB; y++, i++){
                 printf("{%4d,%4d}", tparams[i][MG], tparams[i][EG]);
-                printf("%s", y < RANK_NB - 1 ? ", " : x % 8 == 7 ? "}}," : "},");
+                printf("%s", y < RANK_NB - 1 ? ", " : x % 4 == 3 ? "}}," : "},");
+            }
+        } printf("\n};\n");
+    }
+    
+    if (TuneKingStormDanger){
+        printf("\nconst int KingStormDanger[2][FILE_NB/2][RANK_NB][PHASE_NB] = {");
+        for (x = 0; x < 8; x++){
+            printf("\n  %s", x % 4 ? " {" : "{{");
+            for (y = 0; y < RANK_NB; y++, i++){
+                printf("{%4d,%4d}", tparams[i][MG], tparams[i][EG]);
+                printf("%s", y < RANK_NB - 1 ? ", " : x % 4 == 3 ? "}}," : "},");
             }
         } printf("\n};\n");
     }
@@ -983,6 +1017,8 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
             }
         } printf("\n};\n");
     }
+    
+    if (i != NT) printf("ERROR IN PRINT VALUES\n");
 }
 
 double computeOptimalK(TexelEntry* tes){

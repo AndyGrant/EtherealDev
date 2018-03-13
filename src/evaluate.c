@@ -137,23 +137,26 @@ const int KingDefenders[12][PHASE_NB] = {
     {  12,   6}, {  12,   6}, {  12,   6}, {  12,   6},
 };
 
-const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {
-  {{{ -15,  17}, {   6,  -8}, {  14,   4}, {  19,   5}, {   3,   0}, {  10,  -2}, { -19, -41}, { -33,   1}},
-   {{   2,   7}, {  16,  -5}, {  17,  -8}, {   0, -11}, { -35,  -3}, { -74,  85}, {  47,  73}, { -34,   0}},
-   {{  14,  14}, {   9,   0}, { -17,   0}, { -11,   0}, { -31,  -2}, {   9, -14}, { -40,  53}, { -16,   1}},
-   {{  14,  26}, {  16,   0}, {  -3,  -8}, {  18, -12}, {  16, -31}, { -26, -33}, { -96,  19}, {  -2,   0}},
-   {{  -8,  18}, {   1,   1}, { -27,   1}, { -14,   2}, { -39, -15}, { -34, -23}, {   2,   0}, { -15,   0}},
-   {{  22,   2}, {  18,  -4}, { -18,  -1}, {  -3, -20}, {   3, -32}, {  14, -47}, {  70, -36}, { -15,   0}},
-   {{  20,   1}, {   3,  -9}, { -26,  -9}, { -21, -13}, { -25, -16}, { -46,  -1}, { -29,  32}, { -32,   9}},
-   {{ -13,  -3}, {   0,  -8}, {   5,   0}, {   1,   3}, { -14,  11}, {  -3,  30}, {-136,  69}, { -19,  15}}},
-  {{{   0,   0}, {  -1, -17}, {   2, -17}, { -63,  13}, {  14, -14}, { -30,  30}, {-136,  19}, { -58,   9}},
-   {{   0,   0}, {  16,  -5}, {   6,  -5}, {  -1,  -4}, {   6, -25}, {   2,  81}, {-197,  28}, { -46,   3}},
-   {{   0,   0}, {  24,   1}, {   2,  -5}, {  19, -25}, {  13,  -4}, { -94,  47}, {-133, -84}, { -21,  -1}},
-   {{   0,   0}, {  -2,   9}, {  -6,  13}, { -17,   0}, { -29,  -5}, {-105,  -1}, {  29, -22}, { -25,   0}},
-   {{   0,   0}, {   6,   4}, {   9,  -7}, {  21,  -6}, {   7, -18}, { -52,  13}, { -67, -92}, {  -6,  -3}},
-   {{   0,   0}, {  10,   1}, { -10,  -3}, { -22, -13}, {  11, -32}, { -36,   2}, {  -6,  21}, { -30,   0}},
-   {{   0,   0}, {  13,  -1}, {  -1,   0}, { -19,  -6}, { -25, -16}, {   9,  -5}, { -93, -44}, { -46,  13}},
-   {{   0,   0}, {   8, -27}, {  10, -14}, { -26,   1}, { -32,  -2}, {   1, -24}, {-187, -53}, { -47,  17}}},
+const int KingShelter[2][FILE_NB/2][RANK_NB][PHASE_NB] = {
+  {{{ -10,   0}, {   0,  -2}, {   3,   1}, {   2,   1}, {  -4,   3}, {   6,   6}, { -51,   8}, {  -7,   1}},
+   {{   4,   3}, {   2,   0}, { -10,  -2}, { -11,  -4}, { -15,  -4}, {  -6,   5}, {  50,  22}, {  -8,   0}},
+   {{   3,   4}, {  10,   1}, { -13,  -1}, {  -4,  -4}, {  -4,  -6}, {  -4,  -7}, {  -4,   4}, {  -6,   0}},
+   {{  -7,   6}, {   3,   2}, {  -5,   0}, {   7,  -1}, {   0,  -7}, { -17,  -3}, {   2,   6}, {  -2,   0}}},
+  {{{   0,   0}, {   0,  -2}, {   3,  -1}, {  -8,  -1}, {  -7,   0}, {   4,   6}, { -93, -32}, {  -7,   2}},
+   {{   0,   0}, {   7,   1}, {  -1,   0}, { -13,  -3}, { -14,  -3}, {   9,  10}, { -33, -29}, { -19,   0}},
+   {{   0,   0}, {   4,   3}, {  -9,   0}, {  -4,  -4}, {   3,  -7}, { -14,   3}, { -20,  -3}, { -10,  -1}},
+   {{   0,   0}, {   1,   4}, {   5,   1}, {   8,   1}, {   0,  -4}, {  -8,  -6}, { -36, -18}, {  -6,  -1}}},
+};
+
+const int KingStormDanger[2][FILE_NB/2][RANK_NB][PHASE_NB] = {
+  {{{  14,   8}, {  32,  13}, {  -7,   1}, {   0,   0}, {   2,   0}, {   0,   0}, {   0,   1}, {  -3,   0}},
+   {{  20,  12}, { -18,  -1}, {  -8,   0}, {  -5,   0}, {   0,   0}, {  -5,  -1}, {  -5,  -1}, {   3,   0}},
+   {{  18,  10}, { -27,  -2}, {  -2,   2}, {  -3,   0}, {   2,   1}, {   4,   0}, {  -4,  -1}, {   4,   0}},
+   {{  23,  11}, { -23,   0}, {  -8,   0}, {  -7,   0}, {  -1,   0}, {   4,  -1}, {   0,  -2}, {   1,   0}}},
+  {{{   0,   0}, {  35,  12}, {  -1,   1}, {   3,   0}, {   0,  -1}, {  -2,  -2}, {   1,  -1}, {  -5,   0}},
+   {{   0,   0}, {  17,  14}, {  -5,   0}, {   6,   1}, {   5,   1}, {   1,   0}, {  -6,   0}, {   3,   0}},
+   {{   0,   0}, {   9,   9}, { -11,  -2}, {   1,   0}, {   2,   0}, {  -2,   1}, {  -7,   0}, {  -4,   0}},
+   {{   0,   0}, {  19,  12}, { -18,  -3}, {   0,   1}, {   0,   1}, {   5,   0}, {   4,   0}, {  -2,   0}}},
 };
 
 
@@ -615,8 +618,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t filePawns;
     
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
+    uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t myKings    = board->pieces[KING] & board->colours[ colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
@@ -669,10 +673,26 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
                                    : kingRank - Rank(getmsb(filePawns))
                                    : 7;
 
-        ei->pawnKingMidgame[colour] += KingShelter[file == kingFile][file][distance][MG];
-        ei->pawnKingEndgame[colour] += KingShelter[file == kingFile][file][distance][EG];
-        if (TRACE) T.kingShelter[colour][file == kingFile][file][distance]++;
-    }    
+        ei->pawnKingMidgame[colour] += KingShelter[file == kingFile][square32(file)][distance][MG];
+        ei->pawnKingEndgame[colour] += KingShelter[file == kingFile][square32(file)][distance][EG];
+        if (TRACE) T.kingShelter[colour][file == kingFile][square32(file)][distance]++;
+    }
+    
+    // Evalute Pawn Storm Danger.
+    
+    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
+        
+        filePawns = enemyPawns & Files[file] & RanksAtOrAboveMasks[colour][kingRank];
+        
+        distance = filePawns ? 
+                   colour == WHITE ? Rank(getlsb(filePawns)) - kingRank
+                                   : kingRank - Rank(getmsb(filePawns))
+                                   : 7;
+
+        ei->pawnKingMidgame[colour] += KingStormDanger[file == kingFile][square32(file)][distance][MG];
+        ei->pawnKingEndgame[colour] += KingStormDanger[file == kingFile][square32(file)][distance][EG];
+        if (TRACE) T.kingStormDanger[colour][file == kingFile][square32(file)][distance]++;
+    }
 }
 
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
