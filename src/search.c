@@ -570,7 +570,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
         if (   !PvNode
-            && !board->kingAttackers
+            &&  inCheck == !!board->kingAttackers
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
