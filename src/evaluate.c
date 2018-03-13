@@ -533,6 +533,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // on a semiopen file which has a enemy pawn which is not defended
         // by any other enemy pawns. 
         if (    !(myPawns & Files[File(sq)])
+            &&   (Files[File(sq)] & tempRooks)
             &&   (attacks & tempRooks)
             &&  !(enemyPawns & Files[File(sq)] & ei->pawnAttacks[!colour])){
             
