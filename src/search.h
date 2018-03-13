@@ -83,6 +83,8 @@ static const int ProbCutDepth = 5;
 
 static const int ProbCutMargin = 156;
 
+static const int ProbCutMaxMoves = 3;
+
 static const int InternalIterativeDeepeningDepth = 3;
 
 static const int NullMovePruningDepth = 2;

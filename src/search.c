@@ -298,7 +298,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     int i, value, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
+    int quiets = 0, played = 0, probPlayed, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
@@ -481,11 +481,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
             
+        probPlayed = 0;
+            
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_HEIGHT - 1);
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
-        while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        while (    probPlayed < ProbCutMaxMoves
+               && (currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Even if we keep the capture piece and or the promotion piece
             // we will fail to exceed rBeta, then we will skip this move
@@ -511,6 +514,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
              
             // Revert the board state
             revertMove(board, currentMove, undo);
+            
+            // Update played counter
+            probPlayed++;
         }
     }
     
