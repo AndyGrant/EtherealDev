@@ -528,6 +528,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttMove = ttEntry.bestMove;
     }
     
+    int originalDepth = depth;
+    
     // Step 13. Check Extension at non Root nodes that are PV or low depth
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
@@ -680,7 +682,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 23. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and
     // must also convert the search value to a tt value, which handles mates
-    storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
+    storeTranspositionEntry(&Table, originalDepth, (best > oldAlpha && best < beta)
                             ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
                             valueToTT(best, height), bestMove, board->hash);
     return best;
