@@ -419,10 +419,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->pktable);
-        futilityMargin = eval + FutilityMargin * depth;
-    }
+    eval = evaluateBoard(board, &ei, &thread->pktable);
+    futilityMargin = eval + FutilityMargin * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -542,7 +540,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (   !PvNode
+        if (   !RootNode
             &&  isQuiet
             &&  played >= 1
             &&  futilityMargin <= alpha
@@ -552,7 +550,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. This is done for only some depths
-        if (    !PvNode
+        if (    !RootNode
             &&  !isQuiet
             &&  !inCheck
             &&   played >= 1
@@ -569,7 +567,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
-        if (   !PvNode
+        if (   !RootNode
             && !board->kingAttackers
             &&  isQuiet
             &&  played >= 1
