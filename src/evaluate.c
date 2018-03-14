@@ -712,9 +712,9 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
         
-        static const int PassedPawnOpenPath[PHASE_NB]     = {  13,  25};
+        static const int PassedPawnOpenPath[PHASE_NB]     = {   6,  12};
         
-        static const int PassedPawnSafeOpenPath[PHASE_NB] = {  17,  42};
+        static const int PassedPawnSafeOpenPath[PHASE_NB] = {   7,  22};
         
         if (!(path & board->colours[!colour])){
             ei->midgame[colour] += PassedPawnOpenPath[MG];
