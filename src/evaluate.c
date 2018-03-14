@@ -290,13 +290,13 @@ void evaluatePieces(EvalInfo* ei, Board* board){
     evaluatePassedPawns(ei, board, WHITE);
     evaluatePassedPawns(ei, board, BLACK);
     
-    uint64_t whang = board->colours[WHITE] & ~board->pieces[PAWN] & ~ei->attacked[WHITE] & ei->attacked[BLACK];
-    uint64_t bhang = board->colours[BLACK] & ~board->pieces[PAWN] & ~ei->attacked[BLACK] & ei->attacked[WHITE];
+    uint64_t whang = board->colours[WHITE] & ~board->pieces[PAWN] & ~ei->attacked[WHITE];
+    uint64_t bhang = board->colours[BLACK] & ~board->pieces[PAWN] & ~ei->attacked[BLACK];
     
     int kappa = popcount(whang) - popcount(bhang);
     
-    ei->midgame[WHITE] += -7 * kappa;
-    ei->endgame[WHITE] += -9 * kappa;
+    ei->midgame[WHITE] += -4 * kappa;
+    ei->endgame[WHITE] += -2 * kappa;
 }
 
 void evaluatePawns(EvalInfo* ei, Board* board, int colour){
