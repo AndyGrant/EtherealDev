@@ -483,8 +483,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
             || (    pawnAttacks(sq, myPawns, !colour)
                 && ((1ull << sq) & (FILE_A | FILE_H)))){
                     
-            ei->midgame[colour] += -8;
-            ei->endgame[colour] += -5;
+            ei->midgame[colour] += -13;
+            ei->endgame[colour] +=  -7;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the bishop
