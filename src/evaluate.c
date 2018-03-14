@@ -678,7 +678,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
 void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
     int sq, rank, canAdvance, safeAdvance;
-    uint64_t tempPawns, destination, notEmpty;
+    uint64_t tempPawns, destination, notEmpty, path;
     
     // Fetch Passed Pawns from the Pawn King Entry if we have one
     if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
@@ -697,6 +697,9 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         // Determine where the pawn would advance to
         destination = (colour == BLACK) ? ((1ull << sq) >> 8): ((1ull << sq) << 8);
+        
+        // Determine the bitboard of the path to promotion
+        path = Files[File(sq)] & RanksAtOrAboveMasks[colour][Rank(sq)];
             
         // Destination does not have any pieces on it
         canAdvance = !(destination & notEmpty);
@@ -704,9 +707,24 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
+        // Finally, score the passed pawn based on the computed terms
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        static const int PassedPawnOpenPath[PHASE_NB]     = {  13,  25};
+        
+        static const int PassedPawnSafeOpenPath[PHASE_NB] = {  17,  42};
+        
+        if (!(path & board->colours[!colour])){
+            ei->midgame[colour] += PassedPawnOpenPath[MG];
+            ei->endgame[colour] += PassedPawnOpenPath[EG];
+        }
+        
+        if (!(path & (board->colours[!colour] | ei->attacked[!colour]))){
+            ei->midgame[colour] += PassedPawnSafeOpenPath[MG];
+            ei->endgame[colour] += PassedPawnSafeOpenPath[EG];
+        }
     }
 }
 
