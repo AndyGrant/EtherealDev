@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "board.h"
 #include "bitboards.h"
@@ -31,6 +32,14 @@
 #include "psqt.h"
 #include "types.h"
 #include "thread.h"
+
+void initializeRootMovePicker(MovePicker* mp, Thread* thread){
+    mp->stage = STAGE_ROOT_MOVES;
+    mp->size = thread->rootMoves.size;
+    mp->index = 0;
+    memcpy(mp->moves, thread->rootMoves.moves, sizeof(uint16_t) * MAX_MOVES);
+    memset(thread->rootMoves.nodes, 0, sizeof(thread->rootMoves.nodes));
+}
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets){
     mp->skipQuiets = skipQuiets;
@@ -49,6 +58,17 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
     uint16_t bestMove;
     
     switch (mp->stage){
+        
+        case STAGE_ROOT_MOVES:
+            
+            // If we've searched all our root moves, we are done
+            if (mp->index == mp->size)
+                return mp->stage = STAGE_DONE, NONE_MOVE;
+            
+            // Return the next move. Moves are sorted as they
+            // are placed into the root moves list, thus we
+            // need to only iterate through them as copied
+            return mp->moves[mp->index++];
         
         case STAGE_TABLE:
         
@@ -182,6 +202,45 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
     }
 }
    
+void updateRootMoveList(Thread* thread){
+    
+    int i, j;
+    uint16_t tempMove, moves[MAX_MOVES];
+    uint64_t tempScore, scores[MAX_MOVES];
+    
+    for (i = 0; i < thread->rootMoves.size; i++){
+        
+        // Copy over the ith move
+        moves[i] = thread->rootMoves.moves[i];
+        
+        // Score the ith move. If this is the first move we can just look
+        // at the node count. Otherwise, we must take the node count 
+        // difference. Also, if the move is best, give it the max score.
+        scores[i] = thread->rootMoves.nodes[i];
+        if (i > 0) scores[i] -= thread->rootMoves.nodes[i-1];
+        if (moves[i] == thread->rootMoves.bestMove) scores[i] = ~0ull;
+    }
+    
+    for (i = 0; i < thread->rootMoves.size; i++){
+        for (j = i + 1; j < thread->rootMoves.size; j++){
+            
+            // Order is already correct between i and j
+            if (scores[j] <= scores[i])
+                continue;
+                
+            // Swap the moves
+            tempMove = moves[i];
+            moves[i] = moves[j];
+            moves[j] = tempMove;
+            
+            // Swap the scores
+            tempScore = scores[i];
+            scores[i] = scores[j];
+            scores[j] = tempScore;
+        }
+    }
+}
+
 void evaluateNoisyMoves(MovePicker* mp, Board* board){
     
     uint16_t move;

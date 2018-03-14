@@ -21,9 +21,10 @@
 
 #include <setjmp.h>
 
-#include "types.h"
-#include "transposition.h"
+#include "movepicker.h"
 #include "search.h"
+#include "transposition.h"
+#include "types.h"
 
 typedef struct Thread {
     
@@ -32,6 +33,8 @@ typedef struct Thread {
     
     Board board;
     PVariation pv;
+    RootMoveList rootMoves;
+    
     int depth;
     uint64_t nodes;
     

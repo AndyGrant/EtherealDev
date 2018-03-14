@@ -22,6 +22,7 @@
 #include "types.h"
 
 enum {
+    STAGE_ROOT_MOVES,
     STAGE_TABLE, STAGE_GENERATE_NOISY, STAGE_NOISY, STAGE_KILLER_1,
     STAGE_KILLER_2, STAGE_GENERATE_QUIET, STAGE_QUIET, STAGE_DONE
 };
@@ -30,6 +31,7 @@ typedef struct MovePicker {
     
     int skipQuiets, stage, split;
     int noisySize, quietSize;
+    int size, index;
     
     uint16_t tableMove, killer1, killer2;
     uint16_t moves[MAX_MOVES];
@@ -39,8 +41,17 @@ typedef struct MovePicker {
     
 } MovePicker;
 
+typedef struct RootMoveList {
+    int size;
+    uint16_t bestMove;
+    uint16_t moves[MAX_MOVES];
+    uint64_t nodes[MAX_MOVES];
+} RootMoveList;
+
+void initializeRootMovePicker(MovePicker* mp, Thread* thread);
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets);
 uint16_t selectNextMove(MovePicker* mp, Board* board);
+void updateRootMoveList(Thread* thread);
 void evaluateNoisyMoves(MovePicker* mp, Board* board);
 void evaluateQuietMoves(MovePicker* mp, Board* board);
 int moveIsPsuedoLegal(Board* board, uint16_t move);

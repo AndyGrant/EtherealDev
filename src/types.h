@@ -74,6 +74,9 @@ typedef struct PawnKingTable PawnKingTable;
 struct MovePicker;
 typedef struct MovePicker MovePicker;
 
+struct RootMoveList;
+typedef struct RootMoveList RootMoveList;
+
 struct PVariation;
 typedef struct PVariation PVariation;
 

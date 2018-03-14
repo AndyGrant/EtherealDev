@@ -20,11 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "transposition.h"
-#include "history.h"
-#include "search.h"
 #include "board.h"
+#include "history.h"
+#include "movegen.h"
+#include "search.h"
 #include "thread.h"
+#include "transposition.h"
 #include "types.h"
 
 Thread* createThreadPool(int nthreads){
@@ -74,6 +75,11 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         
         // Make our own copy of the original position
         memcpy(&threads[i].board, board, sizeof(Board));
+        
+        // Setup our list of root moves, use for better move ordering
+        threads[i].rootMoves.size = 0;
+        genAllLegalMoves(&threads[i].board, threads[i].rootMoves.moves, &threads[i].rootMoves.size);
+        memset(threads[i].rootMoves.nodes, 0, sizeof(threads[i].rootMoves.nodes));
         
         // Zero our the depth, nodes for the new search
         threads[i].depth = 0;

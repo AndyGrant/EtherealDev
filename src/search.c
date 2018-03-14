@@ -531,8 +531,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 13. Check Extension at non Root nodes that are PV or low depth
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
-    
-    initializeMovePicker(&movePicker, thread, ttMove, height, 0);
+    // Prepare the move selection and generation process via the move picker
+    RootNode ? initializeRootMovePicker(&movePicker, thread)
+             : initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
@@ -632,14 +633,22 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Revert the board state
         revertMove(board, currentMove, undo);
         
+        // Step 19. If we are looking at the root node, we record the total number
+        // of nodes searched after each move is examined. This way we can sort the
+        // moves based on which required a larger search tree to evaluate.
+        if (RootNode)
+            thread->rootMoves.nodes[played-1] = thread->nodes;
         
-        // Step 19. Update search stats for the best move and its value. Update
+        // Step 20. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
         if (value > best){
             
             best = value;
             bestMove = currentMove;
             bestWasQuiet = isQuiet;
+            
+            if (RootNode)
+                thread->rootMoves.bestMove = currentMove;
             
             if (value > alpha){
                 alpha = value;
@@ -651,7 +660,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
         }
         
-        // Step 20. Search has failed high. Update Killer Moves and exit search
+        // Step 21. Search has failed high. Update Killer Moves and exit search
         if (alpha >= beta){
             
             if (isQuiet && thread->killers[height][0] != currentMove){
@@ -663,21 +672,26 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
-    // Step 21. Stalemate and Checkmate detection. If no moves were found to
+    // Step 22. We are finished looking at this Root Node. For the next Root
+    // Node we will need to select moves based on the results here. Thus,
+    // we will prepare the root move list for the next iteration here.
+    if (RootNode) updateRootMoveList(thread);
+    
+    // Step 23. Stalemate and Checkmate detection. If no moves were found to
     // be legal (search makes sure to play at least one legal move, if any),
     // then we are either mated or stalemated, which we can tell by the inCheck
     // flag. For mates, return a score based on the distance from root, so we
     // can differentiate between close mates and far away mates from the root
     if (played == 0) return inCheck ? -MATE + height : 0;
     
-    // Step 22. Update History counters on a fail high for a quiet move
+    // Step 24. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
         updateHistory(thread->history, bestMove, board->turn, depth*depth);
         for (i = 0; i < quiets - 1; i++)
             updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
     }
     
-    // Step 23. Store the results of the search in the transposition table.
+    // Step 25. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and
     // must also convert the search value to a tt value, which handles mates
     storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
