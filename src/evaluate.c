@@ -713,7 +713,9 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         int distance = MAX(abs(Rank(sq) - Rank(kingsq)), abs(File(sq) - File(kingsq)));
         
-        static const int FooBar[8] = {0, 21, 13,  7,  3,  2,  1,  0};
+      //static const int FooBar[8] = {0, 21, 13,  7,  3,  2,  1,  0};
+      
+        static const int FooBar[8] = {   0,  37,  29,  12,   4,   0,  -7, -14};
         
         ei->midgame[colour] += FooBar[distance];
         ei->endgame[colour] += FooBar[distance];
