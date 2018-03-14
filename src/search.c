@@ -420,7 +420,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
     eval = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin[PvNode] * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -445,7 +445,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - FutilityMargin * depth > beta)
+        &&  eval - FutilityMargin[PvNode] * depth > beta)
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that
@@ -554,7 +554,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !isQuiet
             &&  !inCheck
             &&   played >= 1
-            &&   captureIsWeak(board, &ei, currentMove, depth))
+            &&   captureIsWeak(board, &ei, currentMove, depth + 3 * PvNode))
             continue;
         
         // Apply and validate move before searching
@@ -572,7 +572,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  played >= 1
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]){
+            &&  quiets > LateMovePruningCounts[PvNode][depth]){
             
             revertMove(board, currentMove, undo);
             continue;
