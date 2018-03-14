@@ -169,7 +169,7 @@ void* iterativeDeepening(void* vthread){
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf && depth >= 4){
+        if (limits->limitedBySelf && depth >= 8){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 8)
@@ -217,7 +217,7 @@ void* iterativeDeepening(void* vthread){
         }
         
         // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
+        if (thread->limits->limitedBySelf && depth >= 8){
             double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
             double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
