@@ -499,18 +499,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
             
-            // Verify the move is good with a depth zero search (qsearch, unless in check)
-            // and then with a slightly reduced search. If both searches still exceed rBeta,
-            // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
-                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
-                    
-                revertMove(board, currentMove, undo);
-                return beta;
-            }
+            // Do a preliminary search unless this move gave check
+            if (!board->kingAttackers)
+                value = -qsearch(thread, &lpv, -rBeta, -rBeta+1, height+1);
+            
+            // If the preliminary search passed or was skipped, do the normal search
+            if (board->kingAttackers || value >= rBeta)
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
              
             // Revert the board state
             revertMove(board, currentMove, undo);
+            
+            // Reduced search exceeded rBeta, thus we may return
+            if (value >= rBeta) return value;
         }
     }
     
