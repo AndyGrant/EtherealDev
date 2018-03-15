@@ -183,9 +183,9 @@ const int KingSafety[256] = { // int(math.floor(800.0 / (1.0 + math.pow(math.e, 
     700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700,
 };
 
-const int KingThreatMissingPawns = 8;
+const int KingThreatMissingPawns = 6;
 
-const int KingThreatWeight[PIECE_NB] = {   4,   8,   8,  12,  16,   0};
+const int KingThreatWeight[PIECE_NB] = {   5,   9,   8,  13,  17,   0};
 
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
@@ -660,7 +660,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         // Scale down the threat greatly if our opponent has no queen
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            attackCounts *= .375;
     
         ei->midgame[colour] -= KingSafety[MIN(255, MAX(0, attackCounts))];
     }
