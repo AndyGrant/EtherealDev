@@ -663,7 +663,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
             
             // Scale down attack count if there are no enemy queens
             if (!(board->colours[!colour] & board->pieces[ROOK]))
-                count = (int)(count * 0.75);
+                count = (int)(count * 0.50);
         }
     
         ei->midgame[colour] -= KingSafety[MIN(255, MAX(0, count))];
