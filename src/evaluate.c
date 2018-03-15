@@ -165,7 +165,7 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 };
 
 
-const int KingThreatWeight[PIECE_NB] = {   4,   8,   8,  12,  16,   0};
+const int KingThreatWeight[PIECE_NB] = {   4,  10,   7,  12,  16,   0};
 
 const int KingThreatMissingPawn = 8;
 
