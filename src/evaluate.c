@@ -659,8 +659,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts += KingThreatMissingPawns * (3 - popcount(myPawns & ei->kingAreas[colour]));
         
         // Scale down the threat greatly if our opponent has no queen
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .375;
+        if (!(board->colours[!colour] & board->pieces[QUEEN])){
+            attackCounts *= .25;
+            
+            // Even further reduce threat if only minors exist
+            if (!(board->colours[!colour] & board->pieces[ROOK]))
+                attackCounts *= .25;
+        }
     
         ei->midgame[colour] -= KingSafety[MIN(255, MAX(0, attackCounts))];
     }
