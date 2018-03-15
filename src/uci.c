@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "board.h"
+#include "evaluate.h"
 #include "history.h"
 #include "magics.h"
 #include "masks.h"
@@ -53,13 +54,22 @@ int main(){
     int nthreads =  1;
     int megabytes = 16;
     
+    // Initialize the core components of Ethereal
     initializeMagics();
-    initializeZorbist();
     initializePSQT();
     initializeMasks();
-    initializeBoard(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    initializeZorbist();
+    
+    // Setup any evaluation tables defined by functions
+    initializeEvaluation();
+    
+    // Allocate space for the TTable, initially 16 megabytes
     initializeTranspositionTable(&Table, megabytes);
     
+    // Not required, but always setup the board from the starting position
+    initializeBoard(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    
+    // Build our Thread Pool, with default size of 1-thread
     Thread* threads = createThreadPool(nthreads);
     
     #ifdef TUNE

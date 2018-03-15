@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,20 +46,23 @@
     EvalTrace T;
 #endif
 
+// Definition of Values for each Piece type
+
 const int PawnValue[PHASE_NB]   = { 100, 121};
-
 const int KnightValue[PHASE_NB] = { 459, 390};
-
 const int BishopValue[PHASE_NB] = { 465, 412};
-
 const int RookValue[PHASE_NB]   = { 630, 711};
-
 const int QueenValue[PHASE_NB]  = {1272,1317};
-
 const int KingValue[PHASE_NB]   = { 165, 165};
-
 const int NoneValue[PHASE_NB]   = {   0,   0};
 
+const int* PieceValues[8] = {
+      PawnValue, KnightValue, BishopValue,   RookValue,
+     QueenValue,   KingValue,   NoneValue,   NoneValue,
+};
+
+
+// Definition of evaluation terms related to Pawns
 
 const int PawnIsolated[PHASE_NB] = {  -3,  -6};
 
@@ -79,6 +82,8 @@ const int PawnConnected32[32][PHASE_NB] = {
 };
 
 
+// Definition of evaluation terms related to Knights
+
 const int KnightAttackedByPawn[PHASE_NB] = { -49, -32};
 
 const int KnightOutpost[2][PHASE_NB] = { {  19, -34}, {  38,   9} };
@@ -89,6 +94,8 @@ const int KnightMobility[9][PHASE_NB] = {
     {  18,  -1}, {  32,  -1}, {  48, -30},
 };
 
+
+// Definition of evaluation terms related to Bishops
 
 const int BishopPair[PHASE_NB] = {  43,  68};
 
@@ -104,6 +111,8 @@ const int BishopMobility[14][PHASE_NB] = {
 };
 
 
+// Definition of evaluation terms related to Rooks
+
 const int RookFile[2][PHASE_NB] = { {  12,   2}, {  41,  -8} };
 
 const int RookOnSeventh[PHASE_NB] = {   0,  23};
@@ -115,6 +124,8 @@ const int RookMobility[15][PHASE_NB] = {
     {  19,  50}, {  24,  47}, {  16,  44},
 };
 
+
+// Definition of evaluation terms related to Queens
 
 const int QueenChecked[PHASE_NB] = { -35, -32};
 
@@ -130,6 +141,15 @@ const int QueenMobility[28][PHASE_NB] = {
     {  51,  25}, {  47,   1}, {  -5,   1}, {  24,  13},
 };
 
+
+// Definition of evaluation terms related to Kings
+
+int KingSafety[64]; // Defined by the Polynomial below
+
+const double KingPolynomial[6] = {
+    0.00000011, -0.00009948,  0.00797308, 
+    0.03141319,  2.18429452, -3.33669140
+};
 
 const int KingDefenders[12][PHASE_NB] = {
     { -39,  -4}, { -23,   5}, {   0,   1}, {  10,  -1},
@@ -157,6 +177,8 @@ const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {
 };
 
 
+// Definition of evaluation terms related to Passed Pawns
+
 const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
   {{{   0,   0}, { -33, -30}, { -24,   8}, { -13,  -2}, {  24,   0}, {  66,  -5}, { 160,  32}, {   0,   0}},
    {{   0,   0}, {  -2,   1}, { -14,  23}, { -15,  35}, {   7,  44}, {  72,  60}, { 194, 129}, {   0,   0}}},
@@ -164,23 +186,11 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -5,   8}, { -12,  17}, { -21,  52}, { -14, 109}, {  28, 202}, { 119, 369}, {   0,   0}}},
 };
 
-const int KingSafety[64] = { // Taken from CPW / Stockfish
-     -3,  -1,   1,   3,   6,   9,  12,  15,
-     19,  24,  28,  33,  39,  45,  51,  58,
-     65,  73,  82,  91, 101, 111, 122, 133,
-    145, 157, 170, 184, 198, 212, 227, 243,
-    259, 275, 292, 309, 327, 345, 363, 382,
-    401, 420, 439, 458, 478, 497, 516, 536,
-    555, 574, 593, 612, 630, 648, 666, 683,
-    699, 715, 731, 745, 759, 772, 783, 794,
-};
+// Definition of evaluation terms related to general properties
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
 
-const int* PieceValues[8] = {
-    PawnValue, KnightValue, BishopValue, RookValue,
-    QueenValue, KingValue, NoneValue, NoneValue
-};
+
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
@@ -759,4 +769,20 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     if (TEXEL) ei->pkentry = NULL;
     else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
+}
+
+void initializeEvaluation(){
+    
+    int i;
+    
+    
+    // Compute values for the King Safety based on the King Polynomial
+    for (i = 0; i < 64; i++){
+        KingSafety[i] = (int)(
+            + KingPolynomial[0] * pow(i, 5) + KingPolynomial[1] * pow(i, 4)
+            + KingPolynomial[2] * pow(i, 3) + KingPolynomial[3] * pow(i, 2)
+            + KingPolynomial[4] * pow(i, 1) + KingPolynomial[5] * pow(i, 0)
+        );
+    }
+    
 }
