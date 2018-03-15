@@ -658,8 +658,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         count += KingThreatMissingPawn * (3 - popcount(myPawns & ei->kingAreas[colour]));
         
         // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
+        if (!(board->colours[!colour] & board->pieces[QUEEN])){
             count = (int)(count * 0.25);
+            
+            // Scale down attack count if there are no enemy queens
+            if (!(board->colours[!colour] & board->pieces[ROOK]))
+                count = (int)(count * 0.75);
+        }
     
         ei->midgame[colour] -= KingSafety[MIN(255, MAX(0, count))];
     }
