@@ -164,17 +164,15 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -5,   8}, { -12,  17}, { -21,  52}, { -14, 109}, {  28, 202}, { 119, 369}, {   0,   0}}},
 };
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-      0,   0,   1,   3,   4,   7,  10,  14,  18,  23, 
-     28,  34,  40,  46,  54,  60,  68,  78,  87,  96, 
-    106, 117, 128, 132, 139, 151, 164, 176, 190, 204,
-    218, 234, 264, 281, 298, 315, 332, 351, 370, 387, 
-    406, 425, 442, 460, 479, 498, 515, 534, 553, 571, 
-    589, 607, 626, 643, 662, 681, 700, 717, 735, 754, 
-    771, 781, 781, 781, 781, 781, 781, 781, 781, 781, 
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781,
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781,
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781
+const int KingSafety[64] = { // Taken from CPW / Stockfish
+     -3,  -1,   1,   3,   6,   9,  12,  15,
+     19,  24,  28,  33,  39,  45,  51,  58,
+     65,  73,  82,  91, 101, 111, 122, 133,
+    145, 157, 170, 184, 198, 212, 227, 243,
+    259, 275, 292, 309, 327, 345, 363, 382,
+    401, 420, 439, 458, 478, 497, 516, 536,
+    555, 574, 593, 612, 630, 648, 666, 683,
+    699, 715, 731, 745, 759, 772, 783, 794,
 };
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
@@ -639,7 +637,6 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
         attackCounts = ei->attackCounts[!colour];
         
         // Add an extra two attack counts per missing pawn in the king area.
@@ -649,7 +646,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[MIN(99, MAX(0, attackCounts))];
+        ei->midgame[colour] -= KingSafety[MIN(63, MAX(0, attackCounts))];
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
