@@ -164,17 +164,15 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -5,   8}, { -12,  17}, { -21,  52}, { -14, 109}, {  28, 202}, { 119, 369}, {   0,   0}}},
 };
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-      0,   0,   1,   3,   4,   7,  10,  14,  18,  23, 
-     28,  34,  40,  46,  54,  60,  68,  78,  87,  96, 
-    106, 117, 128, 132, 139, 151, 164, 176, 190, 204,
-    218, 234, 264, 281, 298, 315, 332, 351, 370, 387, 
-    406, 425, 442, 460, 479, 498, 515, 534, 553, 571, 
-    589, 607, 626, 643, 662, 681, 700, 717, 735, 754, 
-    771, 781, 781, 781, 781, 781, 781, 781, 781, 781, 
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781,
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781,
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781
+const int KingSafety[64] = { // Taken from CPW / Stockfish
+      0,   0,   1,   3,   4,   7,  10,  14,
+     18,  23,  28,  34,  40,  46,  54,  60, 
+     68,  78,  87,  96, 106, 117, 128, 132,
+    139, 151, 164, 176, 190, 204, 218, 234,
+    264, 281, 298, 315, 332, 351, 370, 387,
+    406, 425, 442, 460, 479, 498, 515, 534,
+    553, 571, 589, 607, 626, 643, 662, 681,
+    700, 717, 735, 754, 771, 781, 781, 781,
 };
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
@@ -639,17 +637,21 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
         attackCounts = ei->attackCounts[!colour];
         
         // Add an extra two attack counts per missing pawn in the king area.
         attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
         
         // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+        if (!(board->colours[!colour] & board->pieces[QUEEN])){
+            attackCounts = (int)(attackCounts * 0.25);
+            
+            // Scale down to almost nothing if there are no majors
+            if (!(board->colours[!colour] & board->pieces[ROOK]))
+                attackCounts = (int)(attackCounts * 0.50);
+        }
     
-        ei->midgame[colour] -= KingSafety[MIN(99, MAX(0, attackCounts))];
+        ei->midgame[colour] -= KingSafety[MIN(63, MAX(0, attackCounts))];
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
