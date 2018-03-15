@@ -183,9 +183,9 @@ const int KingSafety[256] = { // int(math.floor(800.0 / (1.0 + math.pow(math.e, 
     700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700,
 };
 
-const int KingThreatMissingPawns = 6;
+const int KingThreatMissingPawns = 8;
 
-const int KingThreatWeight[PIECE_NB] = {   5,   9,   8,  13,  17,   0};
+const int KingThreatWeight[PIECE_NB] = {   3,   7,   7,  10,  14,   0};
 
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
