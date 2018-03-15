@@ -164,25 +164,38 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
    {{   0,   0}, {  -5,   8}, { -12,  17}, { -21,  52}, { -14, 109}, {  28, 202}, { 119, 369}, {   0,   0}}},
 };
 
-const int KingSafety[100] = { // Taken from CPW / Stockfish
-      0,   0,   1,   3,   4,   7,  10,  14,  18,  23, 
-     28,  34,  40,  46,  54,  60,  68,  78,  87,  96, 
-    106, 117, 128, 132, 139, 151, 164, 176, 190, 204,
-    218, 234, 264, 281, 298, 315, 332, 351, 370, 387, 
-    406, 425, 442, 460, 479, 498, 515, 534, 553, 571, 
-    589, 607, 626, 643, 662, 681, 700, 717, 735, 754, 
-    771, 781, 781, 781, 781, 781, 781, 781, 781, 781, 
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781,
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781,
-    781, 781, 781, 781, 781, 781, 781, 781, 781, 781
+const int KingSafety[256] = { // int(math.floor(800.0 / (1.0 + math.pow(math.e, -.06 * (x - 96)))))
+      2,   2,   2,   3,   3,   3,   3,   3,   4,   4,   4,   4,   5,   5,   5,   6,
+      6,   6,   7,   7,   8,   8,   9,   9,  10,  11,  11,  12,  13,  14,  14,  15,
+     16,  17,  18,  20,  21,  22,  23,  25,  26,  28,  30,  31,  33,  35,  37,  40,
+     42,  45,  47,  50,  53,  56,  59,  62,  66,  70,  74,  78,  82,  87,  92,  97,
+    102, 107, 113, 119, 125, 132, 138, 145, 153, 160, 168, 176, 185, 193, 202, 212,
+    221, 231, 241, 251, 261, 272, 283, 294, 305, 317, 328, 340, 352, 364, 376, 388,
+    400, 411, 423, 435, 447, 459, 471, 482, 494, 505, 516, 527, 538, 548, 558, 568,
+    578, 587, 597, 606, 614, 623, 631, 639, 646, 654, 661, 667, 674, 680, 686, 692,
+    697, 702, 707, 712, 717, 721, 725, 729, 733, 737, 740, 743, 746, 749, 752, 754,
+    757, 759, 762, 764, 766, 768, 769, 771, 773, 774, 776, 777, 778, 779, 781, 782,
+    783, 784, 785, 785, 786, 787, 788, 788, 789, 790, 790, 791, 791, 792, 792, 793,
+    793, 793, 794, 794, 794, 795, 795, 795, 795, 796, 796, 796, 796, 796, 797, 797,
+    797, 797, 797, 797, 798, 798, 798, 798, 798, 798, 798, 798, 798, 798, 798, 798,
+    799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799,
+    799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799,
+    799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799, 799,
 };
 
+const int KingThreatMissingPawns = 4;
+
+const int KingThreatWeight[PIECE_NB] = {   2,   4,   4,   6,   8,   0};
+
+
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
+
 
 const int* PieceValues[8] = {
     PawnValue, KnightValue, BishopValue, RookValue,
     QueenValue, KingValue, NoneValue, NoneValue
 };
+
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
@@ -309,7 +322,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // the king safety calculation. We just do this for the pawns as a whole,
     // and not individually, to save time, despite the loss in accuracy.
     if (attacks != 0ull){
-        ei->attackCounts[colour] += popcount(attacks);
+        ei->attackCounts[colour] += KingThreatWeight[PAWN] * popcount(attacks);
         ei->attackerCounts[colour] += 1;
     }
     
@@ -420,7 +433,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // knight for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += KingThreatWeight[KNIGHT] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -486,7 +499,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += KingThreatWeight[BISHOP] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -547,7 +560,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // rook for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 3 * popcount(attacks);
+            ei->attackCounts[colour] += KingThreatWeight[ROOK] * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -601,7 +614,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // pieces. This way King Safety is always used with the Queen attacks
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 4 * popcount(attacks);
+            ei->attackCounts[colour] += KingThreatWeight[QUEEN] * popcount(attacks);
             ei->attackerCounts[colour] += 2;
         }
     }
@@ -639,17 +652,17 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        // Cap our attackCounts at 99 (KingSafety has 100 slots)
+        // Fetch the weight of the threats against our king
         attackCounts = ei->attackCounts[!colour];
         
-        // Add an extra two attack counts per missing pawn in the king area.
-        attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
+        // Increse the threat if we are missing pawns around our king
+        attackCounts += KingThreatMissingPawns * (3 - popcount(myPawns & ei->kingAreas[colour]));
         
-        // Scale down attack count if there are no enemy queens
+        // Scale down the threat greatly if our opponent has no queen
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[MIN(99, MAX(0, attackCounts))];
+        ei->midgame[colour] -= KingSafety[MIN(255, MAX(0, attackCounts))];
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
