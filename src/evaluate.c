@@ -147,8 +147,7 @@ const int QueenMobility[28][PHASE_NB] = {
 int KingSafety[64]; // Defined by the Polynomial below
 
 const double KingPolynomial[6] = {
-    0.00000011, -0.00009948,  0.00797308, 
-    0.03141319,  2.18429452, -3.33669140
+0.00000000, -0.00010948,  0.00787308, 0.03041319, 5.18429452, -3.33669140
 };
 
 const int KingDefenders[12][PHASE_NB] = {
