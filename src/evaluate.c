@@ -650,8 +650,6 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Add an extra two attack counts per missing pawn in the king area.
         count += 4 * (6 - 2 * popcount(myPawns & ei->kingAreas[colour]));
         
-        count += 3 * (ei->attackerCounts[!colour] - 2);
-        
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             count *= .25;
@@ -741,8 +739,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->blockedPawns[WHITE] = ((whitePawns << 8) & (white | black)) >> 8;
     ei->blockedPawns[BLACK] = ((blackPawns >> 8) & (white | black)) << 8,
     
-    ei->kingAreas[WHITE] = KingMap[wKingSq] | (1ull << wKingSq) | (KingMap[wKingSq] << 8);
-    ei->kingAreas[BLACK] = KingMap[bKingSq] | (1ull << bKingSq) | (KingMap[bKingSq] >> 8);
+    ei->kingAreas[WHITE] = KingMap[wKingSq] | (1ull << wKingSq) | ((KingMap[wKingSq] << 8) & ~whitePawns);
+    ei->kingAreas[BLACK] = KingMap[bKingSq] | (1ull << bKingSq) | ((KingMap[bKingSq] >> 8) & ~blackPawns);
     
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
