@@ -556,7 +556,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += 3 * popcount(attacks);
-            ei->attackerCounts[colour] += 1;
+            ei->attackerCounts[colour] += 2;
         }
     }
 }
@@ -610,7 +610,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += 4 * popcount(attacks);
-            ei->attackerCounts[colour] += 2;
+            ei->attackerCounts[colour] += 3;
         }
     }
 }
@@ -645,7 +645,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
+    if (ei->attackerCounts[!colour] >= 3){
         
         attackCounts = ei->attackCounts[!colour];
         
