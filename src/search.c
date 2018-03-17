@@ -121,28 +121,7 @@ void* iterativeDeepening(void* vthread){
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
-        // Always acquire the lock before setting thread->depth. thread->depth
-        // is needed by others to determine when to skip certain search iterations
-        pthread_mutex_lock(&LOCK);
-        
         thread->depth = depth;
-        
-        // Helper threads are subject to skipping depths in order to better help
-        // the main thread, based on the number of threads already on some depths
-        if (!mainThread){
-        
-            for (count = 0, i = 1; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
-
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
-                thread->depth = depth + 1;
-                pthread_mutex_unlock(&LOCK);
-                continue;
-            }
-        }
-        
-        // Drop the lock as we have finished depth scheduling
-        pthread_mutex_unlock(&LOCK);
         
         // Set the abort location. If we exit the search unnaturally (very likely)
         // we will know by abort being set, and can therefore indicate an exit
