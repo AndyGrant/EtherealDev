@@ -171,8 +171,8 @@ void* iterativeDeepening(void* vthread){
         if (limits->limitedBySelf && depth >= 4){
             
             diff = value - info->values[depth-1];
-            info->idealusage *= diff >=  10 ? 1.00 - MAX(.025, MIN(.20,  diff / 200.0))
-                              : diff <= -10 ? 1.00 + MAX(.050, MIN(.50, -diff / 100.0))
+            info->idealusage *= diff >=  10 ? 1.00 - MAX(.05, MIN(0.20,  diff / 200.0))
+                              : diff <= -10 ? 1.00 + MAX(.05, MIN(0.50, -diff / 200.0))
                               : 1.00;
                               
             // Increase our time if the pv has changed across the last two iterations
