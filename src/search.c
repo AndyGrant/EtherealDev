@@ -209,8 +209,8 @@ void* iterativeDeepening(void* vthread){
         }
         
         // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
-            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
+        if (thread->limits->limitedBySelf && depth >= 4){
+            double timeFactor = info->timeUsage[depth] / MAX(50, info->timeUsage[depth-1]);
             double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
