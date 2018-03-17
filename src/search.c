@@ -116,7 +116,7 @@ void* iterativeDeepening(void* vthread){
    
     const int mainThread   = thread == &thread->threads[0];
     
-    int i, count, value, depth, abort;
+    int i, count, value, depth, abort, diff;
     
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
@@ -170,14 +170,10 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 4){
             
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealusage *= 1.050;
-            
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealusage *= 0.975;
-            
+            diff = value - info->values[depth-1];
+            info->idealusage *= diff >=  10 ? 1.00 - MIN(.20,  diff / 400.0)
+                              : diff <= -10 ? 1.00 + MIN(.20, -diff / 200.0) : 1.00;
+                              
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
                 info->idealusage *= MAX(info->pvStability, 1.30);
