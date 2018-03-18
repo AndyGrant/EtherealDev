@@ -508,16 +508,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 12. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
-    if (    PvNode
+    if (   (PvNode || eval > alpha + 100)
         &&  ttMove == NONE_MOVE
         &&  depth >= InternalIterativeDeepeningDepth){
         
-        // Search with a reduced depth
+        // Search with a reduced depth on our regular window
         value = search(thread, &lpv, alpha, beta, depth-2, height);
         
+        // We don't get a move on a fail low, so search again
+        if (value <= alpha)
+            search(thread, &lpv, -MATE, alpha+1, depth-2, height);
+        
         // Probe for the newly found move, and update ttMove
-        if (getTranspositionEntry(&Table, board->hash, &ttEntry))
-            ttMove = ttEntry.bestMove;
+        if (lpv.length >= 1)
+            ttMove = lpv.line[0];
     }
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
