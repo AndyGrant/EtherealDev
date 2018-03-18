@@ -602,6 +602,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // expect an adjustment on the bounds of [+1, -6], with 6 being very rare
             R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
             
+            if (    depth - R < 0
+                && !inCheck
+                && !board->kingAttackers
+                && !PvNode
+                &&  hist <= -8192){
+                    
+                revertMove(board, currentMove, undo);
+                continue;
+            }
+                
+            
             // Do not allow the reduction to take us directly into a quiescence search
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
