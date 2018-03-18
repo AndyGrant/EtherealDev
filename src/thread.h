@@ -35,6 +35,9 @@ typedef struct Thread {
     int depth;
     uint64_t nodes;
     
+    int* evalHistory;
+    int _evalHistory[MAX_HEIGHT+4];
+    
     int abort;
     jmp_buf jbuffer;
     

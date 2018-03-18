@@ -79,6 +79,8 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         threads[i].depth = 0;
         threads[i].nodes = 0ull;
         
+        threads[i].evalHistory = &threads[i]._evalHistory[4];
+        
         // Reset the abort flag for the new search
         threads[i].abort = 0;
     }
