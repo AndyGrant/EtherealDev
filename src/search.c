@@ -729,12 +729,18 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
+        // Step 6. Skip under-promotions. There are really only a few times where we
+        // would want to search them. We will allow the regular search to handle this
+        if (    MoveType(currentMove) == PROMOTION_MOVE
+            &&  MovePromoPiece(currentMove) != QUEEN)
+            continue;
+        
+        // Step 7. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, currentMove) < alpha)
             continue;
         
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
+        // Step 8. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
         if (captureIsWeak(board, &ei, currentMove, 0))
