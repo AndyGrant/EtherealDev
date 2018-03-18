@@ -402,7 +402,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // We do not cap reductions, so here we will make
         // sure that depth is within the accepktable bounds
-        depth = 0; 
+        depth = 1; 
     }
     
     // Step 7. Some initialization. Determine the check status if we have
@@ -521,7 +521,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 13. Check Extension at non Root nodes that are PV or low depth
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += inCheck && !RootNode && PvNode;
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
