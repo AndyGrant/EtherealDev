@@ -521,7 +521,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
 
-    depth += inCheck && !RootNode && PvNode;
+    depth += inCheck && !RootNode && (PvNode || depth <= 1);
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
