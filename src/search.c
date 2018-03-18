@@ -521,7 +521,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     depth +=    inCheck 
             && !RootNode 
             && (PvNode || depth <= 6)
-            &&  eval - PieceValues[PAWN][MG] < beta;
+            &&  eval - PieceValues[KNIGHT][MG] < beta;
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
