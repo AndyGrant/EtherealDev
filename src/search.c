@@ -520,8 +520,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttMove = ttEntry.bestMove;
     }
     
-    // Step 13. Check Extension at non Root nodes that are PV or low depth
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+
+    depth += inCheck && !RootNode && PvNode;
     
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
