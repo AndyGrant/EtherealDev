@@ -317,7 +317,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // the king safety calculation. We just do this for the pawns as a whole,
     // and not individually, to save time, despite the loss in accuracy.
     if (attacks != 0ull)
-        ei->attackerCounts[colour] += 3;
+        ei->attackCounts[colour] += 3 * popcount(attacks);
     
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pkentry != NULL) return;
