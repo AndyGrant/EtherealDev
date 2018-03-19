@@ -758,8 +758,11 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     ei->passedPawns = 0ull;
     
-    ei->attackCounts[WHITE] = ei->attackCounts[BLACK] = 0;
-    ei->attackerCounts[WHITE] = ei->attackerCounts[BLACK] = 0;
+    ei->attackCounts[WHITE] = popcount(ei->kingAreas[BLACK] & ei->attacked[WHITE]);
+    ei->attackCounts[BLACK] = popcount(ei->kingAreas[WHITE] & ei->attacked[BLACK]);
+    
+    ei->attackerCounts[WHITE] = 0;
+    ei->attackerCounts[BLACK] = 0;
     
     ei->midgame[WHITE] = ei->midgame[BLACK] = 0;
     ei->endgame[WHITE] = ei->endgame[BLACK] = 0;
