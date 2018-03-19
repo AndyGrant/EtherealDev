@@ -313,14 +313,6 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     ei->attacked[colour] |= ei->pawnAttacks[colour];
     ei->attackedNoQueen[colour] |= attacks;
     
-    // Update the attack counts and attacker counts for pawns for use in
-    // the king safety calculation. We just do this for the pawns as a whole,
-    // and not individually, to save time, despite the loss in accuracy.
-    if (attacks != 0ull){
-        ei->attackCounts[colour] += popcount(attacks);
-        ei->attackerCounts[colour] += 1;
-    }
-    
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pkentry != NULL) return;
     
@@ -651,10 +643,6 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         // Add an extra two attack counts per missing pawn in the king area.
         attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
-        
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
     
         ei->midgame[colour] -= KingSafety[MIN(63, MAX(0, attackCounts))];
     }
