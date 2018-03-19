@@ -724,9 +724,30 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
         return eval;
     
+    TransEntry ttEntry; uint16_t ttMove = NONE_MOVE; int rAlpha, rBeta, ttValue;
+    // Step 5. Probe the Transposition Table for an entry
+    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+        
+        // Entry move may be good in this position
+        ttMove = ttEntry.bestMove;
+        
+        // Step 5A. Check to see if this entry allows us to exit this node
+        rAlpha = alpha; rBeta = beta;
+        ttValue = valueFromTT(ttEntry.value, height);
+        
+        switch (ttEntry.type){
+            case  PVNODE: return ttValue;
+            case CUTNODE: rAlpha = MAX(ttValue, alpha); break;
+            case ALLNODE:  rBeta = MIN(ttValue,  beta); break;
+        }
+        
+        // Entry allows early exit
+        if (rAlpha >= rBeta) return ttValue;
+    }
+    
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, ttMove, height, 1);
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
