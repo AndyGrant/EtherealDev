@@ -695,6 +695,8 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
     
+    int kingsq = getlsb(board->colours[colour] & board->pieces[KING]);
+    
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
         
@@ -716,6 +718,13 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         ei->midgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][MG];
         ei->endgame[colour] += PassedPawn[canAdvance][safeAdvance][rank][EG];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        int distance = MAX(abs(Rank(sq) - Rank(kingsq)), abs(File(sq) - File(kingsq)));
+        
+        static const int FooBar[8] = {0, 21, 13,  7,  3,  2,  1,  0};
+        
+        ei->midgame[colour] += FooBar[distance];
+        ei->endgame[colour] += FooBar[distance];
     }
 }
 
