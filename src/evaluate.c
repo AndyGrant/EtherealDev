@@ -90,7 +90,7 @@ const int KnightOutpost[4][2][PHASE_NB] = {
     {{  19, -34}, {  38,   9}},
     {{  19, -34}, {  38,   9}},
     {{  19, -34}, {  38,   9}},
-    {{   0, -34}, {  19,   5}},
+    {{   5,-136}, {  19,   0}},
 };
 
 const int KnightMobility[9][PHASE_NB] = {
@@ -110,7 +110,7 @@ const int BishopOutpost[4][2][PHASE_NB] = {
     {{  20, -16}, {  53, -10}},
     {{  20, -16}, {  53, -10}},
     {{  20, -16}, {  53, -10}},
-    {{   0, -16}, {  26, -10}},
+    {{   5, -64}, {  13, -40}},
 };
 
 const int BishopMobility[14][PHASE_NB] = {
