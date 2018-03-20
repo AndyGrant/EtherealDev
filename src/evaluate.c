@@ -86,7 +86,12 @@ const int PawnConnected32[32][PHASE_NB] = {
 
 const int KnightAttackedByPawn[PHASE_NB] = { -49, -32};
 
-const int KnightOutpost[2][PHASE_NB] = { {  19, -34}, {  38,   9} };
+const int KnightOutpost[4][2][PHASE_NB] = {
+    {{  19, -34}, {  38,   9}},
+    {{  19, -34}, {  38,   9}},
+    {{  19, -34}, {  38,   9}},
+    {{  10, -34}, {  19,   5}},
+};
 
 const int KnightMobility[9][PHASE_NB] = {
     { -86, -98}, { -37, -84}, { -15, -40},
@@ -101,7 +106,12 @@ const int BishopPair[PHASE_NB] = {  43,  68};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -52, -34};
 
-const int BishopOutpost[2][PHASE_NB] = { {  20, -16}, {  53, -10} };
+const int BishopOutpost[4][2][PHASE_NB] = {
+    {{  20, -16}, {  53, -10}},
+    {{  20, -16}, {  53, -10}},
+    {{  20, -16}, {  53, -10}},
+    {{  10, -16}, {  26, -10}},
+};
 
 const int BishopMobility[14][PHASE_NB] = {
     { -58,-120}, { -47, -63}, { -19, -45}, {  -5, -21},
@@ -377,7 +387,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
 
 void evaluateKnights(EvalInfo* ei, Board* board, int colour){
     
-    int sq, defended, mobilityCount;
+    int sq, rank, defended, mobilityCount;
     uint64_t tempKnights, enemyPawns, attacks; 
     
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
@@ -411,10 +421,11 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
+            rank = RelativeRank(sq, colour) - 3;
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
             
-            ei->midgame[colour] += KnightOutpost[defended][MG];
-            ei->endgame[colour] += KnightOutpost[defended][EG];
+            ei->midgame[colour] += KnightOutpost[rank][defended][MG];
+            ei->endgame[colour] += KnightOutpost[rank][defended][EG];
             if (TRACE) T.knightOutpost[colour][defended]++;
         }
         
@@ -436,7 +447,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
 
 void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     
-    int sq, defended, mobilityCount;
+    int sq, rank, defended, mobilityCount;
     uint64_t tempBishops, enemyPawns, attacks;
     
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
@@ -477,10 +488,11 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
                 
+            rank = RelativeRank(sq, colour) - 3;
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
             
-            ei->midgame[colour] += BishopOutpost[defended][MG];
-            ei->endgame[colour] += BishopOutpost[defended][EG];
+            ei->midgame[colour] += BishopOutpost[rank][defended][MG];
+            ei->endgame[colour] += BishopOutpost[rank][defended][EG];
             if (TRACE) T.bishopOutpost[colour][defended]++;
         }
         
