@@ -43,11 +43,13 @@ void initializeMasks(){
             
             // Aligned on a diagonal
             if (bishopAttacks(i, 0ull, 1ull << j))
-                BitsBetweenMasks[i][j] = bishopAttacks(i, 1ull << j, ~0ull) & bishopAttacks(j, 1ull << i, ~0ull);
+                BitsBetweenMasks[i][j] = bishopAttacks(i, 1ull << j, ~0ull)
+                                       & bishopAttacks(j, 1ull << i, ~0ull);
             
             // Aligned on a straight
             if (rookAttacks(i, 0ull, 1ull << j))
-                BitsBetweenMasks[i][j] = rookAttacks(i, 1ull << j, ~0ull) & rookAttacks(j, 1ull << i, ~0ull);
+                BitsBetweenMasks[i][j] = rookAttacks(i, 1ull << j, ~0ull)
+                                       & rookAttacks(j, 1ull << i, ~0ull);
         }
     }
     
@@ -87,8 +89,8 @@ void initializeMasks(){
     }
     
     // Initalize relative outpost ranks
-    OutpostRanks[WHITE] = RANK_4 | RANK_5 | RANK_6;
-    OutpostRanks[BLACK] = RANK_3 | RANK_4 | RANK_5;
+    OutpostRanks[WHITE] = RANK_4 | RANK_5 | RANK_6 | RANK_7;
+    OutpostRanks[BLACK] = RANK_2 | RANK_3 | RANK_4 | RANK_5;
     
     // Initalize pawn connected masks
     for (i = 8 ; i < 56; i++){
