@@ -101,7 +101,7 @@ const int BishopPair[PHASE_NB] = {  43,  68};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -52, -34};
 
-const int BishopOutpost[2][PHASE_NB] = { {  20,   0}, {  53, -10} };
+const int BishopOutpost[2][PHASE_NB] = { {  20,   0}, {  53,   0} };
 
 const int BishopMobility[14][PHASE_NB] = {
     { -58,-120}, { -47, -63}, { -19, -45}, {  -5, -21},
