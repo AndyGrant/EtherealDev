@@ -58,11 +58,11 @@ static const int RazorDepth = 4;
 
 static const int RazorMargins[] = {0, 300, 350, 410, 500};
 
-static const int BetaPruningDepth = 5;
+static const int BetaPruningDepth = 10;
 
 static const int FutilityMargin = 85;
 
-static const int ProbCutDepth = 5;
+static const int ProbCutDepth = 10;
 
 static const int ProbCutMargin = 156;
 
