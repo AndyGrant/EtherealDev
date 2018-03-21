@@ -200,6 +200,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
+    int doFullDepthSearch;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -507,20 +508,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1;
+            // Perform the (possibly) reduced search on a null window
+            value = -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+            
+            // We must research if we improved alpha on a reduced search
+            doFullDepthSearch = value > alpha && R != 1;
+            
+        } else doFullDepthSearch = !PvNode || played > 1;
         
         
-        // Step 18A. Search the move with a possibly reduced depth basedon LMR,
-        // and a null window unless this is the first move within a PvNode
-        value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv,    -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
-               
-        // Step 18B. Research the move if it improved alpha, and was either a reduced
-        // search or a search on a null window. Otherwise, keep the current value
-        value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
-               :  value;
+        // Do a full depth search on a NULL window when LMR was skipped
+        // or was tried and failed high on a reduced depth search
+        if (doFullDepthSearch)
+            value = -search(thread, &lpv, -alpha-1, -alpha, depth-1, height+1);
+        
+        
+        if (PvNode && (played == 1 || (value > alpha && (RootNode || value < beta))))
+            value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1);
         
         // Revert the board state
         revertMove(board, currentMove, undo);
