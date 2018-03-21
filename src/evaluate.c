@@ -318,7 +318,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // torwards our attackers counts, which is used to decide when to look
     // at the King Safety of a position.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackCounts[colour] += popcount(attacks);
+    ei->attackCounts[colour] += 2 * popcount(attacks);
     
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pkentry != NULL) return;
