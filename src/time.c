@@ -67,14 +67,14 @@ void initializeManager(Manager* manager, Limits* limits, double time, double mtg
         
         // Allocate when using X/Y or X/Y+Z
         if (mtg >= 0){
-            manager->idealUsage =  0.65 * time / (mtg +  5) + inc;
+            manager->idealUsage =  0.85 * time / (mtg +  5) + inc;
             manager->maxAlloc   =  4.00 * time / (mtg +  7) + inc;
             manager->maxUsage   = 10.00 * time / (mtg + 10) + inc;
         }
         
         // Allocate when using X+Y, or simply X
         else {
-            manager->idealUsage =  0.45 * (time + 23 * inc) / 28;
+            manager->idealUsage =  0.58 * (time + 23 * inc) / 28;
             manager->maxAlloc   =  4.00 * (time + 23 * inc) / 27;
             manager->maxUsage   = 10.00 * (time + 23 * inc) / 25;
         }
@@ -127,7 +127,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Increase our time if the pv has changed across the last two iterations
         if (manager->bestMoves[depth-1] != bestMove)
-            manager->idealUsage *= MAX(manager->pvStability, 1.00);
+            manager->idealUsage *= MAX(manager->pvStability, 1.05);
         
         // Decrease our time if the pv has stayed the same between iterations
         if (manager->bestMoves[depth-1] == bestMove)
@@ -140,7 +140,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         // holding stable, we increase the pv stability. This way, if the best move changes
         // after holding for many iterations, more time will be allocated for the search, and
         // less time if the best move is in a constant flucation.
-        manager->pvStability *= (manager->bestMoves[depth-1] != bestMove) ? 0.95 : 1.05;
+        manager->pvStability *= (manager->bestMoves[depth-1] != bestMove) ? 0.80 : 1.05;
     }
 }
 
