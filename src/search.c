@@ -165,7 +165,7 @@ int aspirationWindow(Thread* thread, int depth){
         for (; lower <= 1000 && upper <= 1000; lower *= 2, upper *= 2){
             
             // Perform the search on the modified window
-            value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            value = search(thread, &thread->pv, alpha, beta, depth, 0, 0);
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -186,10 +186,10 @@ int aspirationWindow(Thread* thread, int depth){
     }
     
     // Full window search when near mate or when depth is below or equal to 4
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    return search(thread, &thread->pv, -MATE, MATE, depth, 0, 0);
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int isProbCut){
     
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -324,6 +324,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
         && !inCheck
+        && !isProbCut
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
@@ -358,7 +359,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
+        value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1, 0);
         
         revertNullMove(board, undo);
         
@@ -395,8 +396,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
-                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1, 1) >= rBeta
+                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, 1) >= rBeta){
                     
                 revertMove(board, currentMove, undo);
                 return beta;
@@ -414,7 +415,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, 0);
         
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
@@ -513,13 +514,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 18A. Search the move with a possibly reduced depth basedon LMR,
         // and a null window unless this is the first move within a PvNode
         value =  (played == 1 || !PvNode)
-               ? -search(thread, &lpv,    -beta, -alpha, depth-R, height+1)
-               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
+               ? -search(thread, &lpv,    -beta, -alpha, depth-R, height+1, 0)
+               : -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1, 0);
                
         // Step 18B. Research the move if it improved alpha, and was either a reduced
         // search or a search on a null window. Otherwise, keep the current value
         value =  (value > alpha && (R != 1 || (played != 1 && PvNode)))
-               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1)
+               ? -search(thread, &lpv, -beta, -alpha, depth-1, height+1, 0)
                :  value;
         
         // Revert the board state
