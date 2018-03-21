@@ -115,7 +115,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
     // If Ethereal is managing the clock, determine if we should be spending
     // more time on this search, based on the score difference between iterations
     // and any changes in the principle variation since the last iteration
-    if (manager->limitedBySelf && depth >= 4){
+    if (manager->limitedBySelf && depth >= 5){
         
         // Increase our time if the score suddently dropped by eight centipawns
         if (manager->values[depth-1] > value + 10)
@@ -127,11 +127,11 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Increase our time if the pv has changed across the last two iterations
         if (manager->bestMoves[depth-1] != bestMove)
-            manager->idealUsage *= MAX(manager->pvStability, 1.05);
+            manager->idealUsage *= MAX(manager->pvStability, 1.50);
         
         // Decrease our time if the pv has stayed the same between iterations
         if (manager->bestMoves[depth-1] == bestMove)
-            manager->idealUsage *= MAX(0.95, MIN(manager->pvStability, 1.00));
+            manager->idealUsage *= MAX(0.90, MIN(manager->pvStability - 0.25, 1.00));
         
         // Cap our ideal usage at the max allocation of time
         manager->idealUsage = MIN(manager->idealUsage, manager->maxAlloc);
@@ -140,7 +140,8 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         // holding stable, we increase the pv stability. This way, if the best move changes
         // after holding for many iterations, more time will be allocated for the search, and
         // less time if the best move is in a constant flucation.
-        manager->pvStability *= (manager->bestMoves[depth-1] != bestMove) ? 0.80 : 1.05;
+        manager->pvStability = (manager->bestMoves[depth-1] != bestMove)
+                                ? 1.00 : manager->pvStability * 1.05;
     }
 }
 
@@ -157,7 +158,7 @@ int terminateSearchHere(Manager* manager){
         return 1;
 
     // Check to see if we expect to be able to complete the next depth
-    if (manager->limitedBySelf && manager->depth >= 4){
+    if (manager->limitedBySelf && manager->depth >= 5){
         
         // Look at the last completed depth
         depth = manager->depth;
