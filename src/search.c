@@ -325,7 +325,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargins[depth] < alpha){
+        &&  eval + RazorMargins[depth] < alpha
+        &&  board->history[board->numMoves-1] != NULL_MOVE){
             
         if (depth <= 1)
             return qsearch(thread, pv, alpha, beta, height);
