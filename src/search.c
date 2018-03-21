@@ -141,6 +141,8 @@ int aspirationWindow(Thread* thread, int depth){
     
     int* const values = thread->manager->values;
     
+    const int mainThread = thread == &thread->threads[0];
+    
     int mainDepth = MAX(5, 1 + thread->manager->depth);
     
     // Aspiration window only after we have completed the first four
@@ -176,8 +178,15 @@ int aspirationWindow(Thread* thread, int depth){
                 alpha = alpha - 2 * lower;
             
             // Search failed high
-            if (value >= beta)
-                beta  = beta + 2 * upper;
+            if (value >= beta){
+                beta = beta + 2 * upper;
+                
+                if (    mainThread
+                    &&  thread->pv.line[0] == thread->manager->bestMoves[depth-1]
+                    &&  thread->manager->limitedBySelf
+                    &&  getElapsedTime(thread->manager->startTime) > thread->manager->idealUsage)
+                    longjmp(thread->jbuffer, 1);
+            }
             
             // Result was a near mate score, force a full search
             if (abs(value) > MATE / 2)
