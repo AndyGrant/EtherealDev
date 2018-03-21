@@ -493,7 +493,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 6 * popcount(attacks);
+            ei->attackCounts[colour] += 8 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -608,7 +608,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // pieces. This way King Safety is always used with the Queen attacks
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 16 * popcount(attacks);
+            ei->attackCounts[colour] += 20 * popcount(attacks);
             ei->attackerCounts[colour] += 2;
         }
     }
