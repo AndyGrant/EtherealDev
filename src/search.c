@@ -416,6 +416,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Search with a reduced depth
         value = search(thread, &lpv, alpha, beta, depth-2, height);
         
+        if (value <= alpha)
+            value = search(thread, &lpv, -MATE, alpha, depth-2, height);
+        
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
             ttMove = ttEntry.bestMove;
