@@ -523,7 +523,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             value = -search(thread, &lpv, -alpha-1, -alpha, depth-1, height+1);
         
         
-        if (PvNode && (played == 1 || (value > alpha && (RootNode || value < beta))))
+        if (PvNode && (played == 1 || value > alpha))
             value = -search(thread, &lpv, -beta, -alpha, depth-1, height+1);
         
         // Revert the board state
