@@ -493,7 +493,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += 3 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
