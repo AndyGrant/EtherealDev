@@ -318,7 +318,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // torwards our attackers counts, which is used to decide when to look
     // at the King Safety of a position.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackCounts[colour] += 2 * popcount(attacks);
+    ei->attackCounts[colour] += 4 * popcount(attacks);
     
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pkentry != NULL) return;
@@ -493,7 +493,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 8 * popcount(attacks);
+            ei->attackCounts[colour] += 6 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
