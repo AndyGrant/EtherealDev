@@ -62,6 +62,8 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove);
 
 int terminateSearchHere(Manager* manager);
 
+int terminateOnFailHigh(Thread* thread);
+
 int searchTimeHasExpired(Thread* thread);
 
 #endif

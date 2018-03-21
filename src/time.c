@@ -177,6 +177,32 @@ int terminateSearchHere(Manager* manager){
     return 0;
 }
 
+int terminateOnFailHigh(Thread* thread){
+    
+    Manager* manager = thread->manager;
+    
+    const int mainThread = thread == &thread->threads[0];
+    
+    int depth = manager->depth;
+    
+    double timeFactor, estimatedUsage;
+    
+    if (    depth < 4
+        || !mainThread 
+        || !manager->limitedBySelf
+        ||  thread->pv.line[0] != manager->bestMoves[depth])
+        return 0;
+        
+    // Time factor between the last completed search iterations
+    timeFactor = manager->timeUsage[depth] / MAX(50, manager->timeUsage[depth-1]);
+    
+    // Assume the factor (+ a buffer) is a good estimate for the next search time
+    estimatedUsage = manager->timeUsage[depth] * (timeFactor + .40);
+    
+    // If the assumed time usage would exceed our ideal, terminate search
+    return getElapsedTime(manager->startTime) + estimatedUsage > manager->idealUsage;
+}
+
 int searchTimeHasExpired(Thread* thread){
     
     // Check to see if search time has expired. We will force the search
@@ -187,4 +213,3 @@ int searchTimeHasExpired(Thread* thread){
         &&  getElapsedTime(thread->manager->startTime) > thread->manager->maxUsage
         &&  thread->depth > 1;
 }
-
