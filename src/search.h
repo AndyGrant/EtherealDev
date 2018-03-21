@@ -58,7 +58,7 @@ static const int RazorDepth = 4;
 
 static const int RazorMargins[] = {0, 300, 350, 410, 500};
 
-static const int BetaPruningDepth = 6;
+static const int BetaPruningDepth = 5;
 
 static const int FutilityMargin = 85;
 
@@ -74,7 +74,7 @@ static const int WeakCaptureTwoAttackersDepth = 5;
 
 static const int WeakCaptureOneAttackersDepth = 3;
 
-static const int FutilityPruningDepth = 6;
+static const int FutilityPruningDepth = 5;
 
 static const int LateMovePruningDepth = 8;
 
