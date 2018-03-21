@@ -144,7 +144,7 @@ const int QueenMobility[28][PHASE_NB] = {
 
 // Definition of evaluation terms related to Kings
 
-int KingSafety[64]; // Defined by the Polynomial below
+int KingSafety[256]; // Defined by the Polynomial below
 
 const double KingPolynomial[6] = {
     0.00000011, -0.00009948,  0.00797308, 
@@ -318,7 +318,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // torwards our attackers counts, which is used to decide when to look
     // at the King Safety of a position.
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
-    ei->attackCounts[colour] += popcount(attacks);
+    ei->attackCounts[colour] += 2 * popcount(attacks);
     
     // The pawn table holds the rest of the eval information we will calculate
     if (ei->pkentry != NULL) return;
@@ -427,7 +427,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // knight for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += 8 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -493,7 +493,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // bishop for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 2 * popcount(attacks);
+            ei->attackCounts[colour] += 8 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -554,7 +554,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // rook for use in the king safety calculation.
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 3 * popcount(attacks);
+            ei->attackCounts[colour] += 12 * popcount(attacks);
             ei->attackerCounts[colour] += 1;
         }
     }
@@ -608,7 +608,7 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // pieces. This way King Safety is always used with the Queen attacks
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
-            ei->attackCounts[colour] += 4 * popcount(attacks);
+            ei->attackCounts[colour] += 16 * popcount(attacks);
             ei->attackerCounts[colour] += 2;
         }
     }
@@ -649,13 +649,13 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts = ei->attackCounts[!colour];
         
         // Add an extra two attack counts per missing pawn in the king area.
-        attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
+        attackCounts += 4 * (6 - 2 * popcount(myPawns & ei->kingAreas[colour]));
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             attackCounts *= .25;
     
-        ei->midgame[colour] -= KingSafety[MIN(63, MAX(0, attackCounts))];
+        ei->midgame[colour] -= KingSafety[MIN(255, MAX(0, attackCounts))];
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
@@ -775,11 +775,11 @@ void initializeEvaluation(){
     int i;
     
     // Compute values for the King Safety based on the King Polynomial
-    for (i = 0; i < 64; i++){
+    for (i = 0; i < 256; i++){
         KingSafety[i] = (int)(
-            + KingPolynomial[0] * pow(i, 5) + KingPolynomial[1] * pow(i, 4)
-            + KingPolynomial[2] * pow(i, 3) + KingPolynomial[3] * pow(i, 2)
-            + KingPolynomial[4] * pow(i, 1) + KingPolynomial[5] * pow(i, 0)
+            + KingPolynomial[0] * pow(i/4.0, 5) + KingPolynomial[1] * pow(i/4.0, 4)
+            + KingPolynomial[2] * pow(i/4.0, 3) + KingPolynomial[3] * pow(i/4.0, 2)
+            + KingPolynomial[4] * pow(i/4.0, 1) + KingPolynomial[5] * pow(i/4.0, 0)
         );
     }
 }
