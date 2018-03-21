@@ -196,7 +196,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, value, inCheck = 0, isQuiet, R, repetitions;
+    int i, value, ttHit = 0, inCheck = 0, isQuiet, R, repetitions;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0; 
     int best = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -266,7 +266,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 5. Probe the Transposition Table for an entry
-    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+    if ((ttHit = getTranspositionEntry(&Table, board->hash, &ttEntry))){
         
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
@@ -488,6 +488,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            R -= PvNode && ttHit && ttEntry.type == PVNODE;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
