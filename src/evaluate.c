@@ -86,7 +86,7 @@ const int PawnConnected32[32][PHASE_NB] = {
 
 const int KnightAttackedByPawn[PHASE_NB] = { -49, -32};
 
-const int KnightOutpost[2][PHASE_NB] = { {  19, -34}, {  38,   9} };
+const int KnightOutpost[2][PHASE_NB] = { {  19,   0}, {  38,   9} };
 
 const int KnightMobility[9][PHASE_NB] = {
     { -86, -98}, { -37, -84}, { -15, -40},
@@ -101,7 +101,7 @@ const int BishopPair[PHASE_NB] = {  43,  68};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -52, -34};
 
-const int BishopOutpost[2][PHASE_NB] = { {  20, -16}, {  53, -10} };
+const int BishopOutpost[2][PHASE_NB] = { {  20,   0}, {  53,   0} };
 
 const int BishopMobility[14][PHASE_NB] = {
     { -58,-120}, { -47, -63}, { -19, -45}, {  -5, -21},
