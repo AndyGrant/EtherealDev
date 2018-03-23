@@ -652,7 +652,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
         
         // Add an extra account for each attacker over two
-        attackCounts += ei->attackCounts[!colour] - 2;
+        attackCounts += ei->attackerCounts[!colour] - 2;
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
