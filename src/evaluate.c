@@ -152,9 +152,9 @@ const double KingPolynomial[6] = {
 };
 
 const int KingDefenders[12][PHASE_NB] = {
-    { -39,  -4}, { -23,   5}, {   0,   1}, {  10,  -1},
-    {  25,  -1}, {  36,   3}, {  39,   7}, {  33, -76},
-    {  12,   6}, {  12,   6}, {  12,   6}, {  12,   6},
+    { -45,  -9}, { -39,  -4}, { -23,   5}, {   0,   1}, 
+    {  10,  -1}, {  25,  -1}, {  36,   3}, {  39,   7},
+    {  33, -76}, {  12,   6}, {  12,   6}, {  12,   6}
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB][PHASE_NB] = {
@@ -627,7 +627,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
-                          | (board->pieces[BISHOP] & board->colours[colour]);
+                          | (board->pieces[BISHOP] & board->colours[colour])
+                          | (board->pieces[ROOK  ] & board->colours[colour]);
                           
     kingSq = getlsb(myKings);
     kingFile = File(kingSq);
@@ -649,7 +650,7 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts = ei->attackCounts[!colour];
         
         // Increase threat when we have limited defenders
-        attackCounts += 2 * MAX(0, 4 - defenderCounts);
+        attackCounts += 2 * MAX(0, 5 - defenderCounts);
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
