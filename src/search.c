@@ -446,7 +446,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. This is done for only some depths
         if (    !PvNode
-            &&  !isQuiet
+          //&&  !isQuiet
             &&  !inCheck
             &&   best > MATED_IN_MAX
             &&   captureIsWeak(board, &ei, currentMove, depth))
