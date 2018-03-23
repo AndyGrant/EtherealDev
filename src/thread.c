@@ -72,6 +72,9 @@ void newSearchThreadPool(Thread* threads, Board* board, Manager* manager){
         // Make our own copy of the original position
         memcpy(&threads[i].board, board, sizeof(Board));
         
+        // Save the colour of the root position
+        threads[i].rootColour = board->turn;
+        
         // Zero our the depth, nodes for the new search
         threads[i].depth = 0;
         threads[i].nodes = 0ull;

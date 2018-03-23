@@ -32,6 +32,8 @@ typedef struct Thread {
     
     Board board;
     PVariation pv;
+    int rootColour;
+    
     int depth;
     uint64_t nodes;
     

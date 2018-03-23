@@ -313,7 +313,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
     if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->pktable);
+        eval = evaluateBoard(thread, board, &ei, &thread->pktable);
         futilityMargin = eval + FutilityMargin * depth;
     }
     
@@ -612,12 +612,12 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 2. Max Height Cutoff. If we are at the maximum search height,
     // then end the search here with a static eval of the current board
     if (height >= MAX_HEIGHT)
-        return evaluateBoard(board, &ei, &thread->pktable);
+        return evaluateBoard(thread, board, &ei, &thread->pktable);
     
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
+    best = value = eval = evaluateBoard(thread, board, &ei, &thread->pktable);
     alpha = MAX(alpha, value);
     if (alpha >= beta) return value;
     

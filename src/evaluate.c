@@ -32,6 +32,7 @@
 #include "movegen.h"
 #include "piece.h"
 #include "square.h"
+#include "thread.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -191,8 +192,10 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
 
+const int Contempt[PHASE_NB] = {  20,  10};
 
-int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
+
+int evaluateBoard(Thread* thread, Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
     int mg, eg, phase, eval;
     
@@ -224,6 +227,9 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Combine evaluation terms for the end game
     eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
        + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK] + Tempo[board->turn][EG];
+       
+    mg += (thread->rootColour == WHITE) ? Contempt[MG] : -Contempt[MG];
+    eg += (thread->rootColour == WHITE) ? Contempt[EG] : -Contempt[EG];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
