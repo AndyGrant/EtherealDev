@@ -225,7 +225,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
        + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK];
        
-    if (ei->attackerCounts[!board->turn] >= 2)
+    if (ei->attackerCounts[board->turn] >= 2)
         mg += 2 * Tempo[board->turn][MG],
         eg += 2 * Tempo[board->turn][EG];
     else
