@@ -398,6 +398,12 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
+        // Apply a bonus of the bishop is supported by a pawn
+        if (ei->pawnAttacks[colour] & (1ull << sq)){
+            ei->midgame[colour] += 12;
+            ei->endgame[colour] += 6;
+        }
+        
         // Apply a penalty if the knight is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
             ei->midgame[colour] += KnightAttackedByPawn[MG];
@@ -409,9 +415,7 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
-                
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            
             ei->midgame[colour] += KnightOutpost[defended][MG];
             ei->endgame[colour] += KnightOutpost[defended][EG];
             if (TRACE) T.knightOutpost[colour][defended]++;
@@ -464,6 +468,12 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
         
+        // Apply a bonus of the bishop is supported by a pawn
+        if (ei->pawnAttacks[colour] & (1ull << sq)){
+            ei->midgame[colour] += 8;
+            ei->endgame[colour] += 4;
+        }
+        
         // Apply a penalty if the bishop is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
             ei->midgame[colour] += BishopAttackedByPawn[MG];
@@ -475,9 +485,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
-                
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            
             ei->midgame[colour] += BishopOutpost[defended][MG];
             ei->endgame[colour] += BishopOutpost[defended][EG];
             if (TRACE) T.bishopOutpost[colour][defended]++;
