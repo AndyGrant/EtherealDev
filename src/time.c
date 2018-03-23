@@ -123,7 +123,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Decrease our time if the score suddently jumped by eight centipawns
         if (manager->values[depth-1] < value - 10)
-            manager->idealUsage *= 0.975;
+            manager->idealUsage *= 0.950;
         
         // Increase our time if the pv has changed across the last two iterations
         if (manager->bestMoves[depth-1] != bestMove)
