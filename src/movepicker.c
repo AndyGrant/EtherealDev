@@ -32,14 +32,16 @@
 #include "types.h"
 #include "thread.h"
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets){
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int pvnode, int skipQuiets){
     mp->skipQuiets = skipQuiets;
     mp->stage      = STAGE_TABLE;
     mp->noisySize  = 0;
     mp->quietSize  = 0;
     mp->tableMove  = ttMove;
-    mp->killer1    = thread->killers[height][0] != ttMove ? thread->killers[height][0] : NONE_MOVE;
-    mp->killer2    = thread->killers[height][1] != ttMove ? thread->killers[height][1] : NONE_MOVE;
+    mp->killer1    = pvnode ? thread->pvkillers[height][0] : thread->killers[height][0];
+    mp->killer1    = mp->killer1 == ttMove ? NONE_MOVE : mp->killer1;
+    mp->killer2    = pvnode ? thread->pvkillers[height][1] : thread->killers[height][1];
+    mp->killer2    = mp->killer2 == ttMove ? NONE_MOVE : mp->killer2;
     mp->history    = &thread->history;
 }
 

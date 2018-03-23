@@ -42,6 +42,7 @@ typedef struct Thread {
     Thread* threads;
     
     KillerTable killers;
+    KillerTable pvkillers;
     HistoryTable history;
     PawnKingTable pktable;
     

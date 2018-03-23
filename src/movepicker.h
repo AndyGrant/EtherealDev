@@ -39,7 +39,7 @@ typedef struct MovePicker {
     
 } MovePicker;
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets);
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int pvnode, int skipQuiets);
 uint16_t selectNextMove(MovePicker* mp, Board* board);
 void evaluateNoisyMoves(MovePicker* mp, Board* board);
 void evaluateQuietMoves(MovePicker* mp, Board* board);
