@@ -192,7 +192,7 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 
 const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
 
-const int Contempt[PHASE_NB] = {  20,  10};
+const int Contempt[PHASE_NB] = {  10,   5};
 
 
 int evaluateBoard(Thread* thread, Board* board, EvalInfo* ei, PawnKingTable* pktable){
