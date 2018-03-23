@@ -556,6 +556,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (alpha >= beta){
             
             if (isQuiet && thread->killers[height][0] != currentMove){
+                thread->killers[height][2] = thread->killers[height][1];
                 thread->killers[height][1] = thread->killers[height][0];
                 thread->killers[height][0] = currentMove;
             }
