@@ -555,9 +555,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 20. Search has failed high. Update Killer Moves and exit search
         if (alpha >= beta){
             
-            if (PvNode && isQuiet && thread->pvkillers[height][0] != currentMove){
+            if (PvNode && isQuiet && currentMove != ttMove){
                 thread->pvkillers[height][1] = thread->pvkillers[height][0];
-                thread->pvkillers[height][0] = currentMove;
+                thread->pvkillers[height][0] = ttMove;
             }
             
             if (!PvNode && isQuiet && thread->killers[height][0] != currentMove){
