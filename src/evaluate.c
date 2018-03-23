@@ -129,7 +129,7 @@ const int RookMobility[15][PHASE_NB] = {
 
 const int QueenChecked[PHASE_NB] = { -35, -32};
 
-const int QueenCheckedByPawn[PHASE_NB] = { -49, -45};
+const int QueenCheckedByPawn[PHASE_NB] = { -69, -65};
 
 const int QueenMobility[28][PHASE_NB] = {
     { -60,-258}, {-169,-232}, { -39,-187}, { -35,-174},
