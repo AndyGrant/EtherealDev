@@ -70,9 +70,9 @@ static const int InternalIterativeDeepeningDepth = 3;
 
 static const int NullMovePruningDepth = 2;
 
-static const int WeakCaptureTwoAttackersDepth = 5;
+static const int WeakCaptureTwoAttackersDepth = 7;
 
-static const int WeakCaptureOneAttackersDepth = 3;
+static const int WeakCaptureOneAttackersDepth = 5;
 
 static const int FutilityPruningDepth = 8;
 
