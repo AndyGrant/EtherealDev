@@ -189,7 +189,7 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 
 // Definition of evaluation terms related to general properties
 
-const int Tempo[COLOUR_NB][PHASE_NB] = { {  16,   0}, {  16,   0} };
+const int Tempo[COLOUR_NB][PHASE_NB] = { {  16,   0}, { -16,   0} };
 
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
