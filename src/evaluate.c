@@ -189,7 +189,7 @@ const int PassedPawn[2][2][RANK_NB][PHASE_NB] = {
 
 // Definition of evaluation terms related to general properties
 
-const int Tempo[COLOUR_NB][PHASE_NB] = { {  25,  12}, { -25, -12} };
+const int Tempo[COLOUR_NB][PHASE_NB] = { {  20,  10}, { -20, -10} };
 
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
@@ -219,11 +219,18 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
         
     // Combine evaluation terms for the mid game
     mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
-       + ei->pawnKingMidgame[WHITE] - ei->pawnKingMidgame[BLACK] + Tempo[board->turn][MG];
+       + ei->pawnKingMidgame[WHITE] - ei->pawnKingMidgame[BLACK];
        
     // Combine evaluation terms for the end game
     eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
-       + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK] + Tempo[board->turn][EG];
+       + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK];
+       
+    if (ei->attackerCounts[!board->turn] >= 2)
+        mg += 2 * Tempo[board->turn][MG],
+        eg += 2 * Tempo[board->turn][EG];
+    else
+        mg += Tempo[board->turn][MG],
+        eg += Tempo[board->turn][EG];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
