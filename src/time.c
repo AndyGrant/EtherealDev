@@ -124,11 +124,11 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Increase our time if the pv has changed across the last two iterations
         if (manager->bestMoves[depth-1] != bestMove)
-            manager->idealUsage *= MAX(manager->pvStability, 1.30);
+            manager->idealUsage *= MAX(manager->pvStability, 1.300);
         
         // Decrease our time if the pv has stayed the same between iterations
         if (manager->bestMoves[depth-1] == bestMove)
-            manager->idealUsage *= MAX(0.95, MIN(manager->pvStability, 1.00));
+            manager->idealUsage *= MAX(0.950, MIN(manager->pvStability, 0.990));
         
         // Cap our ideal usage at the max allocation of time
         manager->idealUsage = MIN(manager->idealUsage, manager->maxAlloc);
@@ -137,7 +137,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         // holding stable, we increase the pv stability. This way, if the best move changes
         // after holding for many iterations, more time will be allocated for the search, and
         // less time if the best move is in a constant flucation.
-        manager->pvStability *= (manager->bestMoves[depth-1] != bestMove) ? 0.95 : 1.05;
+        manager->pvStability *= (manager->bestMoves[depth-1] != bestMove) ? 0.875 : 1.050;
     }
 }
 
