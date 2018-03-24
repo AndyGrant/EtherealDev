@@ -107,7 +107,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
     manager->depth            = depth;
     manager->values[depth]    = value;
     manager->bestMoves[depth] = bestMove;
-    manager->timeUsage[depth] = getElapsedTime(manager->startTime) - manager->timeUsage[depth-1]);
+    manager->timeUsage[depth] = getElapsedTime(manager->startTime) - manager->timeUsage[depth-1];
     
     // If Ethereal is managing the clock, determine if we should be spending
     // more time on this search, based on the score difference between iterations
