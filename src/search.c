@@ -749,7 +749,7 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
     // If we lack the sufficient depth, the position was drawn and thus
     // no attackers were computed, or the capture we are looking at is
     // supported by another piece, then this capture is not a weak one
-    if (    depth > WeakCaptureTwoAttackersDepth
+    if (    depth > WeakCaptureDepth
         ||  ei->positionIsDrawn
         || (ei->attackedBy2[board->turn] & (1ull << MoveTo(move))))
         return 0;
@@ -761,9 +761,5 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
     if (thisTacticalMoveValue(board, move) >= attackerValue)
         return 0;
     
-    // Thus, the capture is weak if there are sufficient attackers for a given depth
-    return (   (depth <= WeakCaptureTwoAttackersDepth
-            &&  ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
-            || (depth <= WeakCaptureOneAttackersDepth
-            &&  ei->attacked[!board->turn] & (1ull << MoveTo(move))));
+    return ei->attackedBy2[!board->turn] & (1ull << MoveTo(move));
 }
