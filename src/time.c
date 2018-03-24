@@ -54,7 +54,10 @@ void initializeManager(Manager* manager, Limits* limits, double time, double mtg
     // Zero out score, move, and time history for the Iterative
     // Deepening loop within the main Thread. Also, the max depth
     // reached by the search must be set back to zero
-    memset(manager, 0, sizeof(Manager));
+    memset(manager->values,    0, sizeof(int) * MAX_DEPTH);
+    memset(manager->bestMoves, 0, sizeof(int) * MAX_DEPTH);
+    memset(manager->timeUsage, 0, sizeof(int) * MAX_DEPTH);
+    manager->depth = 0;
     
     // Establish start time of our search
     manager->startTime = getRealTime();
@@ -150,8 +153,7 @@ int terminateSearchHere(Manager* manager){
     // depth limited, time limited, and Ethereal limited searches
     if (   (manager->limitedByDepth && manager->depth >= manager->depthLimit)
         || (manager->limitedByTime  && getElapsedTime(manager->startTime) > manager->timeLimit)
-        || (manager->limitedBySelf  && getElapsedTime(manager->startTime) > manager->idealUsage)
-        || (manager->limitedBySelf  && getElapsedTime(manager->startTime) > manager->maxUsage))
+        || (manager->limitedBySelf  && getElapsedTime(manager->startTime) > manager->idealUsage))
         return 1;
 
     // Check to see if we expect to be able to complete the next depth
