@@ -41,6 +41,8 @@
 #include "uci.h"
 #include "zorbist.h"
 
+pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
+
 extern TransTable Table;
 
 int main(){
@@ -91,8 +93,10 @@ int main(){
         }
         
         else if (stringEquals(str, "isready")){
+            pthread_mutex_lock(&READYLOCK);
             printf("readyok\n");
             fflush(stdout);
+            pthread_mutex_unlock(&READYLOCK);
         } 
         
         else if (stringStartsWith(str, "setoption")){
@@ -147,6 +151,9 @@ int main(){
 }
 
 void* uciGo(void* vthreadsgo){
+    
+    // Grab the ready lock, as we cannot be ready until we finish this search
+    pthread_mutex_lock(&READYLOCK);
     
     char* str       = ((ThreadsGo*)vthreadsgo)->str;
     Board* board    = ((ThreadsGo*)vthreadsgo)->board;
@@ -205,6 +212,9 @@ void* uciGo(void* vthreadsgo){
     moveToString(move, getBestMove(threads, board, &limits, time, mtg, inc));
     printf("bestmove %s\n", move);
     fflush(stdout);
+    
+    // Drop the ready lock, as we are prepared to handle a new search
+    pthread_mutex_unlock(&READYLOCK);
     
     return NULL;
 }
