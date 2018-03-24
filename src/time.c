@@ -128,7 +128,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Decrease our time if the pv has stayed the same between iterations
         if (manager->bestMoves[depth-1] == bestMove)
-            manager->idealUsage *= MAX(0.95, MIN(manager->pvStability, 1.00));
+            manager->idealUsage *= MAX(0.95, MIN(manager->pvStability, 0.98));
         
         // Cap our ideal usage at the max allocation of time
         manager->idealUsage = MIN(manager->idealUsage, manager->maxAlloc);
