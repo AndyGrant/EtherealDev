@@ -53,6 +53,8 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei);
 
 int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
 
+int advancedPawnPush(Board* board, uint16_t move);
+
 
 static const int RazorDepth = 4;
 

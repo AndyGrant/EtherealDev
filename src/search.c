@@ -439,7 +439,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            && !advancedPawnPush(board, currentMove))
             break;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
@@ -766,4 +767,12 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
             &&  ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
             || (depth <= WeakCaptureOneAttackersDepth
             &&  ei->attacked[!board->turn] & (1ull << MoveTo(move))));
+}
+
+int advancedPawnPush(Board* board, uint16_t move){
+    
+    if (PieceType(board->squares[MoveFrom(move)]) != PAWN)
+        return 0;
+    
+    return board->turn == WHITE ? Rank(MoveFrom(move)) >= 4: Rank(MoveFrom(move)) <= 3;
 }
