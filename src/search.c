@@ -47,13 +47,13 @@ pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
 
-uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double time, double mtg, double inc){
+uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start, double time, double mtg, double inc){
     
     int i, nthreads = threads[0].nthreads;
     
     pthread_t* pthreads = malloc(sizeof(pthread_t) * nthreads);
     
-    Manager manager; initializeManager(&manager, limits, time, mtg, inc);
+    Manager manager; initializeManager(&manager, limits, start, time, mtg, inc);
     
     // Setup the thread pool for a new search with these parameters
     newSearchThreadPool(threads, board, &manager);

@@ -49,15 +49,16 @@ double getElapsedTime(double reference){
     return getRealTime() - reference;
 }
 
-void initializeManager(Manager* manager, Limits* limits, double time, double mtg, double inc){
+void initializeManager(Manager* manager, Limits* limits, double start, double time, double mtg, double inc){
     
     // Zero out score, move, and time history for the Iterative
     // Deepening loop within the main Thread. Also, the max depth
     // reached by the search must be set back to zero
     memset(manager, 0, sizeof(Manager));
     
-    // Establish start time of our search
-    manager->startTime = getRealTime();
+    // Establish start time of our search. We call getRealTime() as soon
+    // as we read any UCI:GO commands, as to limit errors in calculation
+    manager->startTime = start;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
@@ -78,8 +79,8 @@ void initializeManager(Manager* manager, Limits* limits, double time, double mtg
         
         // Cap our allocation to ensure we leave some time to report
         manager->idealUsage = MIN(manager->idealUsage, time - 100);
-        manager->maxAlloc   = MIN(manager->maxAlloc,   time -  75);
-        manager->maxUsage   = MIN(manager->maxUsage,   time -  50);
+        manager->maxAlloc   = MIN(manager->maxAlloc,   time - 100);
+        manager->maxUsage   = MIN(manager->maxUsage,   time - 100);
     }
     
     // UCI command told us to look for exactly X seconds
@@ -181,7 +182,7 @@ int searchTimeHasExpired(Thread* thread){
     // to continue after the search time has been used in the event that we have
     // not yet completed our depth one search, and therefore would have no best move
     return (thread->manager->limitedBySelf || thread->manager->limitedByTime)
-        && (thread->nodes & 4095) == 4095
+        && (thread->nodes & 2047) == 2047
         &&  getElapsedTime(thread->manager->startTime) > thread->manager->maxUsage
         &&  thread->depth > 1;
 }

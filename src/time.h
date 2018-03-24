@@ -56,7 +56,7 @@ double getRealTime();
 
 double getElapsedTime(double reference);
 
-void initializeManager(Manager* manager, Limits* limits, double time, double mtg, double inc);
+void initializeManager(Manager* manager, Limits* limits, double start, double time, double mtg, double inc);
 
 void updateManager(Manager* manager, int depth, int value, uint16_t bestMove);
 

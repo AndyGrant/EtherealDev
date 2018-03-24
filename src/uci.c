@@ -148,6 +148,10 @@ int main(){
 
 void* uciGo(void* vthreadsgo){
     
+    // Establish start time as soon as possible
+    double start = getRealTime();
+    
+    // Unpack our void struct
     char* str       = ((ThreadsGo*)vthreadsgo)->str;
     Board* board    = ((ThreadsGo*)vthreadsgo)->board;
     Thread* threads = ((ThreadsGo*)vthreadsgo)->threads;
@@ -202,7 +206,7 @@ void* uciGo(void* vthreadsgo){
     inc  = (board->turn == WHITE) ?  winc :  binc;
     
     // Execute the search and report the best move
-    moveToString(move, getBestMove(threads, board, &limits, time, mtg, inc));
+    moveToString(move, getBestMove(threads, board, &limits, start, time, mtg, inc));
     printf("bestmove %s\n", move);
     fflush(stdout);
     
