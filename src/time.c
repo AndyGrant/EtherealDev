@@ -124,7 +124,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Increase our time if the pv has changed across the last two iterations
         if (manager->bestMoves[depth-1] != bestMove)
-            manager->idealUsage *= MAX(manager->pvStability, 1.30);
+            manager->idealUsage *= MAX(manager->pvStability, 1.125);
         
         // Decrease our time if the pv has stayed the same between iterations
         if (manager->bestMoves[depth-1] == bestMove)
