@@ -746,6 +746,8 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei){
 
 int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
     
+    const int FudgeFactor = abs(PieceValues[BISHOP][EG] - PieceValues[KNIGHT][EG]);
+    
     // If we lack the sufficient depth, the position was drawn and thus
     // no attackers were computed, or the capture we are looking at is
     // supported by another piece, then this capture is not a weak one
@@ -757,8 +759,9 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
     // Determine how valuable our attacking piece is
     int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][EG];
         
-    // This capture is not weak if we are attacking an equal or greater valued piece, 
-    if (thisTacticalMoveValue(board, move) >= attackerValue)
+    // This capture is not weak if we are attacking an equal or greater valued piece
+    // Factor in a buffer such that BxN and NxB are not considered weak captures
+    if (thisTacticalMoveValue(board, move) + FudgeFactor >= attackerValue)
         return 0;
     
     // Thus, the capture is weak if there are sufficient attackers for a given depth
