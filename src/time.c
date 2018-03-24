@@ -78,8 +78,8 @@ void initializeManager(Manager* manager, Limits* limits, double time, double mtg
         
         // Cap our allocation to ensure we leave some time to report
         manager->idealUsage = MIN(manager->idealUsage, time - 100);
-        manager->maxAlloc   = MIN(manager->maxAlloc,   time -  75);
-        manager->maxUsage   = MIN(manager->maxUsage,   time -  50);
+        manager->maxAlloc   = MIN(manager->maxAlloc,   time - 100);
+        manager->maxUsage   = MIN(manager->maxUsage,   time - 100);
     }
     
     // UCI command told us to look for exactly X seconds
@@ -164,7 +164,7 @@ int terminateSearchHere(Manager* manager){
         timeFactor = manager->timeUsage[depth] / MAX(50, manager->timeUsage[depth-1]);
         
         // Assume the factor (+ a buffer) is a good estimate for the next search time
-        estimatedUsage = manager->timeUsage[depth] * (timeFactor + .40);
+        estimatedUsage = manager->timeUsage[depth] * (timeFactor + 1.00);
         
         // If the assumed time usage would exceed our maximum, terminate search
         if (getElapsedTime(manager->startTime) + estimatedUsage > manager->maxUsage)
