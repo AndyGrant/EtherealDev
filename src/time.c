@@ -164,7 +164,7 @@ int terminateSearchHere(Manager* manager){
         timeFactor = manager->timeUsage[depth] / MAX(50, manager->timeUsage[depth-1]);
         
         // Assume the factor (+ a buffer) is a good estimate for the next search time
-        estimatedUsage = manager->timeUsage[depth] * (timeFactor + .40);
+        estimatedUsage = manager->timeUsage[depth] * (timeFactor + 1.00);
         
         // If the assumed time usage would exceed our maximum, terminate search
         if (getElapsedTime(manager->startTime) + estimatedUsage > manager->maxUsage)
