@@ -152,6 +152,9 @@ int main(){
 
 void* uciGo(void* vthreadsgo){
     
+    // Get our starting time as soon as possible
+    double start = getRealTime();
+    
     // Grab the ready lock, as we cannot be ready until we finish this search
     pthread_mutex_lock(&READYLOCK);
     
@@ -209,7 +212,7 @@ void* uciGo(void* vthreadsgo){
     inc  = (board->turn == WHITE) ?  winc :  binc;
     
     // Execute the search and report the best move
-    moveToString(move, getBestMove(threads, board, &limits, time, mtg, inc));
+    moveToString(move, getBestMove(threads, board, &limits, start, time, mtg, inc));
     printf("bestmove %s\n", move);
     fflush(stdout);
     
