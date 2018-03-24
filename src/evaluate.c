@@ -113,6 +113,8 @@ const int BishopMobility[14][PHASE_NB] = {
 
 // Definition of evaluation terms related to Rooks
 
+const int RookAttackedByPawn[PHASE_NB] = { -37, -37};
+
 const int RookFile[2][PHASE_NB] = { {  12,   2}, {  41,  -8} };
 
 const int RookOnSeventh[PHASE_NB] = {   0,  23};
@@ -524,6 +526,12 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        // Apply a penalty if the rook is being attacked by a pawn
+        if (ei->pawnAttacks[!colour] & (1ull << sq)){
+            ei->midgame[colour] += RookAttackedByPawn[MG];
+            ei->endgame[colour] += RookAttackedByPawn[EG];
+        }
         
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
