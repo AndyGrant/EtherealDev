@@ -77,9 +77,9 @@ void initializeManager(Manager* manager, Limits* limits, double time, double mtg
         }
         
         // Cap our allocation to ensure we leave some time to report
-        manager->idealUsage = MIN(manager->idealUsage, time - 100);
-        manager->maxAlloc   = MIN(manager->maxAlloc,   time -  75);
-        manager->maxUsage   = MIN(manager->maxUsage,   time -  50);
+        manager->idealUsage = MIN(manager->idealUsage, MAX(0, time - 200));
+        manager->maxAlloc   = MIN(manager->maxAlloc,   MAX(0, time - 200));
+        manager->maxUsage   = MIN(manager->maxUsage,   MAX(0, time - 200));
     }
     
     // UCI command told us to look for exactly X seconds
@@ -128,7 +128,7 @@ void updateManager(Manager* manager, int depth, int value, uint16_t bestMove){
         
         // Decrease our time if the pv has stayed the same between iterations
         if (manager->bestMoves[depth-1] == bestMove)
-            manager->idealUsage *= MAX(0.95, MIN(manager->pvStability, 1.00));
+            manager->idealUsage *= MAX(0.95, MIN(manager->pvStability, 0.98));
         
         // Cap our ideal usage at the max allocation of time
         manager->idealUsage = MIN(manager->idealUsage, manager->maxAlloc);
@@ -155,16 +155,16 @@ int terminateSearchHere(Manager* manager){
         return 1;
 
     // Check to see if we expect to be able to complete the next depth
-    if (manager->limitedBySelf && manager->depth >= 4){
+    if (manager->limitedBySelf && manager->timeUsage[manager->depth-1] != 0.0){
         
         // Look at the last completed depth
         depth = manager->depth;
         
         // Time factor between the last completed search iterations
-        timeFactor = manager->timeUsage[depth] / MAX(50, manager->timeUsage[depth-1]);
+        timeFactor = manager->timeUsage[depth] / manager->timeUsage[depth-1];
         
         // Assume the factor (+ a buffer) is a good estimate for the next search time
-        estimatedUsage = manager->timeUsage[depth] * (timeFactor + .40);
+        estimatedUsage = manager->timeUsage[depth] * (timeFactor + 1.00);
         
         // If the assumed time usage would exceed our maximum, terminate search
         if (getElapsedTime(manager->startTime) + estimatedUsage > manager->maxUsage)
