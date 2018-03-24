@@ -76,6 +76,13 @@ void newSearchThreadPool(Thread* threads, Board* board, Manager* manager){
         threads[i].depth = 0;
         threads[i].nodes = 0ull;
         
+        // With one thread we can easily track the value history
+        // of each search to create our aspiration windows. With
+        // helper threads, as a result of depth skipping, this is
+        // a bit harder. Thus instead of saving every depth, we will
+        // save a score for each iteration
+        threads[i].iterations = 0;
+        
         // Reset the abort flag for the new search
         threads[i].abort = 0;
     }
