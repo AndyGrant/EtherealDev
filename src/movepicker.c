@@ -174,7 +174,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 // Don't play a move more than once
                 if (   bestMove == mp->tableMove
                     || bestMove == mp->killer1
-                    || bestMove == mp->killer2)
+                    || bestMove == mp->killer2
+                    || bestMove == mp->counterMove)
                     return selectNextMove(mp, board);
                 
                 return bestMove;
