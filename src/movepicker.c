@@ -33,14 +33,15 @@
 #include "thread.h"
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets){
-    mp->skipQuiets = skipQuiets;
-    mp->stage      = STAGE_TABLE;
-    mp->noisySize  = 0;
-    mp->quietSize  = 0;
-    mp->tableMove  = ttMove;
-    mp->killer1    = thread->killers[height][0] != ttMove ? thread->killers[height][0] : NONE_MOVE;
-    mp->killer2    = thread->killers[height][1] != ttMove ? thread->killers[height][1] : NONE_MOVE;
-    mp->history    = &thread->history;
+    mp->skipQuiets  = skipQuiets;
+    mp->stage       = STAGE_TABLE;
+    mp->noisySize   = 0;
+    mp->quietSize   = 0;
+    mp->tableMove   = ttMove;
+    mp->killer1     = thread->killers[height][0] != ttMove ? thread->killers[height][0] : NONE_MOVE;
+    mp->killer2     = thread->killers[height][1] != ttMove ? thread->killers[height][1] : NONE_MOVE;
+    mp->counterMove = getCounterMove(thread, height);
+    mp->history     = &thread->history;
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board){
@@ -90,13 +91,14 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 mp->moves[best] = mp->moves[mp->noisySize];
                 mp->values[best] = mp->values[mp->noisySize];
                 
-                // Don't play the table move twice
+                // Don't play the table or counter move twice
                 if (bestMove == mp->tableMove)
                     return selectNextMove(mp, board);
                 
                 // Don't play the killer moves twice
                 if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
                 if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+                if (bestMove == mp->counterMove) mp->counterMove = NONE_MOVE;
                 
                 return bestMove;
             }
@@ -125,9 +127,19 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             
             // Play the killer move if it is from this position.
             // position, and also advance to the next stage
-            mp->stage = STAGE_GENERATE_QUIET;
+            mp->stage = STAGE_COUNTER_MOVE;
             if (moveIsPsuedoLegal(board, mp->killer2))
                 return mp->killer2;
+            
+            /* fallthrough */
+            
+        case STAGE_COUNTER_MOVE:
+            
+            // Play the counter move if it is from this position,
+            // also advance to the generation of nosiy moves
+            mp->stage = STAGE_GENERATE_QUIET;
+            if (moveIsPsuedoLegal(board, mp->counterMove))
+                return mp->counterMove;
             
             /* fallthrough */
         

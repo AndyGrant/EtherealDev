@@ -32,8 +32,11 @@ typedef struct Thread {
     
     Board board;
     PVariation pv;
+    
     int depth;
     uint64_t nodes;
+    
+    uint16_t moveHistory[MAX_HEIGHT];
     
     int abort;
     jmp_buf jbuffer;
@@ -44,6 +47,7 @@ typedef struct Thread {
     KillerTable killers;
     HistoryTable history;
     PawnKingTable pktable;
+    CounterMoveTable cmtable;
     
 } Thread;
 

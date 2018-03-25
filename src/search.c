@@ -457,6 +457,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
+        thread->moveHistory[height] = NULL_MOVE;
+        
         value = -search(thread, &lpv, -beta, -beta + 1, depth - R, height + 1);
         
         revertNullMove(board, undo);
@@ -490,6 +492,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 revertMove(board, currentMove, undo);
                 continue;
             }
+            
+            thread->moveHistory[height] = currentMove;
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
@@ -554,7 +558,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Apply the move, but do not verify that it was legal
         // until after we perform Late Move Pruning (Step 16)
         applyMove(board, currentMove, undo);
-        
+       
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and move on.
@@ -574,6 +578,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             revertMove(board, currentMove, undo);
             continue;
         }
+        
+        thread->moveHistory[height] = currentMove;
         
         // Update counter of moves actually played
         played += 1;
@@ -659,6 +665,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 thread->killers[height][1] = thread->killers[height][0];
                 thread->killers[height][0] = currentMove;
             }
+            
+            updateCounterMove(thread, currentMove, height);
             
             break;
         }
@@ -755,6 +763,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             revertMove(board, currentMove, undo);
             continue;
         }
+        
+        thread->moveHistory[height] = currentMove;
         
         // Search next depth
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);

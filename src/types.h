@@ -90,6 +90,8 @@ typedef uint16_t KillerTable[MAX_HEIGHT][2];
 
 typedef int16_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];
 
+typedef uint16_t CounterMoveTable[PIECE_NB+1][SQUARE_NB];
+
 struct EvalInfo;
 typedef struct EvalInfo EvalInfo;
 

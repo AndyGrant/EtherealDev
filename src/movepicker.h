@@ -22,8 +22,11 @@
 #include "types.h"
 
 enum {
-    STAGE_TABLE, STAGE_GENERATE_NOISY, STAGE_NOISY, STAGE_KILLER_1,
-    STAGE_KILLER_2, STAGE_GENERATE_QUIET, STAGE_QUIET, STAGE_DONE
+    STAGE_TABLE, 
+    STAGE_GENERATE_NOISY, STAGE_NOISY, 
+    STAGE_KILLER_1, STAGE_KILLER_2, STAGE_COUNTER_MOVE,
+    STAGE_GENERATE_QUIET, STAGE_QUIET, 
+    STAGE_DONE
 };
 
 typedef struct MovePicker {
@@ -31,7 +34,7 @@ typedef struct MovePicker {
     int skipQuiets, stage, split;
     int noisySize, quietSize;
     
-    uint16_t tableMove, killer1, killer2;
+    uint16_t tableMove, killer1, killer2, counterMove;
     uint16_t moves[MAX_MOVES];
     int values[MAX_MOVES];
     
