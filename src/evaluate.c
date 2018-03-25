@@ -377,7 +377,7 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
 void evaluateKnights(EvalInfo* ei, Board* board, int colour){
     
     int sq, defended, mobilityCount;
-    uint64_t tempKnights, enemyPawns, attacks; 
+    uint64_t tempKnights, enemyPawns, attacks, allKnightAttacks = 0ull;
     
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
@@ -397,6 +397,12 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        // Bonus for being linked with another friendly knight
+        if (allKnightAttacks & ((1ull << sq) | attacks)){
+            ei->midgame[colour] += 14;
+            ei->endgame[colour] +=  6;
+        }
         
         // Apply a penalty if the knight is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
@@ -423,8 +429,10 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += KnightMobility[mobilityCount][EG];
         if (TRACE) T.knightMobility[colour][mobilityCount]++;
         
-        // Update the attack and attacker counts for the
-        // knight for use in the king safety calculation.
+        // Update the attack and attacker counts for the knight for use in
+        // the king safety calculation. Also, save off the attacks for our
+        // collective knight attackers, for later use in this evaluation
+        allKnightAttacks |= attacks;
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += 2 * popcount(attacks);
