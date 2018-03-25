@@ -49,8 +49,8 @@
 // Definition of Values for each Piece type
 
 const int PawnValue[PHASE_NB]   = { 100, 121};
-const int KnightValue[PHASE_NB] = { 459, 390};
-const int BishopValue[PHASE_NB] = { 465, 412};
+const int KnightValue[PHASE_NB] = { 433, 403};
+const int BishopValue[PHASE_NB] = { 434, 434};
 const int RookValue[PHASE_NB]   = { 630, 711};
 const int QueenValue[PHASE_NB]  = {1272,1317};
 const int KingValue[PHASE_NB]   = { 165, 165};
@@ -84,7 +84,7 @@ const int PawnConnected32[32][PHASE_NB] = {
 
 // Definition of evaluation terms related to Knights
 
-const int KnightRammedPawns[PHASE_NB] = {   0,   5};
+const int KnightRammedPawns[PHASE_NB] = {  -3,   6};
 
 const int KnightAttackedByPawn[PHASE_NB] = { -49, -32};
 
@@ -101,7 +101,7 @@ const int KnightMobility[9][PHASE_NB] = {
 
 const int BishopPair[PHASE_NB] = {  43,  68};
 
-const int BishopRammedPawns[PHASE_NB] = {  -8,  -6};
+const int BishopRammedPawns[PHASE_NB] = { -11,  -9};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -52, -34};
 

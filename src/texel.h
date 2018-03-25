@@ -30,8 +30,8 @@
 
 // Define the Piece Value Terms
 #define TunePawnValue            (0 * 1  )
-#define TuneKnightValue          (0 * 1  )
-#define TuneBishopValue          (0 * 1  )
+#define TuneKnightValue          (1 * 1  )
+#define TuneBishopValue          (1 * 1  )
 #define TuneRookValue            (0 * 1  )
 #define TuneQueenValue           (0 * 1  )
 #define TuneKingValue            (0 * 1  )

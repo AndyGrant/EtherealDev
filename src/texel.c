@@ -245,7 +245,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         // Use the search value as the evaluation, to provide a better
         // understanding the potential of a position's eval terms. Make
         // sure the evaluation is from the perspective of WHITE
-        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 3, 0);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
         // Now collect an evaluation from a quiet position
