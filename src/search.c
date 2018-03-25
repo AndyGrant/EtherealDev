@@ -288,7 +288,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, inCheck, isQuiet, R, repetitions;
+    int i, inCheck, isQuiet, R, repetitions, ttHit;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha, best = -MATE;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist;
     int value = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -365,7 +365,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 5. Probe the Transposition Table for an entry
-    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+    if ((ttHit = getTranspositionEntry(&Table, board->hash, &ttEntry))){
         
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
@@ -414,6 +414,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (!PvNode){
         eval = evaluateBoard(board, &ei, &thread->pktable);
         futilityMargin = eval + FutilityMargin * depth;
+        
+        if (    ttHit
+            && (   (ttEntry.type == ALLNODE && ttEntry.value < eval)
+                || (ttEntry.type == CUTNODE && ttEntry.value > eval)
+                || (ttEntry.type == ALLNODE)))
+            eval = ttEntry.value;
     }
     
     // Step 8. Razoring. If a Quiescence Search for the current position
