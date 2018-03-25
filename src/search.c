@@ -538,7 +538,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            &&  quiets > 1)
             break;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
