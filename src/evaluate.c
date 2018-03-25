@@ -404,8 +404,8 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         
         // Apply a bonus for the knight based on number of rammed pawns
         count = popcount(ei->rammedPawns[colour]);
-        ei->midgame[colour] += KnightRammedPawns[MG];
-        ei->endgame[colour] += KnightRammedPawns[EG];
+        ei->midgame[colour] += count * KnightRammedPawns[MG];
+        ei->endgame[colour] += count * KnightRammedPawns[EG];
         if (TRACE) T.knightRammedPawns[colour] += count;
         
         // Apply a penalty if the knight is being attacked by a pawn
@@ -477,8 +477,8 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Apply a penalty for the bishop based on number of rammed pawns
         // of our own colour, which reside on the same shade of square as the bishop
         count = popcount(ei->rammedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
-        ei->midgame[colour] += BishopRammedPawns[MG];
-        ei->endgame[colour] += BishopRammedPawns[EG];
+        ei->midgame[colour] += count * BishopRammedPawns[MG];
+        ei->endgame[colour] += count * BishopRammedPawns[EG];
         if (TRACE) T.bishopRammedPawns[colour] += count;
         
         // Apply a penalty if the bishop is being attacked by a pawn
