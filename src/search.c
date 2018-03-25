@@ -411,10 +411,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->pktable);
-        futilityMargin = eval + FutilityMargin * depth;
-    }
+    eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
+    futilityMargin = eval + FutilityMargin * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -523,6 +521,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 13. Check Extension at non Root nodes that are PV or low depth
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
+    int evalImproving = height < 2 || (eval > thread->evalStack[height-2]);
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
@@ -563,7 +562,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]){
+            &&  quiets > LateMovePruningCounts[evalImproving][depth]){
             
             revertMove(board, currentMove, undo);
             continue;
