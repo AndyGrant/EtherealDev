@@ -538,9 +538,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
+            && (quiets >= 5 || !improving)
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth
-            && (!improving || getHistoryScore(thread->history, currentMove, board->turn) < 2048))
+            &&  depth <= FutilityPruningDepth)
             break;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
