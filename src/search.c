@@ -181,7 +181,7 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= 1.100;
+                info->idealusage *= 1.250;
             
             // Cap our ideal usage at the max allocation of time
             info->idealusage = MIN(info->idealusage, info->maxalloc);
