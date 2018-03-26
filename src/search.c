@@ -180,7 +180,7 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
+                info->idealusage *= MAX(info->pvStability, 1.20);
             
             // Decrease our time if the pv has stayed the same between iterations
             if (info->bestmoves[depth-1] == thread->pv.line[0])
