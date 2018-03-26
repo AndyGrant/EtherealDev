@@ -539,8 +539,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth
-            && (!improving || getHistoryScore(thread->history, currentMove, board->turn) < 2048))
+            &&  depth <= FutilityPruningDepth)
             break;
             
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
@@ -564,6 +563,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !board->kingAttackers
             &&  isQuiet
             &&  best > MATED_IN_MAX
+            && (!improving || getHistoryScore(thread->history, currentMove, !board->turn) < 0)
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth]){
             
