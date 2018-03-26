@@ -64,14 +64,14 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
     if (limits->limitedBySelf){
         
         if (mtg >= 0){
-            info.idealusage =  0.65 * time / (mtg +  5) + inc;
-            info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
+            info.idealusage =  0.81 * time / (mtg +  5) + inc;
+            info.maxalloc   =  5.00 * time / (mtg +  7) + inc;
             info.maxusage   = 10.00 * time / (mtg + 10) + inc;
         }
         
         else {
-            info.idealusage =  0.45 * (time + 23 * inc) / 25;
-            info.maxalloc   =  4.00 * (time + 23 * inc) / 25;
+            info.idealusage =  0.57 * (time + 23 * inc) / 25;
+            info.maxalloc   =  5.00 * (time + 23 * inc) / 25;
             info.maxusage   = 10.00 * (time + 23 * inc) / 25;
         }
         
@@ -180,7 +180,7 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
+                info->idealusage *= MAX(info->pvStability, 1.20);
             
             // Decrease our time if the pv has stayed the same between iterations
             if (info->bestmoves[depth-1] == thread->pv.line[0])
