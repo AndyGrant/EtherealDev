@@ -58,21 +58,20 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
     
     // Some initialization for time management
     info.starttime = start;
-    info.pvStability = 1.00;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
         
         if (mtg >= 0){
-            info.idealusage =  0.65 * time / (mtg +  5) + inc;
+            info.idealusage =  1.00 * time / (mtg +  5) + inc;
             info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
             info.maxusage   = 10.00 * time / (mtg + 10) + inc;
         }
         
         else {
-            info.idealusage =  0.45 * (time + 23 * inc) / 25;
-            info.maxalloc   =  4.00 * (time + 23 * inc) / 25;
-            info.maxusage   = 10.00 * (time + 23 * inc) / 25;
+            info.idealusage =  1.00 * (time + 23 * inc) / 30;
+            info.maxalloc   =  4.00 * (time + 23 * inc) / 30;
+            info.maxusage   = 10.00 * (time + 23 * inc) / 30;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
@@ -117,6 +116,8 @@ void* iterativeDeepening(void* vthread){
     const int mainThread   = thread == &thread->threads[0];
     
     int i, count, value, depth, abort;
+    
+    double timeFactor, estimatedUsage, estiamtedEndtime;
     
     
     for (depth = 1; depth < MAX_DEPTH; depth++){
@@ -180,20 +181,10 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
-            
-            // Decrease our time if the pv has stayed the same between iterations
-            if (info->bestmoves[depth-1] == thread->pv.line[0])
-                info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
+                info->idealusage *= 1.100;
             
             // Cap our ideal usage at the max allocation of time
             info->idealusage = MIN(info->idealusage, info->maxalloc);
-            
-            // Update the PV Stability depending on the best move changing. If the best move is
-            // holding stable, we increase the pv stability. This way, if the best move changes
-            // after holding for many iterations, more time will be allocated for the search, and
-            // less time if the best move is in a constant flucation.
-            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
         }
         
         // Check for termination by any of the possible limits
@@ -209,12 +200,13 @@ void* iterativeDeepening(void* vthread){
         }
         
         // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
-            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
-            double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+        if (thread->limits->limitedBySelf && depth >= 8){
             
-            if (estiamtedEndtime > info->maxusage){
+            timeFactor       = info->timeUsage[depth] / MAX(50, info->timeUsage[depth-1]);
+            estimatedUsage   = info->timeUsage[depth] * timeFactor;
+            estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+            
+            if (estiamtedEndtime > info->idealusage){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
