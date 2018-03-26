@@ -741,7 +741,12 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->blockedPawns[BLACK] = ((blackPawns >> 8) & (white | black)) << 8,
     
     ei->kingAreas[WHITE] = KingMap[wKingSq] | (1ull << wKingSq) | (KingMap[wKingSq] << 8);
+    if ((1ull << wKingSq) & FILE_A) ei->kingAreas[WHITE] |= ei->kingAreas[WHITE] >> 1;
+    if ((1ull << wKingSq) & FILE_H) ei->kingAreas[WHITE] |= ei->kingAreas[WHITE] << 1;
+    
     ei->kingAreas[BLACK] = KingMap[bKingSq] | (1ull << bKingSq) | (KingMap[bKingSq] >> 8);
+    if ((1ull << bKingSq) & FILE_A) ei->kingAreas[BLACK] |= ei->kingAreas[BLACK] >> 1;
+    if ((1ull << bKingSq) & FILE_H) ei->kingAreas[BLACK] |= ei->kingAreas[BLACK] << 1;
     
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
