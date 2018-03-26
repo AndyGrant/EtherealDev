@@ -411,10 +411,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // perform pruning based on the board eval, so we will need that, as well
     // as a futilityMargin calculated based on the eval and current depth
     inCheck = !!board->kingAttackers;
-    if (!PvNode){
-        eval = evaluateBoard(board, &ei, &thread->pktable);
-        futilityMargin = eval + FutilityMargin * depth;
-    }
+    eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
+    futilityMargin = eval + FutilityMargin * depth;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -523,20 +521,27 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 13. Check Extension at non Root nodes that are PV or low depth
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
+    int improving =     height >= 4
+                    &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
+                    &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // If this move is quiet we will save it to a list of attemped quiets
-        if ((isQuiet = !moveIsTactical(board, currentMove)))
+        // If this move is quiet we will save it to a list of attemped quiets.
+        // Also lookup the history score, as we will in most cases need it.
+        if ((isQuiet = !moveIsTactical(board, currentMove))){
             quietsTried[quiets++] = currentMove;
+            hist = getHistoryScore(thread->history, currentMove, board->turn);
+        }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
+            && (hist < 4096 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
@@ -595,10 +600,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // move, or we are looking at an early quiet move in a situation where
             // we either have no table move, or the table move is not the best so far
             R -= bestWasQuiet || (ttMove != bestMove && quiets <= 2);
-            
-            // Lookup the history score. Note that this is expected to be done before
-            // applying the move to the board, thus we must invert board->turn
-            hist = getHistoryScore(thread->history, currentMove, !board->turn);
             
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
