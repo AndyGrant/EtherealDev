@@ -178,7 +178,7 @@ void* iterativeDeepening(void* vthread){
             if (info->values[depth-1] < value - 10)
                 info->idealusage *= 0.975;
             
-            if (info->bestmoves[depth] != info->bestmoves[depth-1]){
+            if (info->bestmoves[depth] == info->bestmoves[depth-1]){
                 
                 // If we still have remaining increments from best move
                 // changes reduce our ideal time usage by a factor of 5%
