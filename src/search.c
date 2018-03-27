@@ -58,6 +58,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
     
     // Some initialization for time management
     info.starttime = start;
+    info.bestMoveChanges = 0;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
@@ -176,6 +177,31 @@ void* iterativeDeepening(void* vthread){
             // Decrease our time if the score suddently jumped by eight centipawns
             if (info->values[depth-1] < value - 10)
                 info->idealusage *= 0.975;
+            
+            if (info->bestmoves[depth] != info->bestmoves[depth-1]){
+                
+                // If we still have remaining increments from best move
+                // changes reduce our ideal time usage by a factor of 5%
+                info->idealusage *= info->bestMoveChanges ? 0.950 : 1.000;
+                
+                // Reduce our best move change debt
+                info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
+            }
+            
+            else {
+                
+                // Increase our time by based on our best move debt. If this is the
+                // first PV change in some time, we increase our time by 30%. If we
+                // have recently changed best moves, we will only adjust our usage
+                // to get back to the initial 30% time allocation by the first change
+                info->idealusage *= 1.000 + 0.050 * (6 - info->bestMoveChanges);
+                
+                // Set out counter back to six as the best move has changed
+                info->bestMoveChanges = 6;
+            }
+            
+            // Cap our ideal usage using our maximum allocation
+            info->idealusage = MIN(info->idealusage, info->maxalloc);
         }
         
         // Check for termination by any of the possible limits
