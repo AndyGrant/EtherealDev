@@ -58,7 +58,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
     
     // Some initialization for time management
     info.starttime = start;
-    info.pvStability = 1.00;
+    info.pvTimeAdded = 0;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
@@ -180,20 +180,16 @@ void* iterativeDeepening(void* vthread){
             
             // Increase our time if the pv has changed across the last two iterations
             if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
+                info->pvTimeAdded += info->idealusage * .250,
+                info->idealusage *= 1.250;
             
             // Decrease our time if the pv has stayed the same between iterations
             if (info->bestmoves[depth-1] == thread->pv.line[0])
-                info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
+                info->pvTimeAdded -= info->idealusage - MIN(info->pvTimeAdded, info->idealusage * 0.050),
+                info->idealusage -= MIN(info->pvTimeAdded, info->idealusage * 0.050);
             
             // Cap our ideal usage at the max allocation of time
             info->idealusage = MIN(info->idealusage, info->maxalloc);
-            
-            // Update the PV Stability depending on the best move changing. If the best move is
-            // holding stable, we increase the pv stability. This way, if the best move changes
-            // after holding for many iterations, more time will be allocated for the search, and
-            // less time if the best move is in a constant flucation.
-            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
         }
         
         // Check for termination by any of the possible limits
