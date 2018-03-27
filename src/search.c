@@ -68,7 +68,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
         }
         
         else {
-            mtg = 25 + MIN(15, board->fullMoves / 5);
+            mtg = 25 + MIN(15, board->fullMoves);
             info.idealusage = 0.40 * time / mtg + inc;
             info.maxusage   = 1.60 * time / mtg + inc;
         }
