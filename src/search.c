@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include "bitutils.h"
 #include "bitboards.h"
@@ -47,6 +48,15 @@ pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
 
+  double moveImportance(int ply) {
+
+    const double XScale = 6.85;
+    const double XShift = 64.5;
+    const double Skew   = 0.171;
+
+    return MAX(0.10, (pow((1 + exp((ply - XShift) / XScale)), -Skew)) / 100.0);
+}
+
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start, double time, double mtg, double inc){
     
     int i, nthreads = threads[0].nthreads;
@@ -68,8 +78,8 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
         }
         
         else {
-            info.idealusage = 0.80 * time / 25 + inc;
-            info.maxusage   = 4.00 * time / 25 + inc;
+            info.idealusage = 0.80 * moveImportance(board->fullMoves) * time / 25 + inc;
+            info.maxusage   = 4.00 * moveImportance(board->fullMoves) * time / 25 + inc;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
