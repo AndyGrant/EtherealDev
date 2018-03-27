@@ -194,10 +194,10 @@ void* iterativeDeepening(void* vthread){
                 // first PV change in some time, we increase our time by 30%. If we
                 // have recently changed best moves, we will only adjust our usage
                 // to get back to the initial 30% time allocation by the first change
-                info->idealusage *= 1.000 + 0.050 * (6 - info->bestMoveChanges);
+                info->idealusage *= 1.000 + 0.050 * MAX(1, (5 - info->bestMoveChanges));
                 
-                // Set out counter back to six as the best move has changed
-                info->bestMoveChanges = 6;
+                // Set out counter back to five as the best move has changed
+                info->bestMoveChanges = 5;
             }
             
             // Cap our ideal usage using our maximum allocation
