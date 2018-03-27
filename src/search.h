@@ -36,6 +36,7 @@ typedef struct SearchInfo {
     double maxusage;
     
     double pvTimeAdded;
+    double pvTimeCredit;
     
 } SearchInfo;
 
