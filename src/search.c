@@ -170,8 +170,13 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 8){
             
-            // Adjust time based on score changes across search iterations
-            info->idealusage *= 1.00 + MAX(-10, MIN(10, info->values[depth-1] - value)) / 200.0;
+            // Increase our time if the score suddently dropped by eight centipawns
+            if (info->values[depth-1] > value + 10)
+                info->idealusage *= 1.050;
+            
+            // Decrease our time if the score suddently jumped by eight centipawns
+            if (info->values[depth-1] < value - 10)
+                info->idealusage *= 0.975;
             
             // If we PV has changed across the last two search iterations, we will
             // increase our time allotment by 30%, and track this with pvTimeAdded
