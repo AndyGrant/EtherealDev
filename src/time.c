@@ -24,6 +24,9 @@
 
 #include <stdlib.h>
 
+#include "search.h"
+#include "uci.h"
+
 double getRealTime(){
 #if defined(_WIN32) || defined(_WIN64)
     return (double)(GetTickCount());
@@ -37,4 +40,29 @@ double getRealTime(){
     
     return secsInMilli + usecsInMilli;
 #endif
+}
+
+double terminateSearchHere(SearchInfo* info, Limits* limits, int depth){
+    
+    double timeFactor, estimatedUsage, estiamtedEndtime;
+
+    // Check for termination by the defined UCI, or self defined time managment conditions
+    if (   (limits->limitedByDepth && depth >= limits->depthLimit)
+        || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
+        || (limits->limitedBySelf  && getRealTime() - info->starttime > info->maxusage)
+        || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage))
+        return 1;
+    
+    // Check to see if we expect to be able to complete the next depth
+    if (limits->limitedBySelf && depth >= 8){
+        
+        timeFactor       = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
+        estimatedUsage   = info->timeUsage[depth] * (timeFactor + .40);
+        estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+        
+        if (estiamtedEndtime > info->maxusage)
+            return 1;
+    }
+    
+    return 0;
 }

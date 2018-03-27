@@ -19,6 +19,10 @@
 #ifndef _MY_TIME_H
 #define _MY_TIME_H
 
+#include "types.h"
+
 double getRealTime();
+
+double terminateSearchHere(SearchInfo* info, Limits* limits, int depth);
 
 #endif

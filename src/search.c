@@ -168,57 +168,34 @@ void* iterativeDeepening(void* vthread){
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf && depth >= 4){
+        if (limits->limitedBySelf && depth >= 8){
             
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealusage *= 1.050;
+            // Adjust time based on score changes across search iterations
+            info->idealusage *= 1.00 + MAX(-10, MIN(10, info->values[depth-1] - value)) / 200.0;
             
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealusage *= 0.975;
-            
-            // Increase our time if the pv has changed across the last two iterations
+            // If we PV has changed across the last two search iterations, we will
+            // increase our time allotment by 30%, and track this with pvTimeAdded
             if (info->bestmoves[depth-1] != thread->pv.line[0])
                 info->pvTimeAdded += info->idealusage * 0.300,
                 info->idealusage += info->idealusage * 0.300;
             
-            // Decrease our time if the pv has stayed the same between iterations
-            if (info->bestmoves[depth-1] == thread->pv.line[0]){
-                int foo = info->pvTimeAdded * 0.200;
-                info->pvTimeAdded -= foo;
-                info->idealusage -= foo;
-            }
+            // If the PV has remained the same across the last two search iterations, we
+            // will take away some (if any) of the bonus time we have allocated as a result
+            // of PV changes in previous iterations of the search.
+            if (info->bestmoves[depth-1] == thread->pv.line[0])
+                info->idealusage -= info->pvTimeAdded * 0.200,
+                info->pvTimeAdded -= info->pvTimeAdded * 0.200;
             
             // Cap our ideal usage at the max allocation of time
             info->idealusage = MIN(info->idealusage, info->maxalloc);
         }
         
-        // Check for termination by any of the possible limits
-        if (   (limits->limitedByDepth && depth >= limits->depthLimit)
-            || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->maxusage)
-            || (limits->limitedBySelf  && getRealTime() - info->starttime > info->idealusage)){
-            
-            // Terminate all helper threads
+        // Check for search termination by UCI defined limits, or by our own
+        // time managment system. Kill all threads in order to terminate search
+        if (terminateSearchHere(info, limits, depth)){
             for (i = 0; i < thread->nthreads; i++)
                 thread->threads[i].abort = 1;
             return NULL;
-        }
-        
-        // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
-            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
-            double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
-            
-            if (estiamtedEndtime > info->maxusage){
-                
-                // Terminate all helper threads
-                for (i = 0; i < thread->nthreads; i++)
-                    thread->threads[i].abort = 1;
-                return NULL;
-            }
         }
     }
     
