@@ -64,12 +64,14 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
         
         if (mtg >= 0){
             info.idealusage = 0.80 * time / (mtg + 1) + inc;
+            info.maxalloc   = 1.00 * time / (mtg + 1) + inc;
             info.maxusage   = 4.00 * time / (mtg + 1) + inc;
         }
         
         else {
-            info.idealusage = 0.80 * time / 25 + inc;
-            info.maxusage   = 4.00 * time / 25 + inc;
+            info.idealusage = 0.80 * time / 30 + inc;
+            info.maxalloc   = 1.00 * time / 30 + inc;
+            info.maxusage   = 4.00 * time / 30 + inc;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
@@ -159,6 +161,16 @@ void* iterativeDeepening(void* vthread){
         
         // Send information about this search to the interface
         uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
+        
+        if (thread->limits->limitedBySelf && depth >= 8){
+            
+            info->idealusage *= 1.00 + MAX(-10, MIN(10, info->values[depth] - value)) / 200.0;
+            
+            info->idealusage *= info->bestmoves[depth-1] == thread->pv.line[0] ? 0.99 : 1.05;
+            
+            info->idealusage = MIN(info->idealusage, info->maxalloc);
+            
+        }
         
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
