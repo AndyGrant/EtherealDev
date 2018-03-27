@@ -91,7 +91,7 @@ void initializeBoard(Board* board, char* fen){
     int i, j, sq;
     char rank, file;
     uint64_t enemyPawns;
-    char *ptr, str[256]; strcpy(str, fen);
+    char *ptr, str[512]; strncpy(str, fen, 512);
     
     
     // Initialze board->squares from FEN notation;
