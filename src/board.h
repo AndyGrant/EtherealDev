@@ -31,7 +31,8 @@ typedef struct Board {
     int turn;
     int castleRights;
     int epSquare;
-    int fiftyMoveRule;
+    int halfMoves;
+    int fullMoves;
     int midgame;
     int endgame;
     int numMoves;
@@ -45,7 +46,8 @@ typedef struct Undo {
     int turn;
     int castleRights;
     int epSquare;
-    int fiftyMoveRule;
+    int halfMoves;
+    int fullMoves;
     int midgame;
     int endgame;
     int captureSquare;

@@ -47,19 +47,23 @@ void applyMove(Board* board, uint16_t move, Undo* undo){
     undo->turn = board->turn;
     undo->castleRights = board->castleRights;
     undo->epSquare = board->epSquare;
-    undo->fiftyMoveRule = board->fiftyMoveRule;
+    undo->halfMoves = board->halfMoves;
+    undo->fullMoves = board->fullMoves;
     undo->midgame = board->midgame;
     undo->endgame = board->endgame;
     
     // Update the hash history and the move count
     board->history[board->numMoves++] = board->hash;
     
+    // Update the full move count for time managment reasons
+    board->fullMoves = board->fullMoves + 1;
+    
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
     
     // Always increment the fifty counter
     // We will reset later if needed
-    board->fiftyMoveRule += 1;
+    board->halfMoves += 1;
     
     // Call the proper move application function
     table[MoveType(move) >> 12](board, move, undo);
@@ -86,10 +90,10 @@ void applyNormalMove(Board* board, uint16_t move, Undo* undo){
     toType = PieceType(toPiece);
     
     // Reset fifty move rule on a pawn move
-    if (fromType == PAWN) board->fiftyMoveRule = 0;
+    if (fromType == PAWN) board->halfMoves = 0;
     
     // Reset fifty move rule on a capture
-    else if (toPiece != EMPTY) board->fiftyMoveRule = 0;
+    else if (toPiece != EMPTY) board->halfMoves = 0;
     
     // Update the colour bitboards
     board->colours[board->turn] ^= shiftFrom | shiftTo;
@@ -247,7 +251,7 @@ void applyEnpassMove(Board* board, uint16_t move, Undo* undo){
     shiftEnpass = 1ull << ep;
     
     // Reset fifty move rule on a pawn move
-    board->fiftyMoveRule = 0;
+    board->halfMoves = 0;
     
     // Update the colour bitboards
     board->colours[board->turn] ^= shiftFrom | shiftTo;
@@ -309,7 +313,7 @@ void applyPromotionMove(Board* board, uint16_t move, Undo* undo){
     shiftTo = 1ull << to;
     
     // Reset fifty move rule on a pawn move
-    board->fiftyMoveRule = 0;
+    board->halfMoves = 0;
 
     // Update the colour bitboards
     board->colours[board->turn] ^= shiftFrom | shiftTo;
@@ -371,6 +375,9 @@ void applyNullMove(Board* board, Undo* undo){
     board->turn = !board->turn;
     board->history[board->numMoves++] = NULL_MOVE;
     
+    // Update the full moves for time managment reasons
+    board->fullMoves = board->fullMoves + 1;
+    
     // Update the key to include the turn change
     board->hash ^= ZorbistKeys[TURN][0];
     
@@ -393,7 +400,8 @@ void revertMove(Board* board, uint16_t move, Undo* undo){
     board->turn = undo->turn;
     board->castleRights = undo->castleRights;
     board->epSquare = undo->epSquare;
-    board->fiftyMoveRule = undo->fiftyMoveRule;
+    board->halfMoves = undo->halfMoves;
+    board->fullMoves = undo->fullMoves;
     board->midgame = undo->midgame;
     board->endgame = undo->endgame;
     

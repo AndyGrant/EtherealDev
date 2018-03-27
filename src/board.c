@@ -16,10 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <assert.h>
-#include <string.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "bitboards.h"
 #include "bitutils.h"
@@ -90,6 +91,8 @@ void initializeBoard(Board* board, char* fen){
     int i, j, sq;
     char rank, file;
     uint64_t enemyPawns;
+    char *ptr, str[256]; strcpy(str, fen);
+    
     
     // Initialze board->squares from FEN notation;
     for(i = 0, sq = 56; fen[i] != ' '; i++){
@@ -152,24 +155,11 @@ void initializeBoard(Board* board, char* fen){
         board->epSquare = rank + (8 * file);
     }
     
-    i++; // Skip over space between ensquare and halfmove count
-        
-    // Determine number of half moves into the fifty move rule
-    if (fen[++i] != '-'){
-        
-        // Two Digit Number
-        if (fen[i+1] != ' '){ 
-            board->fiftyMoveRule = (10 * (fen[i] - '0')) + fen[i+1] - '0';
-            i++;
-        }
-        
-        // One Digit Number
-        else
-            board->fiftyMoveRule = fen[i] - '0';
-    }
-    
-    else
-        board->fiftyMoveRule = 0;
+    // Parse half and full move counters
+    ptr = strtok(str + i + 2, " ");
+    board->halfMoves = atoi(ptr);
+    ptr = strtok(NULL, " ");
+    board->fullMoves = atoi(ptr);
     
     // Zero out each of the used BitBoards
     board->colours[WHITE] = 0ull;
@@ -223,6 +213,7 @@ void initializeBoard(Board* board, char* fen){
     // Number of moves since this (root) position
     board->numMoves = 0;
     
+    // Compute any threats to our King
     board->kingAttackers = attackersToKingSquare(board);
 }
 

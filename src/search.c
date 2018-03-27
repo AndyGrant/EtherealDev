@@ -58,32 +58,27 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
     
     // Some initialization for time management
     info.starttime = start;
-    info.pvStability = 1.00;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
         
         if (mtg >= 0){
-            info.idealusage =  0.65 * time / (mtg +  5) + inc;
-            info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
-            info.maxusage   = 10.00 * time / (mtg + 10) + inc;
+            info.idealusage = 0.80 * time / (mtg + 1) + inc;
+            info.maxusage   = 4.00 * time / (mtg + 1) + inc;
         }
         
         else {
-            info.idealusage =  0.45 * (time + 23 * inc) / 25;
-            info.maxalloc   =  4.00 * (time + 23 * inc) / 25;
-            info.maxusage   = 10.00 * (time + 23 * inc) / 25;
+            info.idealusage = 0.80 * time / 25 + inc;
+            info.maxusage   = 4.00 * time / 25 + inc;
         }
         
         info.idealusage = MIN(info.idealusage, time - 100);
-        info.maxalloc   = MIN(info.maxalloc,   time - 100);
         info.maxusage   = MIN(info.maxusage,   time - 100);
     }
     
     // UCI command told us to look for exactly X seconds
     if (limits->limitedByTime){
         info.idealusage = limits->timeLimit;
-        info.maxalloc   = limits->timeLimit;
         info.maxusage   = limits->timeLimit;
     }
     
@@ -165,37 +160,6 @@ void* iterativeDeepening(void* vthread){
         // Send information about this search to the interface
         uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
         
-        // If Ethereal is managing the clock, determine if we should be spending
-        // more time on this search, based on the score difference between iterations
-        // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf && depth >= 4){
-            
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealusage *= 1.050;
-            
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealusage *= 0.975;
-            
-            // Increase our time if the pv has changed across the last two iterations
-            if (info->bestmoves[depth-1] != thread->pv.line[0])
-                info->idealusage *= MAX(info->pvStability, 1.30);
-            
-            // Decrease our time if the pv has stayed the same between iterations
-            if (info->bestmoves[depth-1] == thread->pv.line[0])
-                info->idealusage *= MAX(0.95, MIN(info->pvStability, 1.00));
-            
-            // Cap our ideal usage at the max allocation of time
-            info->idealusage = MIN(info->idealusage, info->maxalloc);
-            
-            // Update the PV Stability depending on the best move changing. If the best move is
-            // holding stable, we increase the pv stability. This way, if the best move changes
-            // after holding for many iterations, more time will be allocated for the search, and
-            // less time if the best move is in a constant flucation.
-            info->pvStability *= (info->bestmoves[depth-1] != thread->pv.line[0]) ? 0.95 : 1.05;
-        }
-        
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
             || (limits->limitedByTime  && getRealTime() - info->starttime > limits->timeLimit)
@@ -211,7 +175,7 @@ void* iterativeDeepening(void* vthread){
         // Check to see if we expect to be able to complete the next depth
         if (thread->limits->limitedBySelf){
             double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
+            double estimatedUsage = info->timeUsage[depth] * timeFactor;
             double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
             
             if (estiamtedEndtime > info->maxusage){
@@ -339,7 +303,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (rAlpha >= rBeta) return rAlpha;
         
         // Step 3. Check for the Fifty Move Rule
-        if (board->fiftyMoveRule > 100)
+        if (board->halfMoves > 100)
             return 0;
         
         // Step 4. Check for three fold repetition. If the repetition occurs since
@@ -349,7 +313,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // We can't have repeated positions before the most recent
             // move which triggered a reset of the fifty move rule counter
-            if (i < board->numMoves - board->fiftyMoveRule) break;
+            if (i < board->numMoves - board->halfMoves) break;
             
             if (board->history[i] == board->hash){
                 
