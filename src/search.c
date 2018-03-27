@@ -193,7 +193,7 @@ void* iterativeDeepening(void* vthread){
             
             // Decrease our time if the pv has stayed the same between iterations
             if (info->bestmoves[depth-1] == thread->pv.line[0]){
-                int foo = info->pvTimeAdded * MIN(0.500, 0.100 + 0.100 * stable);
+                int foo = info->pvTimeAdded * MIN(0.500, 0.150 + 0.050 * stable);
                 info->pvTimeAdded -= foo;
                 info->idealusage -= foo;
             }
