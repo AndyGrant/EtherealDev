@@ -54,7 +54,7 @@ extern TransTable Table;
     const double XShift = 64.5;
     const double Skew   = 0.171;
 
-    return MAX(0.10, (pow((1 + exp((ply - XShift) / XScale)), -Skew)) / 100.0);
+    return MAX(.40, (pow((1 + exp((ply - XShift) / XScale)), -Skew)));
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start, double time, double mtg, double inc){
