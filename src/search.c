@@ -180,11 +180,12 @@ void* iterativeDeepening(void* vthread){
             
             if (info->bestmoves[depth] == info->bestmoves[depth-1]){
                 
-                // If we still have remaining increments from best move
-                // changes reduce our ideal time usage by a factor of 5%
-                info->idealusage *= info->bestMoveChanges ? 0.935 : 1.000;
+                // If we still have remaining increments from best move changes
+                // reduce our ideal time usage by a factor of such that by the
+                // time we finish removing increments, we are about back at 1.00
+                info->idealusage *= info->bestMoveChanges ? 0.911 : 1.000;
                 
-                // Reduce our best move change debt
+                // Reduce the counter of increments made
                 info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
             }
             
@@ -194,7 +195,7 @@ void* iterativeDeepening(void* vthread){
                 // first PV change in some time, we increase our time by 30%. If we
                 // have recently changed best moves, we will only adjust our usage
                 // to get back to the initial 30% time allocation by the first change
-                info->idealusage *= 1.000 + 0.080 * (6 - info->bestMoveChanges);
+                info->idealusage *= 1.000 + 0.125 * (6 - info->bestMoveChanges);
                 
                 // Set out counter back to six as the best move has changed
                 info->bestMoveChanges = 6;
