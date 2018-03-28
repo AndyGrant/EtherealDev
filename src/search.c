@@ -448,7 +448,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - FutilityMargin * depth > beta)
+        &&  eval - FutilityMargin * (depth + PvNode) > beta)
         return beta;
 
     // Step 10. Null Move Pruning. If our position is so good that
@@ -545,10 +545,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Step 14. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, skip it.
-        if (   !PvNode
+        if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
+            && (hist <  4096 || !improving)
+            && (hist < -4096 || !PvNode)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
