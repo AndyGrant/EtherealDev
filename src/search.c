@@ -118,7 +118,8 @@ void* iterativeDeepening(void* vthread){
     
     int i, count, value, depth, abort;
     
-    
+    double timeFactor, estimatedUsage;
+
     for (depth = 1; depth < MAX_DEPTH; depth++){
         
         // Always acquire the lock before setting thread->depth. thread->depth
@@ -160,7 +161,7 @@ void* iterativeDeepening(void* vthread){
         info->depth = depth;
         info->values[depth] = value;
         info->bestmoves[depth] = thread->pv.line[0];
-        info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
+        info->timeUsage[depth] = getRealTime() - info->starttime;
         
         // Send information about this search to the interface
         uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
@@ -216,13 +217,22 @@ void* iterativeDeepening(void* vthread){
             return NULL;
         }
         
-        // Check to see if we expect to be able to complete the next depth
-        if (thread->limits->limitedBySelf){
-            double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
-            double estimatedUsage = info->timeUsage[depth] * (timeFactor + .40);
-            double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+        // Check to see if we expect to be able to complete the next depth. We only do this if
+        // Ethereal is in charge of the clock, and our last search took at least 10ms. We care
+        // about the last time, since in short time controls the resolution of time usage is 
+        // very low, and likely to cause cutoffs which we are not interested in taking. We have
+        // a very high maxusage value set, as we do not really want to terminate a search in the
+        // middle of an iteration. As an aggressive check, we see if we expect to be able to
+        // complete the next two depths, based off of our time factor
+        if (thread->limits->limitedBySelf && info->timeUsage[depth-1] >= 10){
             
-            if (estiamtedEndtime > info->maxusage){
+            timeFactor       = info->timeUsage[depth] / info->timeUsage[depth-1];
+            
+            estimatedUsage   = info->timeUsage[depth] * timeFactor;
+            
+            estimatedUsage   = estimatedUsage * timeFactor;
+            
+            if (estimatedUsage > info->maxusage){
                 
                 // Terminate all helper threads
                 for (i = 0; i < thread->nthreads; i++)
