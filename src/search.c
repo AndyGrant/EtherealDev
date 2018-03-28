@@ -70,7 +70,7 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
         }
         
         else {
-            info.idealusage =  0.52 * (time + 23 * inc) / 25;
+            info.idealusage =  0.40 * (time + 23 * inc) / 25;
             info.maxalloc   =  4.00 * (time + 23 * inc) / 25;
             info.maxusage   = 10.00 * (time + 23 * inc) / 25;
         }
