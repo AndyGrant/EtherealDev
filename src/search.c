@@ -16,8 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -180,24 +182,16 @@ void* iterativeDeepening(void* vthread){
             
             if (info->bestmoves[depth] == info->bestmoves[depth-1]){
                 
-                // If we still have remaining increments from best move
-                // changes reduce our ideal time usage by a factor of 5%
-                info->idealusage *= info->bestMoveChanges ? 0.935 : 1.000;
+                info->idealusage *= info->bestMoveChanges ? 0.904 : 1.000;
                 
-                // Reduce our best move change debt
                 info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
             }
             
             else {
                 
-                // Increase our time by based on our best move debt. If this is the
-                // first PV change in some time, we increase our time by 30%. If we
-                // have recently changed best moves, we will only adjust our usage
-                // to get back to the initial 30% time allocation by the first change
-                info->idealusage *= 1.000 + 0.080 * (6 - info->bestMoveChanges);
+                info->idealusage *= pow(1.107, (4 - info->bestMoveChanges));
                 
-                // Set out counter back to six as the best move has changed
-                info->bestMoveChanges = 6;
+                info->bestMoveChanges = MAX(4, info->bestMoveChanges + 1);
             }
             
             // Cap our ideal usage using our maximum allocation
