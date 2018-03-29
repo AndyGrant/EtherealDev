@@ -458,6 +458,15 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.bishopPair[colour]++;
     }
     
+    if (    tempBishops 
+        && (ei->passedPawns & LEFT_WING)
+        && (ei->passedPawns & RIGHT_WING)){
+        ei->midgame[colour] +=  6;
+        ei->endgame[colour] += 13;
+    }
+        
+        
+    
     // Evaluate each bishop
     while (tempBishops){
         
