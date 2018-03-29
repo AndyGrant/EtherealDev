@@ -458,6 +458,19 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.bishopPair[colour]++;
     }
     
+    uint64_t nonRammed = board->pieces[PAWN] & ~ei->rammedPawns[colour];
+    
+    if (    ((tempBishops & WHITE_SQUARES) 
+          && (nonRammed & WHITE_SQUARES & LEFT_WING)
+          && (nonRammed & WHITE_SQUARES & RIGHT_WING))
+        ||  ((tempBishops & BLACK_SQUARES) 
+          && (nonRammed & BLACK_SQUARES & LEFT_WING)
+          && (nonRammed & BLACK_SQUARES & RIGHT_WING))){
+               
+        ei->midgame[colour] += 7;
+        ei->endgame[colour] += 17;
+    }
+    
     // Evaluate each bishop
     while (tempBishops){
         
