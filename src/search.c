@@ -421,9 +421,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     inCheck = !!board->kingAttackers;
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
     futilityMargin = eval + FutilityMargin * depth;
-    improving =    height >= 4
+    improving =    inCheck || (height >= 4
                &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
-               &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+               &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16);
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
