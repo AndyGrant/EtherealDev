@@ -101,6 +101,8 @@ const int KnightMobility[9][PHASE_NB] = {
 
 const int BishopPair[PHASE_NB] = {  43,  68};
 
+const int BishopWings[PHASE_NB] = {  17,  27};
+
 const int BishopRammedPawns[PHASE_NB] = {  -8,  -6};
 
 const int BishopAttackedByPawn[PHASE_NB] = { -52, -34};
@@ -457,16 +459,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->endgame[colour] += BishopPair[EG];
         if (TRACE) T.bishopPair[colour]++;
     }
-    
-    if (    tempBishops 
-        && (ei->passedPawns & LEFT_WING)
-        && (ei->passedPawns & RIGHT_WING)){
-        ei->midgame[colour] +=  6;
-        ei->endgame[colour] += 13;
-    }
         
-        
-    
     // Evaluate each bishop
     while (tempBishops){
         
@@ -482,6 +475,13 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
         ei->attacked[colour] |= attacks;
         ei->attackedNoQueen[colour] |= attacks;
+        
+        // Apply a bonus for having a bishop when there are passers on both sides of the board
+        if ((ei->passedPawns & LEFT_WING) && (ei->passedPawns & RIGHT_WING)){
+            ei->midgame[colour] += BishopWings[MG];
+            ei->endgame[colour] += BishopWings[EG];
+            if (TRACE) T.bishopWings[colour]++;
+        }
         
         // Apply a penalty for the bishop based on number of rammed pawns
         // of our own colour, which reside on the same shade of square as the bishop

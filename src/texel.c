@@ -78,6 +78,7 @@ extern const int KnightMobility[9][PHASE_NB];
 
 // To determine the starting values for the Bishop terms
 extern const int BishopPair[PHASE_NB];
+extern const int BishopWings[PHASE_NB];
 extern const int BishopAttackedByPawn[PHASE_NB];
 extern const int BishopRammedPawns[PHASE_NB];
 extern const int BishopOutpost[2][PHASE_NB];
@@ -105,10 +106,10 @@ void runTexelTuning(Thread* thread){
     
     TexelEntry* tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double rates[NT][PHASE_NB] = {{0}, {0}};
-    double params[NT][PHASE_NB] = {{0}, {0}};
-    double cparams[NT][PHASE_NB] = {{0}, {0}};
+    double K, thisError, bestError = 1e6, baseRate = 100.0;
+    double rates[NT][PHASE_NB] = {0};
+    double params[NT][PHASE_NB] = {0};
+    double cparams[NT][PHASE_NB] = {0};
     
     setvbuf(stdout, NULL, _IONBF, 0);
     
@@ -154,10 +155,10 @@ void runTexelTuning(Thread* thread){
             printf("\nIteration [%d] Error = %g \n", iteration, bestError);
         }
                 
-        double gradients[NT][PHASE_NB] = {{0}, {0}};
+        double gradients[NT][PHASE_NB] = {0};//{{0}, {0}};
         #pragma omp parallel shared(gradients)
         {
-            double localgradients[NT][PHASE_NB] = {{0}, {0}};
+            double localgradients[NT][PHASE_NB] = {0};//{{0}, {0}};
             #pragma omp for schedule(static, NP / 48)
             for (i = 0; i < NP; i++){
                 
@@ -412,6 +413,9 @@ void initializeCoefficients(int coeffs[NT]){
     if (TuneBishopPair)
         coeffs[i++] = T.bishopPair[WHITE] - T.bishopPair[BLACK];
     
+    if (TuneBishopWings)
+        coeffs[i++] = T.bishopWings[WHITE] - T.bishopWings[BLACK];
+    
     if (TuneBishopRammedPawns)
         coeffs[i++] = T.bishopRammedPawns[WHITE] - T.bishopRammedPawns[BLACK];
     
@@ -618,6 +622,11 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         cparams[i++][EG] = BishopPair[EG];
     }
     
+    if (TuneBishopWings){
+        cparams[i  ][MG] = BishopWings[MG];
+        cparams[i++][EG] = BishopWings[EG];
+    }
+    
     if (TuneBishopRammedPawns){
         cparams[i  ][MG] = BishopRammedPawns[MG];
         cparams[i++][EG] = BishopRammedPawns[EG];
@@ -724,7 +733,7 @@ void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]){
     
     int i, j, index, coeff;
     double avgByPhase[PHASE_NB] = {0};
-    double occurances[NT][PHASE_NB] = {{0}, {0}};
+    double occurances[NT][PHASE_NB] = {0};
     
     for (i = 0; i < NP; i++){
         for (j = 0; j < tes[i].ntuples; j++){
@@ -906,6 +915,10 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     
     if (TuneBishopPair){
         printf("\nconst int BishopPair[PHASE_NB] = {%4d,%4d};\n", tparams[i][MG], tparams[i][EG]); i++;
+    }
+    
+    if (TuneBishopWings){
+        printf("\nconst int BishopWings[PHASE_NB] = {%4d,%4d};\n", tparams[i][MG], tparams[i][EG]); i++;
     }
     
     if (TuneBishopRammedPawns){
