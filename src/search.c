@@ -419,11 +419,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Also, we determine if the move progression leading up until this node is
     // good enough to warrent an 'improving' status, used for pruning decisions
     inCheck = !!board->kingAttackers;
+    depth += inCheck && !RootNode && (PvNode || depth <= 6);
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
     futilityMargin = eval + FutilityMargin * depth;
     improving =    height >= 4
                &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
                &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+    
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -528,9 +530,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
             ttMove = ttEntry.bestMove;
     }
-    
-    // Step 13. Check Extension at non Root nodes that are PV or low depth
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
