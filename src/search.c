@@ -422,6 +422,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Here we perform our check extension, for non-root pvnodes, or for non-root
     // nodes near depth zero. Note that when we bypass the qsearch as a result of
     // being in check, we set depth to zero. This step adjusts depth back to one.
+    int checkExtended = inCheck && !RootNode && (PvNode || depth <= 6);
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
@@ -609,6 +610,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            R -= inCheck && !checkExtended;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
