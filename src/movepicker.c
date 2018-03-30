@@ -41,6 +41,23 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer1    = thread->killers[height][0] != ttMove ? thread->killers[height][0] : NONE_MOVE;
     mp->killer2    = thread->killers[height][1] != ttMove ? thread->killers[height][1] : NONE_MOVE;
     mp->history    = &thread->history;
+    
+    // If we do not have a move from the table, we might try to use a killer move
+    // as an replacment. If either killer move is legal, swap it with the table move
+    if (mp->tableMove == NONE_MOVE){
+        
+        // Verify that killer 1 comes from this position
+        if (moveIsPsuedoLegal(&thread->board, mp->killer1)){
+            mp->tableMove = mp->killer1;
+            mp->killer1 = NONE_MOVE;
+        }
+        
+        // Verify that killer 2 comes from this position
+        else if (moveIsPsuedoLegal(&thread->board, mp->killer2)){
+            mp->tableMove = mp->killer2;
+            mp->killer2 = NONE_MOVE;
+        }
+    }
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board){
