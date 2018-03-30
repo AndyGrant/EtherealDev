@@ -297,7 +297,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, inCheck, isQuiet, R, repetitions, improving;
+    int i, inCheck, isQuiet, R, repetitions, improving, checkExtend;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha, best = -MATE;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0;
     int value = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -422,7 +422,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Here we perform our check extension, for non-root pvnodes, or for non-root
     // nodes near depth zero. Note that when we bypass the qsearch as a result of
     // being in check, we set depth to zero. This step adjusts depth back to one.
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    checkExtend = inCheck && !RootNode && (PvNode || depth <= 6);
+    depth += checkExtend;
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
@@ -609,6 +610,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            // 
+            R += checkExtend && ttMove != NONE_MOVE && moveIsTactical(board, ttMove);
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
