@@ -442,6 +442,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
         && !inCheck
+        && !improving
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
