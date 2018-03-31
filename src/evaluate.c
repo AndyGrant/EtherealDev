@@ -555,7 +555,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Rook gains a bonus for being located on seventh rank relative to its
         // colour so long as the enemy king is on the last two ranks of the board
         if (   Rank(sq) == (colour == BLACK ? 1 : 6)
-            && Rank(relativeSquare(getlsb(enemyKings), colour)) >= 6){
+            && Rank(relativeSquare(getlsb(enemyKings), colour)) >= 5){
             ei->midgame[colour] += RookOnSeventh[MG];
             ei->endgame[colour] += RookOnSeventh[EG];
             if (TRACE) T.rookOnSeventh[colour]++;
