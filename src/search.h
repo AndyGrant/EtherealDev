@@ -90,7 +90,7 @@ static const int WeakCaptureTwoAttackersDepth = 5;
 
 static const int WeakCaptureOneAttackersDepth = 3;
 
-static const int FutilityPruningDepth = 8;
+static const int FutilityPruningDepth = 12;
 
 static const int LateMovePruningDepth = 8;
 
