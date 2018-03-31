@@ -297,7 +297,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, inCheck, isQuiet, R, repetitions, improving;
+    int i, inCheck, isQuiet, R, repetitions, improving, faltering;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha, best = -MATE;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0;
     int value = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -434,6 +434,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     improving =    height >= 4
                &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
                &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+               
+    faltering =    height >= 4
+               &&  thread->evalStack[height-0] <= thread->evalStack[height-2] - 16
+               &&  thread->evalStack[height-2] <= thread->evalStack[height-4] - 16;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -445,7 +449,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
-        if (depth <= 1)
+        if (depth <= 1 || faltering)
             return qsearch(thread, pv, alpha, beta, height);
         
         rAlpha = alpha - RazorMargins[depth];
