@@ -668,7 +668,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         attackCounts = ei->attackCounts[!colour];
         
         // Extra attack counts for being next to open files
-        attackCounts += 2 * !(Files[MAX(0, kingFile-1)] & pawns)
+        attackCounts += 2 * !(Files[kingFile] & pawns)
+                     +  2 * !(Files[MAX(0, kingFile-1)] & pawns)
                      +  2 * !(Files[MIN(7, kingFile+1)] & pawns);
         
         // Add an extra two attack counts per missing pawn in the king area.
