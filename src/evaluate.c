@@ -552,6 +552,13 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.rookFile[colour][open]++;
         }
         
+        
+        // Apply a bonus for the knight based on number of rammed pawns
+        int count = popcount(ei->rammedPawns[colour]);
+        ei->midgame[colour] -= count * 2 * KnightRammedPawns[MG];
+        ei->endgame[colour] -= count * 2 * KnightRammedPawns[EG];
+        if (TRACE) T.knightRammedPawns[colour] += count;
+        
         // Rook gains a bonus for being located on seventh rank relative to its
         // colour so long as the enemy king is on the last two ranks of the board
         if (   Rank(sq) == (colour == BLACK ? 1 : 6)
