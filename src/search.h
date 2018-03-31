@@ -70,7 +70,7 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei);
 int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
 
 
-static const int RazorDepth = 4;
+static const int RazorDepth = 2;
 
 static const int RazorMargins[] = {0, 300, 350, 410, 500};
 
