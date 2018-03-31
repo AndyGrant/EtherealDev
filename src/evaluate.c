@@ -670,14 +670,14 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         // In addition to King Shelter, when pawns are missing or not near
         // our King, we are at a higher risk for suffering a King attack
-        attackCounts += 2 * !(myPawns & ei->kingAreas[colour] & Files[kingFile])
-                     +  2 * !(myPawns & ei->kingAreas[colour] & Files[MAX(0, kingFile-1)])
-                     +  2 * !(myPawns & ei->kingAreas[colour] & Files[MIN(7, kingFile+1)]);
+        attackCounts += !(myPawns & ei->kingAreas[colour] & Files[kingFile])
+                     +  !(myPawns & ei->kingAreas[colour] & Files[MAX(0, kingFile-1)])
+                     +  !(myPawns & ei->kingAreas[colour] & Files[MIN(7, kingFile+1)]);
                      
         // We apply a greater penalty if we have no pawns on the file at all
-        attackCounts += 1 * !(myPawns & Files[kingFile])
-                     +  1 * !(myPawns & Files[MAX(0, kingFile-1)])
-                     +  1 * !(myPawns & Files[MIN(7, kingFile+1)]);
+        attackCounts += !(myPawns & Files[kingFile])
+                     +  !(myPawns & Files[MAX(0, kingFile-1)])
+                     +  !(myPawns & Files[MIN(7, kingFile+1)]);
                      
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
