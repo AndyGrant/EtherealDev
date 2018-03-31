@@ -472,7 +472,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
-        R = 3 + depth / 7 + (eval - beta) / 100;
+        R = 3 + depth / 7 + MIN(4, (eval - beta) / 100);
             
         applyNullMove(board, undo);
         
