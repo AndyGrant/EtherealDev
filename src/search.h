@@ -94,7 +94,7 @@ static const int FutilityPruningDepth = 8;
 
 static const int LateMovePruningDepth = 12;
 
-static const int LateMovePruningCounts[13] = {0, 5, 7, 10, 14, 19, 25, 32, 40, 49, 59, 70, 82};
+static const int LateMovePruningCounts[13] = {0, 4, 5, 7, 10, 14, 19, 25, 32, 40, 49, 59, 70};
 
 static const int QFutilityMargin = 100;
 
