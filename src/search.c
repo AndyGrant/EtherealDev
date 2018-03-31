@@ -432,8 +432,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the static eval by at least 16 centipawns. In order to have two last moves, we
     // must have a height of at least 4.
     improving =    height >= 4
-               &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
-               &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+               &&  thread->evalStack[height-0] > thread->evalStack[height-2]
+               &&  thread->evalStack[height-2] > thread->evalStack[height-4];
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -445,7 +445,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
-        if (depth <= 1)
+        if (depth <= 1 || !improving)
             return qsearch(thread, pv, alpha, beta, height);
         
         rAlpha = alpha - RazorMargins[depth];
