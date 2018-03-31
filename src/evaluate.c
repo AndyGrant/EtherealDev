@@ -119,6 +119,8 @@ const int BishopMobility[14][PHASE_NB] = {
 
 const int RookFile[2][PHASE_NB] = { {  12,   2}, {  41,  -8} };
 
+const int RookCheckedByPawn[PHASE_NB] =  {-51, -40};
+
 const int RookOnSeventh[PHASE_NB] = {   0,  23};
 
 const int RookMobility[15][PHASE_NB] = {
@@ -550,6 +552,12 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             ei->midgame[colour] += RookFile[open][MG];
             ei->endgame[colour] += RookFile[open][EG];
             if (TRACE) T.rookFile[colour][open]++;
+        }
+        
+        // Apply a penalty if the queen is under attack by a pawn
+        if ((1ull << sq) & ei->pawnAttacks[!colour]){
+            ei->midgame[colour] += RookCheckedByPawn[MG];
+            ei->endgame[colour] += RookCheckedByPawn[EG];
         }
         
         // Rook gains a bonus for being located on seventh rank relative to its
