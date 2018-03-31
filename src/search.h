@@ -80,7 +80,7 @@ static const int FutilityMargin = 85;
 
 static const int ProbCutDepth = 5;
 
-static const int ProbCutMargin[2] = { 100,  75};
+static const int ProbCutMargin[2] = { 140, 100};
 
 static const int InternalIterativeDeepeningDepth = 3;
 
