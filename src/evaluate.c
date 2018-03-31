@@ -639,6 +639,8 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t filePawns;
     
+    uint64_t pawns = board->pieces[PAWN];
+    
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
@@ -664,6 +666,10 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (ei->attackerCounts[!colour] >= 2){
         
         attackCounts = ei->attackCounts[!colour];
+        
+        // Extra attack counts for being next to open files
+        attackCounts += 2 * !(Files[MAX(0, kingFile-1)] & pawns)
+                     +  2 * !(Files[MIN(7, kingFile+1)] & pawns);
         
         // Add an extra two attack counts per missing pawn in the king area.
         attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
