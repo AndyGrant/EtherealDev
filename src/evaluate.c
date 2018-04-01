@@ -203,7 +203,7 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
-    int phase, eval;
+    int phase, eval, pkeval;
     
     // evaluateDraws handles obvious drawn positions
     ei->positionIsDrawn = evaluateDraws(board);
@@ -211,23 +211,16 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
     // Setup and perform the evaluation of all pieces
     initializeEvalInfo(ei, board, pktable);
-    evaluatePieces(ei, board);
+    eval = evaluatePieces(ei, board);
     
-    // Store a new PawnKing entry if we did not have one (and are not doing Texel)
+    // Store a new Pawn King Entry if we did not have one
     if (ei->pkentry == NULL && !TEXEL){
-        eval = ei->pkeval[WHITE] - ei->pkeval[BLACK];
-        storePawnKingEntry(pktable, board->pkhash, ei->passedPawns, eval);
+        pkeval = ei->pkeval[WHITE] - ei->pkeval[BLACK];
+        storePawnKingEntry(pktable, board->pkhash, ei->passedPawns, pkeval);
     }
     
-    // Otherwise, fetch the PawnKing evaluation (if we are not doing Texel)
-    else if (!TEXEL)
-        ei->pkeval[WHITE] = ei->pkentry->eval;
-    
-    
-    
-       
-    eval = board->psqtmat     + ei->eval[WHITE] + ei->pkeval[WHITE]
-         + Tempo[board->turn] - ei->eval[BLACK] - ei->pkeval[BLACK];
+    // Add in the PSQT and Material values, as well as the tempo
+    eval += board->psqtmat + Tempo[board->turn];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
@@ -279,35 +272,39 @@ int evaluateDraws(Board* board){
     return 0;
 }
 
-void evaluatePieces(EvalInfo* ei, Board* board){
+int evaluatePieces(EvalInfo* ei, Board* board){
     
-    evaluatePawns(ei, board, WHITE);
-    evaluatePawns(ei, board, BLACK);
+    int eval = 0;
     
-    evaluateKnights(ei, board, WHITE);
-    evaluateKnights(ei, board, BLACK);
+    eval += evaluatePawns(ei, board, WHITE)
+          - evaluatePawns(ei, board, BLACK);
     
-    evaluateBishops(ei, board, WHITE);
-    evaluateBishops(ei, board, BLACK);
+    eval += evaluateKnights(ei, board, WHITE)
+          - evaluateKnights(ei, board, BLACK);
+     
+    eval += evaluateBishops(ei, board, WHITE)
+          - evaluateBishops(ei, board, BLACK);
     
-    evaluateRooks(ei, board, WHITE);
-    evaluateRooks(ei, board, BLACK);
+    eval += evaluateRooks(ei, board, WHITE)
+          - evaluateRooks(ei, board, BLACK);
     
-    evaluateQueens(ei, board, WHITE);
-    evaluateQueens(ei, board, BLACK);
+    eval += evaluateQueens(ei, board, WHITE)
+          - evaluateQueens(ei, board, BLACK);
     
-    evaluateKings(ei, board, WHITE);
-    evaluateKings(ei, board, BLACK);
+    eval += evaluateKings(ei, board, WHITE)
+          - evaluateKings(ei, board, BLACK);
     
-    evaluatePassedPawns(ei, board, WHITE);
-    evaluatePassedPawns(ei, board, BLACK);
+    eval += evaluatePassedPawns(ei, board, WHITE)
+          - evaluatePassedPawns(ei, board, BLACK);
+
+    return eval;
 }
 
-void evaluatePawns(EvalInfo* ei, Board* board, int colour){
+int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     
     const int forward = (colour == WHITE) ? 8 : -8;
     
-    int sq, semi;
+    int sq, semi, eval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
     
     // Update the attacks array with the pawn attacks. We will use this to
@@ -324,8 +321,10 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
     ei->attackCounts[colour] += popcount(attacks);
     
-    // The pawn table holds the rest of the eval information we will calculate
-    if (ei->pkentry != NULL) return;
+    // The pawn table holds the rest of the eval information we will calculate.
+    // We return the saved value only when we evaluate for white, since we save
+    // the evaluation as a combination of white and black, from white's POV
+    if (ei->pkentry != NULL) return colour == WHITE ? ei->pkentry->eval : 0;
     
     pawns = board->pieces[PAWN];
     myPawns = tempPawns = pawns & board->colours[colour];
@@ -346,13 +345,13 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
         
         // Apply a penalty if the pawn is isolated
         if (!(IsolatedPawnMasks[sq] & tempPawns)){
-            ei->pkeval[colour] += PawnIsolated;
+            eval += PawnIsolated;
             if (TRACE) T.pawnIsolated[colour]++;
         }
         
         // Apply a penalty if the pawn is stacked
         if (Files[File(sq)] & tempPawns){
-            ei->pkeval[colour] += PawnStacked;
+            eval += PawnStacked;
             if (TRACE) T.pawnStacked[colour]++;
         }
         
@@ -360,21 +359,25 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
         if (   !(PassedPawnMasks[!colour][sq] & myPawns)
             &&  (ei->pawnAttacks[!colour] & (1ull << (sq + forward)))){
             semi = !(Files[File(sq)] & enemyPawns);
-            ei->pkeval[colour] += PawnBackwards[semi];
+            eval += PawnBackwards[semi];
             if (TRACE) T.pawnBackwards[colour][semi]++;
         }
         
         // Apply a bonus if the pawn is connected and not backward
         else if (PawnConnectedMasks[colour][sq] & myPawns){
-            ei->pkeval[colour] += PawnConnected32[relativeSquare32(sq, colour)];
+            eval += PawnConnected32[relativeSquare32(sq, colour)];
             if (TRACE) T.pawnConnected[colour][sq]++;
         }
     }
+    
+    ei->pkeval[colour] = eval;
+    
+    return eval;
 }
 
-void evaluateKnights(EvalInfo* ei, Board* board, int colour){
+int evaluateKnights(EvalInfo* ei, Board* board, int colour){
     
-    int sq, defended, count;
+    int sq, defended, count, eval = 0;
     uint64_t tempKnights, enemyPawns, attacks; 
     
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
@@ -398,12 +401,12 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         
         // Apply a bonus for the knight based on number of rammed pawns
         count = popcount(ei->rammedPawns[colour]);
-        ei->eval[colour] += count * KnightRammedPawns;
+        eval += count * KnightRammedPawns;
         if (TRACE) T.knightRammedPawns[colour] += count;
         
         // Apply a penalty if the knight is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
-            ei->eval[colour] += KnightAttackedByPawn;
+            eval += KnightAttackedByPawn;
             if (TRACE) T.knightAttackedByPawn[colour]++;
         }
         
@@ -412,13 +415,13 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            ei->eval[colour] += KnightOutpost[defended];
+            eval += KnightOutpost[defended];
             if (TRACE) T.knightOutpost[colour][defended]++;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the knight
         count = popcount((ei->mobilityAreas[colour] & attacks));
-        ei->eval[colour] += KnightMobility[count];
+        eval += KnightMobility[count];
         if (TRACE) T.knightMobility[colour][count]++;
         
         // Update the attack and attacker counts for the
@@ -429,11 +432,13 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
             ei->attackerCounts[colour] += 1;
         }
     }
+   
+    return eval;
 }
 
-void evaluateBishops(EvalInfo* ei, Board* board, int colour){
+int evaluateBishops(EvalInfo* ei, Board* board, int colour){
     
-    int sq, defended, count;
+    int sq, defended, count, eval = 0;
     uint64_t tempBishops, enemyPawns, attacks;
     
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
@@ -441,7 +446,7 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
     
     // Apply a bonus for having a pair of bishops
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
-        ei->eval[colour] += BishopPair;
+        eval += BishopPair;
         if (TRACE) T.bishopPair[colour]++;
     }
     
@@ -464,12 +469,12 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Apply a penalty for the bishop based on number of rammed pawns
         // of our own colour, which reside on the same shade of square as the bishop
         count = popcount(ei->rammedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
-        ei->eval[colour] += count * BishopRammedPawns;
+        eval += count * BishopRammedPawns;
         if (TRACE) T.bishopRammedPawns[colour] += count;
         
         // Apply a penalty if the bishop is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
-            ei->eval[colour] += BishopAttackedByPawn;
+            eval += BishopAttackedByPawn;
             if (TRACE) T.bishopAttackedByPawn[colour]++;
         }
         
@@ -478,13 +483,13 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (    (OutpostRanks[colour] & (1ull << sq))
             && !(OutpostSquareMasks[colour][sq] & enemyPawns)){
             defended = !!(ei->pawnAttacks[colour] & (1ull << sq));
-            ei->eval[colour] += BishopOutpost[defended];
+            eval += BishopOutpost[defended];
             if (TRACE) T.bishopOutpost[colour][defended]++;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the bishop
         count = popcount((ei->mobilityAreas[colour] & attacks));
-        ei->eval[colour] += BishopMobility[count];
+        eval += BishopMobility[count];
         if (TRACE) T.bishopMobility[colour][count]++;
         
         // Update the attack and attacker counts for the
@@ -495,11 +500,13 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
             ei->attackerCounts[colour] += 1;
         }
     }
+    
+    return eval;
 }
 
-void evaluateRooks(EvalInfo* ei, Board* board, int colour){
+int evaluateRooks(EvalInfo* ei, Board* board, int colour){
     
-    int sq, open, mobilityCount;
+    int sq, open, count, eval = 0;
     uint64_t attacks;
     
     uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
@@ -528,7 +535,7 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // there are no pawns at all, it is an open file
         if (!(myPawns & Files[File(sq)])){
             open = !(enemyPawns & Files[File(sq)]);
-            ei->eval[colour] += RookFile[open];
+            eval += RookFile[open];
             if (TRACE) T.rookFile[colour][open]++;
         }
         
@@ -536,14 +543,14 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // colour so long as the enemy king is on the last two ranks of the board
         if (   Rank(sq) == (colour == BLACK ? 1 : 6)
             && Rank(relativeSquare(getlsb(enemyKings), colour)) >= 6){
-            ei->eval[colour] += RookOnSeventh;
+            eval += RookOnSeventh;
             if (TRACE) T.rookOnSeventh[colour]++;
         }
         
         // Apply a bonus (or penalty) based on the mobility of the rook
-        mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
-        ei->eval[colour] += RookMobility[mobilityCount];
-        if (TRACE) T.rookMobility[colour][mobilityCount]++;
+        count = popcount((ei->mobilityAreas[colour] & attacks));
+        eval += RookMobility[count];
+        if (TRACE) T.rookMobility[colour][count]++;
         
         // Update the attack and attacker counts for the
         // rook for use in the king safety calculation.
@@ -553,11 +560,13 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
             ei->attackerCounts[colour] += 1;
         }
     }
+    
+    return eval;
 }
 
-void evaluateQueens(EvalInfo* ei, Board* board, int colour){
+int evaluateQueens(EvalInfo* ei, Board* board, int colour){
     
-    int sq, mobilityCount;
+    int sq, count, eval = 0;
     uint64_t tempQueens, attacks;
     
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
@@ -580,20 +589,20 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
             
         // Apply a penalty if the queen is under an attack threat
         if ((1ull << sq) & ei->attackedNoQueen[!colour]){
-            ei->eval[colour] += QueenChecked;
+            eval += QueenChecked;
             if (TRACE) T.queenChecked[colour]++;
         }
         
         // Apply a penalty if the queen is under attack by a pawn
         if ((1ull << sq) & ei->pawnAttacks[!colour]){
-            ei->eval[colour] += QueenCheckedByPawn;
+            eval += QueenCheckedByPawn;
             if (TRACE) T.queenCheckedByPawn[colour]++;
         }
             
         // Apply a bonus (or penalty) based on the mobility of the queen
-        mobilityCount = popcount((ei->mobilityAreas[colour] & attacks));
-        ei->eval[colour] += QueenMobility[mobilityCount];
-        if (TRACE) T.queenMobility[colour][mobilityCount]++;
+        count = popcount((ei->mobilityAreas[colour] & attacks));
+        eval += QueenMobility[count];
+        if (TRACE) T.queenMobility[colour][count]++;
         
         // Update the attack and attacker counts for the queen for use in
         // the king safety calculation. We could the Queen as two attacking
@@ -604,13 +613,14 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
             ei->attackerCounts[colour] += 2;
         }
     }
+    
+    return eval;
 }
 
-void evaluateKings(EvalInfo* ei, Board* board, int colour){
+int evaluateKings(EvalInfo* ei, Board* board, int colour){
     
-    int defenderCounts, attackCounts;
-    
-    int file, kingFile, kingRank, kingSq, distance;
+    int file, kingFile, kingRank, kingSq;
+    int distance, count, eval = 0, pkeval = 0;
     
     uint64_t filePawns;
     
@@ -629,28 +639,28 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.kingPSQT[colour][kingSq]++;
     
     // Bonus for our pawns and minors sitting within our king area
-    defenderCounts = popcount(myDefenders & ei->kingAreas[colour]);
-    ei->eval[colour] += KingDefenders[defenderCounts];
-    if (TRACE) T.kingDefenders[colour][defenderCounts]++;
+    count = popcount(myDefenders & ei->kingAreas[colour]);
+    eval += KingDefenders[count];
+    if (TRACE) T.kingDefenders[colour][count]++;
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
         
-        attackCounts = ei->attackCounts[!colour];
+        count = ei->attackCounts[!colour];
         
         // Add an extra two attack counts per missing pawn in the king area.
-        attackCounts += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
+        count += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            attackCounts *= .25;
+            count *= .25;
     
-        ei->eval[colour] -= KingSafety[MIN(63, MAX(0, attackCounts))];
+        eval -= KingSafety[MIN(63, MAX(0, count))];
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
-    if (ei->pkentry != NULL) return;
+    if (ei->pkentry != NULL) return eval;
     
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
     // to the King's file. We evaluate the distance between the king and the most backward
@@ -668,14 +678,18 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
                                    : kingRank - Rank(getmsb(filePawns))
                                    : 7;
 
-        ei->pkeval[colour] += KingShelter[file == kingFile][file][distance];
+        pkeval += KingShelter[file == kingFile][file][distance];
         if (TRACE) T.kingShelter[colour][file == kingFile][file][distance]++;
-    }    
+    }
+    
+    ei->pkeval[colour] += pkeval;
+    
+    return eval + pkeval;
 }
 
-void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
+int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
-    int sq, rank, canAdvance, safeAdvance;
+    int sq, rank, canAdvance, safeAdvance, eval = 0;
     uint64_t tempPawns, destination, notEmpty;
     
     // Fetch Passed Pawns from the Pawn King Entry if we have one
@@ -702,9 +716,11 @@ void evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
-        ei->eval[colour] += PassedPawn[canAdvance][safeAdvance][rank];
+        eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
     }
+    
+    return eval;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
@@ -751,9 +767,6 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     ei->attackCounts[WHITE] = ei->attackCounts[BLACK] = 0;
     ei->attackerCounts[WHITE] = ei->attackerCounts[BLACK] = 0;
-    
-    ei->eval[WHITE] = ei->pkeval[WHITE] = 0;
-    ei->eval[BLACK] = ei->pkeval[BLACK] = 0;
     
     if (TEXEL) ei->pkentry = NULL;
     else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);

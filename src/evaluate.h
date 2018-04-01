@@ -80,7 +80,6 @@ typedef struct EvalInfo {
     uint64_t passedPawns;
     int attackCounts[COLOUR_NB];
     int attackerCounts[COLOUR_NB];
-    int eval[COLOUR_NB];
     int pkeval[COLOUR_NB];
     int positionIsDrawn;
     PawnKingEntry* pkentry;
@@ -89,14 +88,14 @@ typedef struct EvalInfo {
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable);
 int evaluateDraws(Board* board);
-void evaluatePieces(EvalInfo* ei, Board* board);
-void evaluatePawns(EvalInfo* ei, Board* board, int colour);
-void evaluateKnights(EvalInfo* ei, Board* board, int colour);
-void evaluateBishops(EvalInfo* ei, Board* board, int colour);
-void evaluateRooks(EvalInfo* ei, Board* board, int colour);
-void evaluateQueens(EvalInfo* ei, Board* board, int colour);
-void evaluateKings(EvalInfo* ei, Board* board, int colour);
-void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
+int evaluatePieces(EvalInfo* ei, Board* board);
+int evaluatePawns(EvalInfo* ei, Board* board, int colour);
+int evaluateKnights(EvalInfo* ei, Board* board, int colour);
+int evaluateBishops(EvalInfo* ei, Board* board, int colour);
+int evaluateRooks(EvalInfo* ei, Board* board, int colour);
+int evaluateQueens(EvalInfo* ei, Board* board, int colour);
+int evaluateKings(EvalInfo* ei, Board* board, int colour);
+int evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
 void initializeEvaluation();
 
