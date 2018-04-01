@@ -22,15 +22,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "board.h"
 #include "bitboards.h"
 #include "bitutils.h"
+#include "board.h"
 #include "castle.h"
 #include "evaluate.h"
 #include "magics.h"
 #include "masks.h"
 #include "movegen.h"
 #include "piece.h"
+#include "psqt.h"
 #include "square.h"
 #include "transposition.h"
 #include "types.h"
@@ -222,11 +223,11 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     }
         
     // Combine evaluation terms for the mid game
-    mg = board->midgame + ei->midgame[WHITE] - ei->midgame[BLACK]
+    mg = ei->midgame[WHITE] - ei->midgame[BLACK]
        + ei->pawnKingMidgame[WHITE] - ei->pawnKingMidgame[BLACK] + Tempo[board->turn][MG];
        
     // Combine evaluation terms for the end game
-    eg = board->endgame + ei->endgame[WHITE] - ei->endgame[BLACK]
+    eg = ei->endgame[WHITE] - ei->endgame[BLACK]
        + ei->pawnKingEndgame[WHITE] - ei->pawnKingEndgame[BLACK] + Tempo[board->turn][EG];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
@@ -337,6 +338,9 @@ void evaluatePawns(EvalInfo* ei, Board* board, int colour){
         // Pop off the next pawn
         sq = poplsb(&tempPawns);
         
+        // PSQT contains square value and material value
+        ei->pawnKingMidgame[colour] += PSQT[PAWN][relativeSquare(sq, colour)][MG];
+        ei->pawnKingEndgame[colour] += PSQT[PAWN][relativeSquare(sq, colour)][EG];
         if (TRACE) T.pawnCounts[colour]++;
         if (TRACE) T.pawnPSQT[colour][sq]++;
         
@@ -392,6 +396,9 @@ void evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // Pop off the next knight
         sq = poplsb(&tempKnights);
         
+        // PSQT contains square value and material value
+        ei->midgame[colour] += PSQT[KNIGHT][relativeSquare(sq, colour)][MG];
+        ei->endgame[colour] += PSQT[KNIGHT][relativeSquare(sq, colour)][EG];
         if (TRACE) T.knightCounts[colour]++;
         if (TRACE) T.knightPSQT[colour][sq]++;
         
@@ -464,6 +471,9 @@ void evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Pop off the next Bishop
         sq = poplsb(&tempBishops);
         
+        // PSQT contains square value and material value
+        ei->midgame[colour] += PSQT[BISHOP][relativeSquare(sq, colour)][MG];
+        ei->endgame[colour] += PSQT[BISHOP][relativeSquare(sq, colour)][EG];
         if (TRACE) T.bishopCounts[colour]++;
         if (TRACE) T.bishopPSQT[colour][sq]++;
         
@@ -532,6 +542,9 @@ void evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Pop off the next rook
         sq = poplsb(&tempRooks);
         
+        // PSQT contains square value and material value
+        ei->midgame[colour] += PSQT[ROOK][relativeSquare(sq, colour)][MG];
+        ei->endgame[colour] += PSQT[ROOK][relativeSquare(sq, colour)][EG];
         if (TRACE) T.rookCounts[colour]++;
         if (TRACE) T.rookPSQT[colour][sq]++;
         
@@ -590,6 +603,9 @@ void evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // Pop off the next queen
         sq = poplsb(&tempQueens);
         
+        // PSQT contains square value and material value
+        ei->midgame[colour] += PSQT[QUEEN][relativeSquare(sq, colour)][MG];
+        ei->endgame[colour] += PSQT[QUEEN][relativeSquare(sq, colour)][EG];
         if (TRACE) T.queenCounts[colour]++;
         if (TRACE) T.queenPSQT[colour][sq]++;
         
@@ -650,7 +666,9 @@ void evaluateKings(EvalInfo* ei, Board* board, int colour){
     kingFile = File(kingSq);
     kingRank = Rank(kingSq);
     
-    // For Tuning Piece Square Table for Kings
+    // PSQT contains square value and material value
+    ei->midgame[colour] += PSQT[KING][relativeSquare(kingSq, colour)][MG];
+    ei->endgame[colour] += PSQT[KING][relativeSquare(kingSq, colour)][EG];
     if (TRACE) T.kingPSQT[colour][kingSq]++;
     
     // Bonus for our pawns and minors sitting within our king area
