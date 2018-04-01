@@ -80,10 +80,8 @@ typedef struct EvalInfo {
     uint64_t passedPawns;
     int attackCounts[COLOUR_NB];
     int attackerCounts[COLOUR_NB];
-    int midgame[COLOUR_NB];
-    int endgame[COLOUR_NB];
-    int pawnKingMidgame[COLOUR_NB];
-    int pawnKingEndgame[COLOUR_NB];
+    int eval[COLOUR_NB];
+    int pkeval[COLOUR_NB];
     int positionIsDrawn;
     PawnKingEntry* pkentry;
     
@@ -102,6 +100,11 @@ void evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
 void initializeEvaluation();
 
-extern const int* PieceValues[8];
+#define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
+
+#define ScoreMG(s) ((int16_t)((uint16_t)((unsigned)((s)))))
+#define ScoreEG(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16)))
+
+extern const int PieceValues[8][PHASE_NB];
 
 #endif
