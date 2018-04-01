@@ -203,7 +203,7 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
-    int mg, eg, phase, eval;
+    int phase, eval;
     
     // evaluateDraws handles obvious drawn positions
     ei->positionIsDrawn = evaluateDraws(board);
@@ -215,20 +215,19 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
     // Store a new PawnKing entry if we did not have one (and are not doing Texel)
     if (ei->pkentry == NULL && !TEXEL){
-        mg = ScoreMG(ei->pkeval[WHITE]) - ScoreMG(ei->pkeval[BLACK]);
-        eg = ScoreEG(ei->pkeval[WHITE]) - ScoreEG(ei->pkeval[BLACK]);
-        storePawnKingEntry(pktable, board->pkhash, ei->passedPawns, mg, eg);
+        eval = ei->pkeval[WHITE] - ei->pkeval[BLACK];
+        storePawnKingEntry(pktable, board->pkhash, ei->passedPawns, eval);
     }
     
     // Otherwise, fetch the PawnKing evaluation (if we are not doing Texel)
     else if (!TEXEL)
-        ei->pkeval[WHITE] = MakeScore(ei->pkentry->mg, ei->pkentry->eg);
+        ei->pkeval[WHITE] = ei->pkentry->eval;
+    
+    
+    
        
-    mg = ScoreMG(board->psqtmat    + ei->eval[WHITE] + ei->pkeval[WHITE]
-               + Tempo[board->turn] - ei->eval[BLACK] - ei->pkeval[BLACK]);
-       
-    eg = ScoreEG(board->psqtmat    + ei->eval[WHITE] + ei->pkeval[WHITE]
-               + Tempo[board->turn] - ei->eval[BLACK] - ei->pkeval[BLACK]);
+    eval = board->psqtmat     + ei->eval[WHITE] + ei->pkeval[WHITE]
+         + Tempo[board->turn] - ei->eval[BLACK] - ei->pkeval[BLACK];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
@@ -237,7 +236,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
           
     // Compute the interpolated evaluation
-    eval  = (mg * (256 - phase) + eg * phase) / 256;
+    eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
