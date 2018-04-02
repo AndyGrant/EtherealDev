@@ -690,7 +690,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (best >= beta && !moveIsTactical(board, bestMove)){
         updateHistory(thread->history, bestMove, board->turn, depth*depth);
         for (i = 0; i < quiets - 1; i++)
-            updateHistory(thread->history, quietsTried[i], board->turn, -(depth*depth + depth));
+            updateHistory(thread->history, quietsTried[i], board->turn, -(depth*depth - depth + 1));
     }
     
     // Step 23. Store the results of the search in the transposition table.
