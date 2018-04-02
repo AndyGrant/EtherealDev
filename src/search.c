@@ -617,8 +617,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
-            // expect an adjustment on the bounds of [+1, -6], with 6 being very rare
-            R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
+            // expect an adjustment on the bounds of [0, 6], with 6 being very rare
+            R -= MAX(0, (hist + 8192) / 4096);
             
             // Do not allow the reduction to take us directly into a quiescence search
             // and also ensure that R is at least one, therefore avoiding extensions
