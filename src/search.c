@@ -513,8 +513,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1, MAX(0, depth-8), height+1) >= rBeta
-                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1, (depth-4)/2, height+1) >= rBeta
+                && -search(thread, &lpv, -rBeta, -rBeta+1, (depth-4)/1, height+1) >= rBeta){
                     
                 revertMove(board, currentMove, undo);
                 return beta;
