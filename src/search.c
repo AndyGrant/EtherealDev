@@ -249,21 +249,21 @@ int aspirationWindow(Thread* thread, int depth){
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
         
         // Dynamically compute the upper margin based on previous scores
-        upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-        upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
+        upper = MAX(    6,  abs(values[mainDepth-1] - values[mainDepth-2]));
+        upper = MAX(upper,  abs(values[mainDepth-2] - values[mainDepth-3]));
+        upper = MAX(upper,  abs(values[mainDepth-3] - values[mainDepth-4]));
         
         // Dynamically compute the lower margin based on previous scores
-        lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-        lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
+        lower = MAX(    6,  abs(values[mainDepth-1] - values[mainDepth-2]));
+        lower = MAX(lower,  abs(values[mainDepth-2] - values[mainDepth-3]));
+        lower = MAX(lower,  abs(values[mainDepth-3] - values[mainDepth-4])); 
         
         // Create the aspiration window
         alpha = values[mainDepth-1] - lower;
         beta  = values[mainDepth-1] + upper;
         
         // Try windows until lower or upper bound exceeds a limit
-        for (; lower <= 1000 && upper <= 1000; lower *= 2, upper *= 2){
+        for (; lower <= 1000 && upper <= 1000; lower *= 2.25, upper *= 2.25){
             
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
