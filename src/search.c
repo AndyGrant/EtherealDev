@@ -535,8 +535,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         value = search(thread, &lpv, alpha, beta, depth-2, height);
         
         // Probe for the newly found move, and update ttMove
-        if (getTranspositionEntry(&Table, board->hash, &ttEntry))
-            ttMove = ttEntry.bestMove;
+        //if (getTranspositionEntry(&Table, board->hash, &ttEntry))
+        //    ttMove = ttEntry.bestMove;
+    
+        ttMove = lpv.length >= 1 ? lpv.line[0] : NULL_MOVE;
     }
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
