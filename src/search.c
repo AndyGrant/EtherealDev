@@ -635,6 +635,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
             &&  ttEntry.depth >= depth - 3){
                 
+            // Undo the ttMove so we can search alternatives
             revertMove(board, currentMove, undo);
             
             rBeta = MAX(ttEntry.value - 2 * depth, -MATE);
@@ -645,22 +646,31 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             initializeMovePicker(&lmp, thread, NONE_MOVE, height, 0);
             
             while ((move = selectNextMove(&lmp, board)) != NONE_MOVE){
+                
+                // Don't play the move we are considering extending
+                if (move == ttMove) continue;
                     
+                // Verify legality before searching
                 applyMove(board, move, lundo);
                 if (!isNotInCheck(board, !board->turn)){
                     revertMove(board, move, lundo);
                     continue;
                 }
                     
-                value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height);
+                // Search on a null rBeta window with a reduced depth
+                value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
                 
+                // Revert the board state
                 revertMove(board, move, lundo);
                 
+                // Move failed high, thus ttMove is not singular
                 if (value > rBeta) break;
             }
             
+            // Extend if all other moves failed low
             ndepth += value <= rBeta;
             
+            // Correct the board state (reapply ttMove)
             applyMove(board, currentMove, undo);
         }
         
