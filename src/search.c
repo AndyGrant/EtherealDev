@@ -362,10 +362,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             if (board->history[i] == board->hash){
                 
-                // Repetition occured after the root
-                if (i > board->numMoves - height)
-                    return 0;
-                
                 // An actual three fold repetition
                 if (++repetitions == 2)
                     return 0;
