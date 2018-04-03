@@ -626,7 +626,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Undo the ttMove so we can search alternatives
             revertMove(board, currentMove, undo);
             
-            rBeta = MAX(ttEntry.value - 10 - depth, -MATE);
+            rBeta = MAX(ttEntry.value - depth, -MATE);
             
             Undo lundo[1];
             uint16_t move;
