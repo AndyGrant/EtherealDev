@@ -196,12 +196,12 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms related to general properties
 
-static const int Imbalance[5][5] = {
-    { S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0) },
-    { S(   2,   5), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0) },
-    { S(   1,   1), S(  -1,  -4), S(   0,   0), S(   0,   0), S(   0,   0) },
-    { S(   3,  -2), S(  -8,  -5), S( -13, -12), S(   0,   0), S(   0,   0) },
-    { S(  21,  -2), S(  -3, -10), S(   0,  -5), S(  16, -18), S(   0,   0) },
+const int Imbalance[5][5] = {
+   { S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   { S(   0,   1), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   { S(  -1,   2), S(  -1,  -1), S(   0,   0), S(   0,   0), S(   0,   0)},
+   { S(   0,   0), S(   0,   2), S(  -7,   0), S(   0,   0), S(   0,   0)},
+   { S(   0,   7), S(   9,  15), S(   5,  19), S(  -8,   8), S(   0,   0)},
 };
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
@@ -745,10 +745,14 @@ int evaluateImbalance(Board* board){
     
     for (us = KNIGHT; us <= QUEEN; us++){
         for (them = PAWN; them < us; them++){
+            
             eval += Imbalance[us][them] * (
               + pieceCounts[WHITE][us] * pieceCounts[BLACK][them]
               - pieceCounts[BLACK][us] * pieceCounts[WHITE][them]
             );
+            
+            if (TRACE) T.imbalance[WHITE][us][them] = pieceCounts[WHITE][us] * pieceCounts[BLACK][them];
+            if (TRACE) T.imbalance[BLACK][us][them] = pieceCounts[BLACK][us] * pieceCounts[WHITE][them];
         }
     }
     

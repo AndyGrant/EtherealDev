@@ -63,6 +63,8 @@ typedef struct EvalTrace {
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
     
+    int imbalance[COLOUR_NB][5][5];
+    
 } EvalTrace;
 
 typedef struct EvalInfo {

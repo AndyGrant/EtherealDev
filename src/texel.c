@@ -100,6 +100,9 @@ extern const int KingShelter[2][FILE_NB][RANK_NB];
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB];
 
+// To determine the starting values for the Imbalance terms
+extern const int Imbalance[5][5];
+
 
 void runTexelTuning(Thread* thread){
     
@@ -466,6 +469,7 @@ void initializeCoefficients(int coeffs[NT]){
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
     
+    
     // Initialize coefficients for the Passed Pawn evaluation terms
     
     if (TunePassedPawn)
@@ -473,6 +477,16 @@ void initializeCoefficients(int coeffs[NT]){
             for (b = 0; b < 2; b++)
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+                
+                
+    // Initialize coefficients for the Imbalance evaluation terms
+    
+    if (TuneImbalance)
+        for (a = 0; a < 5; a++)
+            for (b = 0; b < 5; b++)
+                coeffs[i++] = T.imbalance[WHITE][a][b] - T.imbalance[BLACK][a][b];
+                
+                
 }
 
 void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
@@ -715,6 +729,17 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
                     cparams[i][MG] = ScoreMG(PassedPawn[a][b][c]);
                     cparams[i][EG] = ScoreEG(PassedPawn[a][b][c]);
                 }
+            }
+        }
+    }
+    
+    // Grab the current parameters for the Imblanance evaluation terms
+    
+    if (TuneImbalance){
+        for (a = 0; a < 2; a++){
+            for (b = 0; b < 2; b++){
+                cparams[i][MG] = ScoreMG(Imbalance[a][b]);
+                cparams[i][EG] = ScoreEG(Imbalance[a][b]);
             }
         }
     }
@@ -1035,6 +1060,15 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     // Print any remaining General Evaluation values
     
     printf("\n\n// Definition of evaluation terms related to general properties\n");
+    
+    if (TuneImbalance){
+        printf("\nconst int Imbalance[5][5] = {");
+        for (x = 0; x < 5; x++){
+            printf("\n   ");
+            for (y = 0; y < 5; y++, i++)
+                printf(" S(%4d,%4d),", tparams[i][MG], tparams[i][EG]);
+        } printf("\n};\n");
+    }
 
     printf("\nconst int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };");
 }
