@@ -611,9 +611,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += 2 * !PvNode;
             
             // Decrease R if we appear to be escaping a capture
-            R -=    !ei.positionIsDrawn
+            R -= 2 * (!ei.positionIsDrawn
                 && !((1ull << MoveTo(currentMove)) & ei.attacked[board->turn])
-                &&  ((1ull << MoveFrom(currentMove)) & ei.attacked[board->turn]);
+                &&  ((1ull << MoveFrom(currentMove)) & ei.attacked[board->turn]));
                 
             
             // Decrease R by an additional ply if we have a quiet move as our best
