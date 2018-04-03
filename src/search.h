@@ -82,8 +82,6 @@ static const int ProbCutDepth = 5;
 
 static const int ProbCutMargin = 100;
 
-static const int InternalIterativeDeepeningDepth = 3;
-
 static const int NullMovePruningDepth = 2;
 
 static const int WeakCaptureTwoAttackersDepth = 5;
