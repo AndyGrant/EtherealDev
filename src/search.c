@@ -652,14 +652,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                     continue;
                 }
                     
-                value = search(thread, &lpv, rBeta-1, rBeta, depth / 2 - 1, height);
+                value = search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height);
                 
                 revertMove(board, move, lundo);
                 
-                if (value >= rBeta) break;
+                if (value > rBeta) break;
             }
             
-            ndepth += value < rBeta;
+            ndepth += value <= rBeta;
             
             applyMove(board, currentMove, undo);
         }
