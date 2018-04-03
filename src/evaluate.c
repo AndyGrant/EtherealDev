@@ -196,6 +196,14 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms related to general properties
 
+static const int Imbalance[5][5] = {
+    { S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0) },
+    { S(   2,   5), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0) },
+    { S(   1,   1), S(  -1,  -4), S(   0,   0), S(   0,   0), S(   0,   0) },
+    { S(   3,  -2), S(  -8,  -5), S( -13, -12), S(   0,   0), S(   0,   0) },
+    { S(  21,  -2), S(  -3, -10), S(   0,  -5), S(  16, -18), S(   0,   0) },
+};
+
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 
@@ -212,7 +220,8 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     
     // Setup and perform the evaluation of all pieces
     initializeEvalInfo(ei, board, pktable);
-    eval = evaluatePieces(ei, board);
+    eval  = evaluatePieces(ei, board);
+    eval += evaluateImbalance(board);
     
     // Store a new Pawn King Entry if we did not have one
     if (ei->pkentry == NULL && !TEXEL){
@@ -719,6 +728,28 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+    }
+    
+    return eval;
+}
+
+int evaluateImbalance(Board* board){
+    
+    int colour, piece, us, them, eval = 0;
+    
+    int pieceCounts[COLOUR_NB][PIECE_NB];
+    
+    for (colour = WHITE; colour <= BLACK; colour++)
+        for (piece = PAWN; piece <= QUEEN; piece++)
+            pieceCounts[colour][piece] = popcount(board->colours[colour] & board->pieces[piece]);
+    
+    for (us = KNIGHT; us <= QUEEN; us++){
+        for (them = PAWN; them < us; them++){
+            eval += Imbalance[us][them] * (
+              + pieceCounts[WHITE][us] * pieceCounts[BLACK][them]
+              - pieceCounts[BLACK][us] * pieceCounts[WHITE][them]
+            );
+        }
     }
     
     return eval;

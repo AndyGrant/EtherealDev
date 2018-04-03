@@ -95,7 +95,8 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour);
 int evaluateRooks(EvalInfo* ei, Board* board, int colour);
 int evaluateQueens(EvalInfo* ei, Board* board, int colour);
 int evaluateKings(EvalInfo* ei, Board* board, int colour);
-int evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
+int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour);
+int evaluateImbalance(Board* board);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
 void initializeEvaluation();
 
