@@ -652,7 +652,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                     continue;
                 }
                     
-                value = search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height);
+                value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height);
                 
                 revertMove(board, move, lundo);
                 
