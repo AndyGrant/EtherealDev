@@ -629,15 +629,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         int ndepth = depth;
         
         // Singular Extensions
-        if (    depth >= 8
+        if (   !RootNode
+            &&  depth >= 6
             &&  currentMove == ttMove
-            && !RootNode
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
-            &&  ttEntry.depth >= depth - 3){
+            &&  ttEntry.depth >= depth - 4){
                 
             revertMove(board, currentMove, undo);
-            
-            rBeta = MAX(ttEntry.value - 2 * depth, -MATE);
             
             Undo lundo[1];
             uint16_t move;
@@ -652,14 +650,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                     continue;
                 }
                     
-                value = search(thread, &lpv, rBeta-1, rBeta, depth / 2 - 1, height);
+                value = search(thread, &lpv, ttEntry.value-1, ttEntry.value, depth / 2 - 1, height);
                 
                 revertMove(board, move, lundo);
                 
-                if (value >= rBeta) break;
+                if (value >= ttEntry.value) break;
             }
             
-            ndepth += value < rBeta;
+            ndepth += value < ttEntry.value;
             
             applyMove(board, currentMove, undo);
         }
