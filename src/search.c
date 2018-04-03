@@ -297,7 +297,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, inCheck, isQuiet, R, repetitions, improving;
+    int i, inCheck, isQuiet, R, repetitions, improving, checkExtended;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha, best = -MATE;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0;
     int value = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -422,7 +422,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Here we perform our check extension, for non-root pvnodes, or for non-root
     // nodes near depth zero. Note that when we bypass the qsearch as a result of
     // being in check, we set depth to zero. This step adjusts depth back to one.
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
+    checkExtended = inCheck && !RootNode && (PvNode || depth <= 6);
+    depth = depth + checkExtended;
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
@@ -629,16 +630,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         int ndepth = depth;
         
         // Singular Extensions
-        if (    depth >= 8
+        if (   !RootNode
+            && !checkExtended
+            &&  depth >= 8
             &&  currentMove == ttMove
-            && !RootNode
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
             &&  ttEntry.depth >= depth - 3){
                 
             // Undo the ttMove so we can search alternatives
             revertMove(board, currentMove, undo);
             
-            rBeta = MAX(ttEntry.value - 2 * depth, -MATE);
+            rBeta = MAX(ttEntry.value - 10 - depth, -MATE);
             
             Undo lundo[1];
             uint16_t move;
