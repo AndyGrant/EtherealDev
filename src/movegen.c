@@ -75,10 +75,10 @@ void buildPawnMoves(uint16_t* moves, int* size, uint64_t attacks, int delta){
 void buildPawnPromotions(uint16_t* moves, int* size, uint64_t attacks, int delta){
     while (attacks){
         int sq = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
-        moves[(*size)++] = MoveMake(sq + delta, sq,   ROOK_PROMO_MOVE);
-        moves[(*size)++] = MoveMake(sq + delta, sq, BISHOP_PROMO_MOVE);
         moves[(*size)++] = MoveMake(sq + delta, sq, KNIGHT_PROMO_MOVE);
+        moves[(*size)++] = MoveMake(sq + delta, sq, BISHOP_PROMO_MOVE);
+        moves[(*size)++] = MoveMake(sq + delta, sq,   ROOK_PROMO_MOVE);
+        moves[(*size)++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
     }
 }
 
