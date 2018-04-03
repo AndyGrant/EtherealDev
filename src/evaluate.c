@@ -653,6 +653,13 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Add an extra two attack counts per missing pawn in the king area.
         count += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
         
+        // Add extra attack counts for non-pawn enemies that are supported
+        // which are sitting within out king area
+        count += popcount(   ei->kingAreas[colour]
+                          &  ei->attacked[!colour]
+                          &  board->colours[!colour]
+                          & ~board->pieces[PAWN]);
+        
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             count *= .25;
