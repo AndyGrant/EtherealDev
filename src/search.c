@@ -297,7 +297,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, inCheck, isQuiet, R, repetitions, improving;
+    int i, inCheck, isQuiet, R, repetitions, improving, checkExtended;
     int rAlpha, rBeta, ttValue, oldAlpha = alpha, best = -MATE;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0;
     int value = -MATE, eval = -MATE, futilityMargin = -MATE;
@@ -422,6 +422,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Here we perform our check extension, for non-root pvnodes, or for non-root
     // nodes near depth zero. Note that when we bypass the qsearch as a result of
     // being in check, we set depth to zero. This step adjusts depth back to one.
+    checkExtended = inCheck && !RootNode && (PvNode || depth <= 6);
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
@@ -630,6 +631,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Singular Extensions
         if (    depth >= 8
+            && !checkExtended
             &&  currentMove == ttMove
             && !RootNode
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
