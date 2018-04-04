@@ -635,7 +635,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  currentMove == ttMove
             && !RootNode
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
-            &&  ttEntry.depth >= depth - 3){
+            &&  ttEntry.depth >= depth - 4){
                 
             // Undo the ttMove so we can search alternatives
             revertMove(board, currentMove, undo);
