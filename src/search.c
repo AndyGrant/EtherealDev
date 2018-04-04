@@ -630,7 +630,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         int ndepth = depth;
         
         // Singular Extensions
-        if (    depth >= 8
+        if (    depth >= 6
             && !checkExtended
             &&  currentMove == ttMove
             && !RootNode
