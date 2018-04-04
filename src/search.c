@@ -297,8 +297,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, R, repetitions, newDepth, rAlpha, rBeta, value, ttValue, oldAlpha = alpha;
-    int eval, best = -MATE, futilityMargin = -MATE, hist = 0, quiets = 0, played = 0;
+    int i, repetitions, quiets = 0, played = 0, hist = 0;
+    int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
+    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     int inCheck, isQuiet, improving, checkExtended, singular, bestWasQuiet = 0;
     
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
