@@ -629,52 +629,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         int ndepth = depth;
         
-        // Singular Extensions
-        if (    depth >= 8
+        if (   !RootNode
             && !checkExtended
+            &&  depth >= 8
             &&  currentMove == ttMove
-            && !RootNode
+            &&  ttEntry.depth >= depth - 3
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
-            &&  ttEntry.depth >= depth - 3){
-                
-            // Undo the ttMove so we can search alternatives
-            revertMove(board, currentMove, undo);
-            
-            rBeta = MAX(ttEntry.value - 2 * depth, -MATE);
-            
-            Undo lundo[1];
-            uint16_t move;
-            MovePicker lmp;
-            initializeMovePicker(&lmp, thread, NONE_MOVE, height, 0);
-            
-            while ((move = selectNextMove(&lmp, board)) != NONE_MOVE){
-                
-                // Don't play the move we are considering extending
-                if (move == ttMove) continue;
-                    
-                // Verify legality before searching
-                applyMove(board, move, lundo);
-                if (!isNotInCheck(board, !board->turn)){
-                    revertMove(board, move, lundo);
-                    continue;
-                }
-                    
-                // Search on a null rBeta window with a reduced depth
-                value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
-                
-                // Revert the board state
-                revertMove(board, move, lundo);
-                
-                // Move failed high, thus ttMove is not singular
-                if (value > rBeta) break;
-            }
-            
-            // Extend if all other moves failed low
-            ndepth += value <= rBeta;
-            
-            // Correct the board state (reapply ttMove)
-            applyMove(board, currentMove, undo);
-        }
+            &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height))
+            ndepth++;
         
         // Step 18A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
@@ -938,4 +900,50 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
             &&  ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
             || (depth <= WeakCaptureOneAttackersDepth
             &&  ei->attacked[!board->turn] & (1ull << MoveTo(move))));
+}
+
+int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height){
+    
+    uint16_t move;
+    MovePicker mp;
+    int value = -MATE;
+    int rBeta = MAX(ttEntry->value - 2 * depth, -MATE);
+    
+    // Use a dummy lpv, as we will throw it away
+    PVariation lpv; lpv.length = 0;
+    
+    // We check for move singularity after we have already applied the move.
+    // Thus we must revert the move, check for singularity, and reapply it
+    revertMove(board, ttEntry->bestMove, undo);
+    
+    // Search over each move, we will skip the ttMove inside the loop
+    initializeMovePicker(&mp, thread, NONE_MOVE, height, 0);
+    while ((move = selectNextMove(&mp, board)) != NONE_MOVE){
+        
+        // Don't search the move we are checking for singularity
+        if (move == ttEntry->bestMove) continue;
+        
+        // Make the move, and verify legality before searching
+        // Verify legality before searching
+        applyMove(board, move, undo);
+        if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, move, undo);
+            continue;
+        }
+        
+        // Perform a reduced depth search on a null rbeta window
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+        
+        // Set the board state to what it was initially
+        revertMove(board, move, undo);
+        
+        // Move failed high, thus ttMove is not singular
+        if (value > rBeta) break;
+    }
+    
+    // Fix the board state to what it was initially
+    applyMove(board, ttEntry->bestMove, undo);
+
+    // Move in singular if all evals failed low
+    return value <= rBeta;    
 }
