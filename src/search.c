@@ -542,6 +542,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     
+    int ndepth;
+    
     while ((currentMove = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // If this move is quiet we will save it to a list of attemped quiets.
@@ -627,7 +629,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         } else R = 1;
         
-        int ndepth = depth;
+        ndepth = depth;
         
         // Singular Extensions
         if (    depth >= 8
@@ -746,7 +748,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 23. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and
     // must also convert the search value to a tt value, which handles mates
-    storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
+    storeTranspositionEntry(&Table, played == 1 && ndepth == depth ? depth + 1 : depth, (best > oldAlpha && best < beta)
                             ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
                             valueToTT(best, height), bestMove, board->hash);
     return best;
