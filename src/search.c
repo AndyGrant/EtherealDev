@@ -301,6 +301,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int rAlpha, rBeta, ttValue, oldAlpha = alpha, best = -MATE;
     int quiets = 0, played = 0, bestWasQuiet = 0, hist = 0;
     int value = -MATE, eval = -MATE, futilityMargin = -MATE;
+    int ttMoveComesFromIID = 0;
     
     uint16_t currentMove, quietsTried[MAX_MOVES];
     uint16_t ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -537,6 +538,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
             ttMove = ttEntry.bestMove;
+        
+        ttMoveComesFromIID = 1;
     }
     
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
@@ -631,6 +634,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Singular Extensions
         if (    depth >= 8
             &&  currentMove == ttMove
+            && !ttMoveComesFromIID
             && !RootNode
             && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
             &&  ttEntry.depth >= depth - 3){
