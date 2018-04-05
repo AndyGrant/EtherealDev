@@ -136,6 +136,17 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
         
         // Found an entry with the same hash key
         if (entries[i].hash16 == hash16){
+            
+            if (   entries[i].age == table->generation
+                && entries[i].type == PVNODE
+                && entries[i].depth >= depth)
+                return;
+                
+            if (   entries[i].age == table->generation
+                && entries[i].type == type
+                && entries[i].depth > depth)
+                return;
+            
             toReplace = &(entries[i]);
             goto Replace;
         }
