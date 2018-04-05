@@ -525,6 +525,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
+    int didIID = 0;
+    
     // Step 12. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
@@ -537,6 +539,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
             ttMove = ttEntry.bestMove;
+        
+        didIID = 1;
     }
     
     // Step 13. Initialize the Move Picker and being searching through each
@@ -632,6 +636,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // all other possible moves, we will extend the search of the table move
         singular =   !RootNode
                   && !checkExtended
+                  && !didIID
                   &&  depth >= 8
                   &&  move == ttMove
                   &&  ttEntry.depth >= depth - 3
