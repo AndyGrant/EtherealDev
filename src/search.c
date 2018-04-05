@@ -710,8 +710,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 24. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and
     // must also convert the search value to a tt value, which handles mates
-    storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
-                            ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
+    storeTranspositionEntry(&Table, played == 1 && singular ? depth + 1 : depth,
+                            best >= beta ? CUTNODE : best <= oldAlpha ? ALLNODE : PVNODE,
                             valueToTT(best, height), bestMove, board->hash);
                             
     return best;
