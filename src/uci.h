@@ -28,6 +28,9 @@ typedef struct Limits {
     int limitedBySelf;
     double timeLimit;
     int depthLimit;
+    double time;
+    double mtg;
+    double inc;
 } Limits;
 
 typedef struct ThreadsGo {

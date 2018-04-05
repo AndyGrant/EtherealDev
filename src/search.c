@@ -47,7 +47,7 @@ pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
 
-uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start, double time, double mtg, double inc){
+uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start){
     
     int i, nthreads = threads[0].nthreads;
     
@@ -63,21 +63,21 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
         
-        if (mtg >= 0){
-            info.idealusage =  0.75 * time / (mtg +  5) + inc;
-            info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
-            info.maxusage   = 10.00 * time / (mtg + 10) + inc;
+        if (limits->mtg >= 0){
+            info.idealusage =  0.75 * limits->time / (limits->mtg +  5) + limits->inc;
+            info.maxalloc   =  4.00 * limits->time / (limits->mtg +  7) + limits->inc;
+            info.maxusage   = 10.00 * limits->time / (limits->mtg + 10) + limits->inc;
         }
         
         else {
-            info.idealusage =  0.52 * (time + 23 * inc) / 25;
-            info.maxalloc   =  4.00 * (time + 23 * inc) / 25;
-            info.maxusage   = 10.00 * (time + 23 * inc) / 25;
+            info.idealusage =  0.52 * (limits->time + 23 * limits->inc) / 25;
+            info.maxalloc   =  4.00 * (limits->time + 23 * limits->inc) / 25;
+            info.maxusage   = 10.00 * (limits->time + 23 * limits->inc) / 25;
         }
         
-        info.idealusage = MIN(info.idealusage, time - 100);
-        info.maxalloc   = MIN(info.maxalloc,   time - 100);
-        info.maxusage   = MIN(info.maxusage,   time - 100);
+        info.idealusage = MIN(info.idealusage, limits->time - 100);
+        info.maxalloc   = MIN(info.maxalloc,   limits->time - 100);
+        info.maxusage   = MIN(info.maxusage,   limits->time - 100);
     }
     
     // UCI command told us to look for exactly X seconds
@@ -168,15 +168,9 @@ void* iterativeDeepening(void* vthread){
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf && depth >= 4){
+        if (limits->limitedBySelf && depth >= 6){
             
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealusage *= 1.050;
-            
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealusage *= 0.975;
+            info->idealusage *= MAX(0.90, MIN(1.10, 1.00 + (info->values[depth-1] - value) / 250.0));
             
             if (info->bestmoves[depth] == info->bestmoves[depth-1]){
                 
