@@ -634,6 +634,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
+                  &&  ttEntry.value != 0
                   &&  ttEntry.depth >= depth - 3
                   && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
                   &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
