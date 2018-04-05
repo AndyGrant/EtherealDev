@@ -170,7 +170,7 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 6){
             
-            info->idealusage *= MAX(0.90, MIN(1.10, 1.00 + (info->values[depth-1] - value) / 250.0));
+            info->idealusage *= MAX(0.80, MIN(1.20, 1.00 + (info->values[depth-1] - value) / 400.0));
             
             if (info->bestmoves[depth] == info->bestmoves[depth-1]){
                 
