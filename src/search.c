@@ -631,6 +631,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
         singular =   !RootNode
+                  &&  PvNode
                   && !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
