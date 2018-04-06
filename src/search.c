@@ -638,9 +638,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  ttEntry.depth >= depth - 3
                   && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
                   &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
+                  
+        int extended =    !RootNode
+                       && !checkExtended
+                       && !singular
+                       &&  board->kingAttackers
+                       && (move == ttMove || isQuiet)
+                       && (move == ttMove || hist >= 8192);
             
         // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + singular;
+        newDepth = depth + singular + extended;
         
         // Step 19A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
