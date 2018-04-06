@@ -584,7 +584,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth]){
+            &&  quiets > LateMovePruningCounts[improving][depth]){
             
             revertMove(board, move, undo);
             break;
