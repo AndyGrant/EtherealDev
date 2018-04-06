@@ -441,7 +441,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // return a Quiescence Search score because it is unlikely a quiet
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
-        && !inCheck
+      //&& !inCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
