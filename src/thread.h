@@ -35,6 +35,7 @@ typedef struct Thread {
     int depth;
     uint64_t nodes;
     
+    int resolutions;
     int evalStack[MAX_HEIGHT];
     
     int abort;

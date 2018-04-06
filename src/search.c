@@ -244,6 +244,8 @@ int aspirationWindow(Thread* thread, int depth){
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
+    thread->resolutions = 0;
+    
     // Aspiration window only after we have completed the first four
     // depths, and so long as the last score is not near a mate score
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
@@ -267,6 +269,8 @@ int aspirationWindow(Thread* thread, int depth){
             
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
+            
+            thread->resolutions++;
             
             // Result was within our window
             if (value > alpha && value < beta)
@@ -607,7 +611,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet){
             
             // Baseline R based on number of moves played and current depth
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
+            R = 2 + (played - 4) / 8 + (depth + thread->resolutions - 6) / 4;
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
