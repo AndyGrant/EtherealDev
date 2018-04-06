@@ -176,7 +176,7 @@ void* iterativeDeepening(void* vthread){
             
             // Decrease our time if the score suddently jumped by eight centipawns
             if (info->values[depth-1] < value - 10)
-                info->idealusage *= 0.975;
+                info->idealusage *= 0.950;
             
             if (info->bestmoves[depth] == info->bestmoves[depth-1]){
                 
