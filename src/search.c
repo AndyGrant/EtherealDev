@@ -568,6 +568,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (    !PvNode
             &&  !isQuiet
             &&  !inCheck
+            && (!improving || depth <= WeakCaptureOneAttackersDepth)
             &&   best > MATED_IN_MAX
             &&   captureIsWeak(board, &ei, move, depth))
             continue;
