@@ -579,7 +579,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth])
+            &&  quiets > inCheck + LateMovePruningCounts[depth])
             break;
         
         // Apply the move, and verify the legality of it
