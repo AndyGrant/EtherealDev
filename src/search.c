@@ -270,15 +270,17 @@ int aspirationWindow(Thread* thread, int depth){
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
             
-            thread->resolving = 1;
+            thread->resolving = 0;
             
             // Result was within our window
             if (value > alpha && value < beta)
                 return value;
             
             // Search failed low
-            if (value <= alpha)
+            if (value <= alpha){
                 alpha = alpha - 2 * lower;
+                thread->resolving = 1;
+            }
             
             // Search failed high
             if (value >= beta)
@@ -616,7 +618,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
             
-            R -= PvNode && thread->resolving;
+            R -= RootNode && thread->resolving;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
