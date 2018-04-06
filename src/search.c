@@ -642,6 +642,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         int extended =    !RootNode
                        && !checkExtended
                        && !singular
+                       &&  PvNode
                        &&  board->kingAttackers
                        && (move == ttMove || isQuiet)
                        && (move == ttMove || hist >= 8192);
