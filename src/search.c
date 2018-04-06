@@ -168,7 +168,7 @@ void* iterativeDeepening(void* vthread){
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf && depth >= 4){
+        if (limits->limitedBySelf && depth >= 8){
             
             // Increase our time if the score suddently dropped by eight centipawns
             if (info->values[depth-1] > value + 10)
