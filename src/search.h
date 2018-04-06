@@ -98,7 +98,7 @@ static const int LateMovePruningDepth = 8;
 
 static const int LateMovePruningCounts[2][9] = {
     {  0,  5,  7, 11, 16, 24, 33, 43, 56},
-    {  0,  7,  9, 13, 18, 26, 35, 45, 58},
+    {  0,  8, 10, 14, 19, 27, 36, 46, 59},
 };
 
 static const int QFutilityMargin = 100;
