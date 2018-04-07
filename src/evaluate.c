@@ -232,6 +232,8 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Compute the interpolated evaluation
     eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
     
+    eval = eval * evaluateScaleFactor(board, eval) / SCALE_FACTOR_MAX;
+    
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
 }
@@ -722,6 +724,42 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     }
     
     return eval;
+}
+
+int evaluateScaleFactor(Board* board, int eval){
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t pawns   = board->pieces[PAWN  ];
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+    
+    
+    uint64_t strong = eval > 0 ? white : black;
+    
+    if (!(strong & pawns))
+        return SCALE_FACTOR_NO_PAWNS;    
+    
+    if (exactlyOne(strong & pawns))
+        return SCALE_FACTOR_ONE_PAWN;
+    
+    if (    exactlyOne(white & bishops)
+        &&  exactlyOne(black & bishops)
+        &&  exactlyOne(bishops & WHITE_SQUARES)){
+        
+        if (rooks | queens | knights)
+            return SCALE_FACTOR_OCB_AND_MATERIAL;
+        
+        if (popcount(strong & pawns) - popcount(~strong & pawns) >= 2)
+            return SCALE_FACTOR_OCB_PAWN_IMBALANCE;
+        
+        return SCALE_FACTOR_OCB_ONLY;
+    }
+    
+    return SCALE_FACTOR_MAX;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){

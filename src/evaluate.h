@@ -21,6 +21,13 @@
 
 #include "types.h"
 
+#define SCALE_FACTOR_MAX                (64)
+#define SCALE_FACTOR_NO_PAWNS           (32)
+#define SCALE_FACTOR_ONE_PAWN           (48)
+#define SCALE_FACTOR_OCB_AND_MATERIAL   (52)
+#define SCALE_FACTOR_OCB_PAWN_IMBALANCE (45)
+#define SCALE_FACTOR_OCB_ONLY           (32)
+
 typedef struct EvalTrace {
     
     int pawnCounts[COLOUR_NB];
@@ -95,8 +102,9 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour);
 int evaluateRooks(EvalInfo* ei, Board* board, int colour);
 int evaluateQueens(EvalInfo* ei, Board* board, int colour);
 int evaluateKings(EvalInfo* ei, Board* board, int colour);
-int evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
-void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
+int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour);
+int evaluateScaleFactor(Board* board, int eval);
+void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable);
 void initializeEvaluation();
 
 #define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
