@@ -89,7 +89,7 @@ const int PawnConnected32[32] = {
 
 const int KnightAttackedByPawn = S( -49, -32);
 
-const int KnightRammedPawns = S(   0,   5);
+const int KnightRammedPawns = S(   5,   5);
 
 const int KnightOutpost[2] = { S(  19, -34), S(  38,   9) };
 
