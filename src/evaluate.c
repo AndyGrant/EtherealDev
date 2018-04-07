@@ -740,11 +740,11 @@ int evaluateScaleFactor(Board* board, int eval){
     
     uint64_t strong = eval > 0 ? white : black;
     
-    if (!(strong & pawns))
-        return SCALE_FACTOR_NO_PAWNS;    
-    
-    if (exactlyOne(strong & pawns))
-        return SCALE_FACTOR_ONE_PAWN;
+    // if (!(strong & pawns))
+    //     return SCALE_FACTOR_NO_PAWNS;    
+    // 
+    // if (exactlyOne(strong & pawns))
+    //     return SCALE_FACTOR_ONE_PAWN;
     
     if (    exactlyOne(white & bishops)
         &&  exactlyOne(black & bishops)
