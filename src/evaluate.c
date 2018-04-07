@@ -71,6 +71,8 @@ const int PawnIsolated = S(  -3,  -6);
 
 const int PawnStacked = S( -11, -31);
 
+const int PawnStackedAndIsolated = S(  -9, -20);
+
 const int PawnBackwards[2] = { S(   6,  -3), S( -13, -11) };
 
 const int PawnConnected32[32] = {
@@ -355,6 +357,12 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
             eval += PawnStacked;
             if (TRACE) T.pawnStacked[colour]++;
         }
+        
+        // Apply an even bigger penalty if the pawn is both stacked,
+        // and isolated. This pawn structure is extremly weak to attacks
+        if (    (Files[File(sq)] & tempPawns)
+            && !(IsolatedPawnMasks[sq] & tempPawns))
+            eval += PawnStackedAndIsolated;
         
         // Apply a penalty if the pawn is backward
         if (   !(PassedPawnMasks[!colour][sq] & myPawns)
