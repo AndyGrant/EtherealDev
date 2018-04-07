@@ -544,11 +544,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        int weakCapture = 0;
+        
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             hist = getHistoryScore(thread->history, move, board->turn);
+        }
+        
+        else {
+            weakCapture = captureIsWeak(board, &ei, move, depth);
         }
         
         // Step 14. Futility Pruning. If our score is far below alpha,
@@ -569,7 +575,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !isQuiet
             &&  !inCheck
             &&   best > MATED_IN_MAX
-            &&   captureIsWeak(board, &ei, move, depth))
+            &&   weakCapture)
             continue;
         
         // Step 16. Late Move Pruning / Move Count Pruning. If we have
@@ -619,7 +625,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1;
+        } else if (    played >= 2 
+                   && !isQuiet
+                   &&  weakCapture){
+            R = 2;
+        }
+        
+        else
+            R = 1;
         
         // Step 18. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
