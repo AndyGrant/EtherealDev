@@ -740,24 +740,24 @@ int evaluateScaleFactor(Board* board, int eval){
     
     uint64_t strong = eval > 0 ? white : black;
     
-    // if (!(strong & pawns))
-    //     return SCALE_FACTOR_NO_PAWNS;    
-    // 
-    // if (exactlyOne(strong & pawns))
-    //     return SCALE_FACTOR_ONE_PAWN;
+    if (!(strong & pawns))
+        return SCALE_FACTOR_NO_PAWNS;    
     
-    if (    exactlyOne(white & bishops)
-        &&  exactlyOne(black & bishops)
-        &&  exactlyOne(bishops & WHITE_SQUARES)){
-        
-        if (rooks | queens | knights)
-            return SCALE_FACTOR_OCB_AND_MATERIAL;
-        
-        if (popcount(strong & pawns) - popcount(~strong & pawns) >= 2)
-            return SCALE_FACTOR_OCB_PAWN_IMBALANCE;
-        
-        return SCALE_FACTOR_OCB_ONLY;
-    }
+    if (exactlyOne(strong & pawns))
+        return SCALE_FACTOR_ONE_PAWN;
+    
+    // if (    exactlyOne(white & bishops)
+    //     &&  exactlyOne(black & bishops)
+    //     &&  exactlyOne(bishops & WHITE_SQUARES)){
+    //     
+    //     if (rooks | queens | knights)
+    //         return SCALE_FACTOR_OCB_AND_MATERIAL;
+    //     
+    //     if (popcount(strong & pawns) - popcount(~strong & pawns) >= 2)
+    //         return SCALE_FACTOR_OCB_PAWN_IMBALANCE;
+    //     
+    //     return SCALE_FACTOR_OCB_ONLY;
+    // }
     
     return SCALE_FACTOR_MAX;
 }
