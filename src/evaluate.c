@@ -196,7 +196,7 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms related to general properties
 
-const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
+const int Tempo[COLOUR_NB] = { S(  24,  0), S( -24,   0) };
 
 
 #undef S // Undefine MakeScore
