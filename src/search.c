@@ -244,8 +244,6 @@ int aspirationWindow(Thread* thread, int depth){
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
-    int mainThread = thread == &thread->threads[0];
-    
     // Aspiration window only after we have completed the first four
     // depths, and so long as the last score is not near a mate score
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
@@ -273,12 +271,6 @@ int aspirationWindow(Thread* thread, int depth){
             // Result was within our window
             if (value > alpha && value < beta)
                 return value;
-            
-            // We will report results which failed a windowed search, so
-            // long as we are the main thread and a fair amount of time
-            // as passed, as to not clutter the output with results
-            if (mainThread && getRealTime() - thread->info->starttime >= 5000)
-                uciReport(thread->threads, alpha, beta, value);
             
             // Search failed low
             if (value <= alpha) alpha -= 2 * lower;
