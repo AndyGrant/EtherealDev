@@ -313,6 +313,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
     
+    thread->counts[height] = 0;
+    
     // Increment nodes counter for this Thread. Since we will allow
     // search to be called with depth zero, we may undo this increment
     // in order to avoid 
@@ -425,15 +427,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     depth += inCheck && !RootNode && (PvNode || depth <= 6);
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
-    eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
+    eval = thread->evals[height] = evaluateBoard(board, &ei, &thread->pktable);
     futilityMargin = eval + FutilityMargin * depth;
     
     // Finally, we define a node to be improving if the last two moves have increased
     // the static eval by at least 16 centipawns. In order to have two last moves, we
     // must have a height of at least 4.
     improving =    height >= 4
-               &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
-               &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+               &&  thread->evals[height-0] >= thread->evals[height-2] + 16
+               &&  thread->evals[height-2] >= thread->evals[height-4] + 16;
     
     // Step 8. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -591,6 +593,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Update counter of moves actually played
         played += 1;
+        thread->counts[height] = played;
     
         // Step 17. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
@@ -604,6 +607,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            R -= !RootNode && thread->counts[height-1] >= 15;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
