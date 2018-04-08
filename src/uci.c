@@ -293,7 +293,7 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
                 : value <= alpha ? " upperbound" : "";
                    
     printf("info depth %d seldepth %d score %s %d%s "
-           "time %d nodes %"PRIu64" nps %d hashfull %d pv",
+           "time %d nodes %"PRIu64" nps %d hashfull %d pv ",
             depth, seldepth, type, score, bound, time, nodes, nps, hashfull);
     
     for (i = 0; i < threads[0].pv.length; i++){
