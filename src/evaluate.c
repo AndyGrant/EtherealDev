@@ -52,7 +52,7 @@
 
 // Definition of Values for each Piece type
 
-const int PawnValue   = S( 100, 121);
+const int PawnValue   = S( 100, 111);
 const int KnightValue = S( 459, 390);
 const int BishopValue = S( 465, 412);
 const int RookValue   = S( 630, 711);
@@ -60,7 +60,7 @@ const int QueenValue  = S(1272,1317);
 const int KingValue   = S( 165, 165);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 121}, { 459, 390}, { 465, 412}, { 630, 711},
+    { 100, 111}, { 459, 390}, { 465, 412}, { 630, 711},
     {1272,1317}, { 165, 165}, {   0,   0}, {   0,   0},
 };
 
