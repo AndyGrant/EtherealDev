@@ -91,7 +91,7 @@ const int KnightAttackedByPawn = S( -49, -32);
 
 const int KnightRammedPawns = S(   0,   5);
 
-const int KnightOutpost[2] = { S(  19, -34), S(  38,   9) };
+const int KnightOutpost[2] = { S(  19,   8), S(  38,   9) };
 
 const int KnightMobility[9] = {
     S( -86, -98), S( -37, -84), S( -15, -40),
@@ -108,7 +108,7 @@ const int BishopRammedPawns = S(  -8,  -6);
 
 const int BishopAttackedByPawn = S( -52, -34);
 
-const int BishopOutpost[2] = { S(  20, -16), S(  53, -10) };
+const int BishopOutpost[2] = { S(  20,   8), S(  53,  10) };
 
 const int BishopMobility[14] = {
     S( -58,-120), S( -47, -63), S( -19, -45), S(  -5, -21),
