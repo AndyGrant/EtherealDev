@@ -22,11 +22,11 @@
 #include "types.h"
 
 #define SCALE_FACTOR_MAX                (64)
-#define SCALE_FACTOR_NO_PAWNS           (32)
-#define SCALE_FACTOR_ONE_PAWN           (48)
-#define SCALE_FACTOR_OCB_AND_MATERIAL   (52)
-#define SCALE_FACTOR_OCB_PAWN_IMBALANCE (45)
-#define SCALE_FACTOR_OCB_ONLY           (32)
+#define SCALE_FACTOR_NO_PAWNS           (24)
+#define SCALE_FACTOR_ONE_PAWN           (44)
+#define SCALE_FACTOR_OCB_AND_MATERIAL   (48)
+#define SCALE_FACTOR_OCB_PAWN_IMBALANCE (38)
+#define SCALE_FACTOR_OCB_ONLY           (28)
 
 typedef struct EvalTrace {
     
