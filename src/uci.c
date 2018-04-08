@@ -283,8 +283,8 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     int hashfull   = estimateHashfull(&Table);
     int nps        = 1000 * (nodes / (1 + time));
     
-    int score   = value >=  MATE_IN_MAX ? (MATE - value + 1) / 2
-                : value <= MATED_IN_MAX ? (value + MATE)     / 2 : value;
+    int score   = value >=  MATE_IN_MAX ?  (MATE - value + 1) / 2
+                : value <= MATED_IN_MAX ? -(value + MATE)     / 2 : value;
                
     char* type  = value >=  MATE_IN_MAX ? "mate"
                 : value <= MATED_IN_MAX ? "mate" : "cp";

@@ -277,7 +277,7 @@ int aspirationWindow(Thread* thread, int depth){
             // We will report results which failed a windowed search, so
             // long as we are the main thread and a fair amount of time
             // as passed, as to not clutter the output with results
-            if (mainThread && getRealTime() - thread->info->starttime >= 3000)
+            if (mainThread && getRealTime() - thread->info->starttime >= 5000)
                 uciReport(thread->threads, alpha, beta, value);
             
             // Search failed low
