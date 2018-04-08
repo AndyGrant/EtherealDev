@@ -642,7 +642,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     // Bonus for our pawns and minors sitting within our king area. We only
     // apply this bonus when there is a real threat against our king, since
     // otherwise we would encourage needless crowing of our king area
-    if (ei->attackCounts[!colour] >= 2){
+    if (ei->attackCounts[!colour] >= 1){
         count = popcount(myDefenders & ei->kingAreas[colour]);
         eval += KingDefenders[count];
         if (TRACE) T.kingDefenders[colour][count]++;
