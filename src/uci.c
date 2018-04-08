@@ -277,7 +277,6 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     
     int i;
     int depth      = threads[0].depth;
-    int seldepth   = threads[0].seldepth;
     int time       = getRealTime() - threads[0].info->starttime;
     uint64_t nodes = nodesSearchedThreadPool(threads);
     int hashfull   = estimateHashfull(&Table);
@@ -292,9 +291,9 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     char* bound = value >=  beta ? " lowerbound" 
                 : value <= alpha ? " upperbound" : "";
                    
-    printf("info depth %d seldepth %d score %s %d%s "
-           "time %d nodes %"PRIu64" nps %d hashfull %d pv ",
-            depth, seldepth, type, score, bound, time, nodes, nps, hashfull);
+    printf("info depth %d score %s %d%s time %d "
+           "nodes %"PRIu64" nps %d hashfull %d pv ",
+            depth, type, score, bound, time, nodes, nps, hashfull);
     
     for (i = 0; i < threads[0].pv.length; i++){
         printMove(threads[0].pv.line[i]);

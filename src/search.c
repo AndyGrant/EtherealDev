@@ -323,10 +323,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in order to avoid 
     thread->nodes++;
     
-    // Update our longest searched line. We reset the line length for
-    // each new search, both new depths and new windowed searches
-    thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
-    
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
     // not yet completed our depth one search, and therefore would have no best move
@@ -736,9 +732,6 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     // Increment nodes for this Thread
     thread->nodes++;
-    
-    // Update our longest searched line
-    thread->seldepth = MAX(thread->seldepth, height);
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
