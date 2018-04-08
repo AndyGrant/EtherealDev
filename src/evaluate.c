@@ -52,7 +52,7 @@
 
 // Definition of Values for each Piece type
 
-const int PawnValue   = S( 100, 121);
+const int PawnValue   = S( 100, 141);
 const int KnightValue = S( 459, 390);
 const int BishopValue = S( 465, 412);
 const int RookValue   = S( 630, 711);
