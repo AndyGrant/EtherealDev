@@ -288,9 +288,9 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     printf("info depth %d seldepth %d ", depth, seldepth);
     
     if (value >= MATE_IN_MAX)
-        printf("score mate %d %s", (MATE - value + 1) / 2, bound);
+        printf("score mate %d%s", (MATE - value + 1) / 2, bound);
     else if (value <= MATED_IN_MAX)
-        printf("score mate %d %s", (value + MATE) / 2, bound);
+        printf("score mate -%d%s", (value + MATE) / 2, bound);
     else 
         printf("score cp %d%s", value, bound);
     
