@@ -95,7 +95,7 @@ extern const int QueenMobility[28];
 
 // To determine the starting values for the King terms
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
+extern const int KingShelter[2][FILE_NB/2][5];
 
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB];
@@ -245,7 +245,7 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         // Use the search value as the evaluation, to provide a better
         // understanding the potential of a position's eval terms. Make
         // sure the evaluation is from the perspective of WHITE
-        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 1, 0);
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 2, 0);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
         // Now collect an evaluation from a quiet position
@@ -462,8 +462,8 @@ void initializeCoefficients(int coeffs[NT]){
     
     if (TuneKingShelter)
         for (a = 0; a < 2; a++)
-            for (b = 0; b < FILE_NB; b++)
-                for (c = 0; c < RANK_NB; c++)
+            for (b = 0; b < FILE_NB / 2; b++)
+                for (c = 0; c < 5; c++)
                     coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
     
     // Initialize coefficients for the Passed Pawn evaluation terms
@@ -696,8 +696,8 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     if (TuneKingShelter){
         for (a = 0; a < 2; a++){
-            for (b = 0; b < FILE_NB; b++){
-                for (c = 0; c < RANK_NB; c++, i++){
+            for (b = 0; b < FILE_NB / 2; b++){
+                for (c = 0; c < 5; c++, i++){
                     cparams[i][MG] = ScoreMG(KingShelter[a][b][c]);
                     cparams[i][EG] = ScoreEG(KingShelter[a][b][c]);
                 }
@@ -1005,12 +1005,12 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     }
     
     if (TuneKingShelter){
-        printf("\nconst int KingShelter[2][FILE_NB][RANK_NB] = {");
-        for (x = 0; x < 16; x++){
-            printf("\n  %s", x % 8 ? " {" : "{{");
-            for (y = 0; y < RANK_NB; y++, i++){
+        printf("\nconst int KingShelter[2][FILE_NB/2][5] = {");
+        for (x = 0; x < 8; x++){
+            printf("\n  %s", x % 4 ? " {" : "{{");
+            for (y = 0; y < 5; y++, i++){
                 printf("S(%4d,%4d)", tparams[i][MG], tparams[i][EG]);
-                printf("%s", y < RANK_NB - 1 ? ", " : x % 8 == 7 ? "}}," : "},");
+                printf("%s", y < 5 - 1 ? ", " : x % 4 == 3 ? "}}," : "},");
             }
         } printf("\n};\n");
     }
