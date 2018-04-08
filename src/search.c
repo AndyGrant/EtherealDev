@@ -600,10 +600,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet){
             
             // Baseline R based on number of moves played and current depth
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
-            
-            // Increase R by an additional two ply for non PvNodes
-            R += 2 * !PvNode;
+            R = PvNode ? 2 + (played - 3) / 9 + (depth - 6) / 5
+                       : 4 + (played - 4) / 8 + (depth - 6) / 4;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
