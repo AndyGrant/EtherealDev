@@ -106,6 +106,8 @@ const int BishopPair = S(  43,  68);
 
 const int BishopRammedPawns = S(  -8,  -6);
 
+const int BishopFooBar = S(  -3,  -4);
+
 const int BishopAttackedByPawn = S( -52, -34);
 
 const int BishopOutpost[2] = { S(  20, -16), S(  53, -10) };
@@ -472,6 +474,9 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         count = popcount(ei->rammedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
         eval += count * BishopRammedPawns;
         if (TRACE) T.bishopRammedPawns[colour] += count;
+        
+        count = popcount((((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)) & enemyPawns);
+        eval += count * BishopFooBar;
         
         // Apply a penalty if the bishop is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
