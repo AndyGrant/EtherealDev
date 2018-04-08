@@ -273,19 +273,34 @@ void uciPosition(char* str, Board* board){
     }
 }
 
-void uciReport(Thread* threads, double startTime, int depth, int value, PVariation* pv){
+void uciReport(Thread* threads, int alpha, int beta, int value){
     
     int i;
-    int elapsed    = (int)(getRealTime() - startTime);
-    uint64_t nodes =  nodesSearchedThreadPool(threads);
+    int depth      = threads[0].depth;
+    int seldepth   = threads[0].seldepth;
+    int elapsed    = getRealTime() - threads[0].info->starttime;
+    uint64_t nodes = nodesSearchedThreadPool(threads);
     int hashfull   = estimateHashfull(&Table);
-    int nps        = (int)(1000 * (nodes / (1 + elapsed)));
+    int nps        = 1000 * (nodes / (1 + elapsed));
+    char* bound    = value >=  beta ? " lowerbound " 
+                   : value <= alpha ? " upperbound " : " ";
     
-    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d hashfull %d pv ",
-            depth, value, elapsed, nodes, nps, hashfull);
-           
-    for (i = 0; i < pv->length; i++){
-        printMove(pv->line[i]);
+    printf("info depth %d seldepth %d ", depth, seldepth);
+    
+    if (value >= MATE_IN_MAX)
+        printf("score mate %d %s", (MATE - value + 1) / 2, bound);
+    else if (value <= MATED_IN_MAX)
+        printf("score mate %d %s", (value + MATE) / 2, bound);
+    else 
+        printf("score cp %d%s", value, bound);
+    
+    printf("time %d nodes %"PRIu64" nps %d hashfull %d ", elapsed, nodes, nps, hashfull);
+    
+    if (threads[0].pv.length >= 1)
+        printf("pv ");
+    
+    for (i = 0; i < threads[0].pv.length; i++){
+        printMove(threads[0].pv.line[i]);
         printf(" ");
     }
     

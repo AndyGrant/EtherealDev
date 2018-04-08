@@ -33,6 +33,7 @@ typedef struct Thread {
     Board board;
     PVariation pv;
     int depth;
+    int seldepth;
     uint64_t nodes;
     
     int evalStack[MAX_HEIGHT];

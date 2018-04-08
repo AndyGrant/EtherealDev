@@ -163,7 +163,7 @@ void* iterativeDeepening(void* vthread){
         info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
         
         // Send information about this search to the interface
-        uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
+        uciReport(thread->threads, -MATE, MATE, value);
         
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
@@ -244,6 +244,8 @@ int aspirationWindow(Thread* thread, int depth){
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
+    int mainThread = thread == &thread->threads[0];
+    
     // Aspiration window only after we have completed the first four
     // depths, and so long as the last score is not near a mate score
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
@@ -272,17 +274,20 @@ int aspirationWindow(Thread* thread, int depth){
             if (value > alpha && value < beta)
                 return value;
             
+            // We will report results which failed a windowed search, so
+            // long as we are the main thread and a fair amount of time
+            // as passed, as to not clutter the output with results
+            if (mainThread && getRealTime() - thread->info->starttime >= 3000)
+                uciReport(thread->threads, alpha, beta, value);
+            
             // Search failed low
-            if (value <= alpha)
-                alpha = alpha - 2 * lower;
+            if (value <= alpha) alpha -= 2 * lower;
             
             // Search failed high
-            if (value >= beta)
-                beta  = beta + 2 * upper;
+            if (value >= beta) beta += 2 * upper;
             
             // Result was a near mate score, force a full search
-            if (abs(value) > MATE / 2)
-                break;
+            if (abs(value) > MATE / 2) break;
         }
     }
     
@@ -317,6 +322,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // search to be called with depth zero, we may undo this increment
     // in order to avoid 
     thread->nodes++;
+    
+    // Update our longest searched line. We reset the line length for
+    // each new search, both new depths and new windowed searches
+    thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
@@ -727,6 +736,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     // Increment nodes for this Thread
     thread->nodes++;
+    
+    // Update our longest searched line
+    thread->seldepth = MAX(thread->seldepth, height);
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
