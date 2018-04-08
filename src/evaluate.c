@@ -639,10 +639,14 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     // For Tuning Piece Square Table for Kings
     if (TRACE) T.kingPSQT[colour][kingSq]++;
     
-    // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[colour]);
-    eval += KingDefenders[count];
-    if (TRACE) T.kingDefenders[colour][count]++;
+    // Bonus for our pawns and minors sitting within our king area. We only
+    // apply this bonus when there is a real threat against our king, since
+    // otherwise we would encourage needless crowing of our king area
+    if (ei->attackCounts[!colour] >= 2){
+        count = popcount(myDefenders & ei->kingAreas[colour]);
+        eval += KingDefenders[count];
+        if (TRACE) T.kingDefenders[colour][count]++;
+    }
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
