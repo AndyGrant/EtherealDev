@@ -162,9 +162,6 @@ void* iterativeDeepening(void* vthread){
         info->bestmoves[depth] = thread->pv.line[0];
         info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
         
-        // Send information about this search to the interface
-        uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
-        
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
         // and any changes in the principle variation since the last iteration
