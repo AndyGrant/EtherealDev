@@ -278,26 +278,23 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     int i;
     int depth      = threads[0].depth;
     int seldepth   = threads[0].seldepth;
-    int elapsed    = getRealTime() - threads[0].info->starttime;
+    int time       = getRealTime() - threads[0].info->starttime;
     uint64_t nodes = nodesSearchedThreadPool(threads);
     int hashfull   = estimateHashfull(&Table);
-    int nps        = 1000 * (nodes / (1 + elapsed));
-    char* bound    = value >=  beta ? " lowerbound " 
-                   : value <= alpha ? " upperbound " : " ";
+    int nps        = 1000 * (nodes / (1 + time));
     
-    printf("info depth %d seldepth %d ", depth, seldepth);
-    
-    if (value >= MATE_IN_MAX)
-        printf("score mate %d%s", (MATE - value + 1) / 2, bound);
-    else if (value <= MATED_IN_MAX)
-        printf("score mate -%d%s", (value + MATE) / 2, bound);
-    else 
-        printf("score cp %d%s", value, bound);
-    
-    printf("time %d nodes %"PRIu64" nps %d hashfull %d ", elapsed, nodes, nps, hashfull);
-    
-    if (threads[0].pv.length >= 1)
-        printf("pv ");
+    int score   = value >=  MATE_IN_MAX ? (MATE - value + 1) / 2
+                : value <= MATED_IN_MAX ? (value + MATE)     / 2 : value;
+               
+    char* type  = value >=  MATE_IN_MAX ? "mate"
+                : value <= MATED_IN_MAX ? "mate" : "cp";
+        
+    char* bound = value >=  beta ? " lowerbound" 
+                : value <= alpha ? " upperbound" : "";
+                   
+    printf("info depth %d seldepth %d score %s %d%s "
+           "time %d nodes %"PRIu64" nps %d hashfull %d pv",
+            depth, seldepth, type, score, bound, time, nodes, nps, hashfull);
     
     for (i = 0; i < threads[0].pv.length; i++){
         printMove(threads[0].pv.line[i]);
