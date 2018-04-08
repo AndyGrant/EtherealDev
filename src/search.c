@@ -608,7 +608,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
             
-            R -= !RootNode && thread->counts[height-1] >= 15;
+            R -= !RootNode && thread->counts[height-1] >= 15 && improving;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
