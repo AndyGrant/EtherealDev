@@ -282,9 +282,11 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     uint64_t nodes = nodesSearchedThreadPool(threads);
     int hashfull   = estimateHashfull(&Table);
     int nps        = 1000 * (nodes / (1 + time));
+    char pvbuffer[2048];
+    char* ptr = pvbuffer;
     
     int score   = value >=  MATE_IN_MAX ?  (MATE - value + 1) / 2
-                : value <= MATED_IN_MAX ? -(value + MATE)     / 2 : value;
+                : value <= MATED_IN_MAX ? -(value + MATE    ) / 2 : value;
                
     char* type  = value >=  MATE_IN_MAX ? "mate"
                 : value <= MATED_IN_MAX ? "mate" : "cp";
@@ -296,12 +298,18 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
            "time %d nodes %"PRIu64" nps %d hashfull %d pv ",
             depth, seldepth, type, score, bound, time, nodes, nps, hashfull);
     
+    
+    
     for (i = 0; i < threads[0].pv.length; i++){
-        printMove(threads[0].pv.line[i]);
-        printf(" ");
+        moveToString(ptr, threads[0].pv.line[i]);
+        ptr += MoveType(threads[0].pv.line[i]) == PROMOTION_MOVE ? 5 : 4;
+        *(ptr++) = ' ';
     }
     
-    printf("\n");
+    *(ptr++) = '\n';
+    *(ptr++) = '\0';
+    
+    printf("%s", pvbuffer);
     fflush(stdout);
 }
 
