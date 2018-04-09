@@ -531,12 +531,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  ttMove == NONE_MOVE
         &&  depth >= InternalIterativeDeepeningDepth){
         
-        // Search with a reduced depth
         value = search(thread, &lpv, alpha, beta, depth-2, height);
         
-        // Probe for the newly found move, and update ttMove
-        if (getTranspositionEntry(&Table, board->hash, &ttEntry))
-            ttMove = ttEntry.bestMove;
+        if (value <= alpha)
+            value = search(thread, &lpv, -MATE, alpha, depth-2, height);
+        
+        ttMove = lpv.length >= 1 ? lpv.line[0] : NONE_MOVE;
     }
     
     // Step 13. Initialize the Move Picker and being searching through each
