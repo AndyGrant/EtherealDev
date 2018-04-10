@@ -87,8 +87,6 @@ const int PawnConnected32[32] = {
 
 // Definition of evaluation terms related to Knights
 
-const int KnightAttackedByPawn = S( -49, -32);
-
 const int KnightRammedPawns = S(   0,   5);
 
 const int KnightOutpost[2] = { S(  19, -34), S(  38,   9) };
@@ -105,8 +103,6 @@ const int KnightMobility[9] = {
 const int BishopPair = S(  43,  68);
 
 const int BishopRammedPawns = S(  -8,  -6);
-
-const int BishopAttackedByPawn = S( -52, -34);
 
 const int BishopOutpost[2] = { S(  20, -16), S(  53, -10) };
 
@@ -133,10 +129,6 @@ const int RookMobility[15] = {
 
 
 // Definition of evaluation terms related to Queens
-
-const int QueenChecked = S( -35, -32);
-
-const int QueenCheckedByPawn = S( -49, -45);
 
 const int QueenMobility[28] = {
     S( -60,-258), S(-169,-232), S( -39,-187), S( -35,-174),
@@ -194,11 +186,20 @@ const int PassedPawn[2][2][RANK_NB] = {
 };
 
 
+// Definition of evaluation terms releated to Threats
+
+const int ThreatPawnAttackedByOne    = S(  -3,  -6);
+const int ThreatPawnAttackedByTwo    = S(  -4,  -8);
+const int ThreatMinorAttackedByPawn  = S( -52, -34);
+const int ThreatMinorAttackedByMinor = S( -13, -15);
+const int ThreatMinorAttackedByMajor = S(  -7, -10); 
+const int ThreatMajorAttackedByPawn  = S( -49, -45);
+const int ThreatMajorAttackedByMinor = S( -19, -27);
+const int ThreatQueenAttackedByAny   = S( -35, -32);
+
 // Definition of evaluation terms related to general properties
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
-
-const int RookAttackedByMinors = S( -34,  -23);
 
 #undef S // Undefine MakeScore
 
@@ -298,6 +299,9 @@ int evaluatePieces(EvalInfo* ei, Board* board){
     
     eval += evaluatePassedPawns(ei, board, WHITE)
           - evaluatePassedPawns(ei, board, BLACK);
+          
+    eval += evaluateThreats(ei, board, WHITE)
+          - evaluateThreats(ei, board, BLACK);
 
     return eval;
 }
@@ -408,12 +412,6 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         eval += count * KnightRammedPawns;
         if (TRACE) T.knightRammedPawns[colour] += count;
         
-        // Apply a penalty if the knight is being attacked by a pawn
-        if (ei->pawnAttacks[!colour] & (1ull << sq)){
-            eval += KnightAttackedByPawn;
-            if (TRACE) T.knightAttackedByPawn[colour]++;
-        }
-        
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
         if (    (OutpostRanks[colour] & (1ull << sq))
@@ -478,12 +476,6 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         eval += count * BishopRammedPawns;
         if (TRACE) T.bishopRammedPawns[colour] += count;
         
-        // Apply a penalty if the bishop is being attacked by a pawn
-        if (ei->pawnAttacks[!colour] & (1ull << sq)){
-            eval += BishopAttackedByPawn;
-            if (TRACE) T.bishopAttackedByPawn[colour]++;
-        }
-        
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (    (OutpostRanks[colour] & (1ull << sq))
@@ -520,9 +512,6 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
     uint64_t tempRooks  = board->pieces[ROOK] & board->colours[ colour];
     uint64_t enemyKings = board->pieces[KING] & board->colours[!colour];
     
-    uint64_t attackedByMinors = ei->attackedBy[!colour][KNIGHT]
-                              | ei->attackedBy[!colour][BISHOP];
-    
     ei->attackedBy[colour][ROOK] = 0ull;
     
     // Evaluate each rook
@@ -540,9 +529,6 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour]      |= attacks & ei->attacked[colour];
         ei->attacked[colour]         |= attacks;
         ei->attackedBy[colour][ROOK] |= attacks;
-        
-        if ((1ull << sq) & attackedByMinors)
-            eval += RookAttackedByMinors;
         
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
@@ -586,11 +572,6 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
     
     ei->attackedBy[colour][QUEEN] = 0ull;
-    
-    uint64_t attackedByNonQueens = ei->attackedBy[!colour][PAWN  ]
-                                 | ei->attackedBy[!colour][KNIGHT]
-                                 | ei->attackedBy[!colour][BISHOP]
-                                 | ei->attackedBy[!colour][ROOK  ];
                                  
     // Evaluate each queen
     while (tempQueens){
@@ -608,19 +589,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy2[colour]       |= attacks & ei->attacked[colour];
         ei->attacked[colour]          |= attacks;
         ei->attackedBy[colour][QUEEN] |= attacks;
-            
-        // Apply a penalty if the queen is under an attack threat
-        if ((1ull << sq) & attackedByNonQueens){
-            eval += QueenChecked;
-            if (TRACE) T.queenChecked[colour]++;
-        }
         
-        // Apply a penalty if the queen is under attack by a pawn
-        if ((1ull << sq) & ei->pawnAttacks[!colour]){
-            eval += QueenCheckedByPawn;
-            if (TRACE) T.queenCheckedByPawn[colour]++;
-        }
-            
         // Apply a bonus (or penalty) based on the mobility of the queen
         count = popcount((ei->mobilityAreas[colour] & attacks));
         eval += QueenMobility[count];
@@ -745,6 +714,51 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     return eval;
 }
 
+int evaluateThreats(EvalInfo* ei, Board* board, int colour){
+    
+    int count, eval = 0;
+    
+    uint64_t pawns   = board->colours[colour] & board->pieces[PAWN  ];
+    uint64_t knights = board->colours[colour] & board->pieces[KNIGHT];
+    uint64_t bishops = board->colours[colour] & board->pieces[BISHOP];
+    uint64_t rooks   = board->colours[colour] & board->pieces[ROOK  ];
+    uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
+    
+    uint64_t pawnAttacks  = ei->attackedBy[!colour][PAWN  ];
+    uint64_t minorAttacks = ei->attackedBy[!colour][KNIGHT] | ei->attackedBy[!colour][BISHOP];
+    uint64_t majorAttacks = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
+    
+    // Penalty for each unsupported pawn on the board
+    count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
+    eval += count * ThreatPawnAttackedByOne;
+    
+    // Penalty for each unsupported pawn attacked by two pieces
+    count = popcount(pawns & ~ei->attacked[colour] & ei->attackedBy2[!colour]);
+    eval += count * ThreatPawnAttackedByTwo;
+    
+    // Penalty for pawn threats against our minors
+    count = popcount((knights | bishops) & pawnAttacks);
+    eval += count * ThreatMinorAttackedByPawn;
+    
+    // Penalty for all minor threats against our unsupported knights and bishops
+    count = popcount((knights | bishops) & ~ei->attacked[colour] & minorAttacks);
+    eval += count * ThreatMinorAttackedByMinor;
+    
+    // Penalty for all major threats against our unsupported knights and bishops
+    count = popcount((knights | bishops) & ~ei->attacked[colour] & majorAttacks);
+    eval += count * ThreatMinorAttackedByMajor;
+    
+    // Penalty for all pawn threats against our rooks and queens
+    count = popcount((rooks | queens) & pawnAttacks);
+    eval += count * ThreatMajorAttackedByPawn;
+    
+    // Penalty for all minor threats against our rooks and queens
+    count = popcount((rooks | queens) & minorAttacks);
+    eval += count * ThreatMajorAttackedByMinor;
+    
+    return eval;
+}
+
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     uint64_t white   = board->colours[WHITE];
@@ -776,8 +790,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
     
-    ei->attacked[WHITE] = kingAttacks(wKingSq, ~0ull);
-    ei->attacked[BLACK] = kingAttacks(bKingSq, ~0ull);
+    ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq, ~0ull);
+    ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq, ~0ull);
     
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
