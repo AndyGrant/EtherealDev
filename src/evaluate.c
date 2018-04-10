@@ -198,7 +198,7 @@ const int ThreatMajorAttackedByMinor = S( -36, -18);
 
 const int ThreatQueenAttackedByOne   = S( -40, -19);
 
-const int ThreatSafeButLoosePiece    = S(  -7,  -4);
+const int ThreatSafeButLoosePiece    = S(  -3,  -7);
 
 
 // Definition of evaluation terms related to general properties
