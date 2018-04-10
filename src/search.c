@@ -263,7 +263,7 @@ int aspirationWindow(Thread* thread, int depth){
         beta  = values[mainDepth-1] + upper;
         
         // Try windows until lower or upper bound exceeds a limit
-        for (; lower <= 1000 && upper <= 1000; lower *= 2, upper *= 2){
+        for (; lower <= 1000 && upper <= 1000; lower *= 2.25, upper *= 2.25){
             
             // Perform the search on the modified window
             value = search(thread, &thread->pv, alpha, beta, depth, 0);
