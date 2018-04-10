@@ -188,14 +188,14 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms releated to Threats
 
-const int ThreatPawnAttackedByOne    = S(  -3,  -6);
-const int ThreatPawnAttackedByTwo    = S(  -4,  -8);
+const int ThreatPawnAttackedByOne    = S(  -2,  -9);
+const int ThreatPawnAttackedByTwo    = S(  -4, -13);
 const int ThreatMinorAttackedByPawn  = S( -52, -34);
 const int ThreatMinorAttackedByMinor = S( -13, -15);
 const int ThreatMinorAttackedByMajor = S(  -7, -10); 
-const int ThreatMajorAttackedByPawn  = S( -49, -45);
-const int ThreatMajorAttackedByMinor = S( -19, -27);
-const int ThreatQueenAttackedByAny   = S( -35, -32);
+const int ThreatMajorAttackedByMinor = S( -51, -27);
+const int ThreatQueenAttackedByOne   = S( -35, -32);
+const int ThreatQueenAttackedByTwo   = S( -35, -32);
 
 // Definition of evaluation terms related to general properties
 
@@ -748,13 +748,17 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount((knights | bishops) & ~ei->attacked[colour] & majorAttacks);
     eval += count * ThreatMinorAttackedByMajor;
     
-    // Penalty for all pawn threats against our rooks and queens
-    count = popcount((rooks | queens) & pawnAttacks);
-    eval += count * ThreatMajorAttackedByPawn;
-    
     // Penalty for all minor threats against our rooks and queens
-    count = popcount((rooks | queens) & minorAttacks);
+    count = popcount((rooks | queens) & (minorAttacks));
     eval += count * ThreatMajorAttackedByMinor;
+    
+    // Penalty for any threat against our queens
+    count = popcount(queens & ei->attacked[!colour])
+    eval += count * ThreatQueenAttackedByOne;
+    
+    // Penalty for doubled threats against our queens
+    count = popcount(queens & ei->attackedBy2[!colour)
+    eval += count * ThreatQueenAttackedByTwo;
     
     return eval;
 }
