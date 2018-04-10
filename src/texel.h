@@ -25,7 +25,7 @@
 #define TEXEL_DEPTH (0)
 
 // Number of Positions in the data set
-#define NP (1470000)
+#define NP (2000000)
 
 // Every tunable component of the evaluation includes a definition of
 // TuneParamName, which is equal to an ON/OFF flag, multipled by the

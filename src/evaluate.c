@@ -188,11 +188,11 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms releated to Threats
 
-const int ThreatPawnAttackedByOne    = S( -19, -17);
-const int ThreatMinorAttackedByPawn  = S( -63, -41);
-const int ThreatMinorAttackedByMajor = S( -34, -27);
-const int ThreatMajorAttackedByMinor = S( -36, -18);
-const int ThreatQueenAttackedByOne   = S( -40, -19);
+const int ThreatPawnAttackedByOne    = S( -12, -17);
+const int ThreatMinorAttackedByPawn  = S( -64, -38);
+const int ThreatMinorAttackedByMajor = S( -32, -25);
+const int ThreatMajorAttackedByMinor = S( -38, -17);
+const int ThreatQueenAttackedByOne   = S( -42,  -9);
 
 // Definition of evaluation terms related to general properties
 
