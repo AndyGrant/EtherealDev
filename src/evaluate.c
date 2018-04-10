@@ -198,6 +198,8 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
+const int MinorSynergy = S(10, 3);
+
 
 #undef S // Undefine MakeScore
 
@@ -381,6 +383,8 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
     int sq, defended, count, eval = 0;
     uint64_t tempKnights, enemyPawns, attacks; 
     
+    uint64_t myMinors = board->colours[colour] & (board->pieces[KNIGHT] | board->pieces[BISHOP]);
+    
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
@@ -404,6 +408,9 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         count = popcount(ei->rammedPawns[colour]);
         eval += count * KnightRammedPawns;
         if (TRACE) T.knightRammedPawns[colour] += count;
+        
+        if (attacks & myMinors)
+            eval += MinorSynergy;
         
         // Apply a penalty if the knight is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
@@ -442,6 +449,8 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
     int sq, defended, count, eval = 0;
     uint64_t tempBishops, enemyPawns, attacks;
     
+    uint64_t myMinors = board->colours[colour] & (board->pieces[KNIGHT] | board->pieces[BISHOP]);   
+    
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
@@ -472,6 +481,9 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         count = popcount(ei->rammedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
         eval += count * BishopRammedPawns;
         if (TRACE) T.bishopRammedPawns[colour] += count;
+        
+        if (attacks & myMinors)
+            eval += MinorSynergy;
         
         // Apply a penalty if the bishop is being attacked by a pawn
         if (ei->pawnAttacks[!colour] & (1ull << sq)){
