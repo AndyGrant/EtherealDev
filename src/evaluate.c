@@ -188,14 +188,14 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms releated to Threats
 
-const int ThreatPawnAttackedByOne    = S(  -2,  -9);
-const int ThreatPawnAttackedByTwo    = S(  -4, -13);
-const int ThreatMinorAttackedByPawn  = S( -52, -34);
-const int ThreatMinorAttackedByMinor = S( -13, -15);
-const int ThreatMinorAttackedByMajor = S(  -7, -10); 
-const int ThreatMajorAttackedByMinor = S( -51, -27);
-const int ThreatQueenAttackedByOne   = S( -35, -32);
-const int ThreatQueenAttackedByTwo   = S( -35, -32);
+const int ThreatPawnAttackedByOne    = S( -15, -12);
+const int ThreatPawnAttackedByTwo    = S(  -7,  -7);
+const int ThreatMinorAttackedByPawn  = S( -43, -26);
+const int ThreatMinorAttackedByMinor = S( -17, -14);
+const int ThreatMinorAttackedByMajor = S( -22, -19);
+const int ThreatMajorAttackedByMinor = S( -26, -12);
+const int ThreatQueenAttackedByOne   = S( -30,   3);
+const int ThreatQueenAttackedByTwo   = S( -13,   0);
 
 // Definition of evaluation terms related to general properties
 
@@ -731,34 +731,42 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
     eval += count * ThreatPawnAttackedByOne;
+    if (TRACE) T.threatPawnAttackedByOne[colour] += count;
     
     // Penalty for each unsupported pawn attacked by two pieces
     count = popcount(pawns & ~ei->attacked[colour] & ei->attackedBy2[!colour]);
     eval += count * ThreatPawnAttackedByTwo;
+    if (TRACE) T.threatPawnAttackedByTwo[colour] += count;
     
     // Penalty for pawn threats against our minors
     count = popcount((knights | bishops) & pawnAttacks);
     eval += count * ThreatMinorAttackedByPawn;
+    if (TRACE) T.threatMinorAttackedByPawn[colour] += count;
     
     // Penalty for all minor threats against our unsupported knights and bishops
     count = popcount((knights | bishops) & ~ei->attacked[colour] & minorAttacks);
     eval += count * ThreatMinorAttackedByMinor;
+    if (TRACE) T.threatMinorAttackedByMinor[colour] += count;
     
     // Penalty for all major threats against our unsupported knights and bishops
     count = popcount((knights | bishops) & ~ei->attacked[colour] & majorAttacks);
     eval += count * ThreatMinorAttackedByMajor;
+    if (TRACE) T.threatMinorAttackedByMajor[colour] += count;
     
     // Penalty for all minor threats against our rooks and queens
     count = popcount((rooks | queens) & (minorAttacks));
     eval += count * ThreatMajorAttackedByMinor;
+    if (TRACE) T.threatMajorAttackedByMinor[colour] += count;
     
     // Penalty for any threat against our queens
     count = popcount(queens & ei->attacked[!colour]);
     eval += count * ThreatQueenAttackedByOne;
+    if (TRACE) T.threatQueenAttackedByOne[colour] += count;
     
     // Penalty for doubled threats against our queens
     count = popcount(queens & ei->attackedBy2[!colour]);
     eval += count * ThreatQueenAttackedByTwo;
+    if (TRACE) T.threatQueenAttackedByTwo[colour] += count;
     
     return eval;
 }

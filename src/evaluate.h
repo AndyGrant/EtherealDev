@@ -33,14 +33,12 @@ typedef struct EvalTrace {
     int knightCounts[COLOUR_NB];
     int knightPSQT[COLOUR_NB][SQUARE_NB];
     int knightRammedPawns[COLOUR_NB];
-    int knightAttackedByPawn[COLOUR_NB];
     int knightOutpost[COLOUR_NB][2];
     int knightMobility[COLOUR_NB][9];
     
     int bishopCounts[COLOUR_NB];
     int bishopPSQT[COLOUR_NB][SQUARE_NB];
     int bishopRammedPawns[COLOUR_NB];
-    int bishopAttackedByPawn[COLOUR_NB];
     int bishopPair[COLOUR_NB];
     int bishopOutpost[COLOUR_NB][2];
     int bishopMobility[COLOUR_NB][14];
@@ -52,8 +50,6 @@ typedef struct EvalTrace {
     int rookMobility[COLOUR_NB][15];
     
     int queenCounts[COLOUR_NB];
-    int queenChecked[COLOUR_NB];
-    int queenCheckedByPawn[COLOUR_NB];
     int queenPSQT[COLOUR_NB][SQUARE_NB];
     int queenMobility[COLOUR_NB][28];
     
@@ -62,6 +58,15 @@ typedef struct EvalTrace {
     int kingShelter[COLOUR_NB][2][FILE_NB][RANK_NB];
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
+    
+    int threatPawnAttackedByOne[COLOUR_NB];
+    int threatPawnAttackedByTwo[COLOUR_NB];
+    int threatMinorAttackedByPawn[COLOUR_NB];
+    int threatMinorAttackedByMinor[COLOUR_NB];
+    int threatMinorAttackedByMajor[COLOUR_NB];
+    int threatMajorAttackedByMinor[COLOUR_NB];
+    int threatQueenAttackedByOne[COLOUR_NB];
+    int threatQueenAttackedByTwo[COLOUR_NB];
     
 } EvalTrace;
 
