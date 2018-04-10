@@ -244,6 +244,8 @@ int aspirationWindow(Thread* thread, int depth){
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
+    const int mainThread = thread == &thread->threads[0];
+    
     // Aspiration window only after we have completed the first four
     // depths, and so long as the last score is not near a mate score
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
@@ -277,8 +279,16 @@ int aspirationWindow(Thread* thread, int depth){
                 alpha = alpha - 2 * lower;
             
             // Search failed high
-            if (value >= beta)
+            if (value >= beta){
+                
+                if (    mainThread
+                    &&  value > values[mainDepth-1]
+                    &&  thread->limits->limitedBySelf  
+                    &&  getRealTime() - thread->info->starttime > thread->info->idealusage)
+                    return value;
+                
                 beta  = beta + 2 * upper;
+            }
             
             // Result was a near mate score, force a full search
             if (abs(value) > MATE / 2)
