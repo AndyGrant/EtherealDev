@@ -248,15 +248,8 @@ int aspirationWindow(Thread* thread, int depth){
     // depths, and so long as the last score is not near a mate score
     if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
         
-        // Dynamically compute the upper margin based on previous scores
-        upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-        upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
-        
-        // Dynamically compute the lower margin based on previous scores
-        lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-        lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
+        lower = 15;
+        upper = 15;
         
         // Create the aspiration window
         alpha = values[mainDepth-1] - lower;
