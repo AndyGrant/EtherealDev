@@ -198,6 +198,7 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
+const int RookAttackedByMinors = S( -34,  -23);
 
 #undef S // Undefine MakeScore
 
@@ -311,9 +312,9 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
     // It is also used to compute pawn threats against minors and majors
-    ei->attackedBy2[colour]     = ei->pawnAttacks[colour] & ei->attacked[colour];
-    ei->attacked[colour]       |= ei->pawnAttacks[colour];
-    ei->attackedNoQueen[colour] = ei->pawnAttacks[colour];
+    ei->attackedBy2[colour]      = ei->pawnAttacks[colour] & ei->attacked[colour];
+    ei->attacked[colour]        |= ei->pawnAttacks[colour];
+    ei->attackedBy[colour][PAWN] = ei->pawnAttacks[colour];
     
     // Update the attack counts for our pawns. We will not count squares twice
     // even if they are attacked by two pawns. Also, we do not count pawns
@@ -384,6 +385,8 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
     tempKnights = board->pieces[KNIGHT] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    ei->attackedBy[colour][KNIGHT] = 0ull;
+    
     // Evaluate each knight
     while (tempKnights){
         
@@ -396,9 +399,9 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the knight attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = knightAttacks(sq, ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
-        ei->attackedNoQueen[colour] |= attacks;
+        ei->attackedBy2[colour]        |= attacks & ei->attacked[colour];
+        ei->attacked[colour]           |= attacks;
+        ei->attackedBy[colour][KNIGHT] |= attacks;
         
         // Apply a bonus for the knight based on number of rammed pawns
         count = popcount(ei->rammedPawns[colour]);
@@ -445,6 +448,8 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
     tempBishops = board->pieces[BISHOP] & board->colours[colour];
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
+    ei->attackedBy[colour][BISHOP] = 0ull;
+    
     // Apply a bonus for having a pair of bishops
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
         eval += BishopPair;
@@ -463,9 +468,9 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the bishop attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
-        ei->attackedNoQueen[colour] |= attacks;
+        ei->attackedBy2[colour]        |= attacks & ei->attacked[colour];
+        ei->attacked[colour]           |= attacks;
+        ei->attackedBy[colour][BISHOP] |= attacks;
         
         // Apply a penalty for the bishop based on number of rammed pawns
         // of our own colour, which reside on the same shade of square as the bishop
@@ -515,6 +520,11 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
     uint64_t tempRooks  = board->pieces[ROOK] & board->colours[ colour];
     uint64_t enemyKings = board->pieces[KING] & board->colours[!colour];
     
+    uint64_t attackedByMinors = ei->attackedBy[!colour][KNIGHT]
+                              | ei->attackedBy[!colour][BISHOP];
+    
+    ei->attackedBy[colour][ROOK] = 0ull;
+    
     // Evaluate each rook
     while (tempRooks){
         
@@ -527,9 +537,12 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
-        ei->attackedNoQueen[colour] |= attacks;
+        ei->attackedBy2[colour]      |= attacks & ei->attacked[colour];
+        ei->attacked[colour]         |= attacks;
+        ei->attackedBy[colour][ROOK] |= attacks;
+        
+        if ((1ull << sq) & attackedByMinors)
+            eval += RookAttackedByMinors;
         
         // Rook is on a semi-open file if there are no
         // pawns of the Rook's colour on the file. If
@@ -572,6 +585,13 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
     
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
     
+    ei->attackedBy[colour][QUEEN] = 0ull;
+    
+    uint64_t attackedByNonQueens = ei->attackedBy[!colour][PAWN  ]
+                                 | ei->attackedBy[!colour][KNIGHT]
+                                 | ei->attackedBy[!colour][BISHOP]
+                                 | ei->attackedBy[!colour][ROOK  ];
+                                 
     // Evaluate each queen
     while (tempQueens){
         
@@ -585,11 +605,12 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // determine whether or not passed pawns may advance safely later on.
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull)
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
-        ei->attackedBy2[colour] |= ei->attacked[colour] & attacks;
-        ei->attacked[colour] |= attacks;
+        ei->attackedBy2[colour]       |= attacks & ei->attacked[colour];
+        ei->attacked[colour]          |= attacks;
+        ei->attackedBy[colour][QUEEN] |= attacks;
             
         // Apply a penalty if the queen is under an attack threat
-        if ((1ull << sq) & ei->attackedNoQueen[!colour]){
+        if ((1ull << sq) & attackedByNonQueens){
             eval += QueenChecked;
             if (TRACE) T.queenChecked[colour]++;
         }
