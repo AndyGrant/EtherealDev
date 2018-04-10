@@ -198,7 +198,7 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
-const int MinorSynergy = S(10, 3);
+const int MinorSynergy = S(18, 13);
 
 
 #undef S // Undefine MakeScore
