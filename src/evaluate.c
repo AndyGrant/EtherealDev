@@ -198,6 +198,8 @@ const int ThreatMajorAttackedByMinor = S( -36, -18);
 
 const int ThreatQueenAttackedByOne   = S( -40, -19);
 
+const int ThreatSafeButLoosePiece    = S(  -7,  -4);
+
 
 // Definition of evaluation terms related to general properties
 
@@ -755,6 +757,10 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount(queens & ei->attacked[!colour]);
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.threatQueenAttackedByOne[colour] += count;
+    
+    // Penalty for any of our loose pieces, which are not attacked
+    count = popcount(board->colours[colour] & ~ei->attacked[colour] & ~ei->attacked[!colour]);
+    eval += count * ThreatSafeButLoosePiece;
     
     return eval;
 }
