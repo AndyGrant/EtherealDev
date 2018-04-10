@@ -528,7 +528,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 12. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
-        &&  ttMove == NONE_MOVE
+        && (ttMove == NONE_MOVE || ttEntry.depth <= depth - 4)
         &&  depth >= InternalIterativeDeepeningDepth){
         
         // Search with a reduced depth
