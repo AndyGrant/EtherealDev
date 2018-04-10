@@ -81,13 +81,13 @@
 
 // Define the Threat Terms
 #define TuneThreatPawnAttackedByOne     (1 * 1)
-#define TuneThreatPawnAttackedByTwo     (1 * 1)
+#define TuneThreatPawnAttackedByTwo     (0 * 1)
 #define TuneThreatMinorAttackedByPawn   (1 * 1)
-#define TuneThreatMinorAttackedByMinor  (1 * 1)
+#define TuneThreatMinorAttackedByMinor  (0 * 1)
 #define TuneThreatMinorAttackedByMajor  (1 * 1)
 #define TuneThreatMajorAttackedByMinor  (1 * 1)
 #define TuneThreatQueenAttackedByOne    (1 * 1)
-#define TuneThreatQueenAttackedByTwo    (1 * 1)
+#define TuneThreatQueenAttackedByTwo    (0 * 1)
 
 // Compute Number Of Terms (NT) based on what is turned on and off
 #define NT (                                                                                           \
