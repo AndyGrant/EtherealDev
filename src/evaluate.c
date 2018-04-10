@@ -753,11 +753,11 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     eval += count * ThreatMajorAttackedByMinor;
     
     // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[!colour])
+    count = popcount(queens & ei->attacked[!colour]);
     eval += count * ThreatQueenAttackedByOne;
     
     // Penalty for doubled threats against our queens
-    count = popcount(queens & ei->attackedBy2[!colour)
+    count = popcount(queens & ei->attackedBy2[!colour]);
     eval += count * ThreatQueenAttackedByTwo;
     
     return eval;
