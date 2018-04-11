@@ -302,6 +302,7 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     }
     
     printf("\n");
+    fflush(stdout);
 }
 
 int stringEquals(char* s1, char* s2){
