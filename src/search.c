@@ -248,7 +248,6 @@ int aspirationWindow(Thread* thread, int depth){
     
     // Without at least a few searches, we cannot guess a good search window
     if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
-    
 
     // Dynamically compute the upper margin based on previous scores
     upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
