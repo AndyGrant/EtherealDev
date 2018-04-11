@@ -163,7 +163,7 @@ void* iterativeDeepening(void* vthread){
         info->timeUsage[depth] = getRealTime() - info->starttime - info->timeUsage[depth-1];
         
         // Send information about this search to the interface
-        uciReport(thread->threads, info->starttime, depth, value, &thread->pv);
+        uciReport(thread->threads, -MATE, MATE, value);
         
         // If Ethereal is managing the clock, determine if we should be spending
         // more time on this search, based on the score difference between iterations
@@ -238,9 +238,11 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth){
     
-    int alpha, beta, value, upper, lower;
-    
     int* const values = thread->info->values;
+    
+    const int mainThread = thread == &thread->threads[0];
+    
+    int alpha, beta, value, upper, lower;
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
@@ -271,6 +273,10 @@ int aspirationWindow(Thread* thread, int depth){
             // Result was within our window
             if (value > alpha && value < beta)
                 return value;
+            
+            // Report lower and upper bounds after at least 5 seconds
+            if (mainThread && getRealTime() - thread->info->starttime >= 5000)
+                uciReport(thread->threads, alpha, beta, value);
             
             // Search failed low
             if (value <= alpha)
@@ -823,14 +829,14 @@ int hasNonPawnMaterial(Board* board, int turn){
 }
 
 int valueFromTT(int value, int height){
-    return value >=  MATE - MAX_HEIGHT ? value - height
-         : value <= -MATE + MAX_HEIGHT ? value + height
+    return value >=  MATE_IN_MAX ? value - height
+         : value <= MATED_IN_MAX ? value + height
          : value;
 }
 
 int valueToTT(int value, int height){
-    return value >=  MATE - MAX_HEIGHT ? value + height
-         : value <= -MATE + MAX_HEIGHT ? value - height
+    return value >=  MATE_IN_MAX ? value + height
+         : value <= MATED_IN_MAX ? value - height
          : value;
 }
 

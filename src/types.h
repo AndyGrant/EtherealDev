@@ -31,8 +31,8 @@
 #define MAX_MOVES  (256)
 
 #define MATE         (16000)
-#define MATE_IN_MAX  (+MATE - MAX_HEIGHT)
-#define MATED_IN_MAX (-MATE + MAX_HEIGHT)
+#define MATE_IN_MAX  (+MATE - 2 * MAX_HEIGHT)
+#define MATED_IN_MAX (-MATE + 2 * MAX_HEIGHT)
 
 #define SQUARE_NB (64)
 #define COLOUR_NB ( 2)
