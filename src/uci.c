@@ -290,7 +290,6 @@ void uciReport(Thread* threads, double startTime, int depth, int value, PVariati
     }
     
     printf("\n");
-    fflush(stdout);
 }
 
 int stringEquals(char* s1, char* s2){
