@@ -246,54 +246,43 @@ int aspirationWindow(Thread* thread, int depth){
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
-    // Aspiration window only after we have completed the first four
-    // depths, and so long as the last score is not near a mate score
-    if (depth > 4 && abs(values[mainDepth-1]) < MATE / 2){
-        
-        // Dynamically compute the upper margin based on previous scores
-        upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-        upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
-        
-        // Dynamically compute the lower margin based on previous scores
-        lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-        lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-        lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
-        
-        // Create the aspiration window
-        alpha = values[mainDepth-1] - lower;
-        beta  = values[mainDepth-1] + upper;
-        
-        // Try windows until lower or upper bound exceeds a limit
-        for (; lower <= 1000 && upper <= 1000; lower *= 2, upper *= 2){
-            
-            // Perform the search on the modified window
-            value = search(thread, &thread->pv, alpha, beta, depth, 0);
-            
-            // Result was within our window
-            if (value > alpha && value < beta)
-                return value;
-            
-            // Report lower and upper bounds after at least 5 seconds
-            if (mainThread && getRealTime() - thread->info->starttime >= 5000)
-                uciReport(thread->threads, alpha, beta, value);
-            
-            // Search failed low
-            if (value <= alpha)
-                alpha = alpha - 2 * lower;
-            
-            // Search failed high
-            if (value >= beta)
-                beta  = beta + 2 * upper;
-            
-            // Result was a near mate score, force a full search
-            if (abs(value) > MATE / 2)
-                break;
-        }
-    }
+    // Without at least a few searches, we cannot guess a good search window
+    if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
     
-    // Full window search when near mate or when depth is below or equal to 4
-    return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+
+    // Dynamically compute the upper margin based on previous scores
+    upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
+    upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
+    upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
+    
+    // Dynamically compute the lower margin based on previous scores
+    lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
+    lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
+    lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
+    
+    // Create the aspiration window
+    alpha = MAX(-MATE, values[mainDepth-1] - lower);
+    beta  = MIN( MATE, values[mainDepth-1] + upper);
+    
+    // Keep trying larger windows until one works
+    for (;; lower *= 2, upper *= 2){
+        
+        // Perform the search on the modified window
+        value = search(thread, &thread->pv, alpha, beta, depth, 0);
+        
+        // Result was within our window
+        if (value > alpha && value < beta) return value;
+        
+        // Report lower and upper bounds after at least 5 seconds
+        if (mainThread && getRealTime() - thread->info->starttime >= 5000)
+            uciReport(thread->threads, alpha, beta, value);
+        
+        // Search failed low
+        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * lower);
+        
+        // Search failed high
+        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * upper);
+    }
 }
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
@@ -319,10 +308,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
     
-    // Increment nodes counter for this Thread. Since we will allow
-    // search to be called with depth zero, we may undo this increment
-    // in order to avoid 
+    // Increment nodes counter for this Thread
     thread->nodes++;
+    
+    // Update longest searched line for this Thread
+    thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
@@ -336,7 +326,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1B. Check to see if the master thread finished
     if (thread->abort) longjmp(thread->jbuffer, 1);
         
-    
     // Step 2. Check for early exit conditions, including the fifty move rule,
     // mate distance pruning, max depth exceeded, or drawn by repitition. We
     // will not take any of these exits in the Root Node, or else we would not
@@ -412,12 +401,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the search horizon and are not currently in check
     if (depth <= 0){
         
-        // No king attackers indicates we are not checked
+        // No king attackers indicates we are not checked. We reduce the
+        // node count here, in order to avoid counting this node twice
         if (!board->kingAttackers)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-        
-        // We do not cap reductions, so here we will make
-        // sure that depth is within the accepktable bounds
+
+        // Search expects depth to be greater than or equal to 0
         depth = 0; 
     }
     
@@ -733,8 +722,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     lpv.length = 0;
     pv->length = 0;
     
-    // Increment nodes for this Thread
+    // Increment nodes counter for this Thread
     thread->nodes++;
+    
+    // Update longest searched line for this Thread
+    thread->seldepth = MAX(thread->seldepth, height);
     
     // Step 1A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
