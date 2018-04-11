@@ -281,8 +281,15 @@ void uciReport(Thread* threads, double startTime, int depth, int value, PVariati
     int hashfull   = estimateHashfull(&Table);
     int nps        = (int)(1000 * (nodes / (1 + elapsed)));
     
-    printf("info depth %d score cp %d time %d nodes %"PRIu64" nps %d hashfull %d pv ",
-            depth, value, elapsed, nodes, nps, hashfull);
+    int score   = value >=  MATE_IN_MAX ?  (MATE - value + 1) / 2
+                : value <= MATED_IN_MAX ? -(value + MATE)     / 2 : value;
+               
+    char* type  = value >=  MATE_IN_MAX ? "mate"
+                : value <= MATED_IN_MAX ? "mate" : "cp";
+                
+    printf("info depth %d score %s %d time %d "
+           "nodes %"PRIu64" nps %d hashfull %d pv ",
+           depth, type, score, elapsed, nodes, nps, hashfull);
            
     for (i = 0; i < pv->length; i++){
         printMove(pv->line[i]);
