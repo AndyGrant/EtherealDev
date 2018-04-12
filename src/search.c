@@ -446,7 +446,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return alpha;
+        if (value <= rAlpha) return rAlpha;
     }
     
     // Step 7. Beta Pruning / Reverse Futility Pruning / Static Null
