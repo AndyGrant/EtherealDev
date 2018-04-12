@@ -382,17 +382,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   (depth == 0 || !PvNode)
             &&  ttEntry.depth >= depth){
 
-            rAlpha = alpha; rBeta = beta;
             ttValue = valueFromTT(ttEntry.value, height);
             
-            switch (ttEntry.type){
-                case  PVNODE: return ttValue;
-                case CUTNODE: rAlpha = MAX(ttValue, alpha); break;
-                case ALLNODE:  rBeta = MIN(ttValue,  beta); break;
+            if (    ttValue >= beta
+                && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE))
+                return beta;
+                
+            if (    ttValue <= alpha
+                && (ttEntry.type == PVNODE || ttEntry.type == ALLNODE))
+                return alpha;
+                
+            if (ttEntry.type == PVNODE){
+                assert(ttValue > alpha && ttValue < beta);
+                return ttValue;
             }
-            
-            // Entry allows early exit
-            if (rAlpha >= rBeta) return ttValue;
         }
     }
     
