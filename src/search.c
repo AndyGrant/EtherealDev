@@ -513,7 +513,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
                     
                 revertMove(board, move, undo);
-                return beta;
+                return rBeta;
             }
              
             // Revert the board state
