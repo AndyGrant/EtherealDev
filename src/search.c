@@ -711,7 +711,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best;
+    int eval, value, best, oldAlpha = alpha;
     uint16_t move;
     Undo undo[1];
     MovePicker movePicker;
@@ -742,19 +742,19 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 2. Max Draft Cutoff. If we are at the maximum search draft,
     // then end the search here with a static eval of the current board
     if (height >= MAX_PLY)
-        return evaluateBoard(board, &ei, &thread->pktable);
+        return BOUND(alpha, evaluateBoard(board, &ei, &thread->pktable), beta);
     
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
     best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
+    if (eval >= beta) return beta;
     alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
     if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
-        return eval;
+        return alpha;
     
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
@@ -802,10 +802,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         
         // Search has failed high
         if (alpha >= beta)
-            return best;
+            break;
     }
     
-    return best;
+    return BOUND(oldAlpha, best, beta);
 }
 
 int moveIsTactical(Board* board, uint16_t move){

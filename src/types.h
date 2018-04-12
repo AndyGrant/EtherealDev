@@ -26,6 +26,8 @@
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 
+#define BOUND(A, V, B) (MAX((A), MIN((V), (B))))
+
 #define MAX_PLY    (128)
 #define MAX_MOVES  (256)
 
