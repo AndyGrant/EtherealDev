@@ -379,7 +379,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // we can't, but because don't want truncated PV lines. Except in
         // the case where we would otherwise fall into a qsearch. A table
         // entry is going to provide a better return value than qsearch
-        if (   (depth == 0 || !PvNode)
+        if (   (depth == 0 || !PvNode || (ttEntry.type == PVNODE && abs(ttEntry.value) >= MATE_IN_MAX))
             &&  ttEntry.depth >= depth){
 
             rAlpha = alpha; rBeta = beta;
