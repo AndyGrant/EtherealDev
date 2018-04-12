@@ -455,7 +455,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
-        return eval;
+        return eval - BetaMargin * depth;
 
     // Step 8. Null Move Pruning. If our position is so good that
     // giving our opponent back-to-back moves is still not enough
