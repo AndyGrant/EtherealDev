@@ -697,12 +697,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
     }
     
+    int storedValue = MAX(oldAlpha, MIN(best, beta));
+    
     // Step 22. Store the results of the search in the transposition table.
     // We must determine a bound for the result based on alpha and beta, and
     // must also convert the search value to a tt value, which handles mates
     storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
                             ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
-                            valueToTT(best, height), bestMove, board->hash);
+                            valueToTT(storedValue, height), bestMove, board->hash);
                             
     return best;
 }
