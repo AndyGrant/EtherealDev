@@ -333,18 +333,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
-            return evaluateBoard(board, &ei, &thread->pktable);
+            return BOUND(alpha, evaluateBoard(board, &ei, &thread->pktable), beta);
         
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in 
         // the next one, would still not create a more extreme line
         rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
         rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
-        if (rAlpha >= rBeta) return rAlpha;
+        if (rAlpha >= rBeta) return BOUND(alpha, rAlpha, beta);
         
         // Check for the Fifty Move Rule
         if (board->fiftyMoveRule > 100)
-            return 0;
+            return BOUND(alpha, 0, beta);
         
         // Check for three fold repetition. If the repetition occurs since
         // the root move of this search, we will exit early as if it was a draw.
@@ -359,11 +359,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 
                 // Repetition occured after the root
                 if (i > board->numMoves - height)
-                    return 0;
+                    return BOUND(alpha, 0, beta);
                 
                 // An actual three fold repetition
                 if (++repetitions == 2)
-                    return 0;
+                    return BOUND(alpha, 0, beta);
             }
         }
     }
@@ -386,13 +386,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             ttValue = valueFromTT(ttEntry.value, height);
             
             switch (ttEntry.type){
-                case  PVNODE: return ttValue;
+                case  PVNODE: rAlpha = rBeta              ; break;
                 case CUTNODE: rAlpha = MAX(ttValue, alpha); break;
                 case ALLNODE:  rBeta = MIN(ttValue,  beta); break;
             }
             
             // Entry allows early exit
-            if (rAlpha >= rBeta) return ttValue;
+            if (rAlpha >= rBeta) 
+                return BOUND(alpha, ttValue, beta);
         }
     }
     
@@ -688,7 +689,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // then we are either mated or stalemated, which we can tell by the inCheck
     // flag. For mates, return a score based on the distance from root, so we
     // can differentiate between close mates and far away mates from the root
-    if (played == 0) return inCheck ? -MATE + height : 0;
+    if (played == 0) return BOUND(alpha, inCheck ? -MATE + height : 0, beta);
     
     // Step 21. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
@@ -704,7 +705,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                             ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
                             valueToTT(best, height), bestMove, board->hash);
                             
-    return best;
+    return BOUND(oldAlpha, best, beta);
 }
 
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
