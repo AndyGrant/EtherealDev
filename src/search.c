@@ -246,8 +246,10 @@ int aspirationWindow(Thread* thread, int depth){
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
-    // Without at least a few searches, we cannot guess a good search window
-    if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    // Without at least a few searches, we cannot guess a good search window,
+    // likewise, if we are near a mate score, we can do a full window search
+    if (depth <= 4 || abs(values[mainDepth-1]) >= MATE / 2) 
+        return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
     // Dynamically compute the upper margin based on previous scores
     upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
@@ -281,6 +283,10 @@ int aspirationWindow(Thread* thread, int depth){
         
         // Search failed high
         if (value >= beta)  beta  = MIN( MATE,  beta + 2 * upper);
+        
+        // Search result was nearing a mate score
+        if (abs(value) >= MATE / 2)
+            return search(thread, &thread->pv, -MATE, MATE, depth, 0);
     }
 }
 

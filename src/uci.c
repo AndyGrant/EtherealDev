@@ -284,6 +284,8 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     int nps        = (int)(1000 * (nodes / (1 + elapsed)));
     PVariation* pv = &threads[0].pv;
     
+    value = MAX(alpha, MIN(value, beta));
+    
     int score   = value >=  MATE_IN_MAX ?  (MATE - value + 1) / 2
                 : value <= MATED_IN_MAX ? -(value + MATE)     / 2 : value;
                
