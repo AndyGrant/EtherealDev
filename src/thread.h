@@ -35,6 +35,7 @@ typedef struct Thread {
     int depth;
     int seldepth;
     uint64_t nodes;
+    int lastValue;
     
     int evalStack[MAX_PLY];
     

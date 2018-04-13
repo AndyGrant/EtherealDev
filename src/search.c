@@ -151,7 +151,7 @@ void* iterativeDeepening(void* vthread){
         
             
         // Perform the actual search for the current depth
-        value = aspirationWindow(thread, depth);
+        thread->lastValue = value = aspirationWindow(thread, depth);
         
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
@@ -238,25 +238,19 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth){
     
-    int* const values = thread->info->values;
-    
     const int mainThread = thread == &thread->threads[0];
     
-    int alpha, beta, value, upper, lower;
-    
-    int mainDepth = MAX(5, 1 + thread->info->depth);
+    int alpha, beta, value, delta = 24;
     
     // Without at least a few searches, we cannot guess a good search window
     if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
-
-    upper = 24; lower = 24;
     
     // Create the aspiration window
-    alpha = MAX(-MATE, values[mainDepth-1] - lower);
-    beta  = MIN( MATE, values[mainDepth-1] + upper);
+    alpha = MAX(-MATE, thread->lastValue - delta);
+    beta  = MIN( MATE, thread->lastValue + delta);
     
     // Keep trying larger windows until one works
-    for (;; lower *= 2, upper *= 2){
+    for (;; delta *= 2){
         
         // Perform the search on the modified window
         value = search(thread, &thread->pv, alpha, beta, depth, 0);
@@ -269,10 +263,10 @@ int aspirationWindow(Thread* thread, int depth){
             uciReport(thread->threads, alpha, beta, value);
         
         // Search failed low
-        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * lower);
+        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * delta);
         
         // Search failed high
-        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * upper);
+        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * delta);
     }
 }
 
