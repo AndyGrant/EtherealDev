@@ -242,29 +242,24 @@ int aspirationWindow(Thread* thread, int depth){
     
     const int mainThread = thread == &thread->threads[0];
     
-    int alpha, beta, value, upper, lower;
+    int alpha, beta, value, delta;
     
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
     // Without at least a few searches, we cannot guess a good search window
     if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
-    // Dynamically compute the upper margin based on previous scores
-    upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-    upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-    upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
-    
-    // Dynamically compute the lower margin based on previous scores
-    lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-    lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-    lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
-    
+    // Dynamically compute the delta margin based on previous scores
+    delta = MAX(   16,  2.0 * abs(values[mainDepth-1] - values[mainDepth-2]));
+    delta = MAX(delta,  1.5 * abs(values[mainDepth-2] - values[mainDepth-3]));
+    delta = MAX(delta,  1.0 * abs(values[mainDepth-3] - values[mainDepth-4]));
+
     // Create the aspiration window
-    alpha = MAX(-MATE, values[mainDepth-1] - lower);
-    beta  = MIN( MATE, values[mainDepth-1] + upper);
+    alpha = MAX(-MATE, values[mainDepth-1] - delta);
+    beta  = MIN( MATE, values[mainDepth-1] + delta);
     
     // Keep trying larger windows until one works
-    for (;; lower *= 2, upper *= 2){
+    for (;; delta *= 2){
         
         // Perform the search on the modified window
         value = search(thread, &thread->pv, alpha, beta, depth, 0);
@@ -277,10 +272,10 @@ int aspirationWindow(Thread* thread, int depth){
             uciReport(thread->threads, alpha, beta, value);
         
         // Search failed low
-        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * lower);
+        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * delta);
         
         // Search failed high
-        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * upper);
+        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * delta);
     }
 }
 
