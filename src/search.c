@@ -379,7 +379,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // we can't, but because don't want truncated PV lines. Except in
         // the case where we would otherwise fall into a qsearch. A table
         // entry is going to provide a better return value than qsearch
-        if (   (depth == 0 || !PvNode)
+        if (   !RootNode
             &&  ttEntry.depth >= depth){
 
             // Adjust if the table has a mate score
@@ -397,7 +397,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 
             // Saved score is within our window and is an exact result,
             // allowing us to return ttValue instead of searching again
-            if (ttEntry.type == PVNODE){
+            if (    ttEntry.type == PVNODE
+                && (depth == 0 || !PvNode)){
                 assert(ttValue > alpha && ttValue < beta);
                 return ttValue;
             }
