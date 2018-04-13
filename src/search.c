@@ -149,9 +149,9 @@ void* iterativeDeepening(void* vthread){
         abort = setjmp(thread->jbuffer);
         if (abort) return NULL;
         
-            
         // Perform the actual search for the current depth
-        value = aspirationWindow(thread, depth);
+        thread->values[thread->iteration] = value = aspirationWindow(thread, depth);
+        thread->iteration = thread->iteration + 1;
         
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
@@ -238,30 +238,30 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth){
     
-    int* const values = thread->info->values;
-    
     const int mainThread = thread == &thread->threads[0];
+    
+    int* const values = thread->values;
+    
+    int const iteration = thread->iteration;
     
     int alpha, beta, value, upper, lower;
     
-    int mainDepth = MAX(5, 1 + thread->info->depth);
-    
     // Without at least a few searches, we cannot guess a good search window
-    if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    if (iteration <= 3) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
     // Dynamically compute the upper margin based on previous scores
-    upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-    upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-    upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
+    upper = MAX(   12,  1.6 * (values[iteration-1] - values[iteration-2]));
+    upper = MAX(upper,  1.3 * (values[iteration-2] - values[iteration-3]));
+    upper = MAX(upper,  1.0 * (values[iteration-3] - values[iteration-4]));
     
     // Dynamically compute the lower margin based on previous scores
-    lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-    lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-    lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
+    lower = MAX(   12, -1.6 * (values[iteration-1] - values[iteration-2]));
+    lower = MAX(lower, -1.3 * (values[iteration-2] - values[iteration-3]));
+    lower = MAX(lower, -1.0 * (values[iteration-3] - values[iteration-4])); 
     
     // Create the aspiration window
-    alpha = MAX(-MATE, values[mainDepth-1] - lower);
-    beta  = MIN( MATE, values[mainDepth-1] + upper);
+    alpha = MAX(-MATE, values[iteration-1] - lower);
+    beta  = MIN( MATE, values[iteration-1] + upper);
     
     // Keep trying larger windows until one works
     for (;; lower *= 2, upper *= 2){

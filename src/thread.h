@@ -32,9 +32,10 @@ typedef struct Thread {
     
     Board board;
     PVariation pv;
+    uint64_t nodes;
+    
     int depth;
     int seldepth;
-    uint64_t nodes;
     
     int evalStack[MAX_PLY];
     
@@ -43,6 +44,9 @@ typedef struct Thread {
     
     int nthreads;
     Thread* threads;
+    
+    int iteration;
+    int values[MAX_PLY];
     
     KillerTable killers;
     HistoryTable history;

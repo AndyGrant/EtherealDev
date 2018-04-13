@@ -81,6 +81,9 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         
         // Reset the abort flag for the new search
         threads[i].abort = 0;
+        
+        // Reset iterative deepening history
+        threads[i].iteration = 0;
     }
 }
 
