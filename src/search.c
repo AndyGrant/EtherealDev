@@ -250,9 +250,9 @@ int aspirationWindow(Thread* thread, int depth){
     if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
     // Dynamically compute the delta margin based on previous scores
-    delta = MAX(   16,  2.0 * abs(values[mainDepth-1] - values[mainDepth-2]));
-    delta = MAX(delta,  1.5 * abs(values[mainDepth-2] - values[mainDepth-3]));
-    delta = MAX(delta,  1.0 * abs(values[mainDepth-3] - values[mainDepth-4]));
+    delta = MAX(   16,  1.5 * abs(values[mainDepth-1] - values[mainDepth-2]));
+    delta = MAX(delta,  1.0 * abs(values[mainDepth-2] - values[mainDepth-3]));
+    delta = MAX(delta,  0.5 * abs(values[mainDepth-3] - values[mainDepth-4]));
 
     // Create the aspiration window
     alpha = MAX(-MATE, values[mainDepth-1] - delta);
