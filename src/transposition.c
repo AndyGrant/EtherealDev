@@ -146,7 +146,7 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     Replace:
     if (    type == PVNODE 
         ||  hash16 != toReplace->hash16
-        ||  depth >= toReplace->depth - 3){
+        ||  depth >= toReplace->depth){
         
             
         toReplace->value    = value;
