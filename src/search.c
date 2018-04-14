@@ -388,12 +388,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Saved score and bound allows a beta cutoff
             if (    ttValue >= beta
                 && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE))
-                return beta;
+                return ttValue;
                 
             // Saved score and bound allows an alpha cutoff
             if (    ttValue <= alpha
                 && (ttEntry.type == PVNODE || ttEntry.type == ALLNODE))
-                return alpha;
+                return ttValue;
                 
             // Saved score is within our window and is an exact result,
             // allowing us to return ttValue instead of searching again
@@ -454,7 +454,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         rAlpha = alpha - RazorMargins[depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) return alpha;
+        if (value <= rAlpha) return value;
     }
     
     // Step 7. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -471,8 +471,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
@@ -484,7 +484,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         revertNullMove(board, undo);
         
-        if (value >= beta) return beta;
+        if (value >= beta){
+            if (value >= MATE_IN_MAX)
+                return beta;
+            return value;
+        }
     }
     
     // Step 9. ProbCut. If we have a good capture that causes a beta cutoff
@@ -493,6 +497,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
             
@@ -517,15 +522,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
-                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
-                    
-                revertMove(board, move, undo);
-                return beta;
-            }
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1);
+            if (value >= rBeta)
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
              
             // Revert the board state
             revertMove(board, move, undo);
+            
+            if (value >= rBeta)
+                return value;
         }
     }
     
