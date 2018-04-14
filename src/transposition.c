@@ -144,9 +144,13 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     toReplace = oldOption != NULL ? oldOption : lowDraftOption;
     
     Replace:
-    if (    type == PVNODE 
-        ||  hash16 != toReplace->hash16
-        ||  depth >= toReplace->depth - 3){
+    if (    hash16 != toReplace->hash16
+        ||  depth > toReplace->depth
+        ||  type == PVNODE
+        ||  type != toReplace->type
+        || (    type == toReplace->type
+            && (   (type == ALLNODE && value <= toReplace->value)
+                || (type == CUTNODE && value >= toReplace->value)))){
         
             
         toReplace->value    = value;
