@@ -107,6 +107,15 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     assert(type == PVNODE || type == CUTNODE || type == ALLNODE);
     assert(value <= MATE && value >= -MATE);
     
+    static int WORST = MATE;
+    
+    if (!(abs(value) < 24000 || abs(value) >= MATE_IN_MAX)){
+        if (abs(value) < WORST){
+            WORST = abs(value);
+            printf("WORSE = %d\n", WORST);
+        }
+    }
+    
     TransBucket* bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
     TransEntry* entries = bucket->entries;
     TransEntry* oldOption = NULL;
