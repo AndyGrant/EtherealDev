@@ -144,12 +144,18 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     toReplace = oldOption != NULL ? oldOption : lowDraftOption;
     
     Replace:
+    if (    type == PVNODE 
+        ||  hash16 != toReplace->hash16
+        ||  depth >= toReplace->depth - 3){
+        
+            
         toReplace->value    = value;
         toReplace->depth    = depth;
         toReplace->age      = table->generation;
         toReplace->type     = type;
         toReplace->bestMove = bestMove;
         toReplace->hash16   = hash16;
+    }
 }
 
 PawnKingEntry * getPawnKingEntry(PawnKingTable* pktable, uint64_t pkhash){

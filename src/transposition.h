@@ -25,7 +25,7 @@
 
 typedef struct TransEntry {
     int16_t value;
-    uint8_t depth;
+    int8_t depth;
     uint8_t age: 6, type: 2;
     uint16_t bestMove, hash16;
 } TransEntry;
