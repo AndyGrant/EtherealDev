@@ -442,6 +442,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     improving =    height >= 4
                &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
                &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+    improving = improving || (inCheck && !checkExtended);
     
     // Step 6. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
