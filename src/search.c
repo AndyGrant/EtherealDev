@@ -434,7 +434,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin * (depth | (inCheck && !checkExtended));
     
     // Finally, we define a node to be improving if the last two moves have increased
     // the static eval by at least 16 centipawns. In order to have two last moves, we
