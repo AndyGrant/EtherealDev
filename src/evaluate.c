@@ -192,6 +192,8 @@ const int ThreatPawnAttackedByOne    = S( -19, -17);
 
 const int ThreatMinorAttackedByPawn  = S( -63, -41);
 
+const int ThreatMinorAttackedByMinor = S( -21, -11);
+
 const int ThreatMinorAttackedByMajor = S( -34, -27);
 
 const int ThreatMajorAttackedByMinor = S( -36, -18);
@@ -740,6 +742,10 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount((knights | bishops) & attacksByPawns);
     eval += count * ThreatMinorAttackedByPawn;
     if (TRACE) T.threatMinorAttackedByPawn[colour] += count;
+    
+    // Penalty for minor threats against our unsupported knights and bishops
+    count = popcount((knights | bishops) & ~ei->attacked[colour] & attacksByMinors);
+    eval += count * ThreatMinorAttackedByMinor;
     
     // Penalty for all major threats against our unsupported knights and bishops
     count = popcount((knights | bishops) & ~ei->attacked[colour] & attacksByMajors);
