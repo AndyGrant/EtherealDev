@@ -426,22 +426,29 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
     
-    // Here we perform our check extension, for non-root pvnodes, or for non-root
-    // nodes near depth zero. Note that when we bypass the qsearch as a result of
-    // being in check, we set depth to zero. This step adjusts depth back to one.
-    checkExtended = inCheck && !RootNode && (PvNode || depth <= 6);
-    depth += inCheck && !RootNode && (PvNode || depth <= 6);
-    
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off a static evaluation
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
     
-    // Finally, we define a node to be improving if the last two moves have increased
-    // the static eval by at least 16 centipawns. In order to have two last moves, we
+    // We define a node to be improving if the last two moves have increased the
+    // static eval by at least 16 centipawns. In order to have two last moves, we
     // must have a height of at least 4.
     improving =    height >= 4
                &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
                &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+               
+int faltering =    height >= 4
+               &&  thread->evalStack[height-0] <= thread->evalStack[height-2] - 16
+               &&  thread->evalStack[height-2] <= thread->evalStack[height-4] - 16;
+               
+    // Here we perform our check extension, for non-root pvnodes, or for non-root
+    // nodes near depth zero. Note that when we bypass the qsearch as a result of
+    // being in check, we set depth to zero. This step adjusts depth back to one.
+    checkExtended = inCheck && !RootNode && (PvNode || depth <= 6) && (PvNode || faltering || improving);
+    depth += inCheck && !RootNode && (PvNode || depth <= 6) && (PvNode || faltering || improving);
+    
+    // Compute our futility margin just once based on the static eval and depth
+    futilityMargin = eval + FutilityMargin * depth;
+
     
     // Step 6. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
