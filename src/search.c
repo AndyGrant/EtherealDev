@@ -342,9 +342,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in 
         // the next one, would still not create a more extreme line
-        rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
-        rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
-        if (rAlpha >= rBeta) return rAlpha;
+        alpha = alpha > -MATE + height     ? alpha : -MATE + height;
+        beta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
+        if (alpha >= beta) return alpha;
         
         // Check for the Fifty Move Rule
         if (board->fiftyMoveRule > 100)
