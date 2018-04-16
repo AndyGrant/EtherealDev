@@ -30,8 +30,10 @@
 #define MAX_MOVES  (256)
 
 #define MATE         (32000)
-#define MATE_IN_MAX  (+MATE - 2 * MAX_PLY)
-#define MATED_IN_MAX (-MATE + 2 * MAX_PLY)
+#define MATE_IN_MAX  (+MATE - MAX_PLY)
+#define MATED_IN_MAX (-MATE + MAX_PLY)
+#define NEAR_MATE    (+MATE / 2)
+#define NEAR_MATED   (-MATE / 2)
 
 #define SQUARE_NB (64)
 #define COLOUR_NB ( 2)

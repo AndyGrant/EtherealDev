@@ -151,7 +151,8 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     // are saving is an exact bound. This is taken from Stockfish.
     if (    type == PVNODE
         ||  hash16 != toReplace->hash16
-        ||  depth >= toReplace->depth - 3){
+        ||  depth >= toReplace->depth - 3
+        ||  abs(value) >= NEAR_MATE){
         
         toReplace->value    = value;
         toReplace->depth    = depth;

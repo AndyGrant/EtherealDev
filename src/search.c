@@ -477,6 +477,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  abs(beta) < NEAR_MATE
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
@@ -497,7 +498,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
-        &&  abs(beta) < MATE_IN_MAX
+        &&  abs(beta) < NEAR_MATE
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
             
@@ -565,7 +566,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // one, and also skip all other quiet moves from this position
         if (   !PvNode
             &&  isQuiet
-            &&  best > MATED_IN_MAX
+            &&  best > NEAR_MATED
             && (hist < 4096 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
@@ -577,7 +578,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (    !PvNode
             &&  !isQuiet
             &&  !inCheck
-            &&   best > MATED_IN_MAX
+            &&   best > NEAR_MATED
             &&   captureIsWeak(board, &ei, move, depth))
             continue;
         
@@ -586,7 +587,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // anything from this move, we can undo it and skip all remaining quiets
         if (   !PvNode
             &&  isQuiet
-            &&  best > MATED_IN_MAX
+            &&  best > NEAR_MATED
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth])
             break;
@@ -916,7 +917,7 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
     uint16_t move;
     MovePicker movePicker;
     int value = -MATE;
-    int rBeta = MAX(ttEntry->value - 2 * depth, -MATE);
+    int rBeta = MAX(valueFromTT(ttEntry->value, height) - 2 * depth, -MATE);
     
     // Use a dummy lpv, as we will throw it away
     PVariation lpv; lpv.length = 0;
