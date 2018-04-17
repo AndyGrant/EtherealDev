@@ -861,30 +861,60 @@ int thisTacticalMoveValue(Board* board, uint16_t move){
 
 int bestTacticalMoveValue(Board* board, EvalInfo* ei){
     
-    int value = 0;
+    uint64_t occupied = board->colours[WHITE]
+                      | board->colours[BLACK];
     
-    uint64_t targets = ei->attacked[board->turn];
+    uint64_t targets = ei->attacked[board->turn] 
+                     & board->colours[!board->turn];
+                     
+    uint64_t pawns =  board->pieces[PAWN]
+                   &  board->colours[board->turn]
+                   & (board->turn == WHITE ? RANK_7 : RANK_2);
+                   
+    uint64_t capturePromos = pawnLeftAttacks(pawns, targets, board->turn)
+                           | pawnRightAttacks(pawns, targets, board->turn);
     
-    if (targets & board->pieces[QUEEN]) value += PieceValues[QUEEN][EG];
+    uint64_t advancePromos = pawnAdvance(pawns, occupied, board->turn);
     
-    else if (targets & board->pieces[ROOK]) value += PieceValues[ROOK][EG];
-    
-    else if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
-        value += MAX(
-            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][EG],
-            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][EG]
-        );
+    if (capturePromos){
         
-    else 
-        value += PieceValues[PAWN][EG];
+        if (capturePromos & targets & board->pieces[QUEEN])
+            return 2 * PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
         
+        if (capturePromos & targets & board->pieces[ROOK])
+            return PieceValues[ROOK][EG] + PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
         
-    if (   board->pieces[PAWN] 
-        &  board->colours[board->turn]
-        & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
-            
-    return value;
+        if (capturePromos & targets & board->pieces[BISHOP])
+            return PieceValues[BISHOP][EG] + PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+        
+        if (capturePromos & targets & board->pieces[KNIGHT])
+            return PieceValues[KNIGHT][EG] + PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+        
+        return PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+    }
+    
+    if (advancePromos)
+        return PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
+    
+    if (targets & board->pieces[QUEEN])
+        return PieceValues[QUEEN][EG];
+    
+    if (targets & board->pieces[ROOK])
+        return PieceValues[ROOK][EG];
+    
+    if (targets & board->pieces[BISHOP])
+        return PieceValues[BISHOP][EG];
+    
+    if (targets & board->pieces[KNIGHT])
+        return PieceValues[KNIGHT][EG];
+    
+    if (targets & board->pieces[PAWN])
+        return PieceValues[PAWN][EG];
+    
+    if (board->epSquare != -1)
+        return PieceValues[PAWN][EG];
+    
+    return 0;
 }
 
 int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
