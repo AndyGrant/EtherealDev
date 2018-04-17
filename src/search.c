@@ -389,6 +389,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Adjust if the table has a mate score
             ttValue = valueFromTT(ttEntry.value, height);
             
+            if (!PvNode){
             // Saved score and bound allows a beta cutoff
             if (    ttValue >= beta
                 && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE))
@@ -398,6 +399,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (    ttValue <= alpha
                 && (ttEntry.type == PVNODE || ttEntry.type == ALLNODE))
                 return alpha;
+            }
                 
             // Saved score is within our window and is an exact result,
             // allowing us to return ttValue instead of searching again
