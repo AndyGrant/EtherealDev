@@ -916,7 +916,7 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
     uint16_t move;
     MovePicker movePicker;
     int value = -MATE;
-    int rBeta = MAX(ttEntry->value - 2 * depth, -MATE);
+    int rBeta = MAX(valueFromTT(ttEntry->value, height) - 30, -MATE);
     
     // Use a dummy lpv, as we will throw it away
     PVariation lpv; lpv.length = 0;
