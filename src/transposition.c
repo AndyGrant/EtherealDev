@@ -107,6 +107,9 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     assert(type == PVNODE || type == CUTNODE || type == ALLNODE);
     assert(value <= MATE && value >= -MATE);
     
+    if (abs(value) >= MATE / 2 && abs(value) < MATE_IN_MAX)
+        printf("%d %d %d\n", depth, type, value);
+    
     TransEntry* entries = table->buckets[hash & (table->numBuckets - 1)].entries;
     TransEntry* oldOption = NULL;
     TransEntry* lowDraftOption = NULL;
@@ -151,7 +154,8 @@ void storeTranspositionEntry(TransTable* table, int depth, int type, int value, 
     // are saving is an exact bound. This is taken from Stockfish.
     if (    type == PVNODE
         ||  hash16 != toReplace->hash16
-        ||  depth >= toReplace->depth - 3){
+        ||  depth >= toReplace->depth - 3
+        || (abs(value) >= MATE_IN_MAX && abs(value) > abs(toReplace->value))){
         
         toReplace->value    = value;
         toReplace->depth    = depth;

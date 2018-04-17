@@ -835,14 +835,14 @@ int hasNonPawnMaterial(Board* board, int turn){
 }
 
 int valueFromTT(int value, int height){
-    return value >=  MATE_IN_MAX ? value - height
-         : value <= MATED_IN_MAX ? value + height
+    return value >=  MATE_IN_MAX ? value - height + 1
+         : value <= MATED_IN_MAX ? value + height - 1
          : value;
 }
 
 int valueToTT(int value, int height){
-    return value >=  MATE_IN_MAX ? value + height
-         : value <= MATED_IN_MAX ? value - height
+    return value >=  MATE_IN_MAX ? value + height - 1
+         : value <= MATED_IN_MAX ? value - height + 1
          : value;
 }
 
