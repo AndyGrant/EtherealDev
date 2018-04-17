@@ -614,6 +614,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
             
+            R -= ttMove == NONE_MOVE && quiets == 1;
+            
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
             // we either have no table move, or the table move is not the best so far
