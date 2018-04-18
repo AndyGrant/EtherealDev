@@ -689,6 +689,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     // Fetch Passed Pawns from the Pawn King Entry if we have one
     if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
     
+    uint64_t myPawns = board->colours[colour] & board->pieces[PAWN];
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
     
@@ -707,8 +708,9 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination does not have any pieces on it
         canAdvance = !(destination & notEmpty);
         
-        // Destination is not attacked by the opponent
-        safeAdvance = !(destination & ei->attacked[!colour]);
+        // Destination is not attacked by the opponent, or is connected
+        safeAdvance =  !(destination & ei->attacked[!colour])
+                    ||  (PawnConnectedMasks[colour][sq] & myPawns);
         
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
