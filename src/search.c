@@ -645,10 +645,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // extended the depth before the move loop, and this move is not singular,
         // then we will extend it if we have a capture of a quiet with a good history
         extension +=   PvNode
-                   &&  inCheck
                    && !extension
                    && !checkExtended
-                   && (hist >= 2048 || !isQuiet);
+                   && (hist >= 4096 || !isQuiet)
+                   && (inCheck || board->kingAttackers);
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
