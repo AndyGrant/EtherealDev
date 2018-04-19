@@ -49,11 +49,10 @@ int expectedToExceedTime(SearchInfo* info, int depth){
     double tf1 = info->timeUsage[depth-0] / MAX(50, info->timeUsage[depth-1]);
     double tf2 = info->timeUsage[depth-1] / MAX(50, info->timeUsage[depth-2]);
     double tf3 = info->timeUsage[depth-2] / MAX(50, info->timeUsage[depth-3]);
-    double tf4 = info->timeUsage[depth-3] / MAX(50, info->timeUsage[depth-4]);
-    double tfN = MAX(tf1, MAX(tf2, MAX(tf3, tf4)));
+    double tfN = MAX(tf1, MAX(tf2, tf3));
     
-    // Estimate time usage with the greatest factor times two for safety
-    double estimatedUsage = info->timeUsage[depth] * 2 * tfN;
+    // Estimate time usage with the greatest factor plus a buffer
+    double estimatedUsage = info->timeUsage[depth] * (tfN + 0.50);
     
     // Adjust usage to match the start time of the search
     double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
