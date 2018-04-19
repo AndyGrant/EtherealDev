@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 
+#include "search.h"
+
 double getRealTime(){
 #if defined(_WIN32) || defined(_WIN64)
     return (double)(GetTickCount());
@@ -37,4 +39,25 @@ double getRealTime(){
     
     return secsInMilli + usecsInMilli;
 #endif
+}
+
+int expectedToExceedTime(SearchInfo* info, int depth){
+    
+    if (depth < 8) return 0; // Time usage heuristics are rather poor at low depths
+        
+    // Take the highest time factor over the last 4 search iterations
+    double tf1 = info->timeUsage[depth-0] / MAX(50, info->timeUsage[depth-1]);
+    double tf2 = info->timeUsage[depth-1] / MAX(50, info->timeUsage[depth-2]);
+    double tf3 = info->timeUsage[depth-2] / MAX(50, info->timeUsage[depth-3]);
+    double tf4 = info->timeUsage[depth-3] / MAX(50, info->timeUsage[depth-4]);
+    double tfN = MAX(tf1, MAX(tf2, MAX(tf3, tf4)));
+    
+    // Estimate time usage with the greatest factor times two for safety
+    double estimatedUsage = info->timeUsage[depth] * 2 * tfN;
+    
+    // Adjust usage to match the start time of the search
+    double estiamtedEndtime = getRealTime() + estimatedUsage - info->starttime;
+    
+    // Return whether or not we expect to run out of time this search
+    return estiamtedEndtime > info->maxusage;
 }
