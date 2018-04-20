@@ -580,8 +580,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth])
+            &&  depth + inCheck <= LateMovePruningDepth
+            &&  quiets > LateMovePruningCounts[depth + inCheck])
             break;
         
         // Apply the move, and verify legality
