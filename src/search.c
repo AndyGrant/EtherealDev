@@ -298,7 +298,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int i, repetitions, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
-    int inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
+    int inCheck, isQuiet, improving, extension, bestWasQuiet = 0;
     
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     
@@ -426,15 +426,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
     
-    // Here we perform our check extension, for non-root pvnodes, or for non-root
-    // nodes near depth zero. Note that when we bypass the qsearch as a result of
-    // being in check, we set depth to zero. This step adjusts depth back to one.
-    checkExtended = inCheck && !RootNode && depth <= 8;
-    depth += inCheck && !RootNode && depth <= 8;
-    
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin * (depth + inCheck);
     
     // Finally, we define a node to be improving if the last two moves have increased
     // the static eval. To have two last moves, we must have a height of at least 4.
@@ -633,7 +627,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
         extension =  !RootNode
-                  && !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
                   &&  ttEntry.depth >= depth - 3
@@ -647,7 +640,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension +=   PvNode
                    &&  inCheck
                    && !extension
-                   && !checkExtended
                    && (improving || !isQuiet || hist >= 2048);
             
         // New depth is what our search depth would be, assuming that we do no LMR
