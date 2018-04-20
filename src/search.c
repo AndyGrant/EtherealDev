@@ -644,8 +644,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16B. Check Extensions. If we are in a PvNode and we have not already
         // extended the depth before the move loop, and this move is not singular,
         // then we will extend it if we have a capture of a quiet with a good history
-        extension +=   PvNode
-                   &&  inCheck
+        extension +=   inCheck
                    && !extension
                    && !checkExtended
                    && (hist >= 2048 || !isQuiet);
