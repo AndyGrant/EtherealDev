@@ -437,11 +437,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     futilityMargin = eval + FutilityMargin * depth;
     
     // Finally, we define a node to be improving if the last two moves have increased
-    // the static eval by at least 16 centipawns. In order to have two last moves, we
-    // must have a height of at least 4.
+    // the static eval. To have two last moves, we must have a height of at least 4.
     improving =    height >= 4
-               &&  thread->evalStack[height-0] >= thread->evalStack[height-2] + 16
-               &&  thread->evalStack[height-2] >= thread->evalStack[height-4] + 16;
+               &&  thread->evalStack[height-0] > thread->evalStack[height-2]
+               &&  thread->evalStack[height-2] > thread->evalStack[height-4];
     
     // Step 6. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -648,7 +647,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                    &&  inCheck
                    && !extension
                    && !checkExtended
-                   && (hist >= 2048 || !isQuiet);
+                   && (hist >= 2048 || !isQuiet || improving);
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
