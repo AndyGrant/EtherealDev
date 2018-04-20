@@ -646,9 +646,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // then we will extend it if we have a capture of a quiet with a good history
         extension +=   PvNode
                    &&  inCheck
+                   &&  isQuiet
+                   &&  hist > 2048
                    && !extension
-                   && !checkExtended
-                   && (hist >= 2048 || !isQuiet);
+                   && !checkExtended;
+                   
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
