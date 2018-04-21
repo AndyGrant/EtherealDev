@@ -87,6 +87,8 @@ const int PawnConnected32[32] = {
 
 // Definition of evaluation terms related to Knights
 
+const int KnightPair = S(  13,  17);
+
 const int KnightRammedPawns = S(   0,   5);
 
 const int KnightOutpost[2] = { S(  19, -34), S(  38,   9) };
@@ -393,6 +395,9 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
     ei->attackedBy[colour][KNIGHT] = 0ull;
+    
+    if (moreThanOne(tempKnights))
+        eval += KnightPair;
     
     // Evaluate each knight
     while (tempKnights){
