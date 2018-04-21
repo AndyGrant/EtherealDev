@@ -80,3 +80,7 @@ int poplsb(uint64_t* bb){
 int moreThanOne(uint64_t bb){
     return !!(bb & (bb - 1));
 }
+
+int exactlyOne(uint64_t bb){
+    return bb && !moreThanOne(bb);
+}

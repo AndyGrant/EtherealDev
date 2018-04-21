@@ -237,6 +237,8 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     // Compute the interpolated evaluation
     eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
     
+    eval = eval * evaluateScaleFactor(ei, board) / SCALE_FACTOR_NORMAL;
+    
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
 }
@@ -757,6 +759,64 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.threatQueenAttackedByOne[colour] += count;
     
     return eval;
+}
+
+int evaluateScaleFactor(EvalInfo* ei, Board* board){
+    
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    
+    uint64_t pawns   = board->pieces[PAWN];
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK];
+    uint64_t queens  = board->pieces[QUEEN];
+    
+    if (queens) return SCALE_FACTOR_NORMAL;
+    
+    if (!bishops && !knights){
+        
+        if (abs(popcount(pawns & white) - popcount(pawns & black)) >= 2)
+            return SCALE_FACTOR_NORMAL;
+        
+        if (exactlyOne(rooks & white) && exactlyOne(rooks & black))
+            return SCALE_FACTOR_ROOK_ENDGAME + popcount(pawns) / 2;
+        
+        if (moreThanOne(rooks & white) && moreThanOne(rooks & black))
+            return SCALE_FACTOR_ROOK_ENDGAME + popcount(pawns);
+    }
+    
+    if (   exactlyOne(bishops & white)
+        && exactlyOne(bishops & black)
+        && exactlyOne(bishops & WHITE_SQUARES)){
+            
+        if (popcount(knights & white) != popcount(knights & black))
+            return SCALE_FACTOR_NORMAL;
+        
+        if (popcount(rooks & white) != popcount(rooks & black))
+            return SCALE_FACTOR_NORMAL;
+        
+        if (abs(popcount(pawns & white) - popcount(pawns & black)) >= 3)
+            return SCALE_FACTOR_NORMAL;
+        
+        if (abs(popcount(white & ei->passedPawns) - popcount(black & ei->passedPawns)) >= 2)
+            return SCALE_FACTOR_NORMAL;
+        
+        if (rooks && knights) 
+            return SCALE_FACTOR_OCB_BASE;
+        
+        if (rooks && !knights)
+            return popcount(rooks) == 2 ? SCALE_FACTOR_OCB_ONE_ROOKS
+                                        : SCALE_FACTOR_OCB_TWO_ROOKS;
+                                        
+        if (!rooks && knights)
+            return popcount(knights) == 2 ? SCALE_FACTOR_OCB_ONE_KNIGHTS
+                                          : SCALE_FACTOR_OCB_TWO_KNIGHTS;
+                                            
+        return SCALE_FACTOR_OCB_MIXED;
+    }
+    
+    return SCALE_FACTOR_NORMAL;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
