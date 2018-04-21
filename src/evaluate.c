@@ -178,6 +178,8 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 // Definition of evaluation terms related to Passed Pawns
 
+const int PassedPawnWings = S(  20,  33);
+
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -33, -30), S( -24,   8), S( -13,  -2), S(  24,   0), S(  66,  -5), S( 160,  32), S(   0,   0)},
    {S(   0,   0), S(  -2,   1), S( -14,  23), S( -15,  35), S(   7,  44), S(  72,  60), S( 194, 129), S(   0,   0)}},
@@ -691,6 +693,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
+    
+    if ((tempPawns & LEFT_WING) && (tempPawns & RIGHT_WING)){
+        eval += PassedPawnWings;
+        if (TRACE) T.passedPawnWings[colour]++;
+    }
     
     // Evaluate each passed pawn
     while (tempPawns != 0ull){

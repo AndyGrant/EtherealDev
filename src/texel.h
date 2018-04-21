@@ -22,7 +22,7 @@
 #include "types.h"
 
 // Depth for evaluating each position
-#define TEXEL_DEPTH (0)
+#define TEXEL_DEPTH (2)
 
 // Number of Positions in the data set
 #define NP (1470000)
@@ -77,7 +77,8 @@
 #define TuneKingShelter   (0 * 128)
 
 // Define the Passed Pawn Terms
-#define TunePassedPawn (0 * 32)
+#define TunePassedPawnWings (1 *  1) 
+#define TunePassedPawn      (1 * 32)
 
 // Define the Threat Terms
 #define TuneThreatPawnAttackedByOne     (0 * 1)
@@ -97,7 +98,7 @@
     TuneKnightMobility             + TuneBishopPair                 + TuneBishopRammedPawns          + \
     TuneBishopOutpost              + TuneBishopMobility             + TuneRookFile                   + \
     TuneRookOnSeventh              + TuneRookMobility               + TuneQueenMobility              + \
-    TuneKingDefenders              + TuneKingShelter                + TunePassedPawn                 + \
+    TuneKingDefenders              + TuneKingShelter                + TunePassedPawnWings + TunePassedPawn                 + \
     TuneThreatPawnAttackedByOne    + TuneThreatMinorAttackedByPawn  + TuneThreatMinorAttackedByMajor + \
     TuneThreatMajorAttackedByMinor + TuneThreatQueenAttackedByOne                                      \
 )

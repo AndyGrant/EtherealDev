@@ -94,6 +94,7 @@ extern const int KingDefenders[12];
 extern const int KingShelter[2][FILE_NB][RANK_NB];
 
 // To determine the starting values for the Passed Pawn terms
+extern const int PassedPawnWings;
 extern const int PassedPawn[2][2][RANK_NB];
 
 // To determine the starting values for the Threat terms
@@ -460,6 +461,9 @@ void initializeCoefficients(int coeffs[NT]){
     
     // Initialize coefficients for the Passed Pawn evaluation terms
     
+    if (TunePassedPawnWings)
+        coeffs[i++] = T.passedPawnWings[WHITE] - T.passedPawnWings[BLACK];
+    
     if (TunePassedPawn)
         for (a = 0; a < 2; a++)
             for (b = 0; b < 2; b++)
@@ -697,6 +701,11 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     
     // Grab the current parameters for the Passed Pawn evaluation terms
+    
+    if (TunePassedPawnWings){
+        cparams[i  ][MG] = ScoreMG(PassedPawnWings);
+        cparams[i++][EG] = ScoreEG(PassedPawnWings);
+    }
     
     if (TunePassedPawn){
         for (a = 0; a < 2; a++){
@@ -1021,6 +1030,10 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     // Print Passed Pawn Values
 
     printf("\n\n// Definition of evaluation terms related to Passed Pawns\n");
+    
+    if (TunePassedPawnWings){
+        printf("\nconst int PassedPawnWings = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
+    }
     
     if (TunePassedPawn){
         printf("\nconst int PassedPawn[2][2][RANK_NB] = {");
