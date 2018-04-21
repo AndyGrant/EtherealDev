@@ -934,7 +934,7 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
             || (ei->attackedBy[!board->turn][PAWN] & (1ull << MoveTo(move)))))
         return 1;
         
-    if (    depth <= WeakCaptureTwoAttackersDepth
+    if (    depth <= WeakCaptureOneAttackersDepth
         && (ei->attacked[!board->turn] & (1ull << MoveTo(move))))
         return 1;
         
