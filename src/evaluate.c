@@ -87,7 +87,7 @@ const int PawnConnected32[32] = {
 
 // Definition of evaluation terms related to Knights
 
-const int KnightPair = S(  13,  17);
+const int KnightPair = S( -13,  -7);
 
 const int KnightRammedPawns = S(   0,   5);
 
