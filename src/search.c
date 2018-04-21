@@ -476,6 +476,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        && (improving || eval >= beta + 25)
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
