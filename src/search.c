@@ -577,7 +577,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !isQuiet
             &&  !inCheck
             &&   best > MATED_IN_MAX
-            &&   captureIsWeak(board, &ei, move, depth))
+            &&   captureIsWeak(board, &ei, move, depth + improving))
             continue;
         
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
