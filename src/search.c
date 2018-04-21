@@ -929,11 +929,16 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
     if (thisTacticalMoveValue(board, move) >= attackerValue)
         return 0;
     
-    // Thus, the capture is weak if there are sufficient attackers for a given depth
-    return (   (depth <= WeakCaptureTwoAttackersDepth
-            &&  ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
-            || (depth <= WeakCaptureOneAttackersDepth
-            &&  ei->attacked[!board->turn] & (1ull << MoveTo(move))));
+    if (    depth <= WeakCaptureTwoAttackersDepth
+        && (   (ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
+            || (ei->attackedBy[!board->turn][PAWN] & (1ull << MoveTo(move)))))
+        return 1;
+        
+    if (    depth <= WeakCaptureTwoAttackersDepth
+        && (ei->attacked[!board->turn] & (1ull << MoveTo(move))))
+        return 1;
+        
+    return 0;
 }
 
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height){
