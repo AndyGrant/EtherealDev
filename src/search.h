@@ -74,7 +74,10 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
 
 static const int RazorDepth = 4;
 
-static const int RazorMargins[] = {0, 300, 350, 410, 500};
+static const int RazorMargins[2][5] = {
+    {   0, 300, 350, 400, 500},
+    {   0, 350, 400, 450, 550},
+};
 
 static const int BetaPruningDepth = 8;
 

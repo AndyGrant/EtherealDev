@@ -450,12 +450,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargins[depth] < alpha){
+        &&  eval + RazorMargins[improving][depth] < alpha){
             
         if (depth <= 1)
             return qsearch(thread, pv, alpha, beta, height);
         
-        rAlpha = alpha - RazorMargins[depth];
+        rAlpha = alpha - RazorMargins[improving][depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return alpha;
     }
