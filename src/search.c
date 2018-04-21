@@ -637,7 +637,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  depth >= 10
                   &&  move == ttMove
                   &&  ttEntry.depth >= depth - 3
-                  && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
+                  && (ttEntry.type == PVNODE || ttEntry.type == ALLNODE)
                   &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
                   
         // Step 16B. Check Extensions. If we are in a PvNode and we have not already
