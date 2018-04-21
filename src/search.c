@@ -539,8 +539,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  ttMove == NONE_MOVE
         &&  depth >= InternalIterativeDeepeningDepth){
         
+        R = 3 + checkExtended;
+        
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth - R, height);
         
         // Probe for the newly found move, and update ttMove
         if (getTranspositionEntry(&Table, board->hash, &ttEntry))
