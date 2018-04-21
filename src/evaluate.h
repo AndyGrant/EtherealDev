@@ -22,7 +22,8 @@
 #include "types.h"
 
 #define SCALE_FACTOR_NORMAL          (64)
-#define SCALE_FACTOR_ROOK_ENDGAME    (48)
+#define SCALE_FACTOR_ONE_ROOKS       (32)
+#define SCALE_FACTOR_TWO_ROOKS       (48)
 #define SCALE_FACTOR_OCB_BASE        (60)
 #define SCALE_FACTOR_OCB_ONE_ROOKS   (52)
 #define SCALE_FACTOR_OCB_TWO_ROOKS   (58)

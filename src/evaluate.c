@@ -776,14 +776,13 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
     
     if (!bishops && !knights){
         
-        if (abs(popcount(pawns & white) - popcount(pawns & black)) >= 2)
-            return SCALE_FACTOR_NORMAL;
-        
         if (exactlyOne(rooks & white) && exactlyOne(rooks & black))
-            return SCALE_FACTOR_ROOK_ENDGAME + popcount(pawns) / 2;
+            return SCALE_FACTOR_ONE_ROOKS;
         
         if (moreThanOne(rooks & white) && moreThanOne(rooks & black))
-            return SCALE_FACTOR_ROOK_ENDGAME + popcount(pawns);
+            return SCALE_FACTOR_TWO_ROOKS;
+        
+        return SCALE_FACTOR_NORMAL;
     }
     
     /*
