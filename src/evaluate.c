@@ -786,6 +786,7 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
             return SCALE_FACTOR_ROOK_ENDGAME + popcount(pawns);
     }
     
+    /*
     if (   exactlyOne(bishops & white)
         && exactlyOne(bishops & black)
         && exactlyOne(bishops & WHITE_SQUARES)){
@@ -814,7 +815,7 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
                                           : SCALE_FACTOR_OCB_TWO_KNIGHTS;
                                             
         return SCALE_FACTOR_OCB_MIXED;
-    }
+    }*/
     
     return SCALE_FACTOR_NORMAL;
 }
