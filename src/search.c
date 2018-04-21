@@ -474,8 +474,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
+        &&  improving
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
             
