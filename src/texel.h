@@ -22,10 +22,10 @@
 #include "types.h"
 
 // Depth for evaluating each position
-#define TEXEL_DEPTH (0)
+#define TEXEL_DEPTH (2)
 
 // Number of Positions in the data set
-#define NP (1470000)
+#define NP (2000000)
 
 // Every tunable component of the evaluation includes a definition of
 // TuneParamName, which is equal to an ON/OFF flag, multipled by the
@@ -70,7 +70,7 @@
 #define TuneRookMobility  (0 * 15)
 
 // Define the Queen Terms
-#define TuneQueenMobility (0 * 28)
+#define TuneQueenMobility (1 * 28)
 
 // Define the King Terms
 #define TuneKingDefenders (0 *  12)
