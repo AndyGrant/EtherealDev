@@ -714,9 +714,22 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     // Step 21. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
+        
+        // Update history for the best move, as well as those which failed
         updateHistory(thread->history, bestMove, board->turn, depth*depth);
         for (i = 0; i < quiets - 1; i++)
             updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
+        
+        // Table move was not the best move, and was beaten by a quiet one
+        if (ttMove != NONE_MOVE && ttMove != bestMove){
+        
+            // Extra bonus for a quiet which was better than the table move
+            updateHistory(thread->history, bestMove, board->turn, depth*depth);
+            
+            // Extra penalty for the beaten table move if quiet
+            if (!moveIsTactical(board, ttMove))
+                updateHistory(thread->history, ttMove, board->turn, -depth*depth);
+        }
     }
     
     // Step 22. Store the results of the search in the transposition table.
