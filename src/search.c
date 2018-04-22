@@ -279,7 +279,14 @@ int aspirationWindow(Thread* thread, int depth){
         // Report lower and upper bounds after at least 5 seconds
         if (mainThread && getRealTime() - thread->info->starttime >= 5000)
             uciReport(thread->threads, alpha, beta, value);
-        
+
+        if (    mainThread
+            &&  value >= beta
+            &&  thread->limits->limitedBySelf
+            &&  thread->info->bestmoves[depth-1] == thread->pv.line[0]
+            &&  getRealTime() - thread->info->starttime > thread->info->idealusage)
+            return value;
+            
         // Search failed low
         if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * lower);
         
