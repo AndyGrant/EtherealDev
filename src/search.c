@@ -295,6 +295,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
+    int triedNullMovePruning = 0;
     int i, repetitions, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
@@ -488,6 +489,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         revertNullMove(board, undo);
         
         if (value >= beta) return beta;
+        
+        triedNullMovePruning = 1;
     }
     
     // Step 9. ProbCut. If we have a good capture that causes a beta cutoff
@@ -612,6 +615,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
+            
+            // Decrease R if we tried to perform null move pruning, but failed,
+            // despite being in an improving node
+            R -= triedNullMovePruning && improving;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
