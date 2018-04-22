@@ -185,6 +185,7 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -5,   8), S( -12,  17), S( -21,  52), S( -14, 109), S(  28, 202), S( 119, 369), S(   0,   0)}},
 };
 
+const int PassedPawnNearKing = S(   7,  15);
 
 // Definition of evaluation terms releated to Threats
 
@@ -710,8 +711,14 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
+        // Score the Passed Pawn based on the computed flags
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        if (    ((1ull << sq) & ei->attackedBy[ colour][KING])
+            && !((1ull << sq) & ei->attackedBy[!colour][KING]))
+            eval += PassedPawnNearKing;
+        
     }
     
     return eval;
