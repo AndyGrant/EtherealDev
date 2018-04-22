@@ -185,6 +185,10 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -5,   8), S( -12,  17), S( -21,  52), S( -14, 109), S(  28, 202), S( 119, 369), S(   0,   0)}},
 };
 
+const int PassedPawnPromotionControl[RANK_NB] = {
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   1,   2),
+    S(   3,   5), S(   6,  15), S(  13,  23), S(   0,   0),
+};
 
 // Definition of evaluation terms releated to Threats
 
@@ -692,6 +696,9 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
     
+    uint64_t myKing    = board->colours[ colour] & board->pieces[KING];
+    uint64_t theirKing = board->colours[!colour] & board->pieces[KING];
+    
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
         
@@ -710,8 +717,17 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Destination is not attacked by the opponent
         safeAdvance = !(destination & ei->attacked[!colour]);
         
+        // Finally score the passed pawn based on computed flags
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        // Give an additional bonus if our king is closer to the promotion square
+        destination = Files[File(sq)] & (colour == WHITE ? RANK_8 : RANK_1);
+        int myDist    = MAX(abs(Rank(destination) - Rank(   myKing)), abs(File(destination) - File(   myKing))); 
+        int theirDist = MAX(abs(Rank(destination) - Rank(theirKing)), abs(File(destination) - File(theirKing)));
+        if (myDist + 1 < theirDist)
+            eval += PassedPawnPromotionControl[rank];
+        
     }
     
     return eval;
