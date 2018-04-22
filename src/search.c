@@ -617,8 +617,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += 2 * !PvNode;
             
             // Decrease R if we tried to perform null move pruning, but failed,
-            // despite being in an improving node
-            R -= triedNullMovePruning && improving;
+            // despite being in an improving node, and having a very strong eval
+            R -= triedNullMovePruning && improving && eval > beta + PieceValues[KNIGHT][MG];
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
