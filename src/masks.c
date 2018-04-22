@@ -93,18 +93,18 @@ void initializeMasks(){
     // Initalize pawn connected masks
     for (i = 8 ; i < 56; i++){
         if (File(i) == 0){
-            PawnConnectedMasks[WHITE][i] = (1ull << (i+1)) | (1ull << (i-7));
-            PawnConnectedMasks[BLACK][i] = (1ull << (i+1)) | (1ull << (i+9));
+            PawnConnectedMasks[WHITE][i] = (1ull << (i-7));
+            PawnConnectedMasks[BLACK][i] = (1ull << (i+9));
         }
         
         else if (File(i) == 7){
-            PawnConnectedMasks[WHITE][i] = (1ull << (i-1)) | (1ull << (i-9));
-            PawnConnectedMasks[BLACK][i] = (1ull << (i-1)) | (1ull << (i+7));
+            PawnConnectedMasks[WHITE][i] = (1ull << (i-9));
+            PawnConnectedMasks[BLACK][i] = (1ull << (i+7));
         }
         
         else {
-            PawnConnectedMasks[WHITE][i] = (1ull << (i-1)) | (1ull << (i-9)) | (1ull << (i+1)) | (1ull << (i-7));
-            PawnConnectedMasks[BLACK][i] = (1ull << (i-1)) | (1ull << (i+7)) | (1ull << (i+1)) | (1ull << (i+9));
+            PawnConnectedMasks[WHITE][i] = (1ull << (i-9)) | (1ull << (i-7));
+            PawnConnectedMasks[BLACK][i] = (1ull << (i+7)) | (1ull << (i+9));
         }
     }
 }
