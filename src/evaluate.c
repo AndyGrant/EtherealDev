@@ -67,20 +67,20 @@ const int PieceValues[8][PHASE_NB] = {
 
 // Definition of evaluation terms related to Pawns
 
-const int PawnIsolated = S(  -3,  -6);
+const int PawnIsolated = S(  -5,  -2);
 
-const int PawnStacked = S( -11, -31);
+const int PawnStacked = S(  -5, -24);
 
-const int PawnBackwards[2] = { S(   6,  -3), S( -13, -11) };
+const int PawnBackwards[2] = { S(   4,  -4), S(  -8,  -7) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   6,   1), S(   3,  -3), S(   5,  19),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  23),
-    S(   7,   0), S(  19,   4), S(  16,   9), S(  18,  17),
-    S(   6,  14), S(  19,  19), S(  18,  24), S(  38,  25),
-    S(  24,  55), S(  30,  63), S(  80,  60), S(  60,  77),
-    S( 148,   3), S( 167,  16), S( 203,  29), S( 197,  87),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   7,   1), S(  14,   2), S(   8,   5), S(  10,  12),
+    S(   4,   0), S(  12,   3), S(  10,   2), S(  12,  10),
+    S(   8,   6), S(  15,  17), S(  17,  14), S(  30,  14),
+    S(  27,  34), S(  30,  38), S(  47,  51), S(  51,  51),
+    S(  10, -83), S( 145,  -3), S( 263,  -8), S( 225,  34),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
