@@ -131,15 +131,14 @@ const int RookMobility[15] = {
 // Definition of evaluation terms related to Queens
 
 const int QueenMobility[28] = {
-    S( -80,   0), S( -98, -86), S( -56, -31), S(  -7, -16),
-    S(  -1,  -2), S(   2,  14), S(   9,  17), S(  14,  14),
-    S(  18,  16), S(  21,  21), S(  25,  25), S(  29,  31),
-    S(  32,  35), S(  35,  39), S(  42,  43), S(  47,  48),
-    S(  52,  51), S(  57,  55), S(  63,  58), S(  68,  60),
-    S(  72,  65), S(  90,  73), S(  80,  63), S(  88,  69),
-    S( 106,  61), S( 101,  77), S( 114,  81), S( 118,  87),
+    S( -84, -31), S( -37, -12), S( -11,   9), S(  -3,   8),
+    S(   3,  15), S(  10,  18), S(  16,  24), S(  25,  26),
+    S(  30,  30), S(  34,  34), S(  37,  38), S(  44,  43),
+    S(  49,  50), S(  63,  55), S(  70,  59), S(  86,  67),
+    S(  99,  71), S( 113,  76), S( 126,  81), S( 134,  85),
+    S( 144,  89), S( 154,  93), S( 139,  88), S( 140,  93),
+    S( 153,  86), S( 135,  92), S( 164, 106), S( 152, 103),
 };
-
 
 // Definition of evaluation terms related to Kings
 
@@ -570,12 +569,17 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
 int evaluateQueens(EvalInfo* ei, Board* board, int colour){
     
     int sq, count, eval = 0;
-    uint64_t tempQueens, attacks;
+    uint64_t tempQueens, attacks, attackedByNonQueen;
     
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
     
     ei->attackedBy[colour][QUEEN] = 0ull;
                                  
+    attackedByNonQueen = ei->attackedBy[!colour][PAWN  ]
+                       | ei->attackedBy[!colour][KNIGHT]
+                       | ei->attackedBy[!colour][BISHOP]
+                       | ei->attackedBy[!colour][ROOK  ];
+    
     // Evaluate each queen
     while (tempQueens){
         
@@ -594,7 +598,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         ei->attackedBy[colour][QUEEN] |= attacks;
         
         // Apply a bonus (or penalty) based on the mobility of the queen
-        count = popcount((ei->mobilityAreas[colour] & attacks));
+        count = popcount((ei->mobilityAreas[colour] & ~attackedByNonQueen & attacks));
         eval += QueenMobility[count];
         if (TRACE) T.queenMobility[colour][count]++;
         
