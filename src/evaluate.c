@@ -67,20 +67,20 @@ const int PieceValues[8][PHASE_NB] = {
 
 // Definition of evaluation terms related to Pawns
 
-const int PawnIsolated = S(  -3,  -6);
+const int PawnIsolated = S(  -7,   3);
 
-const int PawnStacked = S( -11, -31);
+const int PawnStacked = S( -10, -25);
 
-const int PawnBackwards[2] = { S(   6,  -3), S( -13, -11) };
+const int PawnBackwards[2] = { S(   5,  -1), S(  -9,  -6) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   6,   1), S(   3,  -3), S(   5,  19),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  23),
-    S(   7,   0), S(  19,   4), S(  16,   9), S(  18,  17),
-    S(   6,  14), S(  19,  19), S(  18,  24), S(  38,  25),
-    S(  24,  55), S(  30,  63), S(  80,  60), S(  60,  77),
-    S( 148,   3), S( 167,  16), S( 203,  29), S( 197,  87),
+    S(  -4,  -6), S(   6,   1), S(   0,   0), S(   2,  12),
+    S(   3,   3), S(  14,   5), S(  10,   7), S(  13,  11),
+    S(   1,   3), S(  10,   7), S(   8,   2), S(  12,   7),
+    S(   1,  12), S(  15,  19), S(  15,  17), S(  28,   7),
+    S(  16,  48), S(  14,  62), S(  50,  49), S(  56,  51),
+    S(   5, -23), S( 165,  77), S( 202,  21), S( 259,  37),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
@@ -179,16 +179,16 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 // Definition of evaluation terms related to Passed Pawns
 
 const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -33, -30), S( -24,   8), S( -13,  -2), S(  24,   0), S(  66,  -5), S( 160,  32), S(   0,   0)},
-   {S(   0,   0), S(  -2,   1), S( -14,  23), S( -15,  35), S(   7,  44), S(  72,  60), S( 194, 129), S(   0,   0)}},
-  {{S(   0,   0), S(  -7,  12), S( -12,   6), S( -10,  27), S(  27,  32), S(  86,  63), S( 230, 149), S(   0,   0)},
-   {S(   0,   0), S(  -5,   8), S( -12,  17), S( -21,  52), S( -14, 109), S(  28, 202), S( 119, 369), S(   0,   0)}},
+  {{S(   0,   0), S( -24,  -4), S( -14,   2), S(  -8,   2), S(  15,   4), S(  33,   4), S(  11,  17), S(   0,   0)},
+   {S(   0,   0), S( -11,   1), S(  -9,   4), S(   2,  17), S(  16,  32), S(  45,  43), S(  65,  37), S(   0,   0)}},
+  {{S(   0,   0), S( -10,   9), S( -11,   7), S(   1,  16), S(  29,  28), S(  50,  45), S(  34,  64), S(   0,   0)},
+   {S(   0,   0), S( -11,   6), S(  -9,   8), S(   6,  32), S(  38,  73), S( 117, 110), S( 170,  76), S(   0,   0)}},
 };
 
 
 // Definition of evaluation terms releated to Threats
 
-const int ThreatPawnAttackedByOne    = S( -19, -17);
+const int ThreatPawnAttackedByOne    = S(  -5,  -5);
 
 const int ThreatMinorAttackedByPawn  = S( -63, -41);
 
