@@ -55,7 +55,7 @@ struct EvalTrace {
     
     int kingPSQT[COLOUR_NB][SQUARE_NB];
     int kingDefenders[COLOUR_NB][12];
-    int kingShelter[COLOUR_NB][2][FILE_NB][RANK_NB];
+    int kingShelter[COLOUR_NB][2][RANK_NB];
     
     int passedPawn[COLOUR_NB][2][2][RANK_NB];
     
