@@ -429,8 +429,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Here we perform our check extension, for non-root pvnodes, or for non-root
     // nodes near depth zero. Note that when we bypass the qsearch as a result of
     // being in check, we set depth to zero. This step adjusts depth back to one.
-    checkExtended = inCheck && !RootNode && depth <= 8;
-    depth += inCheck && !RootNode && depth <= 8;
+    checkExtended = inCheck && !RootNode && depth <= CheckExtendDepth;
+    depth += inCheck && !RootNode && depth <= CheckExtendDepth;
     
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);

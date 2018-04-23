@@ -71,12 +71,13 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
 
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height);
 
+static const int CheckExtendDepth = 12;
 
 static const int RazorDepth = 4;
 
 static const int RazorMargins[] = {0, 300, 350, 410, 500};
 
-static const int BetaPruningDepth = 8;
+static const int BetaPruningDepth = 12;
 
 static const int BetaMargin = 85;
 
@@ -90,15 +91,15 @@ static const int InternalIterativeDeepeningDepth = 3;
 
 static const int FutilityMargin = 100;
 
-static const int FutilityPruningDepth = 8;
+static const int FutilityPruningDepth = 12;
 
 static const int WeakCaptureTwoAttackersDepth = 5;
 
 static const int WeakCaptureOneAttackersDepth = 3;
 
-static const int LateMovePruningDepth = 8;
+static const int LateMovePruningDepth = 12;
 
-static const int LateMovePruningCounts[] = {0, 4, 6, 10, 15, 23, 31, 40, 52};
+static const int LateMovePruningCounts[] = {0, 4, 6, 10, 15, 23, 31, 40, 50, 60, 70, 80, 90};
 
 static const int QFutilityMargin = 100;
 
