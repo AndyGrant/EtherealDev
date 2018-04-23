@@ -352,16 +352,16 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
         if (!(PassedPawnMasks[colour][sq] & enemyPawns))
             ei->passedPawns |= (1ull << sq);
         
-        // Apply a penalty if the pawn is isolated
-        if (!(IsolatedPawnMasks[sq] & tempPawns)){
-            eval += PawnIsolated;
-            if (TRACE) T.pawnIsolated[colour]++;
-        }
-        
         // Apply a penalty if the pawn is stacked
         if (Files[File(sq)] & tempPawns){
             eval += PawnStacked;
             if (TRACE) T.pawnStacked[colour]++;
+        }
+        
+        // Apply a penalty if the pawn is isolated
+        else if (!(IsolatedPawnMasks[sq] & tempPawns)){
+            eval += PawnIsolated;
+            if (TRACE) T.pawnIsolated[colour]++;
         }
         
         // Apply a penalty if the pawn is backward
