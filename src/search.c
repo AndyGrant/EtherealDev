@@ -611,7 +611,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R = 2 + (played - 4) / 8 + (depth - 6) / 4;
             
             // Increase R by an additional two ply for non PvNodes
-            R += 2 * !PvNode;
+            R += !PvNode;
+            
+            R += !improving;
             
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
