@@ -295,7 +295,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, repetitions, quiets = 0, played = 0, hist = 0;
+    int i, repetitions, quiets = 0, played = 0, hist = 0, weakCapture;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     int inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
@@ -552,8 +552,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        int weak = 0;
-        
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
@@ -561,9 +559,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, move, board->turn);
         }
         
-        else {
-            weak = captureIsWeak(board, &ei, move, depth / 2);
-        }
+        // If this move is a capture, we may apply a small amount of late move
+        // reductions if the capture would be considered weak at a lower depth
+        else weakCapture = captureIsWeak(board, &ei, move, depth - 5);
         
         // Step 12. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
@@ -583,7 +581,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  !isQuiet
             &&  !inCheck
             &&   best > MATED_IN_MAX
-            &&   weak)
+            &&   captureIsWeak(board, &ei, move, depth))
             continue;
         
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
@@ -633,7 +631,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // and also ensure that R is at least one, therefore avoiding extensions
             R  = MIN(depth - 1, MAX(R, 1));
             
-        } else R = 1 + (weak && played != 1);
+        } 
+        
+        // Otherwise the default value of R = 1 is used, with an exception made for
+        // noisy moves which do not appear strong, but not the first move of course
+        else R = 1 + (!isQuiet && weakCapture && played != 1);
         
         // Step 16A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
