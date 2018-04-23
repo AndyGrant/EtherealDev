@@ -504,7 +504,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
-        while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        int tried = 0;
+        
+        while (    tried <= 3
+               && (move = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Even if we keep the capture piece and or the promotion piece
             // we will fail to exceed rBeta, then we will skip this move
@@ -517,6 +520,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 revertMove(board, move, undo);
                 continue;
             }
+            
+            tried += 1;
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
