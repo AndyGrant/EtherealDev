@@ -233,6 +233,12 @@ void* iterativeDeepening(void* vthread){
         }
     }
     
+    // If the main thread as reached the max search depth,
+    // we must terminate all of the helpers to not waste time
+    if (mainThread)
+        for (i = 0; i < thread->nthreads; i++)
+            thread->threads[i].abort = 1;
+        
     return NULL;
 }
 
@@ -941,7 +947,7 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
     uint16_t move;
     MovePicker movePicker;
     int value = -MATE;
-    int rBeta = MAX(ttEntry->value - 2 * depth, -MATE);
+    int rBeta = MAX(valueFromTT(ttEntry->value, height) - 2 * depth, -MATE);
     
     // Use a dummy lpv, as we will throw it away
     PVariation lpv; lpv.length = 0;
