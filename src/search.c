@@ -561,7 +561,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         // If this move is a capture, we may apply a small amount of late move
         // reductions if the capture would be considered weak at a lower depth
-        else weakCapture = captureIsWeak(board, &ei, move, depth - 5);
+        else weakCapture = captureIsWeak(board, &ei, move, depth / 2);
         
         // Step 12. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
