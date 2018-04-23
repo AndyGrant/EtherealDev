@@ -71,7 +71,7 @@ const int PawnIsolated = S(  -3,  -6);
 
 const int PawnStacked = S( -11, -31);
 
-const int PawnBackwards[2] = { S(   6,  -3), S( -13, -11) };
+const int PawnBackwards = S( -13, -11);
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
@@ -313,7 +313,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     
     const int forward = (colour == WHITE) ? 8 : -8;
     
-    int sq, semi, eval = 0;
+    int sq, eval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
     
     // Update the attacks array with the pawn attacks. We will use this to
@@ -367,9 +367,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
         // Apply a penalty if the pawn is backward
         if (   !(PassedPawnMasks[!colour][sq] & myPawns)
             &&  (ei->pawnAttacks[!colour] & (1ull << (sq + forward)))){
-            semi = !(Files[File(sq)] & enemyPawns);
-            eval += PawnBackwards[semi];
-            if (TRACE) T.pawnBackwards[colour][semi]++;
+            eval += PawnBackwards;
         }
         
         // Apply a bonus if the pawn is connected and not backward
