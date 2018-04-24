@@ -84,10 +84,6 @@ int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry)
     TransBucket* bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
     int i; uint16_t hash16 = hash >> 48;
     
-    #ifdef TEXEL
-    return NULL;
-    #endif
-    
     // Search for a matching entry. Update the generation if found.
     for (i = 0; i < BUCKET_SIZE; i++){
         if (bucket->entries[i].hash16 == hash16){
