@@ -36,7 +36,6 @@ struct SearchInfo {
     double maxusage;
     
     int bestMoveChanges;
-    
 };
 
 struct PVariation {
@@ -51,7 +50,7 @@ void* iterativeDeepening(void* vthread);
 
 int aspirationWindow(Thread* thread, int depth);
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int skipEarly);
 
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 
