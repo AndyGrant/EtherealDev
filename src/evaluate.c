@@ -618,8 +618,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     uint64_t filePawns;
     
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
+    uint64_t theirPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t myKings    = board->pieces[KING] & board->colours[ colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
@@ -645,6 +646,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         // Add an extra two attack counts per missing pawn in the king area.
         count += 6 - 2 * popcount(myPawns & ei->kingAreas[colour]);
+        
+        // Extra threat when our opponent has a pawn advantage
+        count += MAX(0, popcount(theirPawns) - popcount(myPawns));
         
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
