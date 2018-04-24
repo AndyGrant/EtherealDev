@@ -252,9 +252,9 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
         // Now collect an evaluation from a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
+        // qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], undo);
         T = EmptyTrace;
         evaluateBoard(&thread->board, &ei, NULL);
                           
