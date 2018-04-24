@@ -972,7 +972,7 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
         }
         
         // Perform a reduced depth search on a null rbeta window
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1, 0);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1, 1);
         
         // Set the board state to what it was initially
         revertMove(board, move, undo);
