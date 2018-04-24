@@ -130,6 +130,8 @@ const int RookMobility[15] = {
 
 // Definition of evaluation terms related to Queens
 
+const int QueenOverloaded = S(  10,  10);
+
 const int QueenMobility[28] = {
     S( -60,-258), S(-169,-232), S( -39,-187), S( -35,-174),
     S( -19,-118), S( -25, -60), S( -19, -89), S( -18, -86),
@@ -570,9 +572,11 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
 int evaluateQueens(EvalInfo* ei, Board* board, int colour){
     
     int sq, count, eval = 0;
-    uint64_t tempQueens, attacks;
     
-    tempQueens = board->pieces[QUEEN] & board->colours[colour];
+    uint64_t attacks;
+    uint64_t friendly   = board->colours[colour];
+    uint64_t tempQueens = board->pieces[QUEEN] & friendly;
+    uint64_t minors     = board->pieces[KNIGHT] | board->pieces[BISHOP];
     
     ei->attackedBy[colour][QUEEN] = 0ull;
                                  
@@ -597,6 +601,10 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         count = popcount((ei->mobilityAreas[colour] & attacks));
         eval += QueenMobility[count];
         if (TRACE) T.queenMobility[colour][count]++;
+        
+        if (moreThanOne(attacks & minors & friendly))
+            eval += QueenOverloaded;
+            
         
         // Update the attack and attacker counts for the queen for use in
         // the king safety calculation. We could the Queen as two attacking
