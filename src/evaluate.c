@@ -130,7 +130,7 @@ const int RookMobility[15] = {
 
 // Definition of evaluation terms related to Queens
 
-const int QueenOverloaded = S(  10,  10);
+const int QueenOverloaded = S( -10, -10);
 
 const int QueenMobility[28] = {
     S( -60,-258), S(-169,-232), S( -39,-187), S( -35,-174),
