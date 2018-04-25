@@ -464,6 +464,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
+        &&  improving
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return beta;
