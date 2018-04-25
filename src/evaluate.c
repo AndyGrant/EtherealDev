@@ -177,15 +177,16 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 // Definition of evaluation terms related to Passed Pawns
 
 const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
-   {S(   0,   0), S(  -1,   2), S( -19,  24), S( -12,  37), S(   6,  46), S(  66,  63), S( 191, 133), S(   0,   0)}},
-  {{S(   0,   0), S(  -7,  15), S( -13,   9), S(  -6,  28), S(  29,  34), S(  78,  66), S( 234, 152), S(   0,   0)},
-   {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
+  {{S(   0,   0), S( -34, -20), S( -13, -14), S(  13, -10), S(  35,  27), S( 106,  31), S( 159, 139), S(   0,   0)},
+   {S(   0,   0), S(   1,   0), S(   8, -10), S(  23,   2), S(  51,  41), S( 108,  91), S( 189, 164), S(   0,   0)}},
+  {{S(   0,   0), S(   5,   3), S(   9,  -6), S(  25,  24), S(  58,  71), S( 119, 111), S( 239, 179), S(   0,   0)},
+   {S(   0,   0), S(  11,   5), S(  22,   5), S(  29,  35), S(  69,  85), S(  96, 153), S( 142, 238), S(   0,   0)}},
+
 };
 
-const int PassedPawnSafePathway = S(   5,   9);
+const int PassedPawnSafePathway = S(  63,  58);
 
-const int PassedPawnClearPathway = S(  13,  15);
+const int PassedPawnClearPathway = S(   6,  35);
 
 
 // Definition of evaluation terms related to Threats
@@ -717,11 +718,15 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         
         path = Files[File(sq)] & RanksAtOrAboveMasks[colour][Rank(sq)];
-        if ((path & ei->attacked[colour]) == path)
+        if ((path & ei->attacked[colour]) == path){
             eval += PassedPawnSafePathway;
+            if (TRACE) T.passedPawnSafePathway[colour]++;
+        }
         
-        if ((path & (ei->attacked[!colour] | board->colours[!colour])) == 0ull)
+        if ((path & (ei->attacked[!colour] | board->colours[!colour])) == 0ull){
             eval += PassedPawnClearPathway;
+            if (TRACE) T.passedPawnClearPathway[colour]++;
+        }
         
     }
     

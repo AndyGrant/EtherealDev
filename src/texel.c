@@ -95,6 +95,8 @@ extern const int KingShelter[2][FILE_NB][RANK_NB];
 
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB];
+extern const int PassedPawnSafePathway;
+extern const int PassedPawnClearPathway;
 
 // To determine the starting values for the Threat terms
 extern const int ThreatPawnAttackedByOne;
@@ -108,7 +110,7 @@ void runTexelTuning(Thread* thread){
     
     TexelEntry* tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = 100.0;
     double rates[NT][PHASE_NB] = {{0}, {0}};
     double params[NT][PHASE_NB] = {{0}, {0}};
     double cparams[NT][PHASE_NB] = {{0}, {0}};
@@ -252,9 +254,9 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         
         // Now collect an evaluation from a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
+        // qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], undo);
         T = EmptyTrace;
         evaluateBoard(&thread->board, &ei, NULL);
                           
@@ -465,6 +467,12 @@ void initializeCoefficients(int coeffs[NT]){
             for (b = 0; b < 2; b++)
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.passedPawn[WHITE][a][b][c] - T.passedPawn[BLACK][a][b][c];
+                
+    if (TunePassedPawnSafePathway)
+        coeffs[i++] = T.passedPawnSafePathway[WHITE] - T.passedPawnSafePathway[BLACK];
+    
+    if (TunePassedPawnClearPathway)
+        coeffs[i++] = T.passedPawnClearPathway[WHITE] - T.passedPawnClearPathway[BLACK];
                 
                 
     // Initialize coefficients for the Threat evaluation terms
@@ -709,6 +717,15 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         }
     }
     
+    if (TunePassedPawnSafePathway){
+        cparams[i  ][MG] = ScoreMG(PassedPawnSafePathway);
+        cparams[i++][EG] = ScoreEG(PassedPawnSafePathway);
+    }
+    
+    if (TunePassedPawnClearPathway){
+        cparams[i  ][MG] = ScoreMG(PassedPawnClearPathway);
+        cparams[i++][EG] = ScoreEG(PassedPawnClearPathway);
+    }
     
     // Grab the current parameters for the Threat evaluation terms
     
@@ -1031,6 +1048,14 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
                 printf("%s", y < RANK_NB - 1 ? ", " : x % 2 ? "}}," : "},");
             }
         } printf("\n};\n");
+    }
+    
+    if (TunePassedPawnSafePathway){
+        printf("\nconst int PassedPawnSafePathway = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
+    }
+
+    if (TunePassedPawnClearPathway){
+        printf("\nconst int PassedPawnClearPathway = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
     }
     
     

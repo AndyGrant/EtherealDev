@@ -25,7 +25,7 @@
 #define TEXEL_DEPTH (0)
 
 // Number of Positions in the data set
-#define NP (1470000)
+#define NP (7000000)
 
 // Every tunable component of the evaluation includes a definition of
 // TuneParamName, which is equal to an ON/OFF flag, multipled by the
@@ -77,7 +77,9 @@
 #define TuneKingShelter   (0 * 128)
 
 // Define the Passed Pawn Terms
-#define TunePassedPawn (0 * 32)
+#define TunePassedPawn             (1 * 32)
+#define TunePassedPawnSafePathway  (1 *  1)
+#define TunePassedPawnClearPathway (1 *  1)
 
 // Define the Threat Terms
 #define TuneThreatPawnAttackedByOne     (0 * 1)
@@ -98,6 +100,7 @@
     TuneBishopOutpost              + TuneBishopMobility             + TuneRookFile                   + \
     TuneRookOnSeventh              + TuneRookMobility               + TuneQueenMobility              + \
     TuneKingDefenders              + TuneKingShelter                + TunePassedPawn                 + \
+    TunePassedPawnSafePathway      + TunePassedPawnClearPathway                                      + \
     TuneThreatPawnAttackedByOne    + TuneThreatMinorAttackedByPawn  + TuneThreatMinorAttackedByMajor + \
     TuneThreatMajorAttackedByMinor + TuneThreatQueenAttackedByOne                                      \
 )
