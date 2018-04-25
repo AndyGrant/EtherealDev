@@ -183,6 +183,10 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
+const int PassedPawnSafePathway = S(   5,   9);
+
+const int PassedPawnClearPathway = S(  13,  15);
+
 
 // Definition of evaluation terms related to Threats
 
@@ -682,7 +686,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     
     int sq, rank, canAdvance, safeAdvance, eval = 0;
-    uint64_t tempPawns, destination, notEmpty;
+    uint64_t tempPawns, destination, notEmpty, path;
     
     // Fetch Passed Pawns from the Pawn King Entry if we have one
     if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
@@ -710,6 +714,15 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.passedPawn[colour][canAdvance][safeAdvance][rank]++;
+        
+        
+        path = Files[File(sq)] & RanksAtOrAboveMasks[colour][Rank(sq)];
+        if ((path & ei->attacked[colour]) == path)
+            eval += PassedPawnSafePathway;
+        
+        if ((path & (ei->attacked[!colour] | board->colours[!colour])) == 0ull)
+            eval += PassedPawnClearPathway;
+        
     }
     
     return eval;
