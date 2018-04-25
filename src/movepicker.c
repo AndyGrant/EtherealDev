@@ -41,6 +41,9 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer1    = thread->killers[height][0] != ttMove ? thread->killers[height][0] : NONE_MOVE;
     mp->killer2    = thread->killers[height][1] != ttMove ? thread->killers[height][1] : NONE_MOVE;
     mp->history    = &thread->history;
+    
+    if (thread->board.kingAttackers)
+        mp->killer1 = mp->killer2 = NONE_MOVE;
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board){
