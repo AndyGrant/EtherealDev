@@ -21,6 +21,10 @@
 
 #include "types.h"
 
+#define SCALE_NORMAL        (128)
+#define SCALE_ZERO_PAWNS    ( 16)
+#define SCALE_ONE_PAWNS     ( 96)
+
 struct EvalTrace {
     
     int pawnCounts[COLOUR_NB];
@@ -83,6 +87,7 @@ struct EvalInfo {
     int attackCounts[COLOUR_NB];
     int attackerCounts[COLOUR_NB];
     int pkeval[COLOUR_NB];
+    int pieceCounts[COLOUR_NB][PIECE_NB];
     int positionIsDrawn;
     PawnKingEntry* pkentry;
     
@@ -99,6 +104,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour);
 int evaluateKings(EvalInfo* ei, Board* board, int colour);
 int evaluatePassedPawns(EvalInfo* ei, Board * board, int colour);
 int evaluateThreats(EvalInfo* ei, Board* board, int colour);
+int evaluateScaleFactor(EvalInfo* ei, Board* board);
 void initializeEvalInfo(EvalInfo* ei, Board * board, PawnKingTable* pktable);
 void initializeEvaluation();
 

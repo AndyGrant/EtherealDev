@@ -233,7 +233,9 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
           
     // Compute the interpolated evaluation
-    eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+    eval = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+    
+    eval = eval * evaluateScaleFactor(ei, board) / SCALE_NORMAL;
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -328,6 +330,11 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
     ei->attackCounts[colour] += popcount(attacks);
     
+    // Save off the count of our pawns. We normally do this inloop to save
+    // the popcount, but since Pawn Hash covers most evaluations, and we do
+    // not store pawn count in the table, we do the popcount here
+    ei->pieceCounts[colour][PAWN] = popcount(board->colours[colour] & board->pieces[PAWN]);
+    
     // The pawn table holds the rest of the eval information we will calculate.
     // We return the saved value only when we evaluate for white, since we save
     // the evaluation as a combination of white and black, from white's POV
@@ -391,6 +398,7 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
     ei->attackedBy[colour][KNIGHT] = 0ull;
+    ei->pieceCounts[colour][KNIGHT] = 0;
     
     // Evaluate each knight
     while (tempKnights){
@@ -398,6 +406,7 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         // Pop off the next knight
         sq = poplsb(&tempKnights);
         
+        ei->pieceCounts[colour][KNIGHT]++;
         if (TRACE) T.knightCounts[colour]++;
         if (TRACE) T.knightPSQT[colour][sq]++;
         
@@ -448,6 +457,7 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
     enemyPawns = board->pieces[PAWN] & board->colours[!colour];
     
     ei->attackedBy[colour][BISHOP] = 0ull;
+    ei->pieceCounts[colour][BISHOP] = 0;
     
     // Apply a bonus for having a pair of bishops
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
@@ -461,6 +471,7 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Pop off the next Bishop
         sq = poplsb(&tempBishops);
         
+        ei->pieceCounts[colour][BISHOP]++;
         if (TRACE) T.bishopCounts[colour]++;
         if (TRACE) T.bishopPSQT[colour][sq]++;
         
@@ -514,6 +525,7 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
     uint64_t enemyKings = board->pieces[KING] & board->colours[!colour];
     
     ei->attackedBy[colour][ROOK] = 0ull;
+    ei->pieceCounts[colour][ROOK] = 0;
     
     // Evaluate each rook
     while (tempRooks){
@@ -521,6 +533,7 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Pop off the next rook
         sq = poplsb(&tempRooks);
         
+        ei->pieceCounts[colour][ROOK]++;
         if (TRACE) T.rookCounts[colour]++;
         if (TRACE) T.rookPSQT[colour][sq]++;
         
@@ -573,6 +586,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
     tempQueens = board->pieces[QUEEN] & board->colours[colour];
     
     ei->attackedBy[colour][QUEEN] = 0ull;
+    ei->pieceCounts[colour][QUEEN] = 0;
                                  
     // Evaluate each queen
     while (tempQueens){
@@ -580,6 +594,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         // Pop off the next queen
         sq = poplsb(&tempQueens);
         
+        ei->pieceCounts[colour][QUEEN]++;
         if (TRACE) T.queenCounts[colour]++;
         if (TRACE) T.queenPSQT[colour][sq]++;
         
@@ -755,6 +770,40 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.threatQueenAttackedByOne[colour] += count;
     
     return eval;
+}
+
+int evaluateScaleFactor(EvalInfo* ei, Board* board){
+    
+    static const int mvalues[PIECE_NB] = {1, 3, 3, 5, 9, 0};
+    
+    int pcount = ei->pieceCounts[WHITE][PAWN] + ei->pieceCounts[BLACK][PAWN];
+    
+    if (pcount >= 2) return SCALE_NORMAL;
+    
+    
+    int wmaterial = mvalues[PAWN  ] * ei->pieceCounts[WHITE][PAWN  ]
+                  + mvalues[BISHOP] * ei->pieceCounts[WHITE][BISHOP]
+                  + mvalues[KNIGHT] * ei->pieceCounts[WHITE][KNIGHT]
+                  + mvalues[ROOK  ] * ei->pieceCounts[WHITE][ROOK  ]
+                  + mvalues[QUEEN ] * ei->pieceCounts[WHITE][QUEEN ];
+                  
+    int bmaterial = mvalues[PAWN  ] * ei->pieceCounts[WHITE][PAWN  ]
+                  + mvalues[BISHOP] * ei->pieceCounts[WHITE][BISHOP]
+                  + mvalues[KNIGHT] * ei->pieceCounts[WHITE][KNIGHT]
+                  + mvalues[ROOK  ] * ei->pieceCounts[WHITE][ROOK  ]
+                  + mvalues[QUEEN ] * ei->pieceCounts[WHITE][QUEEN ];
+                  
+    if (pcount == 0 && abs(wmaterial - bmaterial) <= 3)
+        return SCALE_ZERO_PAWNS;
+    
+    if (    pcount == 1 
+        &&  abs(wmaterial - bmaterial) <= 3
+        && (   (ei->pieceCounts[WHITE][PAWN] && wmaterial <= bmaterial)
+            || (ei->pieceCounts[WHITE][PAWN] && wmaterial <= bmaterial)))
+        return SCALE_ONE_PAWNS;
+    
+    return SCALE_NORMAL;
+    
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
