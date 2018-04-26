@@ -153,7 +153,7 @@ int main(){
 void* uciGo(void* vthreadsgo){
     
     // Get our starting time as soon as possible
-    double start = getRealTime();
+    Limits limits; limits.start = getRealTime();
     
     // Grab the ready lock, as we cannot be ready until we finish this search
     pthread_mutex_lock(&READYLOCK);
@@ -162,12 +162,10 @@ void* uciGo(void* vthreadsgo){
     Board* board    = ((ThreadsGo*)vthreadsgo)->board;
     Thread* threads = ((ThreadsGo*)vthreadsgo)->threads;
     
-    Limits limits;
-    
     char move[6];
     int depth = -1, infinite = -1; 
-    double time = 0, wtime = -1, btime = -1, mtg = -1, movetime = -1;
-    double inc = 0, winc = 0, binc = 0;
+    double wtime = -1, btime = -1, mtg = -1, movetime = -1;
+    double winc = 0, binc = 0;
     
     char* ptr = strtok(str, " ");
     
@@ -208,11 +206,12 @@ void* uciGo(void* vthreadsgo){
     limits.depthLimit     = depth;
     
     // Pick the time values for the colour we are playing as
-    time = (board->turn == WHITE) ? wtime : btime;
-    inc  = (board->turn == WHITE) ?  winc :  binc;
+    limits.time = (board->turn == WHITE) ? wtime : btime;
+    limits.inc  = (board->turn == WHITE) ?  winc :  binc;
+    limits.mtg  = (board->turn == WHITE) ?   mtg :   mtg;
     
     // Execute the search and report the best move
-    moveToString(move, getBestMove(threads, board, &limits, start, time, mtg, inc));
+    moveToString(move, getBestMove(threads, board, &limits));
     printf("bestmove %s\n", move);
     fflush(stdout);
     

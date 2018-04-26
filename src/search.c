@@ -47,37 +47,36 @@ pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 extern TransTable Table;
 
-uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start, double time, double mtg, double inc){
+uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
     
     int i, nthreads = threads[0].nthreads;
     
     SearchInfo info; memset(&info, 0, sizeof(SearchInfo));
+    info.starttime = limits->start;
     
     pthread_t* pthreads = malloc(sizeof(pthread_t) * nthreads);
     
-    
     // Some initialization for time management
-    info.starttime = start;
     info.bestMoveChanges = 0;
     
     // Ethereal is responsible for choosing how much time to spend searching
     if (limits->limitedBySelf){
         
-        if (mtg >= 0){
-            info.idealusage =  0.75 * time / (mtg +  5) + inc;
-            info.maxalloc   =  4.00 * time / (mtg +  7) + inc;
-            info.maxusage   = 10.00 * time / (mtg + 10) + inc;
+        if (limits->mtg >= 0){
+            info.idealusage =  0.75 * limits->time / (limits->mtg +  5) + limits->inc;
+            info.maxalloc   =  4.00 * limits->time / (limits->mtg +  7) + limits->inc;
+            info.maxusage   = 10.00 * limits->time / (limits->mtg + 10) + limits->inc;
         }
         
         else {
-            info.idealusage =  0.52 * (time + 23 * inc) / 25;
-            info.maxalloc   =  4.00 * (time + 23 * inc) / 25;
-            info.maxusage   = 10.00 * (time + 23 * inc) / 25;
+            info.idealusage =  0.52 * (limits->time + 23 * limits->inc) / 25;
+            info.maxalloc   =  4.00 * (limits->time + 23 * limits->inc) / 25;
+            info.maxusage   = 10.00 * (limits->time + 23 * limits->inc) / 25;
         }
         
-        info.idealusage = MIN(info.idealusage, time - 100);
-        info.maxalloc   = MIN(info.maxalloc,   time - 100);
-        info.maxusage   = MIN(info.maxusage,   time - 100);
+        info.idealusage = MIN(info.idealusage, limits->time - 100);
+        info.maxalloc   = MIN(info.maxalloc,   limits->time - 100);
+        info.maxusage   = MIN(info.maxusage,   limits->time - 100);
     }
     
     // UCI command told us to look for exactly X seconds
@@ -295,7 +294,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     
     Board* const board = &thread->board;
     
-    int i, repetitions, quiets = 0, played = 0, hist = 0;
+    int i, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     int inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
@@ -350,26 +349,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (board->fiftyMoveRule > 100)
             return 0;
         
-        // Check for three fold repetition. If the repetition occurs since
-        // the root move of this search, we will exit early as if it was a draw.
-        // Otherwise, we will look for an actual three fold repetition draw.
-        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
-            
-            // We can't have repeated positions before the most recent
-            // move which triggered a reset of the fifty move rule counter
-            if (i < board->numMoves - board->fiftyMoveRule) break;
-            
-            if (board->history[i] == board->hash){
-                
-                // Repetition occured after the root
-                if (i > board->numMoves - height)
-                    return 0;
-                
-                // An actual three fold repetition
-                if (++repetitions == 2)
-                    return 0;
-            }
-        }
+        // Check for the fifty move rule. We consider 2-fold's as drawn
+        // if they have both occured after the root position
+        if (boardIsDrawnByRepitition(board, height))
+            return 0;
     }
     
     // Step 3. Probe the Transposition Table for an entry
@@ -744,6 +727,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     lpv.length = 0;
     pv->length = 0;
     
+    // If we are in chech, let the evasions qsearch handle the position
+    if (board->kingAttackers)
+        return qsearchEvasions(thread, pv, alpha, beta, height);
+    
     // Increment nodes counter for this Thread
     thread->nodes++;
     
@@ -766,6 +753,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // then end the search here with a static eval of the current board
     if (height >= MAX_PLY)
         return evaluateBoard(board, &ei, &thread->pktable);
+    
+    if (boardIsDrawnByRepitition(board, height))
+        return 0;
     
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
@@ -831,6 +821,106 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     return best;
 }
 
+int qsearchEvasions(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+    
+    Board* const board = &thread->board;
+    
+    EvalInfo ei;
+    Undo undo[1];
+    uint16_t move;
+    MovePicker movePicker;
+    int value = -MATE, best = -MATE, isQuiet;
+    
+    PVariation lpv;
+    lpv.length = 0;
+    pv->length = 0;
+    
+    // Increment nodes counter for this Thread
+    thread->nodes++;
+    
+    // Update longest searched line for this Thread
+    thread->seldepth = MAX(thread->seldepth, height);
+    
+    // Step 1A. Check to see if search time has expired. We will force the search
+    // to continue after the search time has been used in the event that we have
+    // not yet completed our depth one search, and therefore would have no best move
+    if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
+        && (thread->nodes & 1023) == 1023
+        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
+        &&  thread->depth > 1)
+        longjmp(thread->jbuffer, 1);
+        
+    // Step 1B. Check to see if the master thread finished
+    if (thread->abort) longjmp(thread->jbuffer, 1);
+    
+    if (height >= MAX_PLY)
+        return 0;
+    
+    if (boardIsDrawnByRepitition(board, height))
+        return 0;
+    
+    int eval = evaluateBoard(board, &ei, &thread->pktable);
+    
+    // Step 3. Generate and loop over all of the evasions 
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 0);
+    while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        
+        isQuiet = !moveIsTactical(board, move);
+        
+        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
+        // best case would still fail to beat alpha minus some margin, we can skip it
+        if (   isQuiet
+            && best > MATED_IN_MAX
+            && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+            continue;
+        
+        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
+        // is protected, and we are the sole attacker, then we can be somewhat safe
+        // in skipping this move so long as we are capturing a weaker piece
+        if (   isQuiet
+            && best > MATED_IN_MAX
+            && captureIsWeak(board, &ei, move, 0))
+            continue;
+        
+        // Apply and validate move before searching
+        applyMove(board, move, undo);
+        if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, move, undo);
+            continue;
+        }
+        
+        // Search next depth
+        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        
+        // Revert move from board
+        revertMove(board, move, undo);
+        
+        // Improved current value
+        if (value > best){
+            best = value;
+            
+            // Improved current lower bound
+            if (value > alpha){
+                alpha = value;
+                
+                // Update the Principle Variation
+                pv->length = 1 + lpv.length;
+                pv->line[0] = move;
+                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+            }
+        }
+        
+        // Search has failed high
+        if (alpha >= beta)
+            return best;
+    }
+    
+    if (best == -MATE)
+        return -MATE + height;
+    
+    return best;
+}
+
 int moveIsTactical(Board* board, uint16_t move){
     return board->squares[MoveTo(move)] != EMPTY
         || MoveType(move) == PROMOTION_MOVE
@@ -842,6 +932,35 @@ int hasNonPawnMaterial(Board* board, int turn){
     uint64_t kings = board->pieces[KING];
     uint64_t pawns = board->pieces[PAWN];
     return (friendly & (kings | pawns)) != friendly;
+}
+
+int boardIsDrawnByRepitition(Board* board, int height){
+    
+    int i, repetitions = 0;
+    
+    // Check for three fold repetition. If the repetition occurs since
+    // the root move of this search, we will exit early as if it was a draw.
+    // Otherwise, we will look for an actual three fold repetition draw.
+    for (i = board->numMoves - 2; i >= 0; i -= 2){
+        
+        // We can't have repeated positions before the most recent
+        // move which triggered a reset of the fifty move rule counter
+        if (i < board->numMoves - board->fiftyMoveRule) break;
+        
+        // Hashes match, likely a repeated position
+        if (board->history[i] == board->hash){
+            
+            // Repetition occured after the root
+            if (i > board->numMoves - height)
+                return 1;
+            
+            // An actual three fold repetition
+            if (++repetitions == 2)
+                return 1;
+        }
+    }
+    
+    return 0;
 }
 
 int valueFromTT(int value, int height){

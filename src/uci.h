@@ -28,6 +28,10 @@ struct Limits {
     int limitedBySelf;
     double timeLimit;
     int depthLimit;
+    double start;
+    double time;
+    double mtg;
+    double inc;
 };
 
 struct ThreadsGo {

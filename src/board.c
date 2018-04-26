@@ -297,6 +297,9 @@ void runBenchmark(Thread* threads, int depth){
     limits.limitedBySelf  = 0;
     limits.timeLimit      = 0;
     limits.depthLimit     = depth == 0 ? 13 : depth;
+    limits.time           = 0;
+    limits.inc            = 0;
+    limits.mtg            = 0;
     
     start = getRealTime();
     
@@ -305,7 +308,8 @@ void runBenchmark(Thread* threads, int depth){
         printf("\nPosition [%2d|%2d]\n", i + 1, NUM_BENCHMARKS);
         initializeBoard(&board, Benchmarks[i]);
 
-        getBestMove(threads, &board, &limits, getRealTime(), 0, 0, 0);
+        limits.start = getRealTime();
+        getBestMove(threads, &board, &limits);
         nodes += nodesSearchedThreadPool(threads);
         
         clearTranspositionTable(&Table);
