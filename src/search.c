@@ -717,19 +717,19 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best;
+    const int inCheck = !!board->kingAttackers;
+    
+    int eval, value, best = -MATE;
+    
     uint16_t move;
     Undo undo[1];
-    MovePicker movePicker;
+    
     EvalInfo ei;
+    MovePicker movePicker;
     
     PVariation lpv;
     lpv.length = 0;
     pv->length = 0;
-    
-    // If we are in chech, let the evasions qsearch handle the position
-    if (board->kingAttackers)
-        return qsearchEvasions(thread, pv, alpha, beta, height);
     
     // Increment nodes counter for this Thread
     thread->nodes++;
@@ -754,132 +754,44 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_PLY)
         return evaluateBoard(board, &ei, &thread->pktable);
     
+    // Step 3. Check for a draw by repitition. Again we consider a 2-fold
+    // to be drawn if it occured after the root. We still need this in the
+    // qsearch because we will allow quiet moves which escape checks here
     if (boardIsDrawnByRepitition(board, height))
         return 0;
     
-    // Step 3. Eval Pruning. If a static evaluation of the board will
+    // Step 4. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
-    
-    // Step 4. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional of the futility margin would still fall below alpha
-    if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
-        return eval;
-    
-    // Step 5. Move Generation and Looping. Generate all tactical moves for this
-    // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
-    while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
-        
-        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
-        // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
-        
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
-        // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
-            continue;
-        
-        // Apply and validate move before searching
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
-            continue;
-        }
-        
-        // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
-        
-        // Revert move from board
-        revertMove(board, move, undo);
-        
-        // Improved current value
-        if (value > best){
-            best = value;
-            
-            // Improved current lower bound
-            if (value > alpha){
-                alpha = value;
-                
-                // Update the Principle Variation
-                pv->length = 1 + lpv.length;
-                pv->line[0] = move;
-                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
-            }
-        }
-        
-        // Search has failed high
-        if (alpha >= beta)
-            return best;
+    eval = evaluateBoard(board, &ei, &thread->pktable);
+    if (!inCheck){
+        best = value = eval;
+        alpha = MAX(alpha, value);
+        if (alpha >= beta) return value;
     }
     
-    return best;
-}
-
-int qsearchEvasions(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+    // Step 5. Delta Pruning. Even the best possible capture and or promotion
+    // combo with the additional of the futility margin would still fall below alpha
+    if (   !inCheck
+        &&  eval + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
+        return eval;
     
-    Board* const board = &thread->board;
-    
-    EvalInfo ei;
-    Undo undo[1];
-    uint16_t move;
-    MovePicker movePicker;
-    int value = -MATE, best = -MATE, isQuiet;
-    
-    PVariation lpv;
-    lpv.length = 0;
-    pv->length = 0;
-    
-    // Increment nodes counter for this Thread
-    thread->nodes++;
-    
-    // Update longest searched line for this Thread
-    thread->seldepth = MAX(thread->seldepth, height);
-    
-    // Step 1A. Check to see if search time has expired. We will force the search
-    // to continue after the search time has been used in the event that we have
-    // not yet completed our depth one search, and therefore would have no best move
-    if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
-        && (thread->nodes & 1023) == 1023
-        &&  getRealTime() >= thread->info->starttime + thread->info->maxusage
-        &&  thread->depth > 1)
-        longjmp(thread->jbuffer, 1);
-        
-    // Step 1B. Check to see if the master thread finished
-    if (thread->abort) longjmp(thread->jbuffer, 1);
-    
-    if (height >= MAX_PLY)
-        return 0;
-    
-    if (boardIsDrawnByRepitition(board, height))
-        return 0;
-    
-    int eval = evaluateBoard(board, &ei, &thread->pktable);
-    
-    // Step 3. Generate and loop over all of the evasions 
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 0);
+    // Step 5. Move generation and looping. If we are not in check we only generate
+    // noisy moves, otherwise we will generate all moves to escape the checking threat
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
-        
-        isQuiet = !moveIsTactical(board, move);
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (    isQuiet
-            &&  best > MATED_IN_MAX
-            &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (   best > MATED_IN_MAX
+            && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (   !isQuiet
-            &&  best > MATED_IN_MAX
-            &&  captureIsWeak(board, &ei, move, 0))
+        if (   best > MATED_IN_MAX
+            && captureIsWeak(board, &ei, move, 0))
             continue;
         
         // Apply and validate move before searching
