@@ -24,8 +24,8 @@
 #define SCALE_NORMAL            (128)
 #define SCALE_OCB_BISHOPS_ONLY  ( 56)
 #define SCALE_OCB_WITH_MATERIAL (112)
-#define SCALE_ONE_PAWN_ENDGAME  ( 96)
-#define SCALE_ZERO_PAWN_ENDGAME ( 28)
+#define SCALE_ONE_PAWN_ENDGAME  ( 64)
+#define SCALE_ZERO_PAWN_ENDGAME ( 16)
 
 struct EvalTrace {
     
