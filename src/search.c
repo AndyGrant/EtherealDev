@@ -647,6 +647,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // or if the node is improving, ie we expect something to beat alpha
         extension +=   PvNode
                    &&  inCheck
+                   &&  depth > 1
                    && !extension
                    && !checkExtended
                    && (improving || !isQuiet || hist >= 2048);
