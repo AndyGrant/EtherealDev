@@ -233,7 +233,10 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
           
     // Compute the interpolated evaluation
-    eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+    eval = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+    
+    // Scale the eval based on remaining material
+    eval = eval * evaluateScaleFactor(ei, board) / SCALE_NORMAL;
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -313,6 +316,10 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     
     int sq, semi, eval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
+
+    pawns = board->pieces[PAWN];
+    myPawns = tempPawns = pawns & board->colours[colour];
+    enemyPawns = pawns & board->colours[!colour];
     
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
@@ -328,14 +335,13 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
     ei->attackCounts[colour] += popcount(attacks);
     
+    // We track the material for use in computing scaling factors
+    ei->material[colour] += PawnValue * popcount(myPawns);
+    
     // The pawn table holds the rest of the eval information we will calculate.
     // We return the saved value only when we evaluate for white, since we save
     // the evaluation as a combination of white and black, from white's POV
     if (ei->pkentry != NULL) return colour == WHITE ? ei->pkentry->eval : 0;
-    
-    pawns = board->pieces[PAWN];
-    myPawns = tempPawns = pawns & board->colours[colour];
-    enemyPawns = pawns & board->colours[!colour];
     
     // Evaluate each pawn (but not for being passed)
     while (tempPawns != 0ull){
@@ -397,6 +403,9 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         
         // Pop off the next knight
         sq = poplsb(&tempKnights);
+        
+        // We track the material for use in computing scaling factors
+        ei->material[colour] += KnightValue;
         
         if (TRACE) T.knightCounts[colour]++;
         if (TRACE) T.knightPSQT[colour][sq]++;
@@ -461,6 +470,9 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         // Pop off the next Bishop
         sq = poplsb(&tempBishops);
         
+        // We track the material for use in computing scaling factors
+        ei->material[colour] += BishopValue;
+        
         if (TRACE) T.bishopCounts[colour]++;
         if (TRACE) T.bishopPSQT[colour][sq]++;
         
@@ -521,6 +533,9 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
         // Pop off the next rook
         sq = poplsb(&tempRooks);
         
+        // We track the material for use in computing scaling factors
+        ei->material[colour] += RookValue;
+        
         if (TRACE) T.rookCounts[colour]++;
         if (TRACE) T.rookPSQT[colour][sq]++;
         
@@ -579,6 +594,9 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         
         // Pop off the next queen
         sq = poplsb(&tempQueens);
+        
+        // We track the material for use in computing scaling factors
+        ei->material[colour] += QueenValue;
         
         if (TRACE) T.queenCounts[colour]++;
         if (TRACE) T.queenPSQT[colour][sq]++;
@@ -755,6 +773,46 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.threatQueenAttackedByOne[colour] += count;
     
     return eval;
+}
+
+int evaluateScaleFactor(EvalInfo* ei, Board* board){
+    
+    uint64_t white   = board->colours[WHITE];
+    uint64_t black   = board->colours[BLACK];
+    uint64_t pawns   = board->pieces[PAWN];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t kings   = board->pieces[KING];
+    
+    // Check for Opposite Coloured Bishop endgames. This can be done
+    // for both white and black at the same time, unlike pawn endgames
+    if (    exactlyOne(white & bishops)
+        &&  exactlyOne(black & bishops)
+        &&  exactlyOne(bishops & WHITE_SQUARES)){
+        if (    white == (white & (kings | bishops | pawns))
+            &&  black == (black & (kings | bishops | pawns)))
+            return SCALE_OCB_BISHOPS_ONLY;
+        return SCALE_OCB_WITH_MATERIAL;
+    }
+    
+    // Check to see if white has one or less pawns, whether the material
+    // difference between white and black is small, and also where white
+    // has a material advantage over black. If this last statement were not
+    // the case, we could already consider the score to have been scaled
+    if (   !moreThanOne(white & pawns)
+        &&  ScoreMG(ei->material[WHITE]) >  ScoreMG(ei->material[BLACK])
+        &&  ScoreMG(ei->material[WHITE]) <= ScoreMG(ei->material[BLACK]) + ScoreMG(KnightValue))
+        return exactlyOne(white & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;             
+    
+    // Check to see if black has one or less pawns, whether the material
+    // difference between black and white is small, and also where black
+    // has a material advantage over white. If this last statement were not
+    // the case, we could already consider the score to have been scaled
+    if (   !moreThanOne(black & pawns)
+        &&  ScoreMG(ei->material[BLACK]) >  ScoreMG(ei->material[WHITE])
+        &&  ScoreMG(ei->material[BLACK]) <= ScoreMG(ei->material[WHITE]) + ScoreMG(KnightValue))
+        return exactlyOne(black & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;
+        
+    return SCALE_NORMAL;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
