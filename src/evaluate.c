@@ -665,6 +665,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         
         filePawns = myPawns & Files[file] & RanksAtOrAboveMasks[colour][kingRank];
         
+        filePawns ^= (filePawns & ~ei->attacked[colour] & ei->attackedBy2[!colour]);
+        
         distance = filePawns ? 
                    colour == WHITE ? Rank(getlsb(filePawns)) - kingRank
                                    : kingRank - Rank(getmsb(filePawns))
