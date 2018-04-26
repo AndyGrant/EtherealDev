@@ -783,17 +783,6 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t kings   = board->pieces[KING];
     
-    // Check for Opposite Coloured Bishop endgames. This can be done
-    // for both white and black at the same time, unlike pawn endgames
-    if (    exactlyOne(white & bishops)
-        &&  exactlyOne(black & bishops)
-        &&  exactlyOne(bishops & WHITE_SQUARES)){
-        if (    white == (white & (kings | bishops | pawns))
-            &&  black == (black & (kings | bishops | pawns)))
-            return SCALE_OCB_BISHOPS_ONLY;
-        return SCALE_OCB_WITH_MATERIAL;
-    }
-    
     // Check to see if white has one or less pawns, whether the material
     // difference between white and black is small, and also where white
     // has a material advantage over black. If this last statement were not
@@ -811,6 +800,17 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
         &&  ScoreMG(ei->material[BLACK]) >  ScoreMG(ei->material[WHITE])
         &&  ScoreMG(ei->material[BLACK]) <= ScoreMG(ei->material[WHITE]) + ScoreMG(KnightValue))
         return exactlyOne(black & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;
+        
+    // Check for Opposite Coloured Bishop endgames. This can be done
+    // for both white and black at the same time, unlike pawn endgames
+    if (    exactlyOne(white & bishops)
+        &&  exactlyOne(black & bishops)
+        &&  exactlyOne(bishops & WHITE_SQUARES)){
+        if (    white == (white & (kings | bishops | pawns))
+            &&  black == (black & (kings | bishops | pawns)))
+            return SCALE_OCB_BISHOPS_ONLY;
+        return SCALE_OCB_WITH_MATERIAL;
+    }
         
     return SCALE_NORMAL;
 }
