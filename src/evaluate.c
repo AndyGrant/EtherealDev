@@ -801,16 +801,16 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
         &&  ScoreMG(ei->material[BLACK]) <= ScoreMG(ei->material[WHITE]) + ScoreMG(KnightValue))
         return exactlyOne(black & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;
         
-    // Check for Opposite Coloured Bishop endgames. This can be done
-    // for both white and black at the same time, unlike pawn endgames
-    if (    exactlyOne(white & bishops)
-        &&  exactlyOne(black & bishops)
-        &&  exactlyOne(bishops & WHITE_SQUARES)){
-        if (    white == (white & (kings | bishops | pawns))
-            &&  black == (black & (kings | bishops | pawns)))
-            return SCALE_OCB_BISHOPS_ONLY;
-        return SCALE_OCB_WITH_MATERIAL;
-    }
+    // // Check for Opposite Coloured Bishop endgames. This can be done
+    // // for both white and black at the same time, unlike pawn endgames
+    // if (    exactlyOne(white & bishops)
+    //     &&  exactlyOne(black & bishops)
+    //     &&  exactlyOne(bishops & WHITE_SQUARES)){
+    //     if (    white == (white & (kings | bishops | pawns))
+    //         &&  black == (black & (kings | bishops | pawns)))
+    //         return SCALE_OCB_BISHOPS_ONLY;
+    //     return SCALE_OCB_WITH_MATERIAL;
+    // }
         
     return SCALE_NORMAL;
 }
