@@ -874,12 +874,12 @@ int qsearchEvasions(Thread* thread, PVariation* pv, int alpha, int beta, int hei
             &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
+        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which is
+        // well protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
         if (   !isQuiet
             &&  best > MATED_IN_MAX
-            &&  captureIsWeak(board, &ei, move, 0))
+            &&  captureIsWeak(board, &ei, move, WeakCaptureTwoAttackersDepth))
             continue;
         
         // Apply and validate move before searching
