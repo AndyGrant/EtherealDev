@@ -236,7 +236,7 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     eval = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
     
     // Scale the eval based on remaining material
-    eval = eval * evaluateScaleFactor(ei, board) / SCALE_NORMAL;
+    eval = (int)(eval * evaluateScaleFactor(ei, board) / SCALE_NORMAL);
     
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -336,7 +336,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     ei->attackCounts[colour] += popcount(attacks);
     
     // We track the material for use in computing scaling factors
-    ei->material[colour] += PawnValue * popcount(myPawns);
+    ei->material[colour] = PawnValue * popcount(myPawns);
     
     // The pawn table holds the rest of the eval information we will calculate.
     // We return the saved value only when we evaluate for white, since we save
