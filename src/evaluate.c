@@ -799,7 +799,7 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
     if (    pcount == 1 
         &&  abs(wmaterial - bmaterial) <= 3
         && (   (ei->pieceCounts[WHITE][PAWN] && wmaterial >= bmaterial)
-            || (ei->pieceCounts[BLACK][PAWN] && bmaterial >= mmaterial)))
+            || (ei->pieceCounts[BLACK][PAWN] && bmaterial >= wmaterial)))
         return SCALE_ONE_PAWNS;
     
     return SCALE_NORMAL;
