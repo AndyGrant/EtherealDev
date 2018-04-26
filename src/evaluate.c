@@ -783,23 +783,23 @@ int evaluateScaleFactor(EvalInfo* ei, Board* board){
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t kings   = board->pieces[KING];
     
-    // Check to see if white has one or less pawns, whether the material
-    // difference between white and black is small, and also where white
-    // has a material advantage over black. If this last statement were not
-    // the case, we could already consider the score to have been scaled
-    if (   !moreThanOne(white & pawns)
-        &&  ScoreMG(ei->material[WHITE]) >  ScoreMG(ei->material[BLACK])
-        &&  ScoreMG(ei->material[WHITE]) <= ScoreMG(ei->material[BLACK]) + ScoreMG(KnightValue))
-        return exactlyOne(white & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;             
-    
-    // Check to see if black has one or less pawns, whether the material
-    // difference between black and white is small, and also where black
-    // has a material advantage over white. If this last statement were not
-    // the case, we could already consider the score to have been scaled
-    if (   !moreThanOne(black & pawns)
-        &&  ScoreMG(ei->material[BLACK]) >  ScoreMG(ei->material[WHITE])
-        &&  ScoreMG(ei->material[BLACK]) <= ScoreMG(ei->material[WHITE]) + ScoreMG(KnightValue))
-        return exactlyOne(black & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;
+    // // Check to see if white has one or less pawns, whether the material
+    // // difference between white and black is small, and also where white
+    // // has a material advantage over black. If this last statement were not
+    // // the case, we could already consider the score to have been scaled
+    // if (   !moreThanOne(white & pawns)
+    //     &&  ScoreMG(ei->material[WHITE]) >  ScoreMG(ei->material[BLACK])
+    //     &&  ScoreMG(ei->material[WHITE]) <= ScoreMG(ei->material[BLACK]) + ScoreMG(KnightValue))
+    //     return exactlyOne(white & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;             
+    // 
+    // // Check to see if black has one or less pawns, whether the material
+    // // difference between black and white is small, and also where black
+    // // has a material advantage over white. If this last statement were not
+    // // the case, we could already consider the score to have been scaled
+    // if (   !moreThanOne(black & pawns)
+    //     &&  ScoreMG(ei->material[BLACK]) >  ScoreMG(ei->material[WHITE])
+    //     &&  ScoreMG(ei->material[BLACK]) <= ScoreMG(ei->material[WHITE]) + ScoreMG(KnightValue))
+    //     return exactlyOne(black & pawns) ?  SCALE_ONE_PAWN_ENDGAME : SCALE_ZERO_PAWN_ENDGAME;
         
     // Check for Opposite Coloured Bishop endgames. This can be done
     // for both white and black at the same time, unlike pawn endgames
