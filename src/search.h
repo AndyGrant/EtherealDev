@@ -53,7 +53,7 @@ int aspirationWindow(Thread* thread, int depth);
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
 
 int moveIsTactical(Board* board, uint16_t move);
 

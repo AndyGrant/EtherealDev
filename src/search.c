@@ -426,7 +426,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // No king attackers indicates we are not checked. We reduce the
         // node count here, in order to avoid counting this node twice
         if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
+            return thread->nodes--, qsearch(thread, pv, alpha, beta, 0, height);
 
         // Search expects depth to be greater than or equal to 0
         depth = 0; 
@@ -500,10 +500,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + RazorMargins[depth] < alpha){
             
         if (depth <= 1)
-            return qsearch(thread, pv, alpha, beta, height);
+            return qsearch(thread, pv, alpha, beta, 0, height);
         
         rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
+        value = qsearch(thread, pv, rAlpha, rAlpha + 1, 0, height);
         if (value <= rAlpha) return alpha;
     }
     
@@ -777,11 +777,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best;
+    const int inCheck = !!board->kingAttackers;
+    
+    int eval, value, best, played = 0;
     uint16_t move;
     Undo undo[1];
     MovePicker movePicker;
@@ -817,9 +819,18 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    if (!inCheck){
+        best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
+        alpha = MAX(alpha, value);
+        if (alpha >= beta) return value;
+    }
+    
+    else {
+        
+        eval = evaluateBoard(board, &ei, &thread->pktable);
+        best = value = -MATE;
+        
+    }
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
@@ -831,16 +842,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
-        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
-        // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
+        int isQuiet = !moveIsTactical(board, move);
         
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
-        // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
-            continue;
+        int tacticalValue = isQuiet ? 0 : thisTacticalMoveValue(board, move);
+        
+        int isWeak = isQuiet ? 0 : captureIsWeak(board, &ei, move, 0);
         
         // Apply and validate move before searching
         applyMove(board, move, undo);
@@ -849,8 +855,29 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             continue;
         }
         
+        int gaveCheck = !!board->kingAttackers;
+        
+        
+        if (   !inCheck
+            && !gaveCheck
+            && (isWeak ||isQuiet)
+            && (eval + QFutilityMargin + tacticalValue < alpha || !isQuiet)){
+            revertMove(board, move, undo);
+            continue;
+        }
+        
+        if (    inCheck
+            &&  isQuiet
+            &&  best > MATED_IN_MAX
+            && (depth != 0 || played >= 3)){
+            revertMove(board, move, undo);
+            continue;
+        }
+        
+        played++;
+        
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         
         // Revert move from board
         revertMove(board, move, undo);
