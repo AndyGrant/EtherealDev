@@ -580,20 +580,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
     
-    // Step 11. Internal Iterative Deepening. Searching PV nodes without
-    // a known good move can be expensive, so a reduced search first
-    if (    PvNode
-        &&  ttMove == NONE_MOVE
-        &&  depth >= InternalIterativeDeepeningDepth){
-        
-        // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
-        
-        // Probe for the newly found move, and update ttMove
-        if (getTranspositionEntry(&Table, board->hash, &ttEntry))
-            ttMove = ttEntry.bestMove;
-    }
-    
     // Step 12. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
@@ -682,7 +668,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // all other possible moves, we will extend the search of the table move
         extension =  !RootNode
                   && !checkExtended
-                  &&  depth >= 10
+                  &&  depth >= 8
                   &&  move == ttMove
                   &&  ttEntry.depth >= depth - 3
                   && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
