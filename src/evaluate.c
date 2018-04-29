@@ -820,6 +820,6 @@ void initializeEvaluation(){
             + KingPolynomial[4] * pow(i, 1) + KingPolynomial[5] * pow(i, 0)
         );
         
-        KingSafety[i] = MakeScore(KingSafety[i], 0);
+        KingSafety[i] = MakeScore(KingSafety[i], KingSafety[i] / 4);
     }
 }
