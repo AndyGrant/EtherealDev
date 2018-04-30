@@ -65,6 +65,9 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
     // Initialize each Thread in the Thread Pool
     for (i = 0; i < threads[0].nthreads; i++){
         
+        // Save off the thread number
+        threads[i].idx = i;
+        
         // Save a reference to the original search specifications
         threads[i].limits = limits;
         
