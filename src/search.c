@@ -612,7 +612,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
+            && (hist < 8192 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
@@ -633,7 +633,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
+            && (hist < 8192 || !improving)
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth])
             break;
@@ -696,7 +696,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                    &&  inCheck
                    && !extension
                    && !checkExtended
-                   && (improving || !isQuiet || hist >= 2048);
+                   && (improving || !isQuiet || hist >= 8192);
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
