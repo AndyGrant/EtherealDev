@@ -534,7 +534,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         revertNullMove(board, undo);
         
-        if (value >= beta && search(thread, &lpv, alpha, beta, depth-R, height) >= beta)
+        if (value >= beta)
             return beta;
     }
     
