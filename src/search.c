@@ -120,22 +120,18 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits, double start
 void* iterativeDeepening(void* vthread){
     
     Thread* const thread   = (Thread*) vthread;
-    
     SearchInfo* const info = thread->info;
-    
     Limits* const limits   = thread->limits;
-   
     const int mainThread   = thread == &thread->threads[0];
     
-    int i, value, depth, abort;
+    int i, value, abort; volatile int depth;
     
-    
-    int startDepth = mainThread ? 0 : (log10(thread->nthreads) - log10(thread->idx)) / log10(2);
+    volatile int startDepth = mainThread ? 0 : (log10(thread->nthreads) - log10(thread->idx)) / log10(2);
     
     for (depth = 1; depth < MAX_PLY; depth++){
         
         // Depth skipping for helper threads
-        if (depth != 1 &&  depth < startDepth)
+        if (depth != 1 && depth < startDepth)
             continue;
         
         // Save off the initial thread depth for the search
