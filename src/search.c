@@ -426,7 +426,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // No king attackers indicates we are not checked. We reduce the
         // node count here, in order to avoid counting this node twice
         if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
+            return thread->nodes--, qsearch(thread, pv, alpha, beta, 0, height);
 
         // Search expects depth to be greater than or equal to 0
         depth = 0; 
@@ -500,10 +500,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + RazorMargins[depth] < alpha){
             
         if (depth <= 1)
-            return qsearch(thread, pv, alpha, beta, height);
+            return qsearch(thread, pv, alpha, beta, 0, height);
         
         rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
+        value = qsearch(thread, pv, rAlpha, rAlpha+1, 0, height);
         if (value <= rAlpha) return alpha;
     }
     
@@ -643,10 +643,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!isNotInCheck(board, !board->turn)){
             revertMove(board, move, undo);
             continue;
-        }
-        
-        // Update counter of moves actually played
-        played += 1;
+        } played += 1;
     
         // Step 16. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
@@ -777,11 +774,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best;
+    int played = 0;
+    int eval, value, best = -MATE;
+    int inCheck = !!board->kingAttackers;
+    
     uint16_t move;
     Undo undo[1];
     MovePicker movePicker;
@@ -817,29 +817,41 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    eval = evaluateBoard(board, &ei, &thread->pktable);
+    if (!inCheck){
+        best = value = eval;
+        alpha = MAX(alpha, value);
+        if (alpha >= beta) return value;
+    }
     
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
-    if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
+    if (   !inCheck
+        &&  value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
         return eval;
     
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        int isQuiet = !moveIsTactical(board, move);
+        
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
-        // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        // best case would still fail to beat alpha minus some margin, we can skip it.
+        // We can also use this for quiet moves as well, as it turns out by chance.
+        if (    best > MATED_IN_MAX
+            && (played > 4 || !inCheck)
+            &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
+        if (   !isQuiet
+            &&  best > MATED_IN_MAX
+            && (played > 4 || !inCheck)
+            &&  captureIsWeak(board, &ei, move, 0))
             continue;
         
         // Apply and validate move before searching
@@ -847,10 +859,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (!isNotInCheck(board, !board->turn)){
             revertMove(board, move, undo);
             continue;
-        }
+        } played += 1;
         
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         
         // Revert move from board
         revertMove(board, move, undo);
@@ -875,7 +887,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             return best;
     }
     
-    return best;
+    return best == -MATE ? -MATE + height : best;
 }
 
 int moveIsTactical(Board* board, uint16_t move){
