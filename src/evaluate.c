@@ -199,7 +199,7 @@ const int ThreatQueenAttackedByOne   = S( -42, -19);
 
 // Definition of evaluation terms related to general properties
 
-const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
+const int Tempo[COLOUR_NB] = { S(  30,   0), S( -30,   0) };
 
 
 #undef S // Undefine MakeScore
