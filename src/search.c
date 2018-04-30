@@ -534,7 +534,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         revertNullMove(board, undo);
         
-        if (value >= beta) return beta;
+        if (value >= beta) {
+            
+            
+            if (depth <= 10)
+                value = search(thread, pv, alpha, beta, depth-R, height);
+            
+            if (value >= beta)
+                return beta;
+        }
     }
     
     // Step 10. ProbCut. If we have a good capture that causes a beta cutoff
