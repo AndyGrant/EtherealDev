@@ -78,7 +78,7 @@ static const int RazorMargins[] = {0, 300, 350, 410, 500};
 
 static const int BetaPruningDepth = 8;
 
-static const int BetaMargin = 85;
+static const int BetaMargin = 150;
 
 static const int NullMovePruningDepth = 2;
 
@@ -88,7 +88,7 @@ static const int ProbCutMargin = 100;
 
 static const int InternalIterativeDeepeningDepth = 3;
 
-static const int FutilityMargin = 100;
+static const int FutilityMargin = 125;
 
 static const int FutilityPruningDepth = 8;
 
