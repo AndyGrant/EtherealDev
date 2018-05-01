@@ -22,7 +22,7 @@
 #include "types.h"
 
 // Depth for evaluating each position
-#define TEXEL_DEPTH (0)
+#define TEXEL_DEPTH (2)
 
 // Number of Positions in the data set
 #define NP (1470000)
@@ -54,13 +54,13 @@
 #define TunePawnConnected (0 * 32)
 
 // Define the Knight Terms
-#define TuneKnightRammedPawns (0 * 1)
+#define TuneKnightRammedPawns (1 * 1)
 #define TuneKnightOutpost     (0 * 2)
 #define TuneKnightMobility    (0 * 9)
 
 // Define the Bishop Terms
 #define TuneBishopPair        (0 *  1)
-#define TuneBishopRammedPawns (0 *  1)
+#define TuneBishopRammedPawns (1 *  1)
 #define TuneBishopOutpost     (0 *  2)
 #define TuneBishopMobility    (0 * 14)
 

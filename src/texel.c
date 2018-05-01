@@ -219,7 +219,6 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     // Initialize the thread for the search
     thread->limits = &limits;
     thread->depth  = 1;
-    thread->abort  = 0;
     
     FILE * fin = fopen("FENS", "r");
     

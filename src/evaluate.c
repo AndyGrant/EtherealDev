@@ -101,7 +101,7 @@ const int KnightMobility[9] = {
 
 const int BishopPair = S(  40,  69);
 
-const int BishopRammedPawns = S( -11,  -7);
+const int BishopRammedPawns = S(  -5,  -6);
 
 const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
 
