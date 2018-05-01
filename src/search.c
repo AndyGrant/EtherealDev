@@ -357,30 +357,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
         if (rAlpha >= rBeta) return rAlpha;
         
-        // Check for the Fifty Move Rule
-        if (board->fiftyMoveRule > 100)
+        if (drawnByFiftyOrRepetition(board, height))
             return 0;
-        
-        // Check for three fold repetition. If the repetition occurs since
-        // the root move of this search, we will exit early as if it was a draw.
-        // Otherwise, we will look for an actual three fold repetition draw.
-        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
-            
-            // We can't have repeated positions before the most recent
-            // move which triggered a reset of the fifty move rule counter
-            if (i < board->numMoves - board->fiftyMoveRule) break;
-            
-            if (board->history[i] == board->hash){
-                
-                // Repetition occured after the root
-                if (i > board->numMoves - height)
-                    return 0;
-                
-                // An actual three fold repetition
-                if (++repetitions == 2)
-                    return 0;
-            }
-        }
     }
     
     // Step 3. Probe the Transposition Table for an entry
@@ -889,6 +867,45 @@ int hasNonPawnMaterial(Board* board, int turn){
     uint64_t kings = board->pieces[KING];
     uint64_t pawns = board->pieces[PAWN];
     return (friendly & (kings | pawns)) != friendly;
+}
+
+int drawnByFiftyOrRepetition(Board* board, int height){
+    
+    int i, repetitions = 0;
+    
+    // Check for Fifty Move Rule
+    if (board->fiftyMoveRule >= 100)
+        return 1;
+    
+    for (i = board->numMoves - 2; i >= 0; i -= 2)
+        repetitions += board->history[i] == board->hash;
+    
+    return repetitions >= 2;
+    
+    // No 3-fold possible so near to a zero'ing move, or
+    // if we simply don't have enough positions for one
+    if (board->fiftyMoveRule < 4 || board->numMoves < 4)
+        return 0;
+    
+    // Our last position moving cannot be a repitition
+    uint64_t* hash = &board->history[board->numMoves-2];
+    
+    // Work our way back to the fifty move rule
+    for (i = 4; i <= board->fiftyMoveRule; i += 2){
+        
+        hash = hash - 2; // Work back to our last turn
+        
+        // Done working our way back
+        if (hash < board->history) return 0; 
+        
+        // Check for a two fold after the root, or for a
+        // proper three fold with moves before the root
+        if (    *hash == board->hash
+            && ++repetitions + (height > i) == 2)
+            return 1;
+    }
+    
+    return 0;
 }
 
 int valueFromTT(int value, int height){
