@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "bitboards.h"
 #include "piece.h"
 #include "square.h"
 #include "types.h"
@@ -42,4 +43,8 @@ int relativeSquare32(int sq, int colour){
 int square32(int sq){
     static const int table[FILE_NB] = {0, 1, 2, 3, 3, 2, 1, 0};
     return ((sq >> 3) << 2) + table[sq & 0x7];
+}
+
+uint64_t squaresOfSameColour(int sq){
+    return (1ull << sq) & LIGHT_SQUARES ? LIGHT_SQUARES : DARK_SQUARES; 
 }

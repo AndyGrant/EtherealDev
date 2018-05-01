@@ -24,5 +24,6 @@
 int relativeSquare(int sq, int colour);
 int relativeSquare32(int sq, int colour);
 int square32(int sq);
+uint64_t squaresOfSameColour(int sq);
 
 #endif

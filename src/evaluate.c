@@ -450,7 +450,7 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
     ei->attackedBy[colour][BISHOP] = 0ull;
     
     // Apply a bonus for having a pair of bishops
-    if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)){
+    if ((tempBishops & LIGHT_SQUARES) && (tempBishops & DARK_SQUARES)){
         eval += BishopPair;
         if (TRACE) T.bishopPair[colour]++;
     }
@@ -471,11 +471,15 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour]           |= attacks;
         ei->attackedBy[colour][BISHOP] |= attacks;
         
-        // Apply a penalty for the bishop based on number of rammed pawns
-        // of our own colour, which reside on the same shade of square as the bishop
-        count = popcount(ei->rammedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
+        // Apply a penalty for the bishop based on number of rammed pawns of our
+        // own colour, which reside on the same shade of square as the bishop. 
+        // Increase this penalty when the center file pawns are blocked
+        count = popcount(ei->rammedPawns[colour] & squaresOfSameColour(sq));
+        count = count * (1 + popcount(ei->blockedPawns[colour] & CENTER_FILES));
         eval += count * BishopRammedPawns;
         if (TRACE) T.bishopRammedPawns[colour] += count;
+        
+        // Apply a penalty
         
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
