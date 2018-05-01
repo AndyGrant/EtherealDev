@@ -88,7 +88,7 @@ const int PawnConnected32[32] = {
 
 const int KnightRammedPawns = S(   0,   5);
 
-const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
+const int KnightOutpost[2] = { S(  20,   0), S(  36,   0) };
 
 const int KnightMobility[9] = {
     S( -87, -97), S( -37, -90), S( -19, -42),
@@ -101,11 +101,11 @@ const int KnightMobility[9] = {
 
 const int BishopPair = S(  40,  69);
 
-const int BishopRammedPawns = S( -11,  -7);
+const int BishopRammedPawns = S(  -9,  -5);
 
-const int BishopBlockedCentralPawns = S( -10,  -9);
+const int BishopBlockedCentralPawns = S(  -7,  -7);
 
-const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
+const int BishopOutpost[2] = { S(  18,   0), S(  50,   0) };
 
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
