@@ -161,8 +161,7 @@ int main(){
         }
         
         else if (stringEquals(str, "stop")){
-            for (i = 0; i < nthreads; i++)
-                ABORT_SIGNAL = 1;
+            ABORT_SIGNAL = 1;
             pthread_join(pthreadsgo, NULL);
         }
         

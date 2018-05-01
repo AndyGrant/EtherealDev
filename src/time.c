@@ -58,7 +58,7 @@ double estimatedUsage(SearchInfo* info){
     
     const int depth = info->depth;
         
-    double timeFactor = info->timeUsage[depth] / MAX(50, info->timeUsage[depth-1]);
+    double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
 
     return info->timeUsage[depth] * (timeFactor + .40);
     
