@@ -49,6 +49,8 @@ extern int MoveOverhead; // Defined by search.c
 
 extern unsigned TB_PROBE_DEPTH; // Defined by Syzygy.c
 
+extern volatile int ABORT_SIGNAL; // For killing active search
+
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -160,7 +162,7 @@ int main(){
         
         else if (stringEquals(str, "stop")){
             for (i = 0; i < nthreads; i++)
-                threads[i].abort = 1;
+                ABORT_SIGNAL = 1;
             pthread_join(pthreadsgo, NULL);
         }
         
@@ -191,12 +193,12 @@ void* uciGo(void* vthreadsgo){
     Board* board    = ((ThreadsGo*)vthreadsgo)->board;
     Thread* threads = ((ThreadsGo*)vthreadsgo)->threads;
     
-    Limits limits;
+    Limits limits; limits.start = start;
     
     char move[6];
     int depth = -1, infinite = -1; 
-    double time = 0, wtime = -1, btime = -1, mtg = -1, movetime = -1;
-    double inc = 0, winc = 0, binc = 0;
+    double wtime = -1, btime = -1, mtg = -1, movetime = -1;
+    double winc = 0, binc = 0;
     
     char* ptr = strtok(str, " ");
     
@@ -237,11 +239,12 @@ void* uciGo(void* vthreadsgo){
     limits.depthLimit     = depth;
     
     // Pick the time values for the colour we are playing as
-    time = (board->turn == WHITE) ? wtime : btime;
-    inc  = (board->turn == WHITE) ?  winc :  binc;
+    limits.time = (board->turn == WHITE) ? wtime : btime;
+    limits.mtg  = (board->turn == WHITE) ?   mtg :   mtg;
+    limits.inc  = (board->turn == WHITE) ?  winc :  binc;
     
     // Execute the search and report the best move
-    moveToString(move, getBestMove(threads, board, &limits, start, time, mtg, inc));
+    moveToString(move, getBestMove(threads, board, &limits));
     printf("bestmove %s\n", move);
     fflush(stdout);
     
@@ -307,7 +310,7 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     int i;
     int depth       = threads[0].depth;
     int seldepth    = threads[0].seldepth;
-    int elapsed     = (int)(getRealTime() - threads[0].info->starttime);
+    int elapsed     = elapsedTime(threads[0].info);
     uint64_t nodes  = nodesSearchedThreadPool(threads);
     uint64_t tbhits = tbhitsSearchedThreadPool(threads);
     int hashfull    = estimateHashfull(&Table);
