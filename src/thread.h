@@ -20,6 +20,7 @@
 #define _THREAD_H
 
 #include <setjmp.h>
+#include <stdatomic.h>
 
 #include "types.h"
 #include "transposition.h"
@@ -39,7 +40,7 @@ struct Thread {
     
     int evalStack[MAX_PLY];
     
-    int abort;
+    atomic_int abort;
     jmp_buf jbuffer;
     
     int nthreads;
