@@ -92,7 +92,7 @@ extern const int QueenMobility[28];
 
 // To determine the starting values for the King terms
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
+extern const int KingShelter[2][FILE_NB/2][RANK_NB];
 
 // To determine the starting values for the Passed Pawn terms
 extern const int PassedPawn[2][2][RANK_NB];
@@ -219,7 +219,6 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
     // Initialize the thread for the search
     thread->limits = &limits;
     thread->depth  = 1;
-    thread->abort  = 0;
     
     FILE * fin = fopen("FENS", "r");
     
@@ -454,7 +453,7 @@ void initializeCoefficients(int coeffs[NT]){
     
     if (TuneKingShelter)
         for (a = 0; a < 2; a++)
-            for (b = 0; b < FILE_NB; b++)
+            for (b = 0; b < FILE_NB/2; b++)
                 for (c = 0; c < RANK_NB; c++)
                     coeffs[i++] = T.kingShelter[WHITE][a][b][c] - T.kingShelter[BLACK][a][b][c];
     
@@ -687,7 +686,7 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
     
     if (TuneKingShelter){
         for (a = 0; a < 2; a++){
-            for (b = 0; b < FILE_NB; b++){
+            for (b = 0; b < FILE_NB/2; b++){
                 for (c = 0; c < RANK_NB; c++, i++){
                     cparams[i][MG] = ScoreMG(KingShelter[a][b][c]);
                     cparams[i][EG] = ScoreEG(KingShelter[a][b][c]);
@@ -1008,12 +1007,12 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     }
     
     if (TuneKingShelter){
-        printf("\nconst int KingShelter[2][FILE_NB][RANK_NB] = {");
-        for (x = 0; x < 16; x++){
-            printf("\n  %s", x % 8 ? " {" : "{{");
+        printf("\nconst int KingShelter[2][FILE_NB / 2][RANK_NB] = {");
+        for (x = 0; x < 8; x++){
+            printf("\n  %s", x % 4 ? " {" : "{{");
             for (y = 0; y < RANK_NB; y++, i++){
                 printf("S(%4d,%4d)", tparams[i][MG], tparams[i][EG]);
-                printf("%s", y < RANK_NB - 1 ? ", " : x % 8 == 7 ? "}}," : "},");
+                printf("%s", y < RANK_NB - 1 ? ", " : x % 4 == 3 ? "}}," : "},");
             }
         } printf("\n};\n");
     }
