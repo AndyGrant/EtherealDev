@@ -363,6 +363,23 @@ int squareIsAttacked(Board* board, int colour, int sq){
            || (                kingAttacks(sq, enemyKings)                  );
 }
 
+int squareIsAttacked2(Board* board, int colour, int sq, uint64_t occupied){
+    
+    uint64_t enemy    = board->colours[!colour];
+    
+    uint64_t enemyPawns   = enemy &  board->pieces[PAWN  ];
+    uint64_t enemyKnights = enemy &  board->pieces[KNIGHT];
+    uint64_t enemyBishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+    uint64_t enemyRooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+    uint64_t enemyKings   = enemy &  board->pieces[KING  ];
+
+    return    (                pawnAttacks(sq, enemyPawns, colour)          )
+           || (enemyKnights && knightAttacks(sq, enemyKnights)              )
+           || (enemyBishops && bishopAttacks(sq, occupied, enemyBishops)    )
+           || (enemyRooks   && rookAttacks(sq, occupied, enemyRooks)        )
+           || (                kingAttacks(sq, enemyKings)                  );
+}
+
 uint64_t attackersToSquare(Board* board, int colour, int sq){
     
     uint64_t friendly = board->colours[ colour];
@@ -380,3 +397,75 @@ uint64_t attackersToKingSquare(Board* board){
     int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
     return attackersToSquare(board, board->turn, kingsq);
 }
+
+uint64_t piecesPinnedToKingSquare(Board* board){
+    
+    uint64_t friendly = board->colours[ board->turn];
+    uint64_t enemy    = board->colours[!board->turn];
+    
+    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
+    uint64_t kings   = board->pieces[KING  ];
+    
+    int sq, kingsq = getlsb(friendly & kings);
+    
+    uint64_t potentialPinners = bishopAttacks(kingsq, enemy, enemy & bishops)
+                               |  rookAttacks(kingsq, enemy, enemy & rooks  );
+                               
+    uint64_t pinnedPieces = 0ull;
+    
+    while (potentialPinners){
+        sq = poplsb(&potentialPinners);
+        if (exactlyOne(BitsBetweenMasks[kingsq][sq] & friendly))
+            pinnedPieces |= BitsBetweenMasks[kingsq][sq] & friendly;
+    }
+    
+    return pinnedPieces;
+}
+
+int moveIsLegal(Board* board, uint16_t move){
+    
+    assert(moveIsPsuedoLegal(board, move));
+    
+    int to = MoveTo(move);
+    int from = MoveFrom(move);
+    int type = MoveType(move);
+    int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
+    
+    uint64_t occupied;
+    uint64_t bishops, rooks;
+    
+    if (type == ENPASS_MOVE){
+        
+        occupied =  board->colours[WHITE] | board->colours[BLACK];
+        occupied = (occupied ^ (1ull << from) ^ (1ull << board->epSquare)) | (1ull << to);
+        
+        bishops = board->colours[!board->turn] & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+        rooks   = board->colours[!board->turn] & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+        
+        return !(rookAttacks(kingsq, occupied, rooks))
+            && !(bishopAttacks(kingsq, occupied, bishops));
+    }
+    
+    if (PieceType(board->squares[from]) == KING){
+        
+        occupied = board->colours[WHITE] | board->colours[BLACK];
+        occupied = occupied ^ (1ull << from) ^ (1ull << to);
+        
+        return !squareIsAttacked2(board, board->turn, to, occupied);
+    }
+    
+    if (moreThanOne(board->kingAttackers))
+        return 0;
+    
+    if (exactlyOne(board->kingAttackers))
+        return !(board->pinnedPieces & (1ull << from))
+            &&  (BitsAndEndpointsBetweenMasks[kingsq][getlsb(board->kingAttackers)] & (1ull << to));
+    
+    return  !(board->pinnedPieces & (1ull << from))
+        || !!(BitsAndEndpointsBetweenMasks[from][to] & (1ull << kingsq));
+}
+
+
+
+

@@ -27,6 +27,7 @@ struct Board {
     uint64_t colours[3];
     uint64_t hash;
     uint64_t pkhash;
+    uint64_t pinnedPieces;
     uint64_t kingAttackers;
     int turn;
     int castleRights;
@@ -40,6 +41,7 @@ struct Board {
 struct Undo {
     uint64_t hash;
     uint64_t pkhash;
+    uint64_t pinnedPieces;
     uint64_t kingAttackers;
     int turn;
     int castleRights;

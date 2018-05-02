@@ -221,6 +221,7 @@ void initializeBoard(Board* board, char* fen){
     // Number of moves since this (root) position
     board->numMoves = 0;
     
+    board->pinnedPieces = piecesPinnedToKingSquare(board);
     board->kingAttackers = attackersToKingSquare(board);
 }
 
@@ -272,9 +273,12 @@ uint64_t perft(Board* board, int depth){
     
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--){
+        
+        if (!moveIsLegal(board, moves[size]))
+            continue;
+            
         applyMove(board, moves[size], undo);
-        if (isNotInCheck(board, !board->turn))
-            found += perft(board, depth-1);
+        found += perft(board, depth-1);
         revertMove(board, moves[size], undo);
     }
     

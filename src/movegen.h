@@ -41,8 +41,12 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size);
 
 int isNotInCheck(Board* board, int colour);
 int squareIsAttacked(Board* board, int colour, int sq);
+int squareIsAttacked2(Board* board, int colour, int sq, uint64_t occupied);
 
 uint64_t attackersToSquare(Board* board, int colour, int sq);
 uint64_t attackersToKingSquare(Board* board);
+
+uint64_t piecesPinnedToKingSquare(Board* board);
+int moveIsLegal(Board* board, uint16_t move);
 
 #endif
