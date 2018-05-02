@@ -765,9 +765,11 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     safeThreat  = pawnAdvance(pawns, occupied, colour);
     safeThreat |= pawnAdvance(safeThreat, occupied, colour);
     
-    // Only consider squares which may be safe
-    safeThreat &= ~ei->attackedBy[!colour][PAWN]
-               &  (ei->attacked[colour] | ~ei->attacked[!colour]);
+    // Don't include squares attacked by enemy pawns, or squares
+    // that have more attackers than they do defenders
+    safeThreat &= ~ei->attackedBy[!colour][PAWN];
+    safeThreat &= (~ei->attacked[!colour])
+               |  (~ei->attackedBy2[!colour] & ei->attackedBy2[colour]);
                
     // Find only the new pawn threats by advancing
     safeThreat  = pawnAttackSpan(safeThreat, enemy, colour);
