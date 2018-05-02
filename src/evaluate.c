@@ -612,7 +612,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
 int evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     int file, kingFile, kingRank, kingSq;
-    int distance, count, eval = 0, pkeval = 0;
+    int distance, count, eval = 0;
     
     uint64_t filePawns;
     
@@ -651,9 +651,6 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         eval -= KingSafety[MIN(63, MAX(0, count))];
     }
     
-    // Pawn Shelter evaluation is stored in the PawnKing evaluation table
-    if (ei->pkentry != NULL) return eval;
-    
     // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
     // to the King's file. We evaluate the distance between the king and the most backward
     // pawn. We will not look at pawns behind the king, and will consider that as having
@@ -670,13 +667,13 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                                    : kingRank - Rank(getmsb(filePawns))
                                    : 7;
 
-        pkeval += KingShelter[file == kingFile][file][distance];
+        eval += (1 + ei->attackCounts[!colour] >= 2)
+              * KingShelter[file == kingFile][file][distance];
+              
         if (TRACE) T.kingShelter[colour][file == kingFile][file][distance]++;
     }
     
-    ei->pkeval[colour] += pkeval;
-    
-    return eval + pkeval;
+    return eval;
 }
 
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
