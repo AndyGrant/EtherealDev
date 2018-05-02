@@ -196,6 +196,7 @@ const int ThreatMajorAttackedByMinor = S( -41, -21);
 
 const int ThreatQueenAttackedByOne   = S( -42, -19);
 
+const int ThreatByPawnPush           = S(  21,  15);
 
 // Definition of evaluation terms related to general properties
 
@@ -719,6 +720,12 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     
     int count, eval = 0;
     
+    uint64_t safeThreat;
+    
+    uint64_t friendly = board->colours[ colour];
+    uint64_t enemy    = board->colours[!colour];
+    uint64_t occupied = friendly | enemy;
+    
     uint64_t pawns   = board->colours[colour] & board->pieces[PAWN  ];
     uint64_t knights = board->colours[colour] & board->pieces[KNIGHT];
     uint64_t bishops = board->colours[colour] & board->pieces[BISHOP];
@@ -753,6 +760,17 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount(queens & ei->attacked[!colour]);
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.threatQueenAttackedByOne[colour] += count;
+    
+    // Bonus if we can advance a pawn and safely threaten a piece
+    safeThreat  = pawnAdvance(pawns, occupied, colour);
+    safeThreat |= pawnAdvance(safeThreat, occupied, colour);
+    safeThreat &= ~ei->attackedBy[colour][PAWN]
+               & (ei->attacked[colour] | ~ei->attacked[!colour]);
+    safeThreat  = pawnAttackSpan(safeThreat, enemy, colour);
+    safeThreat &= ~ei->attackedBy[!colour][PAWN];
+    count = popcount(safeThreat);
+    eval += count * ThreatByPawnPush;
+    
     
     return eval;
 }
