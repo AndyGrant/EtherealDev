@@ -103,6 +103,8 @@ const int BishopPair = S(  40,  69);
 
 const int BishopRammedPawns = S( -11,  -7);
 
+const int BishopBlockedPawns = S(-3,-4);
+
 const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
 
 const int BishopMobility[14] = {
@@ -476,6 +478,10 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         count = popcount(ei->rammedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
         eval += count * BishopRammedPawns;
         if (TRACE) T.bishopRammedPawns[colour] += count;
+        
+        count = popcount(ei->blockedPawns[colour] & (((1ull << sq) & WHITE_SQUARES ? WHITE_SQUARES : BLACK_SQUARES)));
+        
+        eval += count * BishopBlockedPawns;
         
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
