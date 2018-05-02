@@ -761,13 +761,19 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.threatQueenAttackedByOne[colour] += count;
     
-    // Bonus if we can advance a pawn and safely threaten a piece
+    // Find location our pawns may advance too next move
     safeThreat  = pawnAdvance(pawns, occupied, colour);
     safeThreat |= pawnAdvance(safeThreat, occupied, colour);
-    safeThreat &= ~ei->attackedBy[colour][PAWN]
-               & (ei->attacked[colour] | ~ei->attacked[!colour]);
+    
+    // Only consider squares which may be safe
+    safeThreat &= ~ei->attackedBy[!colour][PAWN]
+               &  (ei->attacked[colour] | ~ei->attacked[!colour]);
+               
+    // Find only the new pawn threats by advancing
     safeThreat  = pawnAttackSpan(safeThreat, enemy, colour);
-    safeThreat &= ~ei->attackedBy[!colour][PAWN];
+    safeThreat &= ~ei->attackedBy[colour][PAWN];
+    
+    // Bonus for the number of safe threats by pawn pushes
     count = popcount(safeThreat);
     eval += count * ThreatByPawnPush;
     
