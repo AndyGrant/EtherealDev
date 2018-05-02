@@ -745,7 +745,7 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.threatMinorAttackedByMajor[colour] += count;
     
     // Penalty for all minor threats against our rooks and queens
-    count = popcount((rooks | queens) & (attacksByMinors));
+    count = popcount(queens & (attacksByMinors));
     eval += count * ThreatMajorAttackedByMinor;
     if (TRACE) T.threatMajorAttackedByMinor[colour] += count;
     
