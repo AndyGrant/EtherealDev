@@ -251,7 +251,9 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
 
         // Add or subtract large buffer to sort into good and bad moves,
         // based on whether SEE based with a threshold of zero pawns
-        value += staticExchangeEvaluation(board, move, 0) ? 8192 : -8192;
+        // value += staticExchangeEvaluation(board, move, 0) ? 8192 : 8192;
+        
+        value += 32000;
         
         mp->values[i] = value;
     }

@@ -573,6 +573,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   best > MATED_IN_MAX
             &&   captureIsWeak(board, &ei, move, depth))
             continue;
+            
+         if (    !PvNode
+             &&  !isQuiet
+             &&  !inCheck
+             &&   depth <= 8
+             &&   best > MATED_IN_MAX
+             &&   staticExchangeEvaluation(board, move, -25 * depth * depth))
+             continue;
         
         // Step 15. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -600,7 +608,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
-        if (    played > 1
+        if (    played >= 4
             &&  depth >= 3
             &&  isQuiet){
             
