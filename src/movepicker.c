@@ -87,30 +87,34 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                     if (mp->values[i] > mp->values[best])
                         best = i;
                     
-                // Save the best move before overwriting it
-                bestMove = mp->moves[best];
+                // Best remaining value is a a good capture
+                if (mp->values[best] >= 0){
                 
-                // Reduce effective move list size
-                mp->noisySize -= 1;
-                mp->moves[best] = mp->moves[mp->noisySize];
-                mp->values[best] = mp->values[mp->noisySize];
-                
-                // Don't play the table move twice
-                if (bestMove == mp->tableMove)
-                    return selectNextMove(mp, board);
-                
-                // Don't play the killer moves twice
-                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
-                
-                return bestMove;
+                    // Save the best move before overwriting it
+                    bestMove = mp->moves[best];
+                    
+                    // Reduce effective move list size
+                    mp->noisySize -= 1;
+                    mp->moves[best] = mp->moves[mp->noisySize];
+                    mp->values[best] = mp->values[mp->noisySize];
+                    
+                    // Don't play the table move twice
+                    if (bestMove == mp->tableMove)
+                        return selectNextMove(mp, board);
+                    
+                    // Don't play the killer moves twice
+                    if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
+                    if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+                    
+                    return bestMove;
+                }
             }
             
             // If we are using this move picker for the quiescence
             // search, we have exhausted all moves already. Otherwise,
             // we should move onto the quiet moves (+ killers)
             if (mp->skipQuiets)
-                return mp->stage = STAGE_DONE, NONE_MOVE;
+                return mp->stage = STAGE_BAD_NOISY, NONE_MOVE;
             else
                 mp->stage = STAGE_KILLER_1;
             
@@ -173,12 +177,40 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 return bestMove;
             }
             
-            // If no quiet moves left, advance stages
+            // If no quiet moves left, finish with bad captures
             mp->stage = STAGE_BAD_NOISY;
             
             /* fallthrough */
             
         case STAGE_BAD_NOISY:
+        
+            // Check to see if there are still more noisy moves
+            if (mp->noisySize != 0){
+                
+                // Find highest scoring move
+                for (best = 0, i = 1; i < mp->noisySize; i++)
+                    if (mp->values[i] > mp->values[best])
+                        best = i;
+                    
+                // Save the best move before overwriting it
+                bestMove = mp->moves[best];
+                
+                // Reduce effective move list size
+                mp->noisySize -= 1;
+                mp->moves[best] = mp->moves[mp->noisySize];
+                mp->values[best] = mp->values[mp->noisySize];
+                
+                // Don't play the any moves twice
+                if (    bestMove == mp->tableMove
+                    ||  bestMove == mp->killer1
+                    ||  bestMove == mp->killer2)
+                    return selectNextMove(mp, board);
+                    
+                return bestMove;
+            }
+            
+            // We have finished picking all moves
+            mp->stage = STAGE_DONE;
             
             /* fallthrough */
             
