@@ -791,7 +791,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (captureIsWeak(board, &ei, move, 0))
             continue;
         
-        if (!staticExchangeEvaluation(board, move, -100))
+        if (!staticExchangeEvaluation(board, move, 0))
             continue;
         
         // Apply and validate move before searching
