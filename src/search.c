@@ -579,7 +579,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
              &&  !inCheck
              &&   depth <= 8
              &&   best > MATED_IN_MAX
-             &&   staticExchangeEvaluation(board, move, -25 * depth * depth))
+             &&  !staticExchangeEvaluation(board, move, -25 * depth * depth))
              continue;
         
         // Step 15. Late Move Pruning / Move Count Pruning. If we have
