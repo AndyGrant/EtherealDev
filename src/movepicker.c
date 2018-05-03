@@ -44,13 +44,14 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer1     = thread->killers[height][0];
     mp->killer1     = mp->killer1 == ttMove ? NONE_MOVE : mp->killer1;
                     
-    mp->killer2     = thread->killers[height][0];
+    mp->killer2     = thread->killers[height][1];
     mp->killer2     = mp->killer2 == ttMove ? NONE_MOVE : mp->killer2;
     
     mp->countermove = getCounterMove(thread, height);
     mp->countermove = (    mp->countermove == ttMove
                        ||  mp->countermove == mp->killer1
                        ||  mp->countermove == mp->killer2) ? NONE_MOVE : mp->countermove;
+    mp->countermove = NONE_MOVE;
     
 }
 
