@@ -103,6 +103,6 @@ static const int LateMovePruningCounts[] = {0, 4, 6, 10, 15, 23, 31, 40, 52};
 
 static const int QFutilityMargin = 100;
 
-static const int QStaticExchanceMargin = -100;
+static const int QStaticExchanceMargin = 0;
 
 #endif
