@@ -582,6 +582,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth])
             break;
+            
+         if (   !PvNode
+             && !inCheck
+             &&  depth <= SEEPruningDepth
+             &&  best > MATED_IN_MAX
+             && !staticExchangeEvaluation(board, move, -25 * depth * depth))
+             continue;
         
         // Apply the move, and verify legality
         applyMove(board, move, undo);
