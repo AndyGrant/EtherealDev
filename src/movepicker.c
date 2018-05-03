@@ -31,6 +31,7 @@
 #include "psqt.h"
 #include "types.h"
 #include "thread.h"
+#include "search.h"
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets){
     mp->skipQuiets = skipQuiets;
@@ -236,6 +237,7 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
         fromType = PieceType(board->squares[ MoveFrom(move)]);
         toType   = PieceType(board->squares[MoveTo(move)]);
         
+            
         // Use the standard MVV-LVA
         value = PieceValues[toType][EG] - fromType;
         
@@ -246,6 +248,10 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
         // Enpass is a special case of MVV-LVA
         else if (MoveType(move) == ENPASS_MOVE)
             value = PieceValues[PAWN][EG] - PAWN;
+
+        // Add or subtract large buffer to sort into good and bad moves,
+        // based on whether SEE based with a threshold of zero pawns
+        value += staticExchangeEvaluation(board, move, 0) ? 8192 : -8192;
         
         mp->values[i] = value;
     }
