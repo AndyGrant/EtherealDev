@@ -600,7 +600,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
-        if (    played >= 4
+        if (    played > 1
             &&  depth >= 3
             &&  isQuiet){
             
