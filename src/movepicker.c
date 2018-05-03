@@ -51,7 +51,6 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->countermove = (    mp->countermove == ttMove
                        ||  mp->countermove == mp->killer1
                        ||  mp->countermove == mp->killer2) ? NONE_MOVE : mp->countermove;
-    mp->countermove = NONE_MOVE;
     
 }
 
