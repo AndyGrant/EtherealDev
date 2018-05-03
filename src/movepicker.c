@@ -33,6 +33,7 @@
 #include "thread.h"
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int skipQuiets){
+    
     mp->skipQuiets = skipQuiets;
     mp->stage      = STAGE_TABLE;
     mp->noisySize  = 0;
