@@ -832,7 +832,8 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     
     // Assume that enpass and promotion are worth at least 0
     if (MoveType(move) != NORMAL_MOVE)
-        return 0 >= threshold;
+        return MoveType(move) != PROMOTION_MOVE
+            || MovePromoPiece(move) == QUEEN;
     
     int from = MoveFrom(move), to = MoveTo(move);
     int nextVictim = PieceType(board->squares[from]);
@@ -912,7 +913,6 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     // Side to move after the loop loses
     return board->turn != colour;
 }
-
 
 int moveIsTactical(Board* board, uint16_t move){
     return board->squares[MoveTo(move)] != EMPTY
