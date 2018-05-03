@@ -22,6 +22,8 @@
 #include "board.h"
 #include "history.h"
 #include "move.h"
+#include "piece.h"
+#include "thread.h"
 #include "types.h"
 
 void updateHistory(HistoryTable history, uint16_t move, int colour, int delta){
@@ -42,4 +44,27 @@ void updateHistory(HistoryTable history, uint16_t move, int colour, int delta){
 
 int getHistoryScore(HistoryTable history, uint16_t move, int colour){
     return history[colour][MoveFrom(move)][MoveTo(move)];
+}
+
+void updateCounterMove(Thread* thread, uint16_t move, int height){
+    
+    // Counter moves look at the last move made
+    if (height == 0) return;
+    
+    // Fetch the move which we are countering
+    uint16_t lastMove = thread->moveStack[height - 1];
+    
+    // Saved based on last moved piece type, and destination square
+    thread->cmtable[PieceType(thread->board.squares[MoveTo(lastMove)])][MoveTo(lastMove)] = move;
+}
+
+uint16_t getCounterMove(Thread* thread, int height){
+    
+    // Counter moves are a response to a past move
+    if (height == 0) return NONE_MOVE;
+    
+    uint16_t lastMove = thread->moveStack[height - 1];
+    
+    // Lookup based on last moved piece type, and destination square
+    return thread->cmtable[PieceType(thread->board.squares[MoveTo(lastMove)])][MoveTo(lastMove)];
 }

@@ -40,6 +40,7 @@ struct Thread {
     uint64_t tbhits;
     
     int evalStack[MAX_PLY];
+    int moveStack[MAX_PLY];
     
     jmp_buf jbuffer;
     
@@ -47,6 +48,7 @@ struct Thread {
     Thread* threads;
     
     KillerTable killers;
+    CounterMoveTable cmtable;
     HistoryTable history;
     PawnKingTable pktable;
 };

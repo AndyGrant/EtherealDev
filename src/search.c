@@ -475,6 +475,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
+        thread->moveStack[height] = NULL_MOVE;
+        
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
         
         revertNullMove(board, undo);
@@ -509,6 +511,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 revertMove(board, move, undo);
                 continue;
             }
+            
+            thread->moveStack[height] = move;
             
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
@@ -589,6 +593,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             revertMove(board, move, undo);
             continue;
         }
+        
+        thread->moveStack[height] = move;
         
         // Update counter of moves actually played
         played += 1;
@@ -694,6 +700,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 thread->killers[height][0] = move;
             }
             
+            if (isQuiet)
+                updateCounterMove(thread, move, height);
+            
             break;
         }
     }
@@ -793,6 +802,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             revertMove(board, move, undo);
             continue;
         }
+        
+        thread->moveStack[height] = move;
         
         // Search next depth
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
@@ -958,6 +969,8 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
             continue;
         }
         
+        thread->moveStack[height] = move;
+        
         // Perform a reduced depth search on a null rbeta window
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
         
@@ -970,6 +983,7 @@ int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo
     
     // Fix the board state to what it was initially
     applyMove(board, ttEntry->bestMove, undo);
+    thread->moveStack[height] = move;
 
     // Move in singular if all evals failed low
     return value <= rBeta;    
