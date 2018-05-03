@@ -784,8 +784,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
-            continue;
+        // if (captureIsWeak(board, &ei, move, 0))
+        //     continue;
         
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
@@ -912,7 +912,6 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     // Side to move after the loop loses
     return board->turn != colour;
 }
-
 
 int moveIsTactical(Board* board, uint16_t move){
     return board->squares[MoveTo(move)] != EMPTY
