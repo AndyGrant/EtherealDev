@@ -115,7 +115,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             // search, we have exhausted all moves already. Otherwise,
             // we should move onto the quiet moves (+ killers)
             if (mp->skipQuiets)
-                return mp->stage = STAGE_BAD_NOISY, NONE_MOVE;
+                return mp->stage = STAGE_BAD_NOISY, selectNextMove(mp, board);
             else
                 mp->stage = STAGE_KILLER_1;
             
