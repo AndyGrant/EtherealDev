@@ -785,6 +785,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
+        // Skip moves with negative SEE during sorting
+        if (movePicker.stage == STAGE_BAD_NOISY) continue;
+        
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
