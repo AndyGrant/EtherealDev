@@ -573,14 +573,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&   best > MATED_IN_MAX
             &&   captureIsWeak(board, &ei, move, depth))
             continue;
-            
-         if (    !PvNode
-             &&  !isQuiet
-             &&  !inCheck
-             &&   depth <= 8
-             &&   best > MATED_IN_MAX
-             &&  !staticExchangeEvaluation(board, move, -25 * depth * depth))
-             continue;
         
         // Step 15. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -797,6 +789,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
         if (captureIsWeak(board, &ei, move, 0))
+            continue;
+        
+        if (!staticExchangeEvaluation(board, move, -100))
             continue;
         
         // Apply and validate move before searching
