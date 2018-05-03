@@ -48,6 +48,11 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
     int i, best;
     uint16_t bestMove;
     
+    // Search have have enabled skip quiets. Since for the qsearch
+    // mp->skipQuiets is always set, we must compare to stage first
+    if (mp->skipQuiets && mp->stage > STAGE_GOOD_NOISY)
+        mp->stage = STAGE_BAD_NOISY;
+    
     switch (mp->stage){
         
         case STAGE_TABLE:
@@ -68,11 +73,11 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             genAllNoisyMoves(board, mp->moves, &mp->noisySize);
             evaluateNoisyMoves(mp, board);
             mp->split = mp->noisySize;
-            mp->stage = STAGE_NOISY ;
+            mp->stage = STAGE_GOOD_NOISY ;
             
             /* fallthrough */
             
-        case STAGE_NOISY:
+        case STAGE_GOOD_NOISY:
         
             // Check to see if there are still more noisy moves
             if (mp->noisySize != 0){
@@ -169,11 +174,16 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             }
             
             // If no quiet moves left, advance stages
-            mp->stage = STAGE_DONE;
+            mp->stage = STAGE_BAD_NOISY;
+            
+            /* fallthrough */
+            
+        case STAGE_BAD_NOISY:
             
             /* fallthrough */
             
         case STAGE_DONE:
+        
             return NONE_MOVE;
             
         default:

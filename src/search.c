@@ -559,8 +559,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            break;
+            &&  depth <= FutilityPruningDepth){
+            movePicker.skipQuiets = 1;
+            continue;
+        }
             
         // Step 14. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
@@ -580,8 +582,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth])
-            break;
+            &&  quiets > LateMovePruningCounts[depth]){
+            movePicker.skipQuiets = 1;
+            continue;
+        }
         
         // Apply the move, and verify legality
         applyMove(board, move, undo);
