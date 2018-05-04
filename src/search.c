@@ -786,6 +786,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
+        if (   MoveType(move) == PROMOTION_MOVE
+            && MovePromoPiece(move) != QUEEN)
+            continue;
+        
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
