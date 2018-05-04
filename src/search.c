@@ -840,9 +840,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     
-    // Assume that enpass and promotion are worth at least 0
+    // We assume that any special move which is not an under promotion
+    // will be able to beat whatever threshold we throw at it
     if (MoveType(move) != NORMAL_MOVE)
-        return 0 >= threshold;
+        return MoveType(move) != PROMOTION_MOVE
+            || MovePromoPiece(move) == QUEEN;
     
     int from = MoveFrom(move), to = MoveTo(move);
     int nextVictim = PieceType(board->squares[from]);
