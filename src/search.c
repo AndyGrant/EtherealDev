@@ -576,12 +576,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. This is done for only some depths
-        if (    !PvNode
-            &&  !isQuiet
-            &&  !inCheck
-            &&   best > MATED_IN_MAX
-            &&   captureIsWeak(board, &ei, move, depth))
-            continue;
+        // if (    !PvNode
+        //     &&  !isQuiet
+        //     &&  !inCheck
+        //     &&   best > MATED_IN_MAX
+        //     &&   captureIsWeak(board, &ei, move, depth))
+        //     continue;
         
          // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
          // to beat a depth dependent SEE threshold. The usual exceptions for
