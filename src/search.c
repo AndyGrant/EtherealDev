@@ -750,10 +750,12 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_PLY)
         return evaluateBoard(board, &ei, &thread->pktable);
     
+    // Step 3. Check for draws by repetition or the fifty move rule, which
+    // can happen in the Quiescence search as a result of many checking moves
     if (gameIsDrawn(board, height))
         return 0;
     
-    // Step 3. Eval & Delta Pruning. If a static evaluation of the board will
+    // Step 4. Eval & Delta Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. If no moves look strong
     // enough to catch up to alpha, we can prune every move without searching
     
@@ -771,8 +773,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         alpha = MAX(alpha, eval);
     }
     
-    // Step 5. Move Generation and Looping. Generate all tactical moves for this
-    // position (includes Captures, Promotions, and Enpass) and try them
+    // Step 5. Move Generation and Looping. Generate only the tactical moves
+    // if we are not resolving a check, otherwise generate every single move
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
