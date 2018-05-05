@@ -251,7 +251,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     Board* const board = &thread->board;
     
     unsigned tbresult;
-    int i, repetitions, quiets = 0, played = 0, hist = 0;
+    int i, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     int bound, inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
@@ -295,37 +295,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (height >= MAX_PLY)
             return evaluateBoard(board, &ei, &thread->pktable);
         
+        // Check for fifty move rule and draw by repetitions
+        if (gameIsDrawn(board, height))
+            return 0;
+        
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in 
         // the next one, would still not create a more extreme line
         rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
         rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
         if (rAlpha >= rBeta) return rAlpha;
-        
-        // Check for the Fifty Move Rule
-        if (board->fiftyMoveRule > 100)
-            return 0;
-        
-        // Check for three fold repetition. If the repetition occurs since
-        // the root move of this search, we will exit early as if it was a draw.
-        // Otherwise, we will look for an actual three fold repetition draw.
-        for (repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
-            
-            // We can't have repeated positions before the most recent
-            // move which triggered a reset of the fifty move rule counter
-            if (i < board->numMoves - board->fiftyMoveRule) break;
-            
-            if (board->history[i] == board->hash){
-                
-                // Repetition occured after the root
-                if (i > board->numMoves - height)
-                    return 0;
-                
-                // An actual three fold repetition
-                if (++repetitions == 2)
-                    return 0;
-            }
-        }
     }
     
     // Step 3. Probe the Transposition Table for an entry
@@ -736,7 +715,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     
     Board* const board = &thread->board;
     
-    int eval, value, best;
+    const int inCheck = !!board->kingAttackers;
+    
+    int eval, value, best = -MATE;
     uint16_t move;
     Undo undo[1];
     MovePicker movePicker;
@@ -769,37 +750,50 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_PLY)
         return evaluateBoard(board, &ei, &thread->pktable);
     
-    // Step 3. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    if (gameIsDrawn(board, height))
+        return 0;
     
-    // Step 4. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional of the futility margin would still fall below alpha
-    if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
-        return eval;
+    // Step 3. Eval & Delta Pruning. If a static evaluation of the board will
+    // exceed beta, then we can stop the search here. If no moves look strong
+    // enough to catch up to alpha, we can prune every move without searching
+    
+    eval = evaluateBoard(board, &ei, &thread->pktable);
+    
+    if (!inCheck){
+        
+        if (eval >= beta) 
+            return eval;
+        
+        if (eval + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
+            return eval;
+        
+        best  = eval;
+        alpha = MAX(alpha, eval);
+    }
     
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !inCheck);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (    best > MATED_IN_MAX
+            &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
+        if (    best > MATED_IN_MAX
+            &&  moveIsTactical(board, move)
+            &&  captureIsWeak(board, &ei, move, 0))
             continue;
         
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
-        if (!staticExchangeEvaluation(board, move, QSEEMargin))
+        if (    best > MATED_IN_MAX
+            && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
         
         // Apply and validate move before searching
@@ -921,6 +915,36 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     
     // Side to move after the loop loses
     return board->turn != colour;
+}
+
+int gameIsDrawn(Board* board, int height){
+    
+    // Check for the Fifty Move Rule
+    if (board->fiftyMoveRule > 100)
+        return 1;
+    
+    // Check for three fold repetition. If the repetition occurs since
+    // the root move of this search, we will exit early as if it was a draw.
+    // Otherwise, we will look for an actual three fold repetition draw.
+    for (int repetitions = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+        
+        // We can't have repeated positions before the most recent
+        // move which triggered a reset of the fifty move rule counter
+        if (i < board->numMoves - board->fiftyMoveRule) break;
+        
+        if (board->history[i] == board->hash){
+            
+            // Repetition occured after the root
+            if (i > board->numMoves - height)
+                return 1;
+            
+            // An actual three fold repetition
+            if (++repetitions == 2)
+                return 1;
+        }
+    }
+    
+    return 0;
 }
 
 int moveIsTactical(Board* board, uint16_t move){

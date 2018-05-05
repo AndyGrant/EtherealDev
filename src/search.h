@@ -56,6 +56,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold);
 
+int gameIsDrawn(Board* board, int height);
+
 int moveIsTactical(Board* board, uint16_t move);
 
 int hasNonPawnMaterial(Board* board, int turn);
