@@ -771,14 +771,14 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (    best > MATED_IN_MAX
+        if (   !inCheck
             &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
         // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
         // is protected, and we are the sole attacker, then we can be somewhat safe
         // in skipping this move so long as we are capturing a weaker piece
-        if (    best > MATED_IN_MAX
+        if (   !inCheck
             &&  moveIsTactical(board, move)
             &&  captureIsWeak(board, &ei, move, 0))
             continue;
