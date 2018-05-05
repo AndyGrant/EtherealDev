@@ -68,8 +68,6 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
     
 int bestTacticalMoveValue(Board* board, EvalInfo* ei);
 
-int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
-
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height);
 
 
@@ -103,10 +101,10 @@ static const int WeakCaptureOneAttackersDepth = 3;
 
 static const int SEEPruningDepth = 8;
 
-static const int SEEMargin = -25;
+static const int SEEMargin = -20;
 
 static const int QFutilityMargin = 100;
 
-static const int QSEEMargin = -100;
+static const int QSEEMargin = 0;
 
 #endif

@@ -572,16 +572,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[depth])
             break;
-            
-        // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
-        // a weaker piece which is protected, so long as we do not have any 
-        // additional support for the attacker. This is done for only some depths
-        if (    !PvNode
-            &&  !isQuiet
-            &&  !inCheck
-            &&   best > MATED_IN_MAX
-            &&   captureIsWeak(board, &ei, move, depth))
-            continue;
         
          // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
          // to beat a depth dependent SEE threshold. The usual exceptions for
@@ -791,12 +781,6 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
-        // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
-            continue;
-        
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
         if (!staticExchangeEvaluation(board, move, QSEEMargin))
@@ -1003,30 +987,6 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei){
         value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
             
     return value;
-}
-
-int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
-    
-    // If we lack the sufficient depth, the position was drawn and thus
-    // no attackers were computed, or the capture we are looking at is
-    // supported by another piece, then this capture is not a weak one
-    if (    depth > WeakCaptureTwoAttackersDepth
-        ||  ei->positionIsDrawn
-        || (ei->attackedBy2[board->turn] & (1ull << MoveTo(move))))
-        return 0;
-        
-    // Determine how valuable our attacking piece is
-    int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][EG];
-        
-    // This capture is not weak if we are attacking an equal or greater valued piece, 
-    if (thisTacticalMoveValue(board, move) >= attackerValue)
-        return 0;
-    
-    // Thus, the capture is weak if there are sufficient attackers for a given depth
-    return (   (depth <= WeakCaptureTwoAttackersDepth
-            &&  ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
-            || (depth <= WeakCaptureOneAttackersDepth
-            &&  ei->attacked[!board->turn] & (1ull << MoveTo(move))));
 }
 
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height){
