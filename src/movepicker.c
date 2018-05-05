@@ -29,6 +29,7 @@
 #include "movepicker.h"
 #include "piece.h"
 #include "psqt.h"
+#include "search.h"
 #include "types.h"
 #include "thread.h"
 
@@ -47,6 +48,13 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
     
     int i, best;
     uint16_t bestMove;
+    
+    // Search can set skipQuiets once LMP or Futility
+    // Pruning starts to occur on the quiet moves
+    if (   mp->skipQuiets 
+        && mp->stage > STAGE_GOOD_NOISY
+        && mp->stage < STAGE_BAD_NOISY)
+        mp->stage = STAGE_BAD_NOISY;
     
     switch (mp->stage){
         
@@ -68,11 +76,11 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             genAllNoisyMoves(board, mp->moves, &mp->noisySize);
             evaluateNoisyMoves(mp, board);
             mp->split = mp->noisySize;
-            mp->stage = STAGE_NOISY ;
+            mp->stage = STAGE_GOOD_NOISY ;
             
             /* fallthrough */
             
-        case STAGE_NOISY:
+        case STAGE_GOOD_NOISY:
         
             // Check to see if there are still more noisy moves
             if (mp->noisySize != 0){
@@ -81,33 +89,34 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
                 for (best = 0, i = 1; i < mp->noisySize; i++)
                     if (mp->values[i] > mp->values[best])
                         best = i;
+                
+                // Good captures have a positive score
+                if (mp->values[best] >= 0){
                     
-                // Save the best move before overwriting it
-                bestMove = mp->moves[best];
-                
-                // Reduce effective move list size
-                mp->noisySize -= 1;
-                mp->moves[best] = mp->moves[mp->noisySize];
-                mp->values[best] = mp->values[mp->noisySize];
-                
-                // Don't play the table move twice
-                if (bestMove == mp->tableMove)
-                    return selectNextMove(mp, board);
-                
-                // Don't play the killer moves twice
-                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
-                
-                return bestMove;
+                    // Save the best move before overwriting it
+                    bestMove = mp->moves[best];
+                    
+                    // Reduce effective move list size
+                    mp->noisySize -= 1;
+                    mp->moves[best] = mp->moves[mp->noisySize];
+                    mp->values[best] = mp->values[mp->noisySize];
+                    
+                    // Don't play the table move twice
+                    if (bestMove == mp->tableMove)
+                        return selectNextMove(mp, board);
+                    
+                    // Don't play the killer moves twice
+                    if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
+                    if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+                    
+                    return bestMove;
+                }
             }
             
-            // If we are using this move picker for the quiescence
-            // search, we have exhausted all moves already. Otherwise,
-            // we should move onto the quiet moves (+ killers)
+            // Skip to returning bad captures if skipQuiets is set
             if (mp->skipQuiets)
-                return mp->stage = STAGE_DONE, NONE_MOVE;
-            else
-                mp->stage = STAGE_KILLER_1;
+                return mp->stage = STAGE_BAD_NOISY, selectNextMove(mp, board);
+            mp->stage = STAGE_KILLER_1;
             
             /* fallthrough */
             
@@ -169,6 +178,39 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             }
             
             // If no quiet moves left, advance stages
+            mp->stage = STAGE_BAD_NOISY;
+            
+            /* fallthrough */
+            
+        case STAGE_BAD_NOISY:
+            
+            // Check to see if there are still more noisy moves
+            if (mp->noisySize != 0){
+                
+                // Find highest scoring move
+                for (best = 0, i = 1; i < mp->noisySize; i++)
+                    if (mp->values[i] > mp->values[best])
+                        best = i;
+                    
+                // Save the best move before overwriting it
+                bestMove = mp->moves[best];
+                
+                // Reduce effective move list size
+                mp->noisySize -= 1;
+                mp->moves[best] = mp->moves[mp->noisySize];
+                mp->values[best] = mp->values[mp->noisySize];
+                
+                // Don't play the table move twice
+                if (bestMove == mp->tableMove)
+                    return selectNextMove(mp, board);
+                
+                // Don't play the killer moves twice
+                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
+                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+                
+                return bestMove;
+            }
+            
             mp->stage = STAGE_DONE;
             
             /* fallthrough */
@@ -185,8 +227,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
 void evaluateNoisyMoves(MovePicker* mp, Board* board){
     
     uint16_t move;
-    int i, value;
-    int fromType, toType;
+    int i, fromType, toType;
     
     for (i = 0; i < mp->noisySize; i++){
         
@@ -194,18 +235,28 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
         fromType = PieceType(board->squares[ MoveFrom(move)]);
         toType   = PieceType(board->squares[MoveTo(move)]);
         
-        // Use the standard MVV-LVA
-        value = PieceValues[toType][EG] - fromType;
+        // Consider underpromotions as bad noisy moves
+        if (    MoveType(move) == PROMOTION_MOVE
+            &&  MovePromoPiece(move) != QUEEN)
+            mp->values[i] = -1024;
         
-        // A bonus is in order for queen promotions
-        if ((move & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
-            value += PieceValues[QUEEN][EG];
+        // Moves which cannot beat a SEE(0) are considered bad
+        else if (!staticExchangeEvaluation(board, move, 0))
+            mp->values[i] = -1024;
         
-        // Enpass is a special case of MVV-LVA
-        else if (MoveType(move) == ENPASS_MOVE)
-            value = PieceValues[PAWN][EG] - PAWN;
+        else {
+            
+            // Use the standard MVV-LVA
+            mp->values[i] = PieceValues[toType][EG] - fromType;
         
-        mp->values[i] = value;
+            // A bonus is in order for queen promotions
+            if (MoveType(move) == PROMOTION_MOVE)
+                mp->values[i] += PieceValues[QUEEN][EG];
+            
+            // Enpass is a special case of MVV-LVA
+            else if (MoveType(move) == ENPASS_MOVE)
+                mp->values[i] = PieceValues[PAWN][EG] - PAWN;
+        }
     }
 }
 
