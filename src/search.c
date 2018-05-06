@@ -551,47 +551,47 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, move, board->turn);
         }
         
-        // Step 13. Futility Pruning. If our score is far below alpha,
-        // and we don't expect anything from this move, we can skip this
-        // one, and also skip all other quiet moves from this position
-        if (   !PvNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            break;
-            
-        // Step 14. Late Move Pruning / Move Count Pruning. If we have
-        // tried many quiets in this position already, and we don't expect
-        // anything from this move, we can undo it and skip all remaining quiets
-        if (   !PvNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
-            &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth])
-            break;
-            
-        // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
-        // a weaker piece which is protected, so long as we do not have any 
-        // additional support for the attacker. This is done for only some depths
-        if (    !PvNode
-            &&  !isQuiet
-            &&  !inCheck
-            &&   best > MATED_IN_MAX
-            &&   captureIsWeak(board, &ei, move, depth))
-            continue;
-        
-         // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
-         // to beat a depth dependent SEE threshold. The usual exceptions for
-         // positions in check, pvnodes, and MATED positions apply here as well.
-         if (   !PvNode
-             && !inCheck
-             &&  depth <= SEEPruningDepth
-             &&  best > MATED_IN_MAX
-             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
-             continue;
+        // // Step 13. Futility Pruning. If our score is far below alpha,
+        // // and we don't expect anything from this move, we can skip this
+        // // one, and also skip all other quiet moves from this position
+        // if (   !PvNode
+        //     &&  isQuiet
+        //     &&  best > MATED_IN_MAX
+        //     && (hist < 4096 || !improving)
+        //     &&  futilityMargin <= alpha
+        //     &&  depth <= FutilityPruningDepth)
+        //     break;
+        //     
+        // // Step 14. Late Move Pruning / Move Count Pruning. If we have
+        // // tried many quiets in this position already, and we don't expect
+        // // anything from this move, we can undo it and skip all remaining quiets
+        // if (   !PvNode
+        //     &&  isQuiet
+        //     &&  best > MATED_IN_MAX
+        //     && (hist < 4096 || !improving)
+        //     &&  depth <= LateMovePruningDepth
+        //     &&  quiets > LateMovePruningCounts[depth])
+        //     break;
+        //     
+        // // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
+        // // a weaker piece which is protected, so long as we do not have any 
+        // // additional support for the attacker. This is done for only some depths
+        // if (    !PvNode
+        //     &&  !isQuiet
+        //     &&  !inCheck
+        //     &&   best > MATED_IN_MAX
+        //     &&   captureIsWeak(board, &ei, move, depth))
+        //     continue;
+        // 
+        //  // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
+        //  // to beat a depth dependent SEE threshold. The usual exceptions for
+        //  // positions in check, pvnodes, and MATED positions apply here as well.
+        //  if (   !PvNode
+        //      && !inCheck
+        //      &&  depth <= SEEPruningDepth
+        //      &&  best > MATED_IN_MAX
+        //      && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
+        //      continue;
         
         // Apply the move, and verify legality
         applyMove(board, move, undo);
@@ -635,26 +635,26 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 18A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  && !checkExtended
-                  &&  depth >= 10
-                  &&  move == ttMove
-                  &&  ttEntry.depth >= depth - 3
-                  && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
-                  &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
-                  
-        // Step 18B. Check Extensions. If we are in a PvNode and we have not already
-        // extended the depth before the move loop, and this move is not singular,
-        // then we will extend it if we have a capture of a quiet with a good history,
-        // or if the node is improving, ie we expect something to beat alpha
-        extension +=   PvNode
-                   &&  inCheck
-                   && !extension
-                   && !checkExtended
-                   && (improving || !isQuiet || hist >= 2048);
+        //extension =  !RootNode
+        //          && !checkExtended
+        //          &&  depth >= 10
+        //          &&  move == ttMove
+        //          &&  ttEntry.depth >= depth - 3
+        //          && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
+        //          &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
+        //          
+        //// Step 18B. Check Extensions. If we are in a PvNode and we have not already
+        //// extended the depth before the move loop, and this move is not singular,
+        //// then we will extend it if we have a capture of a quiet with a good history,
+        //// or if the node is improving, ie we expect something to beat alpha
+        //extension +=   PvNode
+        //           &&  inCheck
+        //           && !extension
+        //           && !checkExtended
+        //           && (improving || !isQuiet || hist >= 2048);
             
         // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + extension;
+        newDepth = depth;
         
         // Step 19A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
@@ -788,19 +788,19 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
-        
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
-        // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
-            continue;
-        
-        // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
-        // SEE threadhold, then it is unlikely to be useful in improving our position
-        if (!staticExchangeEvaluation(board, move, QSEEMargin))
-            continue;
+        // if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        //     continue;
+        // 
+        // // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
+        // // is protected, and we are the sole attacker, then we can be somewhat safe
+        // // in skipping this move so long as we are capturing a weaker piece
+        // if (captureIsWeak(board, &ei, move, 0))
+        //     continue;
+        // 
+        // // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
+        // // SEE threadhold, then it is unlikely to be useful in improving our position
+        // if (!staticExchangeEvaluation(board, move, QSEEMargin))
+        //     continue;
         
         // Apply and validate move before searching
         applyMove(board, move, undo);

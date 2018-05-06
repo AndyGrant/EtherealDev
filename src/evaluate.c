@@ -210,21 +210,21 @@ int evaluateBoard(Board* board, EvalInfo* ei, PawnKingTable* pktable){
     int phase, eval, pkeval;
     
     // evaluateDraws handles obvious drawn positions
-    ei->positionIsDrawn = evaluateDraws(board);
-    if (ei->positionIsDrawn) return 0;
-    
-    // Setup and perform the evaluation of all pieces
-    initializeEvalInfo(ei, board, pktable);
-    eval = evaluatePieces(ei, board);
-    
-    // Store a new Pawn King Entry if we did not have one
-    if (ei->pkentry == NULL && !TEXEL){
-        pkeval = ei->pkeval[WHITE] - ei->pkeval[BLACK];
-        storePawnKingEntry(pktable, board->pkhash, ei->passedPawns, pkeval);
-    }
+    // ei->positionIsDrawn = evaluateDraws(board);
+    // if (ei->positionIsDrawn) return 0;
+    // 
+    // // Setup and perform the evaluation of all pieces
+    // initializeEvalInfo(ei, board, pktable);
+    // eval = evaluatePieces(ei, board);
+    // 
+    // // Store a new Pawn King Entry if we did not have one
+    // if (ei->pkentry == NULL && !TEXEL){
+    //     pkeval = ei->pkeval[WHITE] - ei->pkeval[BLACK];
+    //     storePawnKingEntry(pktable, board->pkhash, ei->passedPawns, pkeval);
+    // }
     
     // Add in the PSQT and Material values, as well as the tempo
-    eval += board->psqtmat + Tempo[board->turn];
+    eval = board->psqtmat + Tempo[board->turn];
        
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
