@@ -152,10 +152,7 @@ const int KingThreatWeight[PIECE_NB] = { 4, 8, 8, 12, 16, 0 };
 
 int KingSafety[256]; // Defined by the Polynomial below
 
-const double KingPolynomial[6] = {
-    0.00000011, -0.00009948,  0.00797308,
-    0.03141319,  2.18429452, -3.33669140,
-};
+const double KingPolynomial[4] = {-0.00336, 0.47329, -3.82967, 11.71401};
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2), S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
@@ -826,12 +823,10 @@ void initializeEvaluation(){
     for (i = 0; i < 256; i++){
         
         KingSafety[i] = (int)(
-            + KingPolynomial[0] * pow(i / 4.0, 5) 
-            + KingPolynomial[1] * pow(i / 4.0, 4)
-            + KingPolynomial[2] * pow(i / 4.0, 3) 
-            + KingPolynomial[3] * pow(i / 4.0, 2)
-            + KingPolynomial[4] * pow(i / 4.0, 1) 
-            + KingPolynomial[5] * pow(i / 4.0, 0)
+            + KingPolynomial[0] * pow(i / 4.0, 3) 
+            + KingPolynomial[1] * pow(i / 4.0, 2)
+            + KingPolynomial[2] * pow(i / 4.0, 1) 
+            + KingPolynomial[3] * pow(i / 4.0, 0)
         );
         
         KingSafety[i] = MakeScore(KingSafety[i], 0);
