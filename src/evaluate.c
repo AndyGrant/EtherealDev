@@ -656,11 +656,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                       | (ei->attackedBy2[!colour] & ~ei->attackedBy2[colour]);
         
         // Compute King Safety index based on safety factors
-        count =  6                                                // King Safety Baseline
-              +  1 * ei->attackCounts[!colour]                    // Computed attack weights
-              + 16 * popcount(weak & ei->kingAreas[colour])       // Weak squares in King Area
-              + 10 * popcount(computePinnedPieces(board, colour)) // Malus for our pinned pieces
-              -  8 * popcount(myPawns & ei->kingAreas[colour]);   // Pawns sitting in our King Area
+        count =  6                                              // King Safety Baseline
+              +  1 * ei->attackCounts[!colour]                  // Computed attack weights
+              + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
+              + 10 * popcount(unsafePinned)                     // Malus for our pinned pieces
+              -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
               
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
