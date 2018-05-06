@@ -224,6 +224,31 @@ void initializeBoard(Board* board, char* fen){
     board->kingAttackers = attackersToKingSquare(board);
 }
 
+uint64_t computePinnedPieces(Board* board, int colour){
+    
+    uint64_t friendly = board->colours[ colour];
+    uint64_t enemy    = board->colours[!colour];
+    
+    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
+    uint64_t kings   = board->pieces[KING  ];
+    
+    int sq, kingsq = getlsb(friendly & kings);
+    
+    uint64_t potentialPinners = bishopAttacks(kingsq, enemy, enemy & bishops)
+                              |   rookAttacks(kingsq, enemy, enemy & rooks  );
+                            
+    uint64_t pinnedPieces = 0ull;
+    
+    while (potentialPinners){
+        sq = poplsb(&potentialPinners);
+        if (exactlyOne(BitsBetweenMasks[kingsq][sq] & friendly))
+            pinnedPieces |= BitsBetweenMasks[kingsq][sq] & friendly;
+    }
+    
+    return pinnedPieces;
+}
+
 void printBoard(Board* board){
     
     int i, j, f, c, t;

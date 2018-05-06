@@ -51,6 +51,7 @@ struct Undo {
 };
 
 void initializeBoard(Board* board, char* fen);
+uint64_t computePinnedPieces(Board* board, int colour);
 void printBoard(Board* board);
 uint64_t perft(Board* board, int depth);
 void runBenchmark(Thread* threads, int depth);
