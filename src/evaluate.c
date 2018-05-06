@@ -617,7 +617,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     int file, kingFile, kingRank, kingSq;
     int distance, count, eval = 0, pkeval = 0;
     
-    uint64_t filePawns, weak;
+    uint64_t filePawns, weak, unsafePinned;
     
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
@@ -649,6 +649,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
              & (  ~ei->attacked[colour]
                 |  ei->attackedBy[colour][QUEEN] 
                 |  ei->attackedBy[colour][KING]);
+                
+        // Pinned piece is weak if there are more attackers than defenders
+        unsafePinned  =  computePinnedPieces(board, colour);
+        unsafePinned &= ~ei->attacked[colour]
+                      | (ei->attackedBy2[!colour] & ~ei->attackedBy2[colour]);
         
         // Compute King Safety index based on safety factors
         count =  6                                                // King Safety Baseline
