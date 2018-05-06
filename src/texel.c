@@ -92,6 +92,7 @@ extern const int QueenMobility[28];
 
 // To determine the starting values for the King terms
 extern const int KingDefenders[12];
+extern const double KingSafetyPoly[3][PHASE_NB];
 extern const int KingShelter[2][FILE_NB][RANK_NB];
 
 // To determine the starting values for the Passed Pawn terms
@@ -109,7 +110,7 @@ void runTexelTuning(Thread* thread){
     
     TexelEntry* tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = 0.1;
     double rates[NT][PHASE_NB] = {{0}, {0}};
     double params[NT][PHASE_NB] = {{0}, {0}};
     double cparams[NT][PHASE_NB] = {{0}, {0}};
@@ -450,6 +451,10 @@ void initializeCoefficients(int coeffs[NT]){
     if (TuneKingDefenders)
         for (a = 0; a < 12; a++)
             coeffs[i++] = T.kingDefenders[WHITE][a] - T.kingDefenders[BLACK][a];
+        
+    if (TuneKingSafetyPoly)
+        for (a = 0; a < 3; a++)
+            coeffs[i++] = T.kingSafetyPoly[WHITE][a] - T.kingSafetyPoly[BLACK][a];
     
     if (TuneKingShelter)
         for (a = 0; a < 2; a++)
@@ -684,6 +689,13 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         }
     }
     
+    if (TuneKingSafetyPoly){
+        for (a = 0; a < 3; a++, i++){
+            cparams[i][MG] = KingSafetyPoly[a][MG];
+            cparams[i][EG] = KingSafetyPoly[a][EG];
+        }
+    }
+    
     if (TuneKingShelter){
         for (a = 0; a < 2; a++){
             for (b = 0; b < FILE_NB; b++){
@@ -775,13 +787,19 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     
     int tparams[NT][PHASE_NB];
     
+    double dparams[NT][PHASE_NB];
+    
     int pvalue = ScoreMG(PawnValue) + (TunePawnValue ? params[0][MG] : 0);
     
     // Combine the original params and the param deltas. Scale the params so
     // that the mid game value of a pawn is always 100 centipawns
     for (x = 0; x < NT; x++){
+        
         tparams[x][MG] = (int)((100.0 / pvalue) * (params[x][MG] + cparams[x][MG]));
         tparams[x][EG] = (int)((100.0 / pvalue) * (params[x][EG] + cparams[x][EG]));
+        
+        dparams[x][MG] = ((100.0 / pvalue) * (params[x][MG] + cparams[x][MG]));
+        dparams[x][EG] = ((100.0 / pvalue) * (params[x][EG] + cparams[x][EG]));
     }
     
     // Print Piece Values
@@ -996,6 +1014,13 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     printf("    0.00000011, -0.00009948,  0.00797308,\n");
     printf("    0.03141319,  2.18429452, -3.33669140,\n");
     printf("};");
+    
+    if (TuneKingSafetyPoly){
+        printf("const double KingSafetyPoly[3][PHASE_NB] = {\n");
+        for (x = 0; x < 3; x++, i++)
+            printf("   {%f, %f},\n", dparams[i][MG], dparams[i][EG]);
+        printf("};");
+    }
 
     if (TuneKingDefenders){
         printf("\nconst int KingDefenders[12] = {");

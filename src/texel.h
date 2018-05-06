@@ -22,10 +22,10 @@
 #include "types.h"
 
 // Depth for evaluating each position
-#define TEXEL_DEPTH (0)
+#define TEXEL_DEPTH (2)
 
 // Number of Positions in the data set
-#define NP (1470000)
+#define NP (7000000)
 
 // Every tunable component of the evaluation includes a definition of
 // TuneParamName, which is equal to an ON/OFF flag, multipled by the
@@ -73,11 +73,12 @@
 #define TuneQueenMobility (0 * 28)
 
 // Define the King Terms
-#define TuneKingDefenders (0 *  12)
-#define TuneKingShelter   (0 * 128)
+#define TuneKingDefenders  (0 *  12)
+#define TuneKingSafetyPoly (1 *   4)
+#define TuneKingShelter    (0 * 128)
 
 // Define the Passed Pawn Terms
-#define TunePassedPawn (1 * 32)
+#define TunePassedPawn (0 * 32)
 
 // Define the Threat Terms
 #define TuneThreatPawnAttackedByOne     (0 * 1)
@@ -97,9 +98,9 @@
     TuneKnightMobility             + TuneBishopPair                 + TuneBishopRammedPawns          + \
     TuneBishopOutpost              + TuneBishopMobility             + TuneRookFile                   + \
     TuneRookOnSeventh              + TuneRookMobility               + TuneQueenMobility              + \
-    TuneKingDefenders              + TuneKingShelter                + TunePassedPawn                 + \
-    TuneThreatPawnAttackedByOne    + TuneThreatMinorAttackedByPawn  + TuneThreatMinorAttackedByMajor + \
-    TuneThreatQueenAttackedByMinor + TuneThreatQueenAttackedByOne                                      \
+    TuneKingDefenders              + TuneKingSafetyPoly             + TuneKingShelter                + \
+    TunePassedPawn                 + TuneThreatPawnAttackedByOne    + TuneThreatMinorAttackedByPawn  + \
+    TuneThreatMinorAttackedByMajor + TuneThreatQueenAttackedByMinor + TuneThreatQueenAttackedByOne     \
 )
 
 // Try to figure out how much we should allocate for the tuner

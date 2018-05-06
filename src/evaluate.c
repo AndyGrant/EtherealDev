@@ -144,10 +144,12 @@ const int QueenMobility[28] = {
 
 int KingSafety[64]; // Defined by the Polynomial below
 
-const double KingPolynomial[6] = {
-    0.00000011, -0.00009948,  0.00797308,
-    0.03141319,  2.18429452, -3.33669140,
+const double KingSafetyPoly[3][PHASE_NB] = {
+   {0.083906, 0.036597},
+   {7.458847, -0.796234},
+   {-43.120759, -2.297120},
 };
+
 const int KingDefenders[12] = {
     S( -37,  -4), S( -18,   6), S(   0,   1), S(  10,   0),
     S(  24,  -3), S(  35,   2), S(  39,  14), S(  28,-207),
@@ -647,8 +649,12 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             count *= .25;
-    
-        eval -= KingSafety[MIN(63, MAX(0, count))];
+        
+        count = MIN(63, MAX(0, count));
+        eval -= KingSafety[count];
+        if (TRACE) T.kingSafetyPoly[colour][0] += pow(count, 2);
+        if (TRACE) T.kingSafetyPoly[colour][1] += pow(count, 1);
+        if (TRACE) T.kingSafetyPoly[colour][2] += pow(count, 0);
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
@@ -807,18 +813,18 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
 
 void initializeEvaluation(){
     
-    int i;
+    int i, mg, eg;
     
-    // Compute values for the King Safety based on the King Polynomial. We only
-    // apply King Safety to the midgame score, so as an extra, but non-needed step,
-    // we compute a combined score with a zero EG argument.
     for (i = 0; i < 64; i++){
-        KingSafety[i] = (int)(
-            + KingPolynomial[0] * pow(i, 5) + KingPolynomial[1] * pow(i, 4)
-            + KingPolynomial[2] * pow(i, 3) + KingPolynomial[3] * pow(i, 2)
-            + KingPolynomial[4] * pow(i, 1) + KingPolynomial[5] * pow(i, 0)
-        );
         
-        KingSafety[i] = MakeScore(KingSafety[i], 0);
+        mg = KingSafetyPoly[0][MG] * pow(i, 2) 
+           + KingSafetyPoly[1][MG] * pow(i, 1)
+           + KingSafetyPoly[2][MG] * pow(i, 0);
+           
+        eg = KingSafetyPoly[0][MG] * pow(i, 2) 
+           + KingSafetyPoly[1][MG] * pow(i, 1)
+           + KingSafetyPoly[2][MG] * pow(i, 0);
+           
+        KingSafety[i] = MakeScore(mg, eg);
     }
 }
