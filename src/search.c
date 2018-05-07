@@ -497,10 +497,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
         while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
-            
-            // Even if we keep the capture piece and or the promotion piece
-            // we will fail to exceed rBeta, then we will skip this move
-            if (eval + thisTacticalMoveValue(board, move) < rBeta)
+
+            // Skip tactical moves which are losing or fail to beat rBeta
+            if (   !staticExchangeEvaluation(board, move, 0)
+                ||  eval + thisTacticalMoveValue(board, move) < rBeta)
                 continue;
             
             // Apply and validate move before searching
