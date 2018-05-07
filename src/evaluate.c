@@ -660,7 +660,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
               +  1 * ei->attackCounts[!colour]                      // Computed attack weights
               + 16 * popcount(weak & ei->kingAreas[colour])         // Weak squares in King Area
               -  8 * popcount(myPawns & ei->kingAreas[colour])      // Pawns sitting in our King Area
-              + 24 * popcount(strongPawns & ei->kingAreas[colour]); // Enemy pawns swarming our King Area
+              + 12 * popcount(strongPawns & ei->kingAreas[colour]); // Enemy pawns swarming our King Area
               
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
