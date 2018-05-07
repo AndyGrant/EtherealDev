@@ -253,7 +253,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int i, repetitions, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE;
     int bound, inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
     
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -424,9 +424,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
     
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off a static evaluation history
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
     
     // Finally, we define a node to be improving if the last two moves have increased
     // the static eval. To have two last moves, we must have a height of at least 4.
@@ -558,8 +557,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            &&  eval + FutilityMargin[improving] * depth <= alpha)
             break;
             
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
