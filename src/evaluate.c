@@ -617,9 +617,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     int file, kingFile, kingRank, kingSq;
     int distance, count, eval = 0, pkeval = 0;
     
-    uint64_t filePawns, weak;
+    uint64_t filePawns, weak, strongPawns;
     
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
+    uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
     
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
@@ -647,14 +649,18 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         weak =  ei->attacked[!colour]
              & ~ei->attackedBy2[colour]
              & (  ~ei->attacked[colour]
-                |  ei->attackedBy[colour][QUEEN] 
+                |  ei->attackedBy[colour][QUEEN]
                 |  ei->attackedBy[colour][KING]);
+                
+        strongPawns = (weak & enemyPawns)
+                    | (enemyPawns & ei->attackedBy2[!colour] & ~ei->attackedBy2[colour]);
         
         // Compute King Safety index based on safety factors
-        count =  8                                              // King Safety Baseline
-              +  1 * ei->attackCounts[!colour]                  // Computed attack weights
-              + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
-              -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
+        count =  8                                                  // King Safety Baseline
+              +  1 * ei->attackCounts[!colour]                      // Computed attack weights
+              + 16 * popcount(weak & ei->kingAreas[colour])         // Weak squares in King Area
+              -  8 * popcount(myPawns & ei->kingAreas[colour])      // Pawns sitting in our King Area
+              + 24 * popcount(strongPawns & ei->kingAreas[colour]); // Enemy pawns swarming our King Area
               
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
