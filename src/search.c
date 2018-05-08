@@ -498,9 +498,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         
         while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
-            // Even if we keep the capture piece and or the promotion piece
-            // we will fail to exceed rBeta, then we will skip this move
-            if (eval + thisTacticalMoveValue(board, move) < rBeta)
+            // Move should pass an SEE() to be worth at least rBeta
+            if (!staticExchangeEvaluation(board, move, rBeta - eval))
                 continue;
             
             // Apply and validate move before searching
@@ -840,9 +839,13 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     
-    // Assume that enpass and promotion are worth at least 0
-    if (MoveType(move) != NORMAL_MOVE)
-        return 0 >= threshold;
+    
+    if (MoveType(move) != NORMAL_MOVE){
+
+        return threshold <= (  MoveType(move) == CASTLE_MOVE ? 0 
+                             : MoveType(move) == ENPASS_MOVE ? PieceValues[PAWN][MG]
+                             : PieceValues[MovePromoPiece(move)][MG]);
+    }
     
     int from = MoveFrom(move), to = MoveTo(move);
     int nextVictim = PieceType(board->squares[from]);
