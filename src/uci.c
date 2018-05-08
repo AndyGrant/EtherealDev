@@ -70,9 +70,6 @@ int main(){
     initializeMasks();
     initializeZorbist();
     
-    // Setup any evaluation tables defined by functions
-    initializeEvaluation();
-    
     // Allocate space for the TTable, initially 16 megabytes
     initializeTranspositionTable(&Table, megabytes);
     
