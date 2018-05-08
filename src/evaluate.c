@@ -617,7 +617,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     int file, kingFile, kingRank, kingSq;
     int distance, count, eval = 0, pkeval = 0;
     
-    uint64_t filePawns, weak;
+    uint64_t filePawns, weak, enemyQueens;
     
     uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
     uint64_t myKings = board->pieces[KING] & board->colours[colour];
@@ -650,16 +650,15 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                 |  ei->attackedBy[colour][QUEEN] 
                 |  ei->attackedBy[colour][KING]);
         
-        // Compute King Safety index based on safety factors
+        // Find enemy queens. A queenless opponent has less of a mating threat
+        enemyQueens = board->colours[!colour] & board->pieces[QUEEN];
+        
         count =  8                                              // King Safety Baseline
+              - 48 * !!enemyQueens                              // No Queens reduces threat
               +  1 * ei->attackCounts[!colour]                  // Computed attack weights
               + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
               -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
               
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            count *= .25;
-    
         eval -= KingSafety[MIN(255, MAX(0, count))];
     }
     
