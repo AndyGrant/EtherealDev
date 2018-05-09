@@ -499,7 +499,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
             
             // Move should pass an SEE() to be worth at least rBeta
-            if (!staticExchangeEvaluation(board, move, rBeta - eval))
+            if (!staticExchangeEvaluation(board, move, MAX(0, rBeta - eval)))
                 continue;
             
             // Apply and validate move before searching
