@@ -68,8 +68,6 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
     
 int bestTacticalMoveValue(Board* board, EvalInfo* ei);
 
-int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
-
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height);
 
 
@@ -96,10 +94,6 @@ static const int FutilityPruningDepth = 8;
 static const int LateMovePruningDepth = 8;
 
 static const int LateMovePruningCounts[] = {0, 4, 6, 10, 15, 23, 31, 40, 52};
-
-static const int WeakCaptureTwoAttackersDepth = 5;
-
-static const int WeakCaptureOneAttackersDepth = 3;
 
 static const int SEEPruningDepth = 8;
 
