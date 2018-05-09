@@ -138,17 +138,8 @@ void* iterativeDeepening(void* vthread){
         uciReport(thread->threads, -MATE, MATE, value);
         
         // If Ethereal is managing the clock, determine if we should be spending
-        // more time on this search, based on the score difference between iterations
-        // and any changes in the principle variation since the last iteration
+        // more time on this search, based on changes in the principle variation
         if (limits->limitedBySelf && depth >= 4){
-            
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealUsage *= 1.050;
-            
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealUsage *= 0.975;
             
             if (info->bestMoves[depth] == info->bestMoves[depth-1]){
                 
