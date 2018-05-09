@@ -656,8 +656,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Bound count by [0, 255]
         count = MIN(255, MAX(0, count));
         
-        // Use the polynomal P(x) = (3/160)X^2
-        count = 3 * count * count / 160;
+        // Use the polynomal P(x) = (1/80)X^2
+        count = count * count / 80;
         
         // Adjust eval, using a built ( MG, EG) score tuple
         eval -= MakeScore(count, 0);
