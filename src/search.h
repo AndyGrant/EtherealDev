@@ -85,7 +85,7 @@ static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
 
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin[2] = { 175, 125};
 
 static const int IIDDepth = 3;
 

@@ -490,9 +490,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
-        &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
+        &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin[improving]){
             
-        rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
+        rBeta = MIN(beta + ProbCutMargin[improving], MATE - MAX_PLY - 1);
             
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
         
