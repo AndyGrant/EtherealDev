@@ -615,6 +615,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase R by an additional two ply for non PvNodes
             R += 2 * !PvNode;
             
+            R += PvNode && inCheck;
+            
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
             // we either have no table move, or the table move is not the best so far
@@ -649,8 +651,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension +=   PvNode
                    &&  inCheck
                    && !extension
-                   && !checkExtended
-                   && (improving || !isQuiet || hist >= 2048);
+                   && !checkExtended;
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
