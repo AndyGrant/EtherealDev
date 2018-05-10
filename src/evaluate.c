@@ -150,13 +150,6 @@ const int KingDefenders[12] = {
 
 const int KingThreatWeight[PIECE_NB] = { 4, 8, 8, 12, 16, 0 };
 
-int KingSafety[256]; // Defined by the Polynomial below
-
-const double KingPolynomial[6] = {
-    0.00000011, -0.00009948,  0.00797308,
-    0.03141319,  2.18429452, -3.33669140,
-};
-
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2), S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
    {S(   4,   6), S(  16,  -8), S(  12, -10), S(  -2, -13), S( -27,   0), S( -66,  79), S( 101,  94), S( -30,   1)},
@@ -659,20 +652,20 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             count *= .25;
+        
+        // We won't ever apply a bonus for being in danger
+        count = MAX(count, 0);
     
-        eval -= KingSafety[MIN(255, MAX(0, count))];
+        // Score as MG=(1/64)X^2, EG=X
+        eval -= MakeScore(count * count / 64, count);
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
     if (ei->pkentry != NULL) return eval;
     
-    // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
-    // to the King's file. We evaluate the distance between the king and the most backward
-    // pawn. We will not look at pawns behind the king, and will consider that as having
-    // no pawn on the file. No pawn on a file is used with distance equals 7, as no pawn
-    // can ever be a distance of 7 from the king. Different bonus is in order when we are
-    // looking at the file on which the King sits.
-    
+    // Evaluate Pawn Shelter. Look at King's file and the adjacent ones. Take into
+    // account the distance from the king to the nearest pawn on each file. If no
+    // pawn is present, take the distance to be 7.
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
         
         filePawns = myPawns & Files[file] & RanksAtOrAboveMasks[colour][kingRank];
@@ -815,25 +808,4 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     if (TEXEL) ei->pkentry = NULL;
     else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
-}
-
-void initializeEvaluation(){
-    
-    int i;
-    
-    // Compute values for the King Safety based on the King Polynomial
-    
-    for (i = 0; i < 256; i++){
-        
-        KingSafety[i] = (int)(
-            + KingPolynomial[0] * pow(i / 4.0, 5) 
-            + KingPolynomial[1] * pow(i / 4.0, 4)
-            + KingPolynomial[2] * pow(i / 4.0, 3) 
-            + KingPolynomial[3] * pow(i / 4.0, 2)
-            + KingPolynomial[4] * pow(i / 4.0, 1) 
-            + KingPolynomial[5] * pow(i / 4.0, 0)
-        );
-        
-        KingSafety[i] = MakeScore(KingSafety[i], 0);
-    }
 }
