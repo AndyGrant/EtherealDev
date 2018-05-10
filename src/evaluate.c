@@ -148,7 +148,7 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
-const int KingThreatWeight[PIECE_NB] = { 4, 8, 8, 12, 16, 0 };
+const int KingThreatWeight[PIECE_NB] = { 1, 2, 2, 3, 4, 0 };
 
 int KingSafety[256]; // Defined by the Polynomial below
 
@@ -605,7 +605,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += KingThreatWeight[QUEEN] * popcount(attacks);
-            ei->attackerCounts[colour] += 2;
+            ei->attackerCounts[colour] += 1;
         }
     }
     
@@ -638,9 +638,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     eval += KingDefenders[count];
     if (TRACE) T.kingDefenders[colour][count]++;
     
-    // If we have two or more threats to our king area, we will apply a penalty
-    // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
+    // Apply King Safety if we have threats to the King Area
+    if (ei->attackerCounts[!colour]){
         
         // Attacked squares are weak if we only defend once with king or queen.
         // This definition of square weakness is taken from Stockfish's king safety
@@ -650,17 +649,20 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                 |  ei->attackedBy[colour][QUEEN] 
                 |  ei->attackedBy[colour][KING]);
         
-        // Compute King Safety index based on safety factors
-        count =  8                                              // King Safety Baseline
-              +  1 * ei->attackCounts[!colour]                  // Computed attack weights
-              + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
-              -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
-              
-        // Scale down attack count if there are no enemy queens
-        if (!(board->colours[!colour] & board->pieces[QUEEN]))
-            count *= .25;
-    
-        eval -= KingSafety[MIN(255, MAX(0, count))];
+        // King Safety by attackers and attack counts
+        count  = ei->attackCounts[!colour] * (1 + ei->attackerCounts[!colour]);
+        
+        // Less safe if we have weak squares in the King Area
+        count += 16 * popcount(weak & ei->kingAreas[colour]);
+        
+        // More safe if we have pawns inside our King Area
+        count -=  8 * popcount(myPawns & ei->kingAreas[colour]);
+        
+        // More safe if there are no enemy queens
+        count *= board->colours[!colour] & board->pieces[QUEEN] ? 1 : 0.25;
+        
+        // Score safety by S( (1/64)X^2, 0)
+        eval -= MakeScore(MAX(0, count) * MAX(0, count) / 64, 0);
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
@@ -815,25 +817,4 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     if (TEXEL) ei->pkentry = NULL;
     else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
-}
-
-void initializeEvaluation(){
-    
-    int i;
-    
-    // Compute values for the King Safety based on the King Polynomial
-    
-    for (i = 0; i < 256; i++){
-        
-        KingSafety[i] = (int)(
-            + KingPolynomial[0] * pow(i / 4.0, 5) 
-            + KingPolynomial[1] * pow(i / 4.0, 4)
-            + KingPolynomial[2] * pow(i / 4.0, 3) 
-            + KingPolynomial[3] * pow(i / 4.0, 2)
-            + KingPolynomial[4] * pow(i / 4.0, 1) 
-            + KingPolynomial[5] * pow(i / 4.0, 0)
-        );
-        
-        KingSafety[i] = MakeScore(KingSafety[i], 0);
-    }
 }
