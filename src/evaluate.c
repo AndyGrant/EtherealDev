@@ -640,7 +640,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
+    if (ei->attackerCounts[!colour] >= 1){
         
         // Attacked squares are weak if we only defend once with king or queen.
         // This definition of square weakness is taken from Stockfish's king safety
@@ -654,13 +654,18 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count =  8                                              // King Safety Baseline
               +  1 * ei->attackCounts[!colour]                  // Computed attack weights
               + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
-              -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
+              -  8 * popcount(myPawns & ei->kingAreas[colour])  // Pawns sitting in our King Area
+              - 32 * (ei->attackCounts[!colour] == 1);          // Only one attacker is somewhat safe
               
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
             count *= .25;
-    
-        eval -= KingSafety[MIN(255, MAX(0, count))];
+        
+        // Bound count by [0, 255]
+        count = MAX(0, MIN(255, count));
+        
+        // Score using (1/64)X^2 for the MG, 0 for the EG
+        eval -= MakeScore(count * count / 64, 0);
     }
     
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
@@ -815,25 +820,4 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     
     if (TEXEL) ei->pkentry = NULL;
     else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
-}
-
-void initializeEvaluation(){
-    
-    int i;
-    
-    // Compute values for the King Safety based on the King Polynomial
-    
-    for (i = 0; i < 256; i++){
-        
-        KingSafety[i] = (int)(
-            + KingPolynomial[0] * pow(i / 4.0, 5) 
-            + KingPolynomial[1] * pow(i / 4.0, 4)
-            + KingPolynomial[2] * pow(i / 4.0, 3) 
-            + KingPolynomial[3] * pow(i / 4.0, 2)
-            + KingPolynomial[4] * pow(i / 4.0, 1) 
-            + KingPolynomial[5] * pow(i / 4.0, 0)
-        );
-        
-        KingSafety[i] = MakeScore(KingSafety[i], 0);
-    }
 }
