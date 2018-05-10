@@ -68,8 +68,6 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
     
 int bestTacticalMoveValue(Board* board, EvalInfo* ei);
 
-int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth);
-
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height);
 
 
