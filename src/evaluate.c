@@ -650,9 +650,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                 |  ei->attackedBy[colour][QUEEN] 
                 |  ei->attackedBy[colour][KING]);
         
-        // Compute King Safety index based on safety factors
-        count =  8                                              // King Safety Baseline
-              +  1 * ei->attackCounts[!colour]                  // Computed attack weights
+        count =  1 * ei->attackCounts[!colour]                  // Computed attack weights
+              +  6 * ei->attackerCounts[!colour]                // Many threats are less safe
               + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
               -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
               
