@@ -646,11 +646,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // extended the depth before the move loop, and this move is not singular,
         // then we will extend it if we have a capture of a quiet with a good history,
         // or if the node is improving, ie we expect something to beat alpha
-        extension +=   PvNode
-                   &&  inCheck
+        extension +=   inCheck
                    && !extension
                    && !checkExtended
-                   && (improving || !isQuiet || hist >= 2048);
+                   && (improving || !isQuiet || hist >= 4096)
+                   && ((improving && hist >= 4096) || PvNode);
+                   
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
