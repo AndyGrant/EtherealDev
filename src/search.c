@@ -647,10 +647,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // then we will extend it if we have a capture of a quiet with a good history,
         // or if the node is improving, ie we expect something to beat alpha
         extension +=  inCheck
-                  && !isQuiet
+                  &&  isQuiet
                   && !extension
                   && !checkExtended
                   &&  hist >= 4096;
+                  
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
