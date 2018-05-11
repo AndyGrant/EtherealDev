@@ -553,7 +553,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
-        if (   !PvNode
+        if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
@@ -564,7 +564,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and skip all remaining quiets
-        if (   !PvNode
+        if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
@@ -575,7 +575,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
         // a weaker piece which is protected, so long as we do not have any 
         // additional support for the attacker. This is done for only some depths
-        if (    !PvNode
+        if (    !RootNode
             &&  !isQuiet
             &&  !inCheck
             &&   best > MATED_IN_MAX
@@ -585,7 +585,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
          // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
          // to beat a depth dependent SEE threshold. The usual exceptions for
          // positions in check, pvnodes, and MATED positions apply here as well.
-         if (   !PvNode
+         if (   !RootNode
              && !inCheck
              &&  depth <= SEEPruningDepth
              &&  best > MATED_IN_MAX
