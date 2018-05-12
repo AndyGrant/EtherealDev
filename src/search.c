@@ -575,10 +575,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             break;
             
         // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
-        // to beat a depth dependent SEE threshold. The usual exceptions for
-        // positions in check, pvnodes, and MATED positions apply here as well.
+        // to beat a depth dependent SEE threshold. SEE is often wrong at very
+        // low depths, so only do this pruning above depth 3
         if (   !PvNode
             && !inCheck
+            &&  depth >= 3
             &&  best > MATED_IN_MAX
             && !staticExchangeEvaluation(board, move, -seeMargin))
             continue;
