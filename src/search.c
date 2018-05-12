@@ -253,7 +253,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int i, repetitions, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE, seeMargin = -MATE;
     int bound, inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
     
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -424,15 +424,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
     
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // We define a node to be improving if the last two moves have increased the
+    // static eval. To have two last moves, we must have a height of at least 4.
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
-    
-    // Finally, we define a node to be improving if the last two moves have increased
-    // the static eval. To have two last moves, we must have a height of at least 4.
     improving =    height >= 4
                &&  thread->evalStack[height-0] > thread->evalStack[height-2]
                &&  thread->evalStack[height-2] > thread->evalStack[height-4];
+    
+    // Compute the margins for pruning
+    futilityMargin = eval + FutilityMargin * depth;
+    seeMargin = SEEMargin * (depth + 1) * (depth + 2);
+    
     
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -572,25 +574,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  quiets > LateMovePruningCounts[depth])
             break;
             
-        // Step 15. Weak Capture Pruning. Prune this capture if it is capturing
-        // a weaker piece which is protected, so long as we do not have any 
-        // additional support for the attacker. This is done for only some depths
-        if (    !PvNode
-            &&  !isQuiet
-            &&  !inCheck
-            &&   best > MATED_IN_MAX
-            &&   captureIsWeak(board, &ei, move, depth))
+        // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
+        // to beat a depth dependent SEE threshold. The usual exceptions for
+        // positions in check, pvnodes, and MATED positions apply here as well.
+        if (   !PvNode
+            && !inCheck
+            &&  best > MATED_IN_MAX
+            && !staticExchangeEvaluation(board, move, -seeMargin))
             continue;
-        
-         // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
-         // to beat a depth dependent SEE threshold. The usual exceptions for
-         // positions in check, pvnodes, and MATED positions apply here as well.
-         if (   !PvNode
-             && !inCheck
-             &&  depth <= SEEPruningDepth
-             &&  best > MATED_IN_MAX
-             && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
-             continue;
         
         // Apply the move, and verify legality
         applyMove(board, move, undo);
@@ -789,13 +780,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
         
-        // Step 7. Weak Capture Pruning. If we are trying to capture a piece which
-        // is protected, and we are the sole attacker, then we can be somewhat safe
-        // in skipping this move so long as we are capturing a weaker piece
-        if (captureIsWeak(board, &ei, move, 0))
-            continue;
-        
-        // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
+        // Step 7. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
         if (!staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
@@ -1000,7 +985,6 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei){
     else if (board->epSquare != -1)
         value += PieceValues[PAWN][MG];
         
-    
     // See if we have any pawns on promoting ranks. If so, assume that
     // we can promote one of our pawns to at least a queen
     if (   board->pieces[PAWN] 
@@ -1009,30 +993,6 @@ int bestTacticalMoveValue(Board* board, EvalInfo* ei){
         value += PieceValues[QUEEN][MG] - PieceValues[PAWN][MG];
             
     return value;
-}
-
-int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
-    
-    // If we lack the sufficient depth, the position was drawn and thus
-    // no attackers were computed, or the capture we are looking at is
-    // supported by another piece, then this capture is not a weak one
-    if (    depth > WeakCaptureTwoAttackersDepth
-        ||  ei->positionIsDrawn
-        || (ei->attackedBy2[board->turn] & (1ull << MoveTo(move))))
-        return 0;
-        
-    // Determine how valuable our attacking piece is
-    int attackerValue = PieceValues[PieceType(board->squares[MoveFrom(move)])][MG];
-        
-    // This capture is not weak if we are attacking an equal or greater valued piece, 
-    if (thisTacticalMoveValue(board, move) >= attackerValue)
-        return 0;
-    
-    // Thus, the capture is weak if there are sufficient attackers for a given depth
-    return (   (depth <= WeakCaptureTwoAttackersDepth
-            &&  ei->attackedBy2[!board->turn] & (1ull << MoveTo(move)))
-            || (depth <= WeakCaptureOneAttackersDepth
-            &&  ei->attacked[!board->turn] & (1ull << MoveTo(move))));
 }
 
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height){
