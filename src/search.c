@@ -253,7 +253,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int i, repetitions, quiets = 0, played = 0, hist = 0;
     int R, newDepth, rAlpha, rBeta, ttValue, oldAlpha = alpha;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin;
     int bound, inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
     
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -424,15 +424,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
     
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off this nodes part of the static eval history
     eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
     
-    // Finally, we define a node to be improving if the last two moves have increased
-    // the static eval. To have two last moves, we must have a height of at least 4.
+    // We define a node to be improving if the last two moves have increased the
+    // static eval. To have two last moves, we must have a height of at least 4
     improving =    height >= 4
                &&  thread->evalStack[height-0] > thread->evalStack[height-2]
                &&  thread->evalStack[height-2] > thread->evalStack[height-4];
+    
+    // Finally, determine some of the pruning margins
+    futilityMargin = eval + FutilityMargin * depth;
+    seeMargin = SEEMargin[improving] * depth * depth;
     
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -572,15 +575,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  quiets > LateMovePruningCounts[depth])
             break;
         
-         // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
-         // to beat a depth dependent SEE threshold. The usual exceptions for
-         // positions in check, pvnodes, and MATED positions apply here as well.
-         if (   !PvNode
-             && !inCheck
-             &&  depth <= SEEPruningDepth
-             &&  best > MATED_IN_MAX
-             && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
-             continue;
+        // Step 15. Static Exchange Evaluation Pruning. Prune moves which fail
+        // to beat a depth dependent SEE threshold. The usual exceptions for
+        // positions in check, pvnodes, and MATED positions apply here as well.
+        if (   !PvNode
+            && !inCheck
+            &&  depth <= SEEPruningDepth
+            &&  best > MATED_IN_MAX
+            && !staticExchangeEvaluation(board, move, -seeMargin))
+            continue;
         
         // Apply the move, and verify legality
         applyMove(board, move, undo);
@@ -592,7 +595,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
     
-        // Step 17. Late Move Reductions. We will search some moves at a
+        // Step 16. Late Move Reductions. We will search some moves at a
         // lower depth. If they look poor at a lower depth, then we will
         // move on. If they look good, we will search with a full depth.
         if (    played >= 4
