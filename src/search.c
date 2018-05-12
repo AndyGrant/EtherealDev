@@ -214,6 +214,12 @@ int aspirationWindow(Thread* thread, int depth){
     lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
     lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4])); 
     
+    // Vary the window sizes for helper threads, on [12, 36]
+    if (!mainThread){
+        upper = MAX(upper, 12 + (thread->idx + 1) * 24 / thread->nthreads);
+        lower = MAX(lower, 12 + (thread->idx + 1) * 24 / thread->nthreads);
+    }
+    
     // Create the aspiration window
     alpha = MAX(-MATE, values[mainDepth-1] - lower);
     beta  = MIN( MATE, values[mainDepth-1] + upper);

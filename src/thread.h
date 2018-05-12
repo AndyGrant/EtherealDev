@@ -43,6 +43,7 @@ struct Thread {
     
     jmp_buf jbuffer;
     
+    int idx;
     int nthreads;
     Thread* threads;
     

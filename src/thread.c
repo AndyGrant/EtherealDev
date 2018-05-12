@@ -35,6 +35,7 @@ Thread* createThreadPool(int nthreads){
     // Provide each thread with a reference to the others,
     // as well as a counter of how many threads there are
     for (i = 0; i < nthreads; i++){
+        threads[i].idx = i;
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
     }
