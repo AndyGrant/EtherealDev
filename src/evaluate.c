@@ -86,7 +86,7 @@ const int PawnConnected32[32] = {
 
 // Definition of evaluation terms related to Knights
 
-const int KnightRammedPawns = S(   0,   5);
+const int KnightRammedPawns = S(   9,   5);
 
 const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
 
