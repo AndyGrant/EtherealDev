@@ -645,11 +645,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 18B. Check Extensions. We extend quiets moves from in check
         // positions, so long as on other extension has been made and the move
         // has resonable history. 
-        extension +=  inCheck
-                  && !isQuiet
-                  && !extension
-                  && !checkExtended
-                  &&  hist >= 4096;
+        extension +=   inCheck
+                  &&  !extension
+                  &&  !checkExtended
+                  && (!isQuiet || (hist >= 4096 && R > 1));
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
