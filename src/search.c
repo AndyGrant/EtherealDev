@@ -642,12 +642,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
                   &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
                   
-        // Step 18B. Check Extensions. We extend captures from any in
-        // check positions, so long as no other extension has been made
-        extension +=  inCheck
-                  && !isQuiet
+        // Step 18B. Check Extensions. We extend captures which escape or create
+        // checked positions, so long as no other extension has been made
+        extension += !isQuiet
                   && !extension
-                  && !checkExtended;
+                  && !checkExtended
+                  && (inCheck || board->kingAttackers);
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
