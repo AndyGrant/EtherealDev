@@ -50,7 +50,7 @@ void* iterativeDeepening(void* vthread);
 
 int aspirationWindow(Thread* thread, int depth);
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, uint16_t excluded);
 
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 

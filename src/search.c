@@ -202,7 +202,7 @@ int aspirationWindow(Thread* thread, int depth){
     int mainDepth = MAX(5, 1 + thread->info->depth);
     
     // Without at least a few searches, we cannot guess a good search window
-    if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0, NONE_MOVE);
 
     // Dynamically compute the upper margin based on previous scores
     upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
@@ -226,7 +226,7 @@ int aspirationWindow(Thread* thread, int depth){
         if (abs(beta ) >= MATE / 4) alpha = -MATE, beta = MATE;
         
         // Perform the search on the modified window
-        value = search(thread, &thread->pv, alpha, beta, depth, 0);
+        value = search(thread, &thread->pv, alpha, beta, depth, 0, NONE_MOVE);
         
         // Result was within our window
         if (value > alpha && value < beta) return value;
@@ -243,7 +243,7 @@ int aspirationWindow(Thread* thread, int depth){
     }
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, uint16_t excluded){
     
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -257,6 +257,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int bound, inCheck, isQuiet, improving, checkExtended, extension, bestWasQuiet = 0;
     
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
+    
+    uint64_t zorbistKey = board->hash ^ (((uint64_t)(excluded)) << 16);
     
     Undo undo[1];
     EvalInfo ei;
@@ -329,7 +331,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
     
     // Step 3. Probe the Transposition Table for an entry
-    if (getTranspositionEntry(&Table, board->hash, &ttEntry)){
+    if (getTranspositionEntry(&Table, zorbistKey, &ttEntry)){
         
         // Entry move may be good in this position
         ttMove = ttEntry.bestMove;
@@ -407,7 +409,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // is due to the replacment scheme in place. Since Ethereal looks to discard old
             // entries first, instead of a formula between age and depth, we can use MAX_PLY-1.
             // Also, we know the value to not be a MATE score, thus no valueToTT() is needed.
-            storeTranspositionEntry(&Table, MAX_PLY - 1, bound, value, NONE_MOVE, board->hash);
+            storeTranspositionEntry(&Table, MAX_PLY - 1, bound, value, NONE_MOVE, zorbistKey);
             
             return value;
         }
@@ -441,6 +443,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
         && !inCheck
+        &&  excluded == NONE_MOVE
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
             
@@ -456,6 +459,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
+        &&  excluded == NONE_MOVE
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return beta;
@@ -466,6 +470,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
+        &&  excluded == NONE_MOVE
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
@@ -475,7 +480,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         applyNullMove(board, undo);
         
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1, NONE_MOVE);
         
         revertNullMove(board, undo);
         
@@ -488,6 +493,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        &&  excluded == NONE_MOVE
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board, &ei) >= beta + ProbCutMargin){
@@ -512,8 +518,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
-                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1, NONE_MOVE) >= rBeta
+                && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, NONE_MOVE) >= rBeta){
                     
                 revertMove(board, move, undo);
                 return beta;
@@ -527,14 +533,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
+        &&  excluded == NONE_MOVE
         &&  ttMove == NONE_MOVE
         &&  depth >= IIDDepth){
         
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, NONE_MOVE);
         
         // Probe for the newly found move, and update ttMove
-        if (getTranspositionEntry(&Table, board->hash, &ttEntry))
+        if (getTranspositionEntry(&Table, zorbistKey, &ttEntry))
             ttMove = ttEntry.bestMove;
     }
     
@@ -542,6 +549,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move one at a time, until we run out or a move generates a cutoff
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        
+        // For singular searches, don't play the excluded move
+        if (move == excluded) continue;
         
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
@@ -638,6 +648,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
+                  &&  excluded == NONE_MOVE
                   &&  ttEntry.depth >= depth - 3
                   && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
                   &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
@@ -657,21 +668,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 19A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1, NONE_MOVE);
         
         // Step 19B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1, NONE_MOVE);
         
         // Step 19C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1, NONE_MOVE);
 
         // Revert the board state
         revertMove(board, move, undo);
@@ -725,7 +736,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // must also convert the search value to a tt value, which handles mates
     storeTranspositionEntry(&Table, depth, (best > oldAlpha && best < beta)
                             ? PVNODE : best >= beta ? CUTNODE : ALLNODE,
-                            valueToTT(best, height), bestMove, board->hash);
+                            valueToTT(best, height), bestMove, zorbistKey);
                             
     return best;
 }
@@ -1037,46 +1048,21 @@ int captureIsWeak(Board* board, EvalInfo* ei, uint16_t move, int depth){
 
 int moveIsSingular(Thread* thread, Board* board, TransEntry* ttEntry, Undo* undo, int depth, int height){
     
-    uint16_t move;
-    MovePicker movePicker;
-    int value = -MATE;
-    int rBeta = MAX(ttEntry->value - 2 * depth, -MATE);
+    // Search on a window around the value stored in the table
+    int value, rBeta = MAX(valueFromTT(ttEntry->value, height) - 2 * depth, -MATE);
     
-    // Use a dummy lpv, as we will throw it away
-    PVariation lpv; lpv.length = 0;
-    
+    PVariation lpv; lpv.length = 0;// Dummy PV to throw away
+
     // We check for move singularity after we have already applied the move.
     // Thus we must revert the move, check for singularity, and reapply it
-    revertMove(board, ttEntry->bestMove, undo);
-    
-    // Search over each move, we will skip the ttMove inside the loop
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 0);
-    while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
-        
-        // Don't search the move we are checking for singularity
-        if (move == ttEntry->bestMove) continue;
-        
-        // Make the move, and verify legality before searching
-        // Verify legality before searching
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
-            continue;
-        }
-        
-        // Perform a reduced depth search on a null rbeta window
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
-        
-        // Set the board state to what it was initially
-        revertMove(board, move, undo);
-        
-        // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
-    }
+    revertMove(board, ttEntry->bestMove, undo);    
+
+    // Search again on a reduced depth but exclude the table move
+    value = search(thread, &lpv, rBeta - 1, rBeta, depth / 2, height, ttEntry->bestMove);
     
     // Fix the board state to what it was initially
     applyMove(board, ttEntry->bestMove, undo);
 
-    // Move in singular if all evals failed low
-    return value <= rBeta;    
+    // No other moves caused a beta cutoff, so table move is singular
+    return value < rBeta;
 }
