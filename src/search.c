@@ -631,7 +631,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             
         } else R = 1;
         
-        // Step 18A. Singular Move Extensions. If we are looking at a table move,
+        // Step 18. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
         extension =  !RootNode
@@ -641,15 +641,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  ttEntry.depth >= depth - 3
                   && (ttEntry.type == PVNODE || ttEntry.type == CUTNODE)
                   &&  moveIsSingular(thread, board, &ttEntry, undo, depth, height);
-                  
-        // Step 18B. Check Extensions. We extend quiets moves from in check
-        // positions, so long as on other extension has been made and the move
-        // has resonable history. 
-        extension +=  inCheck
-                  && !isQuiet
-                  && !extension
-                  && !checkExtended
-                  &&  hist >= 4096;
             
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
