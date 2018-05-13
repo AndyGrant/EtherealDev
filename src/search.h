@@ -101,9 +101,7 @@ static const int WeakCaptureTwoAttackersDepth = 5;
 
 static const int WeakCaptureOneAttackersDepth = 3;
 
-static const int SEEPruningDepth = 8;
-
-static const int SEEMargin[2] = { -20, -30};
+static const int SEEMargin[2] = { -12, -24};
 
 static const int QFutilityMargin = 100;
 
