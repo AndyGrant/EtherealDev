@@ -1,17 +1,17 @@
 /*
   Ethereal is a UCI chess playing engine authored by Andrew Grant.
   <https://github.com/AndyGrant/Ethereal>     <andrew@grantnet.us>
-  
+
   Ethereal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   Ethereal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -27,81 +27,79 @@ int PSQT[32][SQUARE_NB];
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 
-
 const int PawnPSQT32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S( -23,   2), S(  13,   3), S(  -6,   6), S(  -5,   0),
-    S( -26,   0), S(  -4,  -1), S(  -6,  -6), S(  -2, -11),
-    S( -21,   7), S(  -7,   6), S(   5, -10), S(   3, -23),
-    S( -10,  15), S(   3,   9), S(   0,  -2), S(   4, -23),
-    S(   1,  29), S(  13,  28), S(  18,   6), S(  24, -21),
-    S( -46,   7), S( -34,  11), S(  -4, -16), S(   1, -33),
+    S( -22,   2), S(  11,   0), S(  -8,   5), S(  -4,   1),
+    S( -26,  -2), S(  -9,  -3), S(  -7, -13), S(  -1, -16),
+    S( -21,   5), S( -11,   4), S(   6, -18), S(   5, -30),
+    S(  -8,  15), S(   1,  12), S(  -3,  -4), S(   6, -26),
+    S(   3,  32), S(  22,  32), S(  20,  12), S(  34, -13),
+    S( -40,  11), S( -36,  15), S(   0, -13), S(   1, -28),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 const int KnightPSQT32[32] = {
-    S( -40, -49), S(   4, -39), S(  -9, -15), S(  11,  -8),
-    S(   7, -50), S(  10, -11), S(  15, -26), S(  21,  -4),
-    S(   5, -21), S(  27, -19), S(  15,   3), S(  29,  12),
-    S(   7,   7), S(  28,   8), S(  30,  31), S(  36,  34),
-    S(  28,   6), S(  33,  13), S(  38,  39), S(  44,  41),
-    S( -29,   9), S(  28,   5), S(  39,  37), S(  48,  34),
-    S( -37, -24), S( -37,   5), S(  43, -33), S(  13,  -4),
-    S(-170, -37), S(-103, -31), S(-159,  -9), S( -42, -28),
+    S( -33, -41), S(   5, -30), S(  -6, -15), S(   7, -12),
+    S(   7, -40), S(  13,  -8), S(  10, -25), S(  16,  -9),
+    S(   6, -22), S(  20, -16), S(  10,  -5), S(  21,   5),
+    S(  10,  -3), S(  21,   8), S(  23,  14), S(  27,  23),
+    S(  30,   6), S(  24,  10), S(  26,  28), S(  35,  33),
+    S( -26,  13), S(  20,  10), S(  26,  26), S(  40,  22),
+    S( -13, -17), S( -24,  10), S(  70, -30), S(  28,  -6),
+    S(-158, -29), S( -91, -22), S(-136,  -1), S( -40, -20),
 };
 
 const int BishopPSQT32[32] = {
-    S(  27, -22), S(  23, -27), S(   1,  -8), S(  20, -14),
-    S(  37, -29), S(  34, -24), S(  26, -15), S(  11,  -3),
-    S(  26, -12), S(  32, -13), S(  24,   1), S(  19,   7),
-    S(  13,  -5), S(  12,  -1), S(  10,  14), S(  33,  19),
-    S( -13,  12), S(  25,   3), S(   4,  16), S(  28,  19),
-    S(  -5,   6), S(  -1,   7), S(  25,   6), S(  19,   5),
-    S( -69,   2), S(  -4,  -5), S( -12, -14), S( -43,  -1),
-    S( -52,  -1), S( -65,  -4), S(-129,   6), S(-114,  12),
+    S(  23, -22), S(  21, -27), S(  -2,  -4), S(  12, -11),
+    S(  35, -28), S(  30, -24), S(  23, -14), S(   9,  -6),
+    S(  25, -18), S(  27, -15), S(  19,   3), S(  15,   6),
+    S(  16, -11), S(   9,  -6), S(   9,   9), S(  30,  13),
+    S( -13,   5), S(  21,   0), S(   4,  11), S(  23,  20),
+    S(   1,  -1), S(  -4,   6), S(  24,   5), S(  21,   3),
+    S( -56,   5), S(   9,  -4), S(   0, -13), S( -30,  -1),
+    S( -43,   1), S( -56,  -1), S(-110,   8), S(-102,  11),
 };
 
 const int RookPSQT32[32] = {
-    S(  -4, -32), S(  -6, -18), S(   5, -14), S(  11, -20),
-    S( -35, -25), S(  -6, -28), S(   2, -20), S(  10, -26),
-    S( -20, -19), S(   4, -14), S(  -1, -18), S(   2, -20),
-    S( -21,  -1), S( -12,   4), S(  -4,   2), S(  -2,   2),
-    S( -14,  11), S( -13,   9), S(  16,   5), S(  19,   6),
-    S( -18,  14), S(  15,   9), S(  11,  13), S(  18,  13),
-    S(  -3,  16), S(  -9,  16), S(  36,   2), S(  20,   8),
-    S(   0,  22), S(  11,  13), S( -24,  22), S(   3,  27),
+    S(   2, -29), S(   1, -21), S(  12, -17), S(  18, -20),
+    S( -29, -17), S(  -1, -22), S(   7, -17), S(  10, -18),
+    S( -14, -11), S(  10, -17), S(  -4,  -6), S(   5, -16),
+    S( -13,   0), S( -10,   1), S(  -3,   0), S(   0,   2),
+    S(  -3,   8), S(  -9,  10), S(  14,   1), S(  15,   4),
+    S( -12,  14), S(  12,   6), S(   4,  11), S(  21,   5),
+    S(   0,   2), S( -13,   8), S(  26,  -6), S(  12,  -2),
+    S(   1,  12), S(   6,  10), S( -17,  19), S(   2,  16),
 };
 
 const int QueenPSQT32[32] = {
-    S(  -1, -47), S( -10, -30), S(  -3, -21), S(  17, -41),
-    S(   7, -49), S(  15, -37), S(  21, -52), S(  16, -15),
-    S(   7, -23), S(  23, -18), S(   7,   6), S(   4,   4),
-    S(   6,  -6), S(   8,   4), S(  -6,  15), S(  -8,  46),
-    S( -14,  10), S( -15,  33), S(  -9,  22), S( -25,  52),
-    S( -15,   3), S(  -6,  19), S(  -1,  21), S( -11,  46),
-    S(  -7,  12), S( -76,  55), S(  23,  11), S( -21,  67),
-    S( -22, -24), S(   2, -14), S(   8,  -6), S( -20,   9),
+    S(   5, -43), S(   2, -38), S(   7, -32), S(  25, -47),
+    S(  13, -42), S(  23, -43), S(  29, -55), S(  24, -18),
+    S(  12, -25), S(  30, -20), S(  14,   9), S(  13,   3),
+    S(  16, -16), S(  13,   6), S(   1,  17), S(   0,  34),
+    S( -14,   8), S(  -8,  24), S( -15,  25), S( -26,  58),
+    S( -32,   4), S( -13,  16), S( -10,  19), S( -10,  36),
+    S(  -2,   9), S( -44,  47), S(  12,  12), S( -36,  48),
+    S( -40,  -4), S(  -2,  -6), S(   8,   7), S( -30,   1),
 };
 
 const int KingPSQT32[32] = {
-    S(  81,-106), S(  89, -80), S(  40, -35), S(  22, -39),
-    S(  71, -54), S(  60, -45), S(  10,  -5), S( -21,   3),
-    S(   0, -41), S(  44, -31), S(  16,  -1), S( -15,  16),
-    S( -53, -33), S(  33, -19), S(   1,  15), S( -47,  37),
-    S( -19, -18), S(  56,   2), S(   8,  31), S( -32,  38),
-    S(  40, -17), S(  85,   0), S(  74,  21), S(   9,  18),
-    S(  17, -17), S(  52,  -4), S(  35,   0), S(   9,   1),
-    S(  29, -81), S(  86, -67), S( -22, -35), S( -16, -36),
+    S(  73, -97), S(  80, -64), S(  40, -28), S(  26, -37),
+    S(  65, -47), S(  54, -35), S(   7,   0), S( -17,   7),
+    S(   0, -35), S(  46, -31), S(  14,   0), S( -22,  19),
+    S( -50, -22), S(  31, -18), S(   0,  12), S( -44,  31),
+    S( -19, -15), S(  48,  -4), S(   6,  24), S( -28,  30),
+    S(  34, -13), S(  75,  -4), S(  65,  17), S(  12,  22),
+    S(  13, -15), S(  44,  -5), S(  30,  -1), S(   5,  -1),
+    S(  25, -71), S(  74, -62), S( -19, -29), S( -15, -33),
 };
-
 
 
 #undef S // Undefine MakeScore
 
 void initializePSQT(){
-    
+
     int sq, w32, b32;
-    
+
     for (sq = 0; sq < SQUARE_NB; sq++){
 
         w32 = relativeSquare32(sq, WHITE);
@@ -113,7 +111,7 @@ void initializePSQT(){
         PSQT[WHITE_ROOK  ][sq] = +MakeScore(PieceValues[ROOK  ][MG], PieceValues[ROOK  ][EG]) +   RookPSQT32[w32];
         PSQT[WHITE_QUEEN ][sq] = +MakeScore(PieceValues[QUEEN ][MG], PieceValues[QUEEN ][EG]) +  QueenPSQT32[w32];
         PSQT[WHITE_KING  ][sq] = +MakeScore(PieceValues[KING  ][MG], PieceValues[KING  ][EG]) +   KingPSQT32[w32];
-                                                                          
+
         PSQT[BLACK_PAWN  ][sq] = -MakeScore(PieceValues[PAWN  ][MG], PieceValues[PAWN  ][EG]) -   PawnPSQT32[b32];
         PSQT[BLACK_KNIGHT][sq] = -MakeScore(PieceValues[KNIGHT][MG], PieceValues[KNIGHT][EG]) - KnightPSQT32[b32];
         PSQT[BLACK_BISHOP][sq] = -MakeScore(PieceValues[BISHOP][MG], PieceValues[BISHOP][EG]) - BishopPSQT32[b32];

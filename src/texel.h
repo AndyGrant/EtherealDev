@@ -1,17 +1,17 @@
 /*
   Ethereal is a UCI chess playing engine authored by Andrew Grant.
   <https://github.com/AndyGrant/Ethereal>     <andrew@grantnet.us>
-  
+
   Ethereal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   Ethereal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -32,59 +32,59 @@
 // number of terms associated with the evaluation component.
 
 // Define the Piece Value Terms
-#define TunePawnValue   (0 * 1)
-#define TuneKnightValue (0 * 1)
-#define TuneBishopValue (0 * 1)
-#define TuneRookValue   (0 * 1)
-#define TuneQueenValue  (0 * 1)
-#define TuneKingValue   (0 * 1)
+#define TunePawnValue   (1 * 1)
+#define TuneKnightValue (1 * 1)
+#define TuneBishopValue (1 * 1)
+#define TuneRookValue   (1 * 1)
+#define TuneQueenValue  (1 * 1)
+#define TuneKingValue   (1 * 1)
 
 // Define the Piece Square Table Terms
-#define TunePawnPSQT   (0 * 32)
-#define TuneKnightPSQT (0 * 32)
-#define TuneBishopPSQT (0 * 32)
-#define TuneRookPSQT   (0 * 32)
-#define TuneQueenPSQT  (0 * 32)
-#define TuneKingPSQT   (0 * 32)
+#define TunePawnPSQT   (1 * 32)
+#define TuneKnightPSQT (1 * 32)
+#define TuneBishopPSQT (1 * 32)
+#define TuneRookPSQT   (1 * 32)
+#define TuneQueenPSQT  (1 * 32)
+#define TuneKingPSQT   (1 * 32)
 
 // Define the Pawn Terms
-#define TunePawnIsolated  (0 *  1)
-#define TunePawnStacked   (0 *  1)
-#define TunePawnBackwards (0 *  2)
-#define TunePawnConnected (0 * 32)
+#define TunePawnIsolated  (1 *  1)
+#define TunePawnStacked   (1 *  1)
+#define TunePawnBackwards (1 *  2)
+#define TunePawnConnected (1 * 32)
 
 // Define the Knight Terms
-#define TuneKnightRammedPawns (0 * 1)
-#define TuneKnightOutpost     (0 * 2)
-#define TuneKnightMobility    (0 * 9)
+#define TuneKnightRammedPawns (1 * 1)
+#define TuneKnightOutpost     (1 * 2)
+#define TuneKnightMobility    (1 * 9)
 
 // Define the Bishop Terms
-#define TuneBishopPair        (0 *  1)
-#define TuneBishopRammedPawns (0 *  1)
-#define TuneBishopOutpost     (0 *  2)
-#define TuneBishopMobility    (0 * 14)
+#define TuneBishopPair        (1 *  1)
+#define TuneBishopRammedPawns (1 *  1)
+#define TuneBishopOutpost     (1 *  2)
+#define TuneBishopMobility    (1 * 14)
 
 // Define the Rook Terms
-#define TuneRookFile      (0 *  2)
-#define TuneRookOnSeventh (0 *  1)
-#define TuneRookMobility  (0 * 15)
+#define TuneRookFile      (1 *  2)
+#define TuneRookOnSeventh (1 *  1)
+#define TuneRookMobility  (1 * 15)
 
 // Define the Queen Terms
-#define TuneQueenMobility (0 * 28)
+#define TuneQueenMobility (1 * 28)
 
 // Define the King Terms
-#define TuneKingDefenders (0 *  12)
-#define TuneKingShelter   (0 * 128)
+#define TuneKingDefenders (1 *  12)
+#define TuneKingShelter   (1 * 128)
 
 // Define the Passed Pawn Terms
 #define TunePassedPawn (1 * 32)
 
 // Define the Threat Terms
-#define TuneThreatPawnAttackedByOne     (0 * 1)
-#define TuneThreatMinorAttackedByPawn   (0 * 1)
-#define TuneThreatMinorAttackedByMajor  (0 * 1)
-#define TuneThreatQueenAttackedByMinor  (0 * 1)
-#define TuneThreatQueenAttackedByOne    (0 * 1)
+#define TuneThreatPawnAttackedByOne     (1 * 1)
+#define TuneThreatMinorAttackedByPawn   (1 * 1)
+#define TuneThreatMinorAttackedByMajor  (1 * 1)
+#define TuneThreatQueenAttackedByMinor  (1 * 1)
+#define TuneThreatQueenAttackedByOne    (1 * 1)
 
 // Compute Number Of Terms (NT) based on what is turned on and off
 #define NT (                                                                                           \
