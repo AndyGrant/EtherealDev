@@ -1,165 +1,209 @@
 /*
   Ethereal is a UCI chess playing engine authored by Andrew Grant.
   <https://github.com/AndyGrant/Ethereal>     <andrew@grantnet.us>
-  
+
   Ethereal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   Ethereal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <assert.h>
 #include <string.h>
 
 #include "move.h"
 #include "types.h"
 #include "transposition.h"
 
-TransTable Table;
 
-void initializeTranspositionTable(TransTable* table, uint64_t megabytes){
-    
+TTable Table; // Global TTable used by all threads
+
+static uint16_t entryMove(TTEntry tte) {
+    return tte & 0xFFFF;
+}
+
+static int entryEval(TTEntry tte) {
+    return (int16_t)((tte >> 16) & 0xFFFF);
+}
+
+static int entryValue(TTEntry tte) {
+    return (int16_t)((tte >> 32) & 0xFFFF);
+}
+
+static int entryDepth(TTEntry tte) {
+    return (uint8_t)((tte >> 48) & 0xFF);
+}
+
+static int entryBound(TTEntry tte) {
+    return (uint8_t)((tte >> 56) & 0x3);
+}
+
+static uint8_t entryAge(TTEntry tte) {
+    return (uint8_t)((tte >> 58) & 0x3F);
+}
+
+static TTEntry entryUpdateAge(TTEntry tte) {
+    return (tte & 0xC0FFFFFFFFFFFFFF) | (uint64_t)Table.generation;
+}
+
+static TTEntry entryPack(uint16_t move, int eval, int value, int depth, int bound) {
+    TTEntry tte = 0ull;
+    tte |= Table.generation; tte <<=  2;
+    tte |= (uint8_t )bound;  tte <<=  8;
+    tte |= (uint8_t )depth;  tte <<= 16;
+    tte |= (uint16_t)value;  tte <<= 16;
+    tte |= (uint16_t)eval;   tte <<= 16;
+    tte |= move;             tte <<=  0;
+    return tte;
+}
+
+static void entryUnpack(TTEntry tte, uint16_t *move, int *eval, int *value, int *depth, int *bound) {
+    *move  = entryMove(tte);
+    *eval  = entryEval(tte);
+    *value = entryValue(tte);
+    *depth = entryDepth(tte);
+    *bound = entryBound(tte);
+}
+
+
+void initTT(uint64_t megabytes) {
+
     // Minimum table size is 1MB. This maps to a key of size 15.
     // We start at 16, because the loop to adjust the memory
     // size to a power of two ends with a decrement of keySize
     uint64_t keySize = 16ull;
-    
+
     // Every bucket must be 256 bits for the following scaling
-    assert(sizeof(TransBucket) == 32);
+    assert(sizeof(TTBucket) == 32);
 
     // Scale down the table to the closest power of 2, at or below megabytes
     for (;1ull << (keySize + 5) <= megabytes << 20 ; keySize++);
     keySize -= 1;
-    
+
     // Setup Table's data members
-    table->buckets      = malloc((1ull << keySize) * sizeof(TransBucket));
-    table->numBuckets   = 1ull << keySize;
-    table->keySize      = keySize;
+    Table.buckets    = malloc((1ull << keySize) * sizeof(TTBucket));
+    Table.numBuckets = 1ull << keySize;
+    Table.keySize    = keySize;
 
-    clearTranspositionTable(table);
+    clearTT();
 }
 
-void destroyTranspositionTable(TransTable* table){
-    free(table->buckets);
+void destroyTT() {
+    free(Table.buckets);
 }
 
-void updateTranspositionTable(TransTable* table){
-    table->generation = (table->generation + 1) % 64;
+void updateTT() {
+    Table.generation = (Table.generation + 1) % 64;
 }
 
-void clearTranspositionTable(TransTable* table){
-
-    table->generation = 0u;
-
-    memset(table->buckets, 0, sizeof(TransBucket) * table->numBuckets);
-    
+void clearTT() {
+    memset(Table.buckets, 0, sizeof(TTBucket) * Table.numBuckets);
 }
 
-int estimateHashfull(TransTable* table){
-    
-    int i, used = 0;
-    
-    for (i = 0; i < 250 && i < (int64_t)table->numBuckets; i++)
-        used += (table->buckets[i].entries[0].type != 0)
-             +  (table->buckets[i].entries[1].type != 0)
-             +  (table->buckets[i].entries[2].type != 0)
-             +  (table->buckets[i].entries[3].type != 0);
-             
-    return 1000 * used / (i * 4);
+int hashfullTT() {
+
+    int used = 0;
+
+    for (int i = 0; i < 250; i++)
+        for (int j = 0; j < 3; j++)
+            used += entryBound(Table.buckets[i].entries[j]) != BOUND_NONE;
+
+    return 1000 * used / (250 * 3);
 }
 
-int getTranspositionEntry(TransTable* table, uint64_t hash, TransEntry* ttEntry){
-    
-    TransBucket* bucket = &(table->buckets[hash & (table->numBuckets - 1)]);
-    int i; uint16_t hash16 = hash >> 48;
-    
-    #ifdef TEXEL
-    return NULL;
-    #endif
-    
-    // Search for a matching entry. Update the generation if found.
-    for (i = 0; i < BUCKET_SIZE; i++){
-        if (bucket->entries[i].hash16 == hash16){
-            bucket->entries[i].age = table->generation;
-            memcpy(ttEntry, &bucket->entries[i], sizeof(TransEntry));
+int getTTEntry(uint64_t hash, uint16_t *move, int *eval, int *value, int *depth, int *bound) {
+
+    const uint16_t hash16 = hash >> 16;
+    TTBucket *bucket = &Table.buckets[hash & (Table.numBuckets - 1)];
+
+    // Search for an entry with a matching hash16
+    for (int i = 0; i < 3; i++) {
+        if (hash16 == bucket->hashes[i]) {
+
+            // Save off the TTEntry as soon as possible
+            const uint64_t ttEntry = bucket->entries[i];
+
+            // Refresh the entry age to match the current search
+            bucket->entries[i] = entryUpdateAge(ttEntry);
+
+            // Set each of the terms used by the search
+            entryUnpack(ttEntry, move, eval, value, depth, bound);
             return 1;
         }
     }
-    
+
     return 0;
 }
 
-void storeTranspositionEntry(TransTable* table, int depth, int type, int value, int bestMove, uint64_t hash){
-    
-    // Validate Parameters
-    assert(depth < MAX_PLY && depth >= 0);
-    assert(type == PVNODE || type == CUTNODE || type == ALLNODE);
-    assert(value <= MATE && value >= -MATE);
-    
-    TransEntry* entries = table->buckets[hash & (table->numBuckets - 1)].entries;
-    TransEntry* oldOption = NULL;
-    TransEntry* lowDraftOption = NULL;
-    TransEntry* toReplace = NULL;
-    
-    int i; uint16_t hash16 = hash >> 48;
-    
-    for (i = 0; i < BUCKET_SIZE; i++){
-        
-        // Found an unused entry
-        if (entries[i].type == 0){
-            toReplace = &(entries[i]);
+void storeTTEntry(uint64_t hash, uint16_t move, int eval, int value, int depth, int bound) {
+
+    assert(abs(value) <= MATE);
+    assert(0 <= depth && depth < MAX_PLY);
+    assert(bound == BOUND_LOWER || bound == BOUND_UPPER || bound == BOUND_EXACT);
+
+    const uint16_t hash16 = hash >> 48;
+
+    TTEntry *oldest = NULL, *lowest = NULL, *replace = NULL;
+    TTBucket *bucket = &Table.buckets[hash & (Table.numBuckets - 1)];
+
+    // Search the bucket for a candidate to replace
+    for (int i = 0; i < 3; i++) {
+
+        uint64_t candidate = bucket->entries[i];
+
+        // Found a matching entry or an used one
+        if (   hash16 == bucket->hashes[i]
+            || entryBound(candidate) == BOUND_NONE) {
+            replace = &bucket->entries[i];
             break;
         }
-        
-        // Found an entry with the same hash
-        if (entries[i].hash16 == hash16){
-            toReplace = &(entries[i]);
-            break;
-        }
-        
+
         // Search for the lowest draft of an old entry
-        if (    entries[i].age != table->generation
-            && (oldOption == NULL || oldOption->depth >= entries[i].depth))
-            oldOption = &(entries[i]);
-        
-        // Search for the lowest draft if no old entry has been found yet
-        if (    oldOption == NULL
-            && (lowDraftOption == NULL || lowDraftOption->depth >= entries[i].depth))
-            lowDraftOption = &(entries[i]);
+        if (    Table.generation != entryAge(candidate)
+            && (oldest == NULL || entryDepth(*oldest) >= entryDepth(candidate)))
+            oldest = &bucket->entries[i];
+
+        // Search for the lowest draft of any entry
+        if (    oldest == NULL
+            && (lowest == NULL || entryDepth(*lowest) >= entryDepth(candidate)))
+            lowest = &bucket->entries[i];
     }
-    
-    // If we found an empty slot or matching hash we will replace that,
-    // otherwise we look an entry which came from a different generation,
-    // and finally we replace the lowest depth entry in the bucket
-    toReplace = toReplace != NULL ? toReplace 
-              : oldOption != NULL ? oldOption 
-              : lowDraftOption;
-    
-    // We will not overwrite an entry from the same position, unless
-    // the search depth is near the entry depth, or if the entry we
-    // are saving is an exact bound. This is taken from Stockfish.
-    if (    type == PVNODE
-        ||  hash16 != toReplace->hash16
-        ||  depth >= toReplace->depth - 3){
-        
-        toReplace->value    = value;
-        toReplace->depth    = depth;
-        toReplace->age      = table->generation;
-        toReplace->type     = type;
-        toReplace->bestMove = bestMove;
-        toReplace->hash16   = hash16;
-    }
+
+    // If no matching or unused entry, take the oldest and then the lowest draft
+    replace = replace != NULL ? replace
+            :  oldest != NULL ?  oldest : lowest;
+
+    // Don't overwrite an entry from the same position when the new depth
+    // is much lower than the entry depth, and the new bound is not exact
+    if (    bound != BOUND_EXACT
+        &&  depth < entryDepth(*replace) - 3
+        &&  hash16 == bucket->hashes[(int)(replace - bucket->entries)])
+        return;
+
+    // Replace after packing the data into a TTEntry (uint64_t)
+    *replace = entryPack(move, eval, value, depth, bound);
+    bucket->hashes[(int)(replace - bucket->entries)] = hash16;
+
+    assert(entryMove(*replace) == move);
+    assert(entryEval(*replace) == eval);
+    assert(entryValue(*replace) == value);
+    assert(entryDepth(*replace) == depth);
+    assert(entryBound(*replace) == bound);
+    assert(entryAge(*replace) == Table.generation);
+    assert(   hash16 == bucket->hashes[0]
+           || hash16 == bucket->hashes[1]
+           || hash16 == bucket->hashes[2]);
 }
 
 PawnKingEntry * getPawnKingEntry(PawnKingTable* pktable, uint64_t pkhash){
