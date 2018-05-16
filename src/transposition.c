@@ -28,6 +28,12 @@
 
 TTable Table; // Global Transposition Table
 
+static int valueOfKeeping(TTEntry tte){
+    return tte.depth
+         - 2 * ((259 + Table.generation - tte.generation) & 0xFC)
+         + ((tte.generation & BOUND_EXACT) == BOUND_EXACT);
+}
+
 void initTT(uint64_t megabytes) {
 
     // Free up memory if we already allocated
@@ -123,9 +129,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int depth, int bound)
             continue;
         }
 
-        // Replace using MAX(x1, x2), where xN = depth - 8 * age difference
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & 0xFC) * 2
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & 0xFC) * 2)
+        if (valueOfKeeping(*replace) >= valueOfKeeping(slots[i]))
             replace = &slots[i];
     }
 
