@@ -259,7 +259,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     uint16_t ttMove = NONE_MOVE;
     int ttHit, ttEval, ttValue, ttDepth, ttBound;
 
-    EvalInfo ei;
     Undo undo[1];
     MovePicker movePicker;
 
@@ -293,7 +292,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
-            return evaluateBoard(board, &ei, &thread->pktable);
+            return evaluateBoard(board, &thread->pktable);
 
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in
@@ -330,8 +329,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 3. Probe the Transposition Table for an entry
     if ((ttHit = getTTEntry(board->hash, &ttMove, &ttEval, &ttValue, &ttDepth, &ttBound))){
-
-        printf("%d %d %d %d\n", ttEval, ttValue, ttDepth, ttBound);
 
         // Check for a TT cutoff. We don't take cutoffs in PV nodes except
         // for when the depth is zero. Also, only cut when the TT entry
@@ -403,8 +400,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
-    eval = thread->evalStack[height] = evaluateBoard(board, &ei, &thread->pktable);
+    // Get a static eval for the position. The TT might hold such an eval.
+    // Save the eval into our evaluation history for pruning decisions
+    eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE
+                                     ? ttEval : evaluateBoard(board, &thread->pktable);
+
+    // Compute margin for cutoffs using futility pruning
     futilityMargin = eval + FutilityMargin * depth;
 
     // Finally, we define a node to be improving if the last two moves have increased
@@ -699,9 +700,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     int eval, value, best;
     uint16_t move;
+
     Undo undo[1];
     MovePicker movePicker;
-    EvalInfo ei;
 
     PVariation lpv;
     lpv.length = 0;
@@ -728,18 +729,18 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 2. Max Draft Cutoff. If we are at the maximum search draft,
     // then end the search here with a static eval of the current board
     if (height >= MAX_PLY)
-        return evaluateBoard(board, &ei, &thread->pktable);
+        return evaluateBoard(board, &thread->pktable);
 
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &ei, &thread->pktable);
+    best = value = eval = evaluateBoard(board,&thread->pktable);
     alpha = MAX(alpha, value);
     if (alpha >= beta) return value;
 
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fall below alpha
-    if (value + QFutilityMargin + bestTacticalMoveValue(board, &ei) < alpha)
+    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
@@ -924,15 +925,12 @@ int thisTacticalMoveValue(Board* board, uint16_t move){
     return value;
 }
 
-int bestTacticalMoveValue(Board* board, EvalInfo* ei){
+int bestTacticalMoveValue(Board* board){
 
     int value = 0;
 
-    // Look at enemy pieces we attacked to get a best value for our
-    // moves. If the board is a known draw then we have not computed
-    // any attack information, so we just look at all enemy pieces
-    uint64_t targets =  board->colours[!board->turn]
-                     & (ei->positionIsDrawn ? ~0ull : ei->attacked[board->turn]);
+    // Look at enemy pieces we may be able to attack
+    uint64_t targets =  board->colours[!board->turn];
 
     // We may have a queen capture
     if (targets & board->pieces[QUEEN])

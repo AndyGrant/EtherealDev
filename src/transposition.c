@@ -124,8 +124,10 @@ int hashfullTT() {
 
 int getTTEntry(uint64_t hash, uint16_t *move, int *eval, int *value, int *depth, int *bound) {
 
-    const uint16_t hash16 = hash >> 16;
+    const uint16_t hash16 = hash >> 48;
     TTBucket *bucket = &Table.buckets[hash & (Table.numBuckets - 1)];
+
+
 
     // Search for an entry with a matching hash16
     for (int i = 0; i < 3; i++) {
@@ -152,6 +154,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int eval, int value, int depth, 
     assert(0 <= depth && depth < MAX_PLY);
     assert(bound == BOUND_LOWER || bound == BOUND_UPPER || bound == BOUND_EXACT);
 
+    int idx;
     const uint16_t hash16 = hash >> 48;
 
     TTEntry *oldest = NULL, *lowest = NULL, *replace = NULL;
@@ -184,16 +187,18 @@ void storeTTEntry(uint64_t hash, uint16_t move, int eval, int value, int depth, 
     replace = replace != NULL ? replace
             :  oldest != NULL ?  oldest : lowest;
 
+    idx = (int)(replace - bucket->entries);
+
     // Don't overwrite an entry from the same position when the new depth
     // is much lower than the entry depth, and the new bound is not exact
     if (    bound != BOUND_EXACT
         &&  depth < entryDepth(*replace) - 3
-        &&  hash16 == bucket->hashes[(int)(replace - bucket->entries)])
+        &&  hash16 == bucket->hashes[idx])
         return;
 
     // Replace after packing the data into a TTEntry (uint64_t)
     *replace = entryPack(move, eval, value, depth, bound);
-    bucket->hashes[(int)(replace - bucket->entries)] = hash16;
+    bucket->hashes[idx] = hash16;
 
     assert(entryMove(*replace) == move);
     assert(entryEval(*replace) == eval);
@@ -201,9 +206,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int eval, int value, int depth, 
     assert(entryDepth(*replace) == depth);
     assert(entryBound(*replace) == bound);
     assert(entryAge(*replace) == Table.generation);
-    assert(   hash16 == bucket->hashes[0]
-           || hash16 == bucket->hashes[1]
-           || hash16 == bucket->hashes[2]);
+    assert(hash16 == bucket->hashes[idx]);
 }
 
 PawnKingEntry * getPawnKingEntry(PawnKingTable* pktable, uint64_t pkhash){
