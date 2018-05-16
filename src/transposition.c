@@ -56,7 +56,6 @@ void initTT(uint64_t megabytes) {
 
 void updateTT() {
     Table.generation += 4; // Pad lower bits for bounds
-    printf("%d\n", (int)Table.generation);
 }
 
 void clearTT() {
