@@ -19,10 +19,16 @@
 #include <assert.h>
 #include <stdint.h>
 
+#ifdef USE_PEXT
+    #include <immintrin.h> // for _pext_u64() intrinsic
+#endif
+
 #include "attacks.h"
 #include "bitboards.h"
+#include "piece.h"
 #include "types.h"
 
+static uint64_t PawnAttacks[COLOUR_NB][SQUARE_NB];
 static uint64_t KnightAttacks[SQUARE_NB];
 static uint64_t KingAttacks[SQUARE_NB];
 
@@ -93,7 +99,13 @@ static uint64_t sliderAttacks(int s, uint64_t occ, const int dir[4][2]) {
 }
 
 static int sliderIndex(uint64_t occ, uint64_t mask, uint64_t magic, unsigned shift) {
+
+#ifdef USE_PEXT
+    (void)magic, (void)shift;  // Silence compiler warnings (unused variables)
+    return _pext_u64(occ, mask);
+#else
     return ((occ & mask) * magic) >> shift;
+#endif
 }
 
 static void initSliderAttacks(int s, uint64_t mask[SQUARE_NB], const uint64_t magic[SQUARE_NB],
@@ -123,6 +135,7 @@ static void setSquare(uint64_t *bb, int r, int f) {
 
 void initAttacks() {
 
+    const int PawnDir[2][2] = {{1,-1}, {1,1}};
     const int KnightDir[8][2] = {{-2,-1}, {-2,1}, {-1,-2}, {-1,2}, {1,-2}, {1,2}, {2,-1}, {2,1}};
     const int KingDir[8][2] = {{-1,-1}, {-1,0}, {-1,1}, {0,-1}, {0,1}, {1,-1}, {1,0}, {1,1}};
     const int BishopDir[4][2] = {{-1,-1}, {-1,1}, {1,-1}, {1,1}};
@@ -131,6 +144,11 @@ void initAttacks() {
     // Initialise leaper attacks
     for (int s = 0; s < SQUARE_NB; s++) {
         const int r = rankOf(s), f = fileOf(s);
+
+        for (int d = 0; d < 2; d++) {
+            setSquare(&PawnAttacks[WHITE][s], r + PawnDir[d][0], f + PawnDir[d][1]);
+            setSquare(&PawnAttacks[BLACK][s], r - PawnDir[d][0], f - PawnDir[d][1]);
+        }
 
         for (int d = 0; d < 8; d++) {
             setSquare(&KnightAttacks[s], r + KnightDir[d][0], f + KnightDir[d][1]);
@@ -146,6 +164,12 @@ void initAttacks() {
         initSliderAttacks(s, BishopMask, BishopMagic, BishopShift, BishopAttacksPtr, BishopDir);
         initSliderAttacks(s, RookMask, RookMagic, RookShift, RookAttacksPtr, RookDir);
     }
+}
+
+uint64_t pawnAttacks(int c, int s) {
+    assert(0 <= c && c < COLOUR_NB);
+    assert(0 <= s && s < SQUARE_NB);
+    return PawnAttacks[c][s];
 }
 
 uint64_t knightAttacks(int s) {
