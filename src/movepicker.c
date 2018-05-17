@@ -19,6 +19,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+<<<<<<< HEAD
+=======
+#include "attacks.h"
+>>>>>>> upstream/master
 #include "board.h"
 #include "bitboards.h"
 #include "castle.h"
@@ -250,6 +254,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
     
     if (ftype == KNIGHT)
         return    type == NORMAL_MOVE
+<<<<<<< HEAD
             && !!(knightAttacks(from, ~friendly) & (1ull << to));
             
     if (ftype == BISHOP)
@@ -263,6 +268,21 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
     if (ftype == QUEEN)
         return    type == NORMAL_MOVE
             && !!(queenAttacks(from, occupied, ~friendly) & (1ull << to));
+=======
+            && testBit(knightAttacks(from) & ~friendly, to);
+            
+    if (ftype == BISHOP)
+        return    type == NORMAL_MOVE
+            && testBit(bishopAttacks(from, occupied) & ~friendly, to);
+            
+    if (ftype == ROOK)
+        return    type == NORMAL_MOVE
+            && testBit(rookAttacks(from, occupied) & ~friendly, to);
+            
+    if (ftype == QUEEN)
+        return    type == NORMAL_MOVE
+            && testBit(queenAttacks(from, occupied) & ~friendly, to);
+>>>>>>> upstream/master
     
     if (ftype == PAWN){
         
@@ -301,7 +321,11 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
         
         // Normal moves are legal if to square is a valid target
         if (type == NORMAL_MOVE)
+<<<<<<< HEAD
             return !!(kingAttacks(from, ~friendly) & (1ull << to));
+=======
+            return testBit(kingAttacks(from) & ~friendly, to);
+>>>>>>> upstream/master
         
         // Kings cannot castle or promote
         if (type == ENPASS_MOVE || type == PROMOTION_MOVE)

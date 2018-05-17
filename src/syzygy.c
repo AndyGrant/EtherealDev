@@ -20,7 +20,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
+<<<<<<< HEAD
 #include "bitutils.h"
+=======
+#include "bitboards.h"
+>>>>>>> upstream/master
 #include "board.h"
 #include "fathom/tbprobe.h"
 #include "move.h"

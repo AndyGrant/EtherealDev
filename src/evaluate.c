@@ -22,12 +22,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+<<<<<<< HEAD
 #include "board.h"
 #include "bitboards.h"
 #include "bitutils.h"
 #include "castle.h"
 #include "evaluate.h"
 #include "magics.h"
+=======
+#include "attacks.h"
+#include "board.h"
+#include "bitboards.h"
+#include "castle.h"
+#include "evaluate.h"
+>>>>>>> upstream/master
 #include "masks.h"
 #include "movegen.h"
 #include "piece.h"
@@ -406,7 +414,11 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the knight attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
+<<<<<<< HEAD
         attacks = knightAttacks(sq, ~0ull);
+=======
+        attacks = knightAttacks(sq);
+>>>>>>> upstream/master
         ei->attackedBy2[colour]        |= attacks & ei->attacked[colour];
         ei->attacked[colour]           |= attacks;
         ei->attackedBy[colour][KNIGHT] |= attacks;
@@ -469,7 +481,11 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the bishop attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
+<<<<<<< HEAD
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
+=======
+        attacks = bishopAttacks(sq, ei->occupiedMinusBishops[colour]);
+>>>>>>> upstream/master
         ei->attackedBy2[colour]        |= attacks & ei->attacked[colour];
         ei->attacked[colour]           |= attacks;
         ei->attackedBy[colour][BISHOP] |= attacks;
@@ -529,7 +545,11 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
+<<<<<<< HEAD
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull);
+=======
+        attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour]);
+>>>>>>> upstream/master
         ei->attackedBy2[colour]      |= attacks & ei->attacked[colour];
         ei->attacked[colour]         |= attacks;
         ei->attackedBy[colour][ROOK] |= attacks;
@@ -588,8 +608,13 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         
         // Update the attacks array with the rooks attacks. We will use this to
         // determine whether or not passed pawns may advance safely later on.
+<<<<<<< HEAD
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour], ~0ull)
                 | bishopAttacks(sq, ei->occupiedMinusBishops[colour], ~0ull);
+=======
+        attacks = rookAttacks(sq, ei->occupiedMinusRooks[colour])
+                | bishopAttacks(sq, ei->occupiedMinusBishops[colour]);
+>>>>>>> upstream/master
         ei->attackedBy2[colour]       |= attacks & ei->attacked[colour];
         ei->attacked[colour]          |= attacks;
         ei->attackedBy[colour][QUEEN] |= attacks;
@@ -793,14 +818,24 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->blockedPawns[WHITE] = ((whitePawns << 8) & (white | black)) >> 8;
     ei->blockedPawns[BLACK] = ((blackPawns >> 8) & (white | black)) << 8,
     
+<<<<<<< HEAD
     ei->kingAreas[WHITE] = KingAttacks[wKingSq] | (1ull << wKingSq) | (KingAttacks[wKingSq] << 8);
     ei->kingAreas[BLACK] = KingAttacks[bKingSq] | (1ull << bKingSq) | (KingAttacks[bKingSq] >> 8);
+=======
+    ei->kingAreas[WHITE] = kingAttacks(wKingSq) | (1ull << wKingSq) | (kingAttacks(wKingSq) << 8);
+    ei->kingAreas[BLACK] = kingAttacks(bKingSq) | (1ull << bKingSq) | (kingAttacks(bKingSq) >> 8);
+>>>>>>> upstream/master
     
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
     
+<<<<<<< HEAD
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq, ~0ull);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq, ~0ull);
+=======
+    ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
+    ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
+>>>>>>> upstream/master
     
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
@@ -836,4 +871,8 @@ void initializeEvaluation(){
         
         KingSafety[i] = MakeScore(KingSafety[i], 0);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> upstream/master
