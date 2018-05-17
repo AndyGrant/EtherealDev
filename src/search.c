@@ -264,13 +264,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
 
+    // Step 1. Drop into qearch when we hit the horizon and are not in check
+    if (depth <= 0 && !board->kingAttackers)
+        return qsearch(thread, pv, alpha, beta, height);
+    depth = MAX(0, depth); // Ensure positive depth when we skip qsearch
+
     // Increment nodes counter for this Thread
     thread->nodes++;
 
     // Update longest searched line for this Thread
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
 
-    // Step 1A. Check to see if search time has expired. We will force the search
+    // Step 2A. Check to see if search time has expired. We will force the search
     // to continue after the search time has been used in the event that we have
     // not yet completed our depth one search, and therefore would have no best move
     if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
@@ -279,10 +284,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  thread->depth > 1)
         longjmp(thread->jbuffer, 1);
 
-    // Step 1B. Check to see if the master thread finished
+    // Step 2B. Check to see if the master thread finished
     if (ABORT_SIGNAL) longjmp(thread->jbuffer, 1);
 
-    // Step 2. Check for early exit conditions, including the fifty move rule,
+    // Step 3. Check for early exit conditions, including the fifty move rule,
     // mate distance pruning, max depth exceeded, or drawn by repitition. We
     // will not take any of these exits in the Root Node, or else we would not
     // have any move saved into the principle variation to send to the GUI
@@ -325,7 +330,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 3. Probe the Transposition Table, adjust the value, and consider cutoffs
+    // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
@@ -345,19 +350,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 return ttValue;
             }
         }
-    }
-
-    // Step 4. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
-    if (depth <= 0){
-
-        // No king attackers indicates we are not checked. We reduce the
-        // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -696,8 +688,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
 
-    int eval, value, best;
-    uint16_t move;
+    int i, reps, eval, value, best, rAlpha, rBeta;
+    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    uint16_t move, ttMove = NONE_MOVE;
 
     Undo undo[1];
     MovePicker movePicker;
@@ -729,25 +722,76 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_PLY)
         return evaluateBoard(board, &thread->pktable);
 
-    // Step 3. Eval Pruning. If a static evaluation of the board will
+    // Mate Distance Pruning. Check to see if this line is so
+    // good, or so bad, that being mated in the ply, or  mating in
+    // the next one, would still not create a more extreme line
+    rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
+    rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
+    if (rAlpha >= rBeta) return rAlpha;
+
+    // Check for the Fifty Move Rule
+    if (board->fiftyMoveRule > 100)
+        return 0;
+
+    // Check for three fold repetition. If the repetition occurs since
+    // the root move of this search, we will exit early as if it was a draw.
+    // Otherwise, we will look for an actual three fold repetition draw.
+    for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+
+        // We can't have repeated positions before the most recent
+        // move which triggered a reset of the fifty move rule counter
+        if (i < board->numMoves - board->fiftyMoveRule) break;
+
+        if (board->history[i] == board->hash){
+
+            // Repetition occured after the root
+            if (i > board->numMoves - height)
+                return 0;
+
+            // An actual three fold repetition
+            if (++reps == 2)
+                return 0;
+        }
+    }
+
+    // Step 3. Probe the Transposition Table, adjust the value, and consider cutoffs
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
+
+        ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
+
+        if (ttValue >= beta && (ttBound & BOUND_LOWER))
+            return beta;
+
+        if (ttValue <= alpha && (ttBound & BOUND_UPPER))
+            return alpha;
+
+        if (ttBound == BOUND_EXACT){
+            assert(alpha < ttValue && ttValue < beta);
+            return ttValue;
+        }
+    }
+
+    // Step 4. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &thread->pktable);
+    best = value = eval = ttHit && ttEval != VALUE_NONE ? ttEval
+                        : evaluateBoard(board, &thread->pktable);
     alpha = MAX(alpha, value);
     if (alpha >= beta) return value;
 
-    // Step 4. Delta Pruning. Even the best possible capture and or promotion
+    // Step 5. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fail
     if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
-    // Step 5. Move Generation and Looping. Generate all tactical moves for this
+    // Step 6. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, ttMove, height, 1);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
 
-        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
-        // best case would still fail to beat alpha minus some margin, we can skip it
+        // Step 7. Futility Pruning. Similar to Delta Pruning, if this capture in the
+        // best case would still fail to beat alpha minus some margin, we can skip it.
+        // This will work even for quiet moves, which can occur from probing the TT
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
