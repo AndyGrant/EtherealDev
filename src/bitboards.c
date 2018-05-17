@@ -24,16 +24,6 @@
 const uint64_t Files[FILE_NB] = {FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H};
 const uint64_t Ranks[RANK_NB] = {RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8};
 
-<<<<<<< HEAD
-int fileOf(int sq) {
-    assert(0 <= sq && sq < SQUARE_NB);
-    return sq % FILE_NB;
-}
-
-int rankOf(int sq) {
-    assert(0 <= sq && sq < SQUARE_NB);
-    return sq / FILE_NB;
-=======
 int fileOf(int s) {
     assert(0 <= s && s < SQUARE_NB);
     return s % FILE_NB;
@@ -42,7 +32,6 @@ int fileOf(int s) {
 int rankOf(int s) {
     assert(0 <= s && s < SQUARE_NB);
     return s / FILE_NB;
->>>>>>> upstream/master
 }
 
 int square(int r, int f) {
@@ -50,8 +39,6 @@ int square(int r, int f) {
     assert(0 <= f && f < FILE_NB);
     return r * FILE_NB + f;
 }
-<<<<<<< HEAD
-=======
 
 int popcount(uint64_t b) {
     return __builtin_popcountll(b);
@@ -91,4 +78,3 @@ bool testBit(uint64_t b, int i) {
     assert(0 <= i && i < 64);
     return b & (1ull << i);
 }
->>>>>>> upstream/master

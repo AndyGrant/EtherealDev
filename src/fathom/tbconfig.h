@@ -25,14 +25,9 @@
 #ifndef TBCONFIG_H
 #define TBCONFIG_H
 
-<<<<<<< HEAD
-#include "../bitutils.h" // For access to bitwise utilities
-#include "../movegen.h" // For access to move generation
-=======
 #include "../attacks.h"
 #include "../bitboards.h"
 #include "../movegen.h"
->>>>>>> upstream/master
 
 /****************************************************************************/
 /* BUILD CONFIG:                                                            */
@@ -124,41 +119,25 @@
  * Define TB_KING_ATTACKS(square) to return the king attacks bitboard for a
  * king at `square'.
  */
-<<<<<<< HEAD
- #define TB_KING_ATTACKS(square) (kingAttacks((square), ~0ull))
-=======
  #define TB_KING_ATTACKS(square) kingAttacks(square)
->>>>>>> upstream/master
 
 /*
  * Define TB_KNIGHT_ATTACKS(square) to return the knight attacks bitboard for
  * a knight at `square'.
  */
-<<<<<<< HEAD
- #define TB_KNIGHT_ATTACKS(square) (knightAttacks((square), ~0ull))
-=======
  #define TB_KNIGHT_ATTACKS(square) knightAttacks(square)
->>>>>>> upstream/master
 
 /*
  * Define TB_ROOK_ATTACKS(square, occ) to return the rook attacks bitboard
  * for a rook at `square' assuming the given `occ' occupancy bitboard.
  */
-<<<<<<< HEAD
- #define TB_ROOK_ATTACKS(square, occ) (rookAttacks((square), (occ), ~0ull))
-=======
  #define TB_ROOK_ATTACKS(square, occ) rookAttacks(square, occ)
->>>>>>> upstream/master
 
 /*
  * Define TB_BISHOP_ATTACKS(square, occ) to return the bishop attacks bitboard
  * for a bishop at `square' assuming the given `occ' occupancy bitboard.
  */
-<<<<<<< HEAD
- #define TB_BISHOP_ATTACKS(square, occ) (bishopAttacks((square), (occ), ~0ull))
-=======
  #define TB_BISHOP_ATTACKS(square, occ) bishopAttacks(square, occ)
->>>>>>> upstream/master
 
 /*
  * Define TB_QUEEN_ATTACKS(square, occ) to return the queen attacks bitboard

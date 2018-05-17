@@ -19,18 +19,10 @@
 #include <stdint.h>
 #include <assert.h>
 
-<<<<<<< HEAD
-#include "board.h"
-#include "bitboards.h"
-#include "bitutils.h"
-#include "castle.h"
-#include "magics.h"
-=======
 #include "attacks.h"
 #include "board.h"
 #include "bitboards.h"
 #include "castle.h"
->>>>>>> upstream/master
 #include "masks.h"
 #include "move.h"
 #include "movegen.h"
@@ -62,34 +54,6 @@ uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour){
     return epsq == -1 ? 0ull : pawnAttacks(epsq, pawns, !colour);
 }
 
-<<<<<<< HEAD
-uint64_t knightAttacks(int sq, uint64_t targets){
-    return KnightAttacks[sq] & targets;
-}
-
-uint64_t bishopAttacks(int sq, uint64_t occupied, uint64_t targets){
-    uint64_t mask = occupied & OccupancyMaskBishop[sq];
-    int index     = (mask * MagicNumberBishop[sq]) >> MagicShiftsBishop[sq];
-    return MoveDatabaseBishop[MagicBishopIndexes[sq] + index] & targets;
-}
-
-uint64_t rookAttacks(int sq, uint64_t occupied, uint64_t targets){
-    uint64_t mask = occupied & OccupancyMaskRook[sq];
-    int index     = (mask * MagicNumberRook[sq]) >> MagicShiftsRook[sq];
-    return MoveDatabaseRook[MagicRookIndexes[sq] + index] & targets;
-}
-
-uint64_t queenAttacks(int sq, uint64_t occupied, uint64_t targets){
-    return  bishopAttacks(sq, occupied, targets)
-            | rookAttacks(sq, occupied, targets);
-}
-
-uint64_t kingAttacks(int sq, uint64_t targets){
-    return KingAttacks[sq] & targets;
-}
-
-=======
->>>>>>> upstream/master
 
 /* For Building Actual Move Lists For Each Piece Type */
 
@@ -127,43 +91,27 @@ void buildNonPawnMoves(uint16_t* moves, int* size, uint64_t attacks, int sq){
 void buildKnightMoves(uint16_t* moves, int* size, uint64_t pieces, uint64_t targets){
     while (pieces){
         int sq = poplsb(&pieces);
-<<<<<<< HEAD
-        buildNonPawnMoves(moves, size, knightAttacks(sq, targets), sq);
-=======
         buildNonPawnMoves(moves, size, knightAttacks(sq) & targets, sq);
->>>>>>> upstream/master
     }
 }
 
 void buildBishopAndQueenMoves(uint16_t* moves, int* size, uint64_t pieces, uint64_t occupied, uint64_t targets){
     while (pieces){
         int sq = poplsb(&pieces);
-<<<<<<< HEAD
-        buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied, targets), sq);
-=======
         buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied) & targets, sq);
->>>>>>> upstream/master
     }
 }
 
 void buildRookAndQueenMoves(uint16_t* moves, int* size, uint64_t pieces, uint64_t occupied, uint64_t targets){
     while (pieces){
         int sq = poplsb(&pieces);
-<<<<<<< HEAD
-        buildNonPawnMoves(moves, size, rookAttacks(sq, occupied, targets), sq);
-=======
         buildNonPawnMoves(moves, size, rookAttacks(sq, occupied) & targets, sq);
->>>>>>> upstream/master
     }
 }
 
 void buildKingMoves(uint16_t* moves, int* size, uint64_t pieces, uint64_t targets){
     int sq = getlsb(pieces);
-<<<<<<< HEAD
-    buildNonPawnMoves(moves, size, kingAttacks(sq, targets), sq);
-=======
     buildNonPawnMoves(moves, size, kingAttacks(sq) & targets, sq);
->>>>>>> upstream/master
 }
 
 
@@ -382,19 +330,11 @@ int squareIsAttacked(Board* board, int colour, int sq){
     uint64_t enemyRooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
     uint64_t enemyKings   = enemy &  board->pieces[KING  ];
 
-<<<<<<< HEAD
-    return    (                pawnAttacks(sq, enemyPawns, colour)          )
-           || (enemyKnights && knightAttacks(sq, enemyKnights)              )
-           || (enemyBishops && bishopAttacks(sq, occupied, enemyBishops)    )
-           || (enemyRooks   && rookAttacks(sq, occupied, enemyRooks)        )
-           || (                kingAttacks(sq, enemyKings)                  );
-=======
     return pawnAttacks(sq, enemyPawns, colour)
         || (knightAttacks(sq) & enemyKnights)
         || (enemyBishops && (bishopAttacks(sq, occupied) & enemyBishops))
         || (enemyRooks && (rookAttacks(sq, occupied) & enemyRooks))
         || (kingAttacks(sq) & enemyKings);
->>>>>>> upstream/master
 }
 
 uint64_t attackersToSquare(Board* board, int colour, int sq){
@@ -403,45 +343,24 @@ uint64_t attackersToSquare(Board* board, int colour, int sq){
     uint64_t enemy    = board->colours[!colour];
     uint64_t occupied = friendly | enemy;
     
-<<<<<<< HEAD
-    return      pawnAttacks(sq, enemy & board->pieces[PAWN  ], colour)
-           |  knightAttacks(sq, enemy & board->pieces[KNIGHT])
-           |  bishopAttacks(sq, occupied, enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]))
-           |    rookAttacks(sq, occupied, enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]))
-           |    kingAttacks(sq, enemy & board->pieces[KING  ]);
-=======
     return    pawnAttacks(sq, enemy & board->pieces[PAWN], colour)
            | (knightAttacks(sq) & enemy & board->pieces[KNIGHT])
            | (bishopAttacks(sq, occupied) & enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]))
            | (rookAttacks(sq, occupied) & enemy & (board->pieces[ROOK] | board->pieces[QUEEN]))
            | (kingAttacks(sq) & enemy & board->pieces[KING]);
->>>>>>> upstream/master
 }
 
 uint64_t allAttackersToSquare(Board* board, uint64_t occupied, int sq){
     
-<<<<<<< HEAD
-    return      pawnAttacks(sq, board->colours[WHITE] & board->pieces[PAWN], BLACK)
-           |    pawnAttacks(sq, board->colours[BLACK] & board->pieces[PAWN], WHITE)
-           |  knightAttacks(sq, board->pieces[KNIGHT])
-           |  bishopAttacks(sq, occupied, board->pieces[BISHOP] | board->pieces[QUEEN])
-           |    rookAttacks(sq, occupied, board->pieces[ROOK  ] | board->pieces[QUEEN])
-           |    kingAttacks(sq, board->pieces[KING]);
-=======
     return    pawnAttacks(sq, board->colours[WHITE] & board->pieces[PAWN], BLACK)
            |  pawnAttacks(sq, board->colours[BLACK] & board->pieces[PAWN], WHITE)
            | (knightAttacks(sq) & board->pieces[KNIGHT])
            | (bishopAttacks(sq, occupied) & (board->pieces[BISHOP] | board->pieces[QUEEN]))
            | (rookAttacks(sq, occupied) & (board->pieces[ROOK] | board->pieces[QUEEN]))
            | (kingAttacks(sq) & board->pieces[KING]);
->>>>>>> upstream/master
 }
 
 uint64_t attackersToKingSquare(Board* board){
     int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
     return attackersToSquare(board, board->turn, kingsq);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> upstream/master

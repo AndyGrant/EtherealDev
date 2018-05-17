@@ -23,11 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-<<<<<<< HEAD
-#include "bitutils.h"
-=======
 #include "bitboards.h"
->>>>>>> upstream/master
 #include "board.h"
 #include "evaluate.h"
 #include "history.h"

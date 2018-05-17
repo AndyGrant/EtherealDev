@@ -1,45 +1,21 @@
 /*
   Ethereal is a UCI chess playing engine authored by Andrew Grant.
   <https://github.com/AndyGrant/Ethereal>     <andrew@grantnet.us>
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> upstream/master
   Ethereal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> upstream/master
   Ethereal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> upstream/master
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-<<<<<<< HEAD
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
-#include <inttypes.h>
-
-#include "bitboards.h"
-#include "bitutils.h"
-#include "board.h"
-#include "castle.h"
-#include "magics.h"
-=======
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -49,7 +25,6 @@
 #include "bitboards.h"
 #include "board.h"
 #include "castle.h"
->>>>>>> upstream/master
 #include "masks.h"
 #include "piece.h"
 #include "psqt.h"
@@ -63,21 +38,12 @@
 #include "movegen.h"
 #include "zorbist.h"
 
-<<<<<<< HEAD
-extern TransTable Table;
-
-=======
->>>>>>> upstream/master
 #define NUM_BENCHMARKS (36)
 
 // Benchmark positions are taken from stockfish/benchmark.cpp. FRC,
 // and positions including moves after the FEN have been removed, as
 // well as the positions containing stalemate and checkmated boards.
-<<<<<<< HEAD
-char Benchmarks[NUM_BENCHMARKS][256] = { 
-=======
 char Benchmarks[NUM_BENCHMARKS][256] = {
->>>>>>> upstream/master
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10",
     "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11",
@@ -117,16 +83,6 @@ char Benchmarks[NUM_BENCHMARKS][256] = {
 };
 
 void initializeBoard(Board* board, char* fen){
-<<<<<<< HEAD
-    
-    int i, j, sq;
-    char rank, file;
-    uint64_t enemyPawns;
-    
-    // Initialze board->squares from FEN notation;
-    for(i = 0, sq = 56; fen[i] != ' '; i++){
-        
-=======
 
     int i, j, sq;
     char rank, file;
@@ -135,26 +91,17 @@ void initializeBoard(Board* board, char* fen){
     // Initialze board->squares from FEN notation;
     for(i = 0, sq = 56; fen[i] != ' '; i++){
 
->>>>>>> upstream/master
         // End of a row of the FEN notation
         if (fen[i] == '/' || fen[i] == '\\'){
             sq -= 16;
             continue;
         }
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> upstream/master
         // Initalize any empty squares
         else if (fen[i] <= '8' && fen[i] >= '1')
             for(j = 0; j < fen[i] - '0'; j++, sq++)
                 board->squares[sq] = EMPTY;
-<<<<<<< HEAD
-            
-=======
 
->>>>>>> upstream/master
         // Index contains an actual piece, determine its type
         else {
             switch(fen[i]){
@@ -173,25 +120,15 @@ void initializeBoard(Board* board, char* fen){
             }
         }
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     // Determine turn
     switch(fen[++i]){
         case 'w': board->turn = WHITE; break;
         case 'b': board->turn = BLACK; break;
     }
-<<<<<<< HEAD
-    
-    i++; // Skip over space between turn and castle rights
-    
-=======
 
     i++; // Skip over space between turn and castle rights
 
->>>>>>> upstream/master
     // Determine Castle Rights
     board->castleRights = 0;
     while(fen[++i] != ' '){
@@ -203,11 +140,7 @@ void initializeBoard(Board* board, char* fen){
             case '-' : /* Indicates that no side may castle */    break;
         }
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     // Determine Enpass Square
     board->epSquare = -1;
     if (fen[++i] != '-'){
@@ -215,20 +148,6 @@ void initializeBoard(Board* board, char* fen){
         file = fen[++i] - '1';
         board->epSquare = rank + (8 * file);
     }
-<<<<<<< HEAD
-    
-    i++; // Skip over space between ensquare and halfmove count
-        
-    // Determine number of half moves into the fifty move rule
-    if (fen[++i] != '-'){
-        
-        // Two Digit Number
-        if (fen[i+1] != ' '){ 
-            board->fiftyMoveRule = (10 * (fen[i] - '0')) + fen[i+1] - '0';
-            i++;
-        }
-        
-=======
 
     i++; // Skip over space between ensquare and halfmove count
 
@@ -241,22 +160,14 @@ void initializeBoard(Board* board, char* fen){
             i++;
         }
 
->>>>>>> upstream/master
         // One Digit Number
         else
             board->fiftyMoveRule = fen[i] - '0';
     }
-<<<<<<< HEAD
-    
-    else
-        board->fiftyMoveRule = 0;
-    
-=======
 
     else
         board->fiftyMoveRule = 0;
 
->>>>>>> upstream/master
     // Zero out each of the used BitBoards
     board->colours[WHITE] = 0ull;
     board->colours[BLACK] = 0ull;
@@ -266,21 +177,13 @@ void initializeBoard(Board* board, char* fen){
     board->pieces[ROOK]   = 0ull;
     board->pieces[QUEEN]  = 0ull;
     board->pieces[KING]   = 0ull;
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     // Initalize each of the BitBoards
     for(i = 0; i < 64; i++){
         board->colours[PieceColour(board->squares[i])] |= (1ull << i);
         board->pieces[PieceType(board->squares[i])]    |= (1ull << i);
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     // Update the enpass square to reflect a possible enpass
     if (board->epSquare != -1){
         enemyPawns  = board->colours[board->turn] & board->pieces[PAWN];
@@ -288,35 +191,6 @@ void initializeBoard(Board* board, char* fen){
         enemyPawns &= board->turn == BLACK ? RANK_4 : RANK_5;
         if (enemyPawns == 0ull) board->epSquare = -1;
     }
-<<<<<<< HEAD
-    
-    // Inititalize Zorbist Hash
-    for(i = 0, board->hash = 0; i < 64; i++)
-        board->hash ^= ZorbistKeys[board->squares[i]][i];
-    
-    // Factor in the castling rights
-    board->hash ^= ZorbistKeys[CASTLE][board->castleRights];
-    
-    // Factor in the enpass square
-    if (board->epSquare != -1)
-        board->hash ^= ZorbistKeys[ENPASS][fileOf(board->epSquare)];
-    
-    // Factor in the turn
-    if (board->turn == BLACK)
-        board->hash ^= ZorbistKeys[TURN][0];
-    
-    // Inititalize PawnKing Hash
-    for (i = 0, board->pkhash = 0; i < 64; i++)
-        board->pkhash ^= PawnKingKeys[board->squares[i]][i];
-        
-    // Initalize Piece Square and Material value counters
-    for(i = 0, board->psqtmat = 0; i < 64; i++)
-        board->psqtmat += PSQT[board->squares[i]][i];
-    
-    // Number of moves since this (root) position
-    board->numMoves = 0;
-    
-=======
 
     // Inititalize Zorbist Hash
     for(i = 0, board->hash = 0; i < 64; i++)
@@ -344,28 +218,10 @@ void initializeBoard(Board* board, char* fen){
     // Number of moves since this (root) position
     board->numMoves = 0;
 
->>>>>>> upstream/master
     board->kingAttackers = attackersToKingSquare(board);
 }
 
 void printBoard(Board* board){
-<<<<<<< HEAD
-    
-    int i, j, f, c, t;
-    
-    static const char table[3][7] = {
-        {'P','N','B','R','Q','K'},
-        {'p','n','b','r','q','k'},
-        {' ',' ',' ',' ',' ',' '} 
-    };
-    
-    // Print each row of the board, starting from the top
-    for(i = 56, f = 8; i >= 0; i -= 8, f--){
-        
-        printf("\n     |----|----|----|----|----|----|----|----|\n");
-        printf("    %d",f);
-        
-=======
 
     int i, j, f, c, t;
 
@@ -381,60 +237,36 @@ void printBoard(Board* board){
         printf("\n     |----|----|----|----|----|----|----|----|\n");
         printf("    %d",f);
 
->>>>>>> upstream/master
         // Print each square in a row, starting from the left
         for(j = 0; j < 8; j++){
             c = PieceColour(board->squares[i+j]);
             t = PieceType(board->squares[i+j]);
-<<<<<<< HEAD
-            
-=======
 
->>>>>>> upstream/master
             switch(c){
                 case WHITE: printf("| *%c ", table[c][t]); break;
                 case BLACK: printf("|  %c ", table[c][t]); break;
                 default   : printf("|    "); break;
             }
         }
-<<<<<<< HEAD
-        
-        printf("|");
-    }
-    
-=======
 
         printf("|");
     }
 
->>>>>>> upstream/master
     printf("\n     |----|----|----|----|----|----|----|----|");
     printf("\n        A    B    C    D    E    F    G    H\n");
 }
 
 uint64_t perft(Board* board, int depth){
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     Undo undo[1];
     int size = 0;
     uint64_t found = 0ull;
     uint16_t moves[MAX_MOVES];
-<<<<<<< HEAD
-    
-    if (depth == 0) return 1ull;
-    
-    genAllMoves(board, moves, &size);
-    
-=======
 
     if (depth == 0) return 1ull;
 
     genAllMoves(board, moves, &size);
 
->>>>>>> upstream/master
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--){
         applyMove(board, moves[size], undo);
@@ -442,33 +274,19 @@ uint64_t perft(Board* board, int depth){
             found += perft(board, depth-1);
         revertMove(board, moves[size], undo);
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     return found;
 }
 
 void runBenchmark(Thread* threads, int depth){
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> upstream/master
     int i;
     double start, end;
     Board board;
     Limits limits;
-<<<<<<< HEAD
-    
-    uint64_t nodes = 0ull;
-    
-=======
 
     uint64_t nodes = 0ull;
 
->>>>>>> upstream/master
     // Initialize limits for the search
     limits.limitedByNone  = 0;
     limits.limitedByTime  = 0;
@@ -476,31 +294,13 @@ void runBenchmark(Thread* threads, int depth){
     limits.limitedBySelf  = 0;
     limits.timeLimit      = 0;
     limits.depthLimit     = depth == 0 ? 13 : depth;
-<<<<<<< HEAD
-    
-    start = getRealTime();
-    
-=======
 
     start = getRealTime();
 
->>>>>>> upstream/master
     // Search each benchmark position
     for (i = 0; i < NUM_BENCHMARKS; i++){
         printf("\nPosition [%2d|%2d]\n", i + 1, NUM_BENCHMARKS);
         initializeBoard(&board, Benchmarks[i]);
-<<<<<<< HEAD
-    
-        limits.start = getRealTime();
-        getBestMove(threads, &board, &limits);
-        nodes += nodesSearchedThreadPool(threads);
-        
-        clearTranspositionTable(&Table);
-    }
-    
-    end = getRealTime();
-    
-=======
 
         limits.start = getRealTime();
         getBestMove(threads, &board, &limits);
@@ -511,7 +311,6 @@ void runBenchmark(Thread* threads, int depth){
 
     end = getRealTime();
 
->>>>>>> upstream/master
     printf("\n------------------------\n");
     printf("Time  : %dms\n", (int)(end - start));
     printf("Nodes : %"PRIu64"\n", nodes);
