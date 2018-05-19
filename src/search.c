@@ -253,7 +253,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, checkExtended, extension;
-    int quiets = 0, played = 0, hist = 0, bestWasQuiet = 0;
+    int quiets = 0, played = 0, hist = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -575,16 +575,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth >= 3
             &&  isQuiet){
 
-            // Baseline R based on number of moves played and current depth
             R = 2 + (played - 4) / 8 + (depth - 6) / 4;
 
-            // Increase R by an additional two ply for non PvNodes
-            R += 2 * !PvNode;
+            R += 2 * !PvNode; // Increase when in non PV nodes
 
-            // Decrease R by an additional ply if we have a quiet move as our best
-            // move, or we are looking at an early quiet move in a situation where
-            // we either have no table move, or the table move is not the best so far
-            R -= bestWasQuiet || (ttMove != bestMove && quiets <= 2);
+            R -= quiets <= 3; // Decrease for the first few quiets
 
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
@@ -646,7 +641,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             best = value;
             bestMove = move;
-            bestWasQuiet = isQuiet;
 
             if (value > alpha){
                 alpha = value;
