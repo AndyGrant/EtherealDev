@@ -89,19 +89,11 @@ static const int IIDDepth = 3;
 
 static const int FutilityMargin = 100;
 
-static const int FutilityPruningDepth = 8;
-
 static const int LateMovePruningDepth = 8;
 
 static const int LateMovePruningCounts[] = {0, 4, 6, 10, 15, 23, 31, 40, 52};
 
-static const int WeakCaptureTwoAttackersDepth = 5;
-
-static const int WeakCaptureOneAttackersDepth = 3;
-
-static const int SEEPruningDepth = 8;
-
-static const int SEEMargin[2] = { -20, -30};
+static const int SEEMargin = 25;
 
 static const int QFutilityMargin = 100;
 
