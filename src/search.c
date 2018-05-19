@@ -399,9 +399,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Get a static eval of the board for pruning decisions
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
+
+    // Table value is likely more correct than the static eval
+    if (   ((ttBound & BOUND_LOWER) && ttValue > eval)
+        || ((ttBound & BOUND_UPPER) && ttValue < eval))
+        eval = ttValue;
+
+    // Compute our futility margin just once based on depth
     futilityMargin = eval + FutilityMargin * depth;
 
     // Finally, we define a node to be improving if the last two moves have increased
