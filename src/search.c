@@ -254,7 +254,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, checkExtended, extension;
     int quiets = 0, played = 0, hist = 0, bestWasQuiet = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
     Undo undo[1];
@@ -399,10 +399,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off a static evaluation
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
 
     // Finally, we define a node to be improving if the last two moves have increased
     // the static eval. To have two last moves, we must have a height of at least 4.
@@ -519,6 +518,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
 
+        const int lmrDepth = MAX(1, depth - (played - 4) / 8 + (depth - 6) / 4);
+
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
@@ -533,7 +534,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
+            &&  eval + lmrDepth * FutilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
 
@@ -555,7 +556,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !inCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
+            && !staticExchangeEvaluation(board, move, SEEMargin[improving] * lmrDepth * lmrDepth))
             continue;
 
         // Apply the move, and verify legality
