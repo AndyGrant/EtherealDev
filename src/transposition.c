@@ -80,6 +80,10 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     const uint16_t hash16 = hash >> 48;
     TTEntry *slots = &Table.buckets[hash & Table.hashMask].slots[0];
 
+    #ifdef TEXEL
+    return 0;
+    #endif
+
     // Search for a matching hash signature
     for (int i = 0; i < 3; i++) {
 
