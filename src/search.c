@@ -218,7 +218,7 @@ int aspirationWindow(Thread* thread, int depth){
     beta  = MIN( MATE, values[mainDepth-1] + upper);
 
     // Keep trying larger windows until one works
-    for (;; lower *= 2, upper *= 2){
+    while(1) {
 
         // If we are nearing a mate, force a full search
         if (abs(alpha) >= MATE / 4) alpha = -MATE, beta = MATE;
@@ -235,10 +235,16 @@ int aspirationWindow(Thread* thread, int depth){
             uciReport(thread->threads, alpha, beta, value);
 
         // Search failed low
-        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * lower);
+        if (value <= alpha) {
+            alpha = MAX(-MATE, alpha - 2 * lower);
+            lower = 2 * lower;
+        }
 
         // Search failed high
-        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * upper);
+        if (value >= beta) {
+            beta  = MIN( MATE,  beta + 2 * upper);
+            upper = 2 * upper;
+        }
     }
 }
 
