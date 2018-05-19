@@ -534,8 +534,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
-            &&  eval + lmrDepth * FutilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  eval + lmrDepth * FutilityMargin <= alpha)
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
@@ -554,7 +553,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
             && !inCheck
-            &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             && !staticExchangeEvaluation(board, move, SEEMargin[improving] * lmrDepth * lmrDepth))
             continue;
