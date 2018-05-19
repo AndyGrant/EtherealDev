@@ -406,7 +406,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Table value is likely more correct than the static eval
     if (   ((ttBound & BOUND_LOWER) && ttValue > eval)
         || ((ttBound & BOUND_UPPER) && ttValue < eval))
-        eval = ttValue;
+        thread->evalStack[height] = ttValue;
 
     // Compute our futility margin just once based on depth
     futilityMargin = eval + FutilityMargin * depth;
