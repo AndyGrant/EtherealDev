@@ -584,7 +584,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Decrease R by an additional ply if we have a quiet move as our best
             // move, or we are looking at an early quiet move in a situation where
             // we either have no table move, or the table move is not the best so far
-            R -= bestWasQuiet || (ttMove != bestMove && quiets <= 2);
+            // R -= bestWasQuiet || (ttMove != bestMove && quiets <= 2);
 
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
