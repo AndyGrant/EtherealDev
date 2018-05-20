@@ -579,7 +579,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R += 2 * !PvNode; // Increase when in non PV nodes
 
-            R -= quiets <= 3; // Decrease for the first few quiets
+            R -= move == thread->killers[height][0]
+              || move == thread->killers[height][1];
 
             // Adjust R based on history score. We will not allow history to increase
             // R by more than 1. History scores are within [-16384, 16384], so we can
