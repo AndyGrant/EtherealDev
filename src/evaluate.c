@@ -85,14 +85,14 @@ const int PawnConnected32[32] = {
 
 // Definition of evaluation terms related to Knights
 
-const int KnightRammedPawns = S(   0,   5);
+const int KnightRammedPawns = S(  -1,   6);
 
-const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
+const int KnightOutpost[2] = { S(  20, -40), S(  34,   6) };
 
 const int KnightMobility[9] = {
-    S( -87, -97), S( -37, -90), S( -19, -42),
-    S(  -6, -14), S(   2, -14), S(   7,  -1),
-    S(  17,  -2), S(  32,  -3), S(  48, -33),
+    S( -72, -64), S( -35, -91), S( -19, -46),
+    S(  -8, -19), S(   0, -17), S(   5,  -2),
+    S(  16,  -3), S(  29,  -3), S(  46, -41),
 };
 
 
