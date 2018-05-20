@@ -98,17 +98,17 @@ const int KnightMobility[9] = {
 
 // Definition of evaluation terms related to Bishops
 
-const int BishopPair = S(  40,  69);
+const int BishopPair = S(  33,  62);
 
-const int BishopRammedPawns = S( -11,  -7);
+const int BishopRammedPawns = S( -12,  -8);
 
-const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
+const int BishopOutpost[2] = { S(  21, -22), S(  49,  -7) };
 
 const int BishopMobility[14] = {
-    S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
-    S(   5,  -9), S(  17,   0), S(  22,   7), S(  27,   4),
-    S(  28,   9), S(  34,   3), S(  36,   4), S(  46, -15),
-    S(  46,  -4), S(  40, -35),
+    S( -72,-118), S( -46, -74), S( -17, -46), S(  -7, -23),
+    S(   4, -11), S(  16,  -1), S(  22,   6), S(  26,   0),
+    S(  27,   7), S(  36,  -3), S(  38,  -1), S(  40, -32),
+    S(  47, -22), S(  -9, -82),
 };
 
 
