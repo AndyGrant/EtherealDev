@@ -86,7 +86,6 @@ void initializeBoard(Board* board, char* fen){
 
     int i, j, sq;
     char rank, file;
-    uint64_t enemyPawns;
 
     // Initialze board->squares from FEN notation;
     for(i = 0, sq = 56; fen[i] != ' '; i++){
@@ -182,14 +181,6 @@ void initializeBoard(Board* board, char* fen){
     for(i = 0; i < 64; i++){
         board->colours[PieceColour(board->squares[i])] |= (1ull << i);
         board->pieces[PieceType(board->squares[i])]    |= (1ull << i);
-    }
-
-    // Update the enpass square to reflect a possible enpass
-    if (board->epSquare != -1){
-        enemyPawns  = board->colours[board->turn] & board->pieces[PAWN];
-        enemyPawns &= isolatedPawnMasks(board->epSquare);
-        enemyPawns &= board->turn == BLACK ? RANK_4 : RANK_5;
-        if (enemyPawns == 0ull) board->epSquare = -1;
     }
 
     // Inititalize Zorbist Hash
