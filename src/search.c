@@ -575,7 +575,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth >= 3
             &&  isQuiet){
 
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4;
+            R = 1 + played / 8 + (depth - 6) / 4;
 
             R += 2 * !PvNode; // Increase when in non PV nodes
 
