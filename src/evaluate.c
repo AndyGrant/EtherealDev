@@ -114,15 +114,15 @@ const int BishopMobility[14] = {
 
 // Definition of evaluation terms related to Rooks
 
-const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
+const int RookFile[2] = { S(  10,  -4), S(  39, -15) };
 
-const int RookOnSeventh = S(   0,  25);
+const int RookOnSeventh = S(   9,  23);
 
 const int RookMobility[15] = {
-    S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
-    S(  -8,  -3), S(  -7,  14), S(  -8,  25), S(  -3,  32),
-    S(   1,  35), S(   5,  36), S(   9,  42), S(  17,  48),
-    S(  19,  50), S(  25,  46), S(  20,  47),
+    S(-156,-162), S( -70,-141), S( -15, -74), S(  -9, -31),
+    S(  -8,  -8), S(  -8,   7), S(  -9,  20), S(  -4,  26),
+    S(   0,  32), S(   6,  34), S(  11,  40), S(  20,  46),
+    S(  23,  46), S(  29,  42), S(  18,  24),
 };
 
 
