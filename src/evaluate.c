@@ -188,15 +188,22 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 // Definition of evaluation terms related to Threats
 
-const int ThreatPawnAttackedByOne    = S( -21, -18);
+// const int ThreatPawnAttackedByOne    = S( -21, -18);
+//
+// const int ThreatMinorAttackedByPawn  = S( -68, -49);
+//
+// const int ThreatMinorAttackedByMajor = S( -38, -32);
+//
+// const int ThreatQueenAttackedByOne   = S( -42, -19);
 
-const int ThreatMinorAttackedByPawn  = S( -68, -49);
+const int ThreatPawnAttackedByOne    = S( -23, -21);
 
-const int ThreatMinorAttackedByMajor = S( -38, -32);
+const int ThreatMinorAttackedByPawn  = S( -75, -57);
 
-const int ThreatQueenAttackedByMinor = S( -41, -21);
+const int ThreatMinorAttackedByMajor = S( -44, -36);
 
-const int ThreatQueenAttackedByOne   = S( -42, -19);
+const int ThreatQueenAttackedByOne   = S( -56, -16);
+
 
 
 // Definition of evaluation terms related to general properties
@@ -738,7 +745,6 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
-    uint64_t attacksByMinors = ei->attackedBy[!colour][KNIGHT] | ei->attackedBy[!colour][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
 
     // Penalty for each unsupported pawn on the board
@@ -755,11 +761,6 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount((knights | bishops) & ~ei->attacked[colour] & attacksByMajors);
     eval += count * ThreatMinorAttackedByMajor;
     if (TRACE) T.threatMinorAttackedByMajor[colour] += count;
-
-    // Penalty for all minor threats against our queens
-    count = popcount(queens & (attacksByMinors));
-    eval += count * ThreatQueenAttackedByMinor;
-    if (TRACE) T.threatQueenAttackedByMinor[colour] += count;
 
     // Penalty for any threat against our queens
     count = popcount(queens & ei->attacked[!colour]);

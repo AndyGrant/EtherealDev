@@ -98,7 +98,6 @@ extern const int PassedPawn[2][2][RANK_NB];
 extern const int ThreatPawnAttackedByOne;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
-extern const int ThreatQueenAttackedByMinor;
 extern const int ThreatQueenAttackedByOne;
 
 
@@ -246,9 +245,9 @@ void initializeTexelEntries(TexelEntry* tes, Thread* thread){
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
 
         // Now collect an evaluation from a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
+        // qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], undo);
         T = EmptyTrace;
         evaluateBoard(&thread->board, NULL);
 
@@ -470,9 +469,6 @@ void initializeCoefficients(int coeffs[NT]){
 
     if (TuneThreatMinorAttackedByMajor)
         coeffs[i++] = T.threatMinorAttackedByMajor[WHITE] - T.threatMinorAttackedByMajor[BLACK];
-
-    if (TuneThreatQueenAttackedByMinor)
-        coeffs[i++] = T.threatQueenAttackedByMinor[WHITE] - T.threatQueenAttackedByMinor[BLACK];
 
     if (TuneThreatQueenAttackedByOne)
         coeffs[i++] = T.threatQueenAttackedByOne[WHITE] - T.threatQueenAttackedByOne[BLACK];
@@ -720,11 +716,6 @@ void initializeCurrentParameters(double cparams[NT][PHASE_NB]){
         cparams[i++][EG] = ScoreEG(ThreatMinorAttackedByMajor);
     }
 
-    if (TuneThreatQueenAttackedByMinor){
-        cparams[i  ][MG] = ScoreMG(ThreatQueenAttackedByMinor);
-        cparams[i++][EG] = ScoreEG(ThreatQueenAttackedByMinor);
-    }
-
     if (TuneThreatQueenAttackedByOne){
         cparams[i  ][MG] = ScoreMG(ThreatQueenAttackedByOne);
         cparams[i++][EG] = ScoreEG(ThreatQueenAttackedByOne);
@@ -778,8 +769,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
     }
 
     // Print Piece Values
-
-    printf("\n\n// Definition of Values for each Piece type\n");
 
     if (TunePawnValue){
         printf("\nconst int PawnValue   = S(%4d,%4d);", tparams[i][MG], tparams[i][EG]); i++;
@@ -865,8 +854,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
     // Print Pawn Values
 
-    printf("\n\n// Definition of evaluation terms related to Pawns\n");
-
     if (TunePawnIsolated){
         printf("\nconst int PawnIsolated = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
     }
@@ -893,8 +880,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
     // Print Knight Values
 
-    printf("\n\n// Definition of evaluation terms related to Knights\n");
-
     if (TuneKnightRammedPawns){
         printf("\nconst int KnightRammedPawns = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
     }
@@ -916,8 +901,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
 
     // Print Bishop Values
-
-    printf("\n\n// Definition of evaluation terms related to Bishops\n");
 
     if (TuneBishopPair){
         printf("\nconst int BishopPair = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
@@ -945,8 +928,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
     // Print Rook Values
 
-    printf("\n\n// Definition of evaluation terms related to Rooks\n");
-
     if (TuneRookFile){
         printf("\nconst int RookFile[2] = { S(%4d,%4d), S(%4d,%4d) };\n",
                 tparams[i  ][MG], tparams[i  ][EG],
@@ -969,8 +950,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
     // Print Queen Values
 
-    printf("\n\n// Definition of evaluation terms related to Queens\n");
-
     if (TuneQueenMobility){
         printf("\nconst int QueenMobility[28] = {");
         for (x = 0; x < 7; x++){
@@ -982,13 +961,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
 
     // Print King Values
-
-    printf("\n\n// Definition of evaluation terms related to Kings\n\n");
-    printf("int KingSafety[64]; // Defined by the Polynomial below\n\n");
-    printf("const double KingPolynomial[6] = {\n");
-    printf("    0.00000011, -0.00009948,  0.00797308,\n");
-    printf("    0.03141319,  2.18429452, -3.33669140,\n");
-    printf("};");
 
     if (TuneKingDefenders){
         printf("\nconst int KingDefenders[12] = {");
@@ -1012,8 +984,6 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
 
 
     // Print Passed Pawn Values
-
-    printf("\n\n// Definition of evaluation terms related to Passed Pawns\n");
 
     if (TunePassedPawn){
         printf("\nconst int PassedPawn[2][2][RANK_NB] = {");
@@ -1043,19 +1013,9 @@ void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]){
         printf("\nconst int ThreatMinorAttackedByMajor = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
     }
 
-    if (TuneThreatQueenAttackedByMinor){
-        printf("\nconst int ThreatQueenAttackedByMinor = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
-    }
-
     if (TuneThreatQueenAttackedByOne){
         printf("\nconst int ThreatQueenAttackedByOne   = S(%4d,%4d);\n", tparams[i][MG], tparams[i][EG]); i++;
     }
-
-    // Print any remaining General Evaluation values
-
-    printf("\n\n// Definition of evaluation terms related to general properties\n");
-
-    printf("\nconst int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };");
 }
 
 double computeOptimalK(TexelEntry* tes){
