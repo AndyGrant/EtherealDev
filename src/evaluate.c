@@ -201,7 +201,7 @@ const int ThreatQueenAttackedByOne   = S( -42, -19);
 
 // Definition of evaluation terms related to general properties
 
-const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
+const int Tempo = 12;
 
 
 #undef S // Undefine MakeScore
@@ -227,8 +227,8 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
         storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
     }
 
-    // Add in the PSQT and Material values, as well as the tempo
-    eval += board->psqtmat + Tempo[board->turn];
+    // Add in the PSQT and Material values
+    eval += board->psqtmat;
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
@@ -237,7 +237,10 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Compute the interpolated evaluation
-    eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+    eval = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+
+    // Factor in Tempo for the side to move
+    eval += board->turn == WHITE ? Tempo : -Tempo;
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
