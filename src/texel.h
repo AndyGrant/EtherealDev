@@ -77,13 +77,13 @@
 #define TuneKingShelter   (0 * 128)
 
 // Define the Passed Pawn Terms
-#define TunePassedPawn (1 * 32)
+#define TunePassedPawn (0 * 32)
 
 // Define the Threat Terms
-#define TuneThreatPawnAttackedByOne     (0 * 1)
-#define TuneThreatMinorAttackedByPawn   (0 * 1)
-#define TuneThreatMinorAttackedByMajor  (0 * 1)
-#define TuneThreatQueenAttackedByOne    (0 * 1)
+#define TuneThreatPawnAttackedByOne     (1 * 1)
+#define TuneThreatMinorAttackedByPawn   (1 * 1)
+#define TuneThreatMinorAttackedByMajor  (1 * 1)
+#define TuneThreatQueenAttackedByOne    (1 * 1)
 
 // Compute Number Of Terms (NT) based on what is turned on and off
 #define NT (                                                                                           \
