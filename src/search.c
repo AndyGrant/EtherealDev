@@ -574,7 +574,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth > 2
             &&  played > 3){
 
-            R = 1 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
+            R = 1 + played / 8 + (depth - 6) / 4; // LMR Formula
 
             R += 2 * !PvNode; // Increase for non PV nodes
 
