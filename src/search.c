@@ -574,11 +574,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth > 2
             &&  played > 3){
 
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
+            R = 1 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
 
             R += 2 * !PvNode; // Increase for non PV nodes
-
-            R -= quiets <= 3; // Reduce for first few quiets
 
             // Adjust based on the history score, within [+1, -6]
             R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
