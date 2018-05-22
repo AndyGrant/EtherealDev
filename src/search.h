@@ -95,7 +95,7 @@ static const int LateMovePruningDepth = 8;
 
 static const int LateMovePruningCounts[2][9] = {
     {  0,  4,  6, 10, 15, 23, 31, 40, 52},
-    {  0,  6, 10, 15, 23, 31, 40, 52, 64}
+    {  0,  7, 11, 16, 24, 32, 41, 53, 65}
 };
 
 static const int WeakCaptureTwoAttackersDepth = 5;
