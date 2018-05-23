@@ -71,9 +71,9 @@ int bestTacticalMoveValue(Board* board);
 int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height);
 
 
-static const int RazorDepth = 4;
+static const int RazorDepth = 3;
 
-static const int RazorMargins[] = {0, 300, 350, 410, 500};
+static const int RazorMargin = 400;
 
 static const int BetaPruningDepth = 8;
 
@@ -97,10 +97,6 @@ static const int LateMovePruningCounts[2][9] = {
     {  0,  4,  6, 10, 15, 23, 31, 40, 52},
     {  0,  6, 10, 15, 23, 31, 40, 52, 64}
 };
-
-static const int WeakCaptureTwoAttackersDepth = 5;
-
-static const int WeakCaptureOneAttackersDepth = 3;
 
 static const int SEEPruningDepth = 8;
 
