@@ -418,12 +418,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargins[depth] < alpha){
+        &&  eval + RazorMargin < alpha){
 
         if (depth <= 1)
             return qsearch(thread, pv, alpha, beta, height);
 
-        rAlpha = alpha - RazorMargins[depth];
+        rAlpha = alpha - RazorMargin;
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
         if (value <= rAlpha) return alpha;
     }
@@ -545,7 +545,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[depth])
+            &&  quiets > LateMovePruningCounts[improving][depth])
             break;
 
         // Step 15. Static Exchange Evaluation Pruning. Prune moves which fail
@@ -576,7 +576,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
 
-            R += 2 * !PvNode; // Increase for non PV nodes
+            R += !PvNode; // Increase for non PV nodes
+
+            R += !PvNode && !improving; // Increase for weak non PV nodes
 
             R -= quiets <= 3; // Reduce for first few quiets
 
