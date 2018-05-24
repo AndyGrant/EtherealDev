@@ -21,124 +21,135 @@
 
 #include "types.h"
 
-// Depth for evaluating each position
-#define TEXEL_DEPTH (0)
+#define NCORES      (      4) // # of Cores
+#define NPOSITONS   (1400000) // # of FENS
+#define NTERMS      (    497) // # of Total Terms
+#define NNTERMS     (    487) // # of Normal Terms
+#define NKSTERMS    (     10) // # of King Safety Terms
 
-// Number of Positions in the data set
-#define NP (1470000)
-
-// Every tunable component of the evaluation includes a definition of
-// TuneParamName, which is equal to an ON/OFF flag, multipled by the
-// number of terms associated with the evaluation component.
-
-// Define the Piece Value Terms
-#define TunePawnValue   (0 * 1)
-#define TuneKnightValue (0 * 1)
-#define TuneBishopValue (0 * 1)
-#define TuneRookValue   (0 * 1)
-#define TuneQueenValue  (0 * 1)
-#define TuneKingValue   (0 * 1)
-
-// Define the Piece Square Table Terms
-#define TunePawnPSQT   (0 * 32)
-#define TuneKnightPSQT (0 * 32)
-#define TuneBishopPSQT (0 * 32)
-#define TuneRookPSQT   (0 * 32)
-#define TuneQueenPSQT  (0 * 32)
-#define TuneKingPSQT   (0 * 32)
-
-// Define the Pawn Terms
-#define TunePawnIsolated  (0 *  1)
-#define TunePawnStacked   (0 *  1)
-#define TunePawnBackwards (0 *  2)
-#define TunePawnConnected (0 * 32)
-
-// Define the Knight Terms
-#define TuneKnightRammedPawns (0 * 1)
-#define TuneKnightOutpost     (0 * 2)
-#define TuneKnightMobility    (0 * 9)
-
-// Define the Bishop Terms
-#define TuneBishopPair        (0 *  1)
-#define TuneBishopRammedPawns (0 *  1)
-#define TuneBishopOutpost     (0 *  2)
-#define TuneBishopMobility    (0 * 14)
-
-// Define the Rook Terms
-#define TuneRookFile      (0 *  2)
-#define TuneRookOnSeventh (0 *  1)
-#define TuneRookMobility  (0 * 15)
-
-// Define the Queen Terms
-#define TuneQueenMobility (0 * 28)
-
-// Define the King Terms
-#define TuneKingDefenders (0 *  12)
-#define TuneKingShelter   (0 * 128)
-
-// Define the Passed Pawn Terms
-#define TunePassedPawn (1 * 32)
-
-// Define the Threat Terms
-#define TuneThreatPawnAttackedByOne     (0 * 1)
-#define TuneThreatMinorAttackedByPawn   (0 * 1)
-#define TuneThreatMinorAttackedByMajor  (0 * 1)
-#define TuneThreatQueenAttackedByOne    (0 * 1)
-
-// Compute Number Of Terms (NT) based on what is turned on and off
-#define NT (                                                                                           \
-    TunePawnValue                  + TuneKnightValue                + TuneBishopValue                + \
-    TuneRookValue                  + TuneQueenValue                 + TuneKingValue                  + \
-    TunePawnPSQT                   + TuneKnightPSQT                 + TuneBishopPSQT                 + \
-    TuneRookPSQT                   + TuneQueenPSQT                  + TuneKingPSQT                   + \
-    TunePawnIsolated               + TunePawnStacked                + TunePawnBackwards              + \
-    TunePawnConnected              + TuneKnightRammedPawns          + TuneKnightOutpost              + \
-    TuneKnightMobility             + TuneBishopPair                 + TuneBishopRammedPawns          + \
-    TuneBishopOutpost              + TuneBishopMobility             + TuneRookFile                   + \
-    TuneRookOnSeventh              + TuneRookMobility               + TuneQueenMobility              + \
-    TuneKingDefenders              + TuneKingShelter                + TunePassedPawn                 + \
-    TuneThreatPawnAttackedByOne    + TuneThreatMinorAttackedByPawn  + TuneThreatMinorAttackedByMajor + \
-    TuneThreatQueenAttackedByOne                                                                       \
-)
-
-// Try to figure out how much we should allocate for the tuner
-#define STACKSIZE ((int)((double) NP * NT / 64))
-
-struct TexelTuple {
-    int index;
-    int coeff;
-};
+#define TunePawnValue                   (0)
+#define TuneKnightValue                 (0)
+#define TuneBishopValue                 (0)
+#define TuneRookValue                   (0)
+#define TuneQueenValue                  (0)
+#define TuneKingValue                   (0)
+#define TunePawnPSQT32                  (0)
+#define TuneKnightPSQT32                (0)
+#define TuneBishopPSQT32                (0)
+#define TuneRookPSQT32                  (0)
+#define TuneQueenPSQT32                 (0)
+#define TuneKingPSQT32                  (0)
+#define TunePawnIsolated                (0)
+#define TunePawnStacked                 (0)
+#define TunePawnBackwards               (0)
+#define TunePawnConnected32             (0)
+#define TuneKnightRammedPawns           (0)
+#define TuneKnightOutpost               (0)
+#define TuneKnightMobility              (0)
+#define TuneBishopPair                  (0)
+#define TuneBishopRammedPawns           (0)
+#define TuneBishopOutpost               (0)
+#define TuneBishopMobility              (0)
+#define TuneRookFile                    (0)
+#define TuneRookOnSeventh               (0)
+#define TuneRookMobility                (0)
+#define TuneQueenMobility               (0)
+#define TuneKingDefenders               (0)
+#define TuneKingShelter                 (0)
+#define TunePassedPawn                  (0)
+#define TuneThreatPawnAttackedByOne     (0)
+#define TuneThreatMinorAttackedByPawn   (0)
+#define TuneThreatMinorAttackedByMajor  (0)
+#define TuneThreatQueenAttackedByOne    (0)
+#define TuneTempo                       (0)
+#define TuneKingSafetyBaseLine          (1)
+#define TuneKingSafetyThreatWeight      (1)
+#define TuneKingSafetyWeakSquares       (1)
+#define TuneKingSafetyFriendlyPawns     (1)
+#define TuneKingSafetyNoEnemyQueens     (1)
 
 struct TexelEntry {
-    int ntuples;
-    double result;
-    double eval, phase;
-    double factors[PHASE_NB];
-    TexelTuple* tuples;
+    float result;
+    int eval;
+    int phase;
+    int kingSafety[COLOUR_NB];
+    int evalCoeffs[NNTERMS];
+    int ksCoeffs[NKSTERMS][COLOUR_NB];
 };
 
-void runTexelTuning(Thread* thread);
+#define SET_ENABLED(term, length) do {                              \
+    if (Tune##term)                                                 \
+        for (int _i = 0; _i < length; _i++, i++, terms++)           \
+            enabled[i] = 1;                                         \
+    else                                                            \
+        i += length;                                                \
+} while (0)
 
-void initializeTexelEntries(TexelEntry* tes, Thread* thread);
+#define INIT_PARAM_0(term, length0) do {                            \
+     params[i][MG] = ScoreMG(term);                                 \
+     params[i][EG] = ScoreEG(term);                                 \
+     i++;                                                           \
+} while (0)
 
-void initializeCoefficients(int coeffs[NT]);
+#define INIT_PARAM_1(term, length1) do {                            \
+    for (int _a = 0; _a < length1; _a++, i++)                       \
+       {params[i][MG] = ScoreMG(term[_a]);                          \
+        params[i][EG] = ScoreEG(term[_a]);}                         \
+} while (0)
 
-void initializeCurrentParameters(double cparams[NT][PHASE_NB]);
+#define INIT_PARAM_2(term, length1, length2) do {                   \
+    for (int _b = 0; _b < length1; _b++)                            \
+        INIT_PARAM_1(term[_b], length2);                            \
+} while (0)
 
-void calculateLearningRates(TexelEntry* tes, double rates[NT][PHASE_NB]);
+#define INIT_PARAM_3(term, length1, length2, length3) do {          \
+    for (int _c = 0; _c < length1; _c++)                            \
+        INIT_PARAM_2(term[_c], length2, length3);                   \
+} while (0)
 
-void printParameters(double params[NT][PHASE_NB], double cparams[NT][PHASE_NB]);
+#define INIT_NORMAL_COEFF_0(term, length0) do {                     \
+    te->evalCoeffs[i] = T.term[WHITE] - T.term[BLACK];              \
+    i++;                                                            \
+} while (0)
 
-double computeOptimalK(TexelEntry* tes);
+#define INIT_NORMAL_COEFF_1(term, length1) do {                     \
+    for (int _a = 0; _a < length1; _a++, i++)                       \
+        te->evalCoeffs[i] = T.term[_a][WHITE] - T.term[_a][BLACK];  \
+} while (0)
 
-double completeEvaluationError(TexelEntry* tes, double K);
+#define INIT_NORMAL_COEFF_2(term, length1, length2) do {            \
+    for (int _b = 0; _b < length1; _b++)                            \
+        INIT_NORMAL_COEFF_1(term[_b], length2);                     \
+} while (0)
 
-double completeLinearError(TexelEntry* tes, double params[NT][PHASE_NB], double K);
+#define INIT_NORMAL_COEFF_3(term, length1, length2, length3) do {   \
+    for (int _c = 0; _c < length1; _c++)                            \
+        INIT_NORMAL_COEFF_2(term[_c], length2, length3);            \
+} while (0)
 
-double singleLinearError(TexelEntry te, double params[NT][PHASE_NB], double K);
+#define INIT_KS_COEFF_0(term, length0) do {                         \
+    te->ksCoeffs[i-NNTERMS][WHITE] = T.term[WHITE];                 \
+    te->ksCoeffs[i-NNTERMS][BLACK] = T.term[BLACK];                 \
+    i++;                                                            \
+} while (0)
 
-double linearEvaluation(TexelEntry te, double params[NT][PHASE_NB]);
+#define INIT_KS_COEFF_1(term, length1) do {                         \
+    for (int _a = 0; _a < length1; _a++, i++)                       \
+       {te->ksCoeffs[i-NNTERMS][WHITE] = T.term[_a][WHITE];         \
+        te->ksCoeffs[i-NNTERMS][BLACK] = T.term[_a][BLACK];}        \
+} while (0)
 
-double sigmoid(double K, double S);
+void runTexelTuning(Thread *thread);
+
+int initEnabledTerms(int enabled[NTERMS]);
+void initParameters(int params[NTERMS][PHASE_NB]);
+void initTexelEntries(TexelEntry *tes, int params[NTERMS][PHASE_NB], Thread *thread);
+void initTexelEntry(TexelEntry *te);
+
+double computeOptimalK(TexelEntry *tes);
+double completeEvaluationError(TexelEntry *tes, double K);
+double evaluationError(TexelEntry *tes, int params[NTERMS][PHASE_NB], double K);
+int linearEvaluation(TexelEntry *te, int params[NTERMS][PHASE_NB]);
+double sigmoid(double K, double eval);
 
 #endif

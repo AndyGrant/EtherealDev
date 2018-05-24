@@ -63,7 +63,6 @@ typedef struct EvalInfo EvalInfo;
 typedef struct MovePicker MovePicker;
 typedef struct SearchInfo SearchInfo;
 typedef struct PVariation PVariation;
-typedef struct TexelTuple TexelTuple;
 typedef struct TexelEntry TexelEntry;
 typedef struct Thread Thread;
 typedef struct TTEntry TTEntry;
