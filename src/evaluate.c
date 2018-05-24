@@ -200,7 +200,7 @@ const int ThreatQueenAttackedByOne   = S( -84,   3);
 
 // Definition of evaluation terms related to general properties
 
-const int Tempo = S(  25,  12);
+const int Tempo = S(  23,  23);
 
 
 #undef S // Undefine MakeScore
