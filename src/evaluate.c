@@ -51,16 +51,16 @@
 
 // Definition of Values for each Piece type
 
-const int PawnValue   = S( 100, 123);
-const int KnightValue = S( 463, 392);
-const int BishopValue = S( 473, 417);
-const int RookValue   = S( 639, 717);
-const int QueenValue  = S(1313,1348);
+const int PawnValue   = S( 100, 102);
+const int KnightValue = S( 433, 318);
+const int BishopValue = S( 442, 336);
+const int RookValue   = S( 614, 584);
+const int QueenValue  = S(1222,1161);
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
-    {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
+    { 100, 102}, { 433, 318}, { 442, 336}, { 614, 584},
+    {1222,1161}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 // Definition of evaluation terms related to Pawns

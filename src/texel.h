@@ -27,11 +27,11 @@
 #define NNTERMS     (    487) // # of Normal Terms
 #define NKSTERMS    (     10) // # of King Safety Terms
 
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
-#define TuneRookValue                   (0)
-#define TuneQueenValue                  (0)
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
+#define TuneRookValue                   (1)
+#define TuneQueenValue                  (1)
 #define TuneKingValue                   (0)
 #define TunePawnPSQT32                  (0)
 #define TuneKnightPSQT32                (0)
@@ -61,7 +61,7 @@
 #define TuneThreatMinorAttackedByPawn   (0)
 #define TuneThreatMinorAttackedByMajor  (0)
 #define TuneThreatQueenAttackedByOne    (0)
-#define TuneTempo                       (1)
+#define TuneTempo                       (0)
 #define TuneKingSafetyBaseLine          (0)
 #define TuneKingSafetyThreatWeight      (0)
 #define TuneKingSafetyWeakSquares       (0)
