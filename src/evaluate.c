@@ -166,15 +166,15 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KingSafetyThreatWeight[PIECE_NB] = { 4, 8, 8, 12, 16, 0 };
+const int KingSafetyThreatWeight[PIECE_NB] = { 12, 15, 11, 12, 11, 0 };
 
-const int KingSafetyBaseLine = 8;
+const int KingSafetyBaseLine = 28;
 
-const int KingSafetyWeakSquares = 16;
+const int KingSafetyWeakSquares = 8;
 
-const int KingSafetyFriendlyPawns = -8;
+const int KingSafetyFriendlyPawns = -13;
 
-const int KingSafetyNoEnemyQueens = -32;
+const int KingSafetyNoEnemyQueens = -80;
 
 
 // Definition of evaluation terms related to Passed Pawns
