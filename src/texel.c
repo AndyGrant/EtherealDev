@@ -133,7 +133,7 @@ void runTexelTuning(Thread *thread) {
 
             int *param = &params[p/2][p%2];
 
-            *param += 1;
+            *param += (1 + rounds);
             thisError = evaluationError(tes, params, K);
             if (thisError < bestError) {
                 bestError = thisError;
@@ -143,7 +143,7 @@ void runTexelTuning(Thread *thread) {
                 continue;
             }
 
-            *param -= 2;
+            *param -= 2 * (1 + rounds);
             thisError = evaluationError(tes, params, K);
             if (thisError < bestError) {
                 bestError = thisError;
@@ -153,7 +153,7 @@ void runTexelTuning(Thread *thread) {
                 continue;
             }
 
-            *param += 1;
+            *param += (1 + rounds);
             rounds = 0;
         }
 
