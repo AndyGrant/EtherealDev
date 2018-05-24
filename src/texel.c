@@ -96,7 +96,7 @@ void runTexelTuning(Thread *thread) {
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB].....  [%7d of %7d]",
+    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
            (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
