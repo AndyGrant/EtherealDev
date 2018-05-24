@@ -22,22 +22,22 @@
 #include "types.h"
 
 #define NTHREADS   (      4) // # of Threads to use
-#define NTERMS     (    198) // # of Terms to tune
+#define NTERMS     (    128) // # of Terms to tune
 #define NPOSITIONS (1470000) // # of FENs in book
 
 // Each Eval Term (Total = 486)
-#define TunePawnValue                  (1 * 1  )
-#define TuneKnightValue                (1 * 1  )
-#define TuneBishopValue                (1 * 1  )
-#define TuneRookValue                  (1 * 1  )
-#define TuneQueenValue                 (1 * 1  )
-#define TuneKingValue                  (1 * 1  )
-#define TunePawnPSQT32                 (1 * 32 )
-#define TuneKnightPSQT32               (1 * 32 )
-#define TuneBishopPSQT32               (1 * 32 )
-#define TuneRookPSQT32                 (1 * 32 )
-#define TuneQueenPSQT32                (1 * 32 )
-#define TuneKingPSQT32                 (1 * 32 )
+#define TunePawnValue                  (0 * 1  )
+#define TuneKnightValue                (0 * 1  )
+#define TuneBishopValue                (0 * 1  )
+#define TuneRookValue                  (0 * 1  )
+#define TuneQueenValue                 (0 * 1  )
+#define TuneKingValue                  (0 * 1  )
+#define TunePawnPSQT32                 (0 * 32 )
+#define TuneKnightPSQT32               (0 * 32 )
+#define TuneBishopPSQT32               (0 * 32 )
+#define TuneRookPSQT32                 (0 * 32 )
+#define TuneQueenPSQT32                (0 * 32 )
+#define TuneKingPSQT32                 (0 * 32 )
 #define TunePawnIsolated               (0 * 1  )
 #define TunePawnStacked                (0 * 1  )
 #define TunePawnBackwards              (0 * 2  )
@@ -54,7 +54,7 @@
 #define TuneRookMobility               (0 * 15 )
 #define TuneQueenMobility              (0 * 28 )
 #define TuneKingDefenders              (0 * 12 )
-#define TuneKingShelter                (0 * 128)
+#define TuneKingShelter                (1 * 128)
 #define TunePassedPawn                 (0 * 32 )
 #define TuneThreatPawnAttackedByOne    (0 * 1  )
 #define TuneThreatMinorAttackedByPawn  (0 * 1  )

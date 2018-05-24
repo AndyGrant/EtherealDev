@@ -536,10 +536,34 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
+    (void)name, (void)params, (void)i, (void)A, (void)B;
+
+    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
+    exit(EXIT_FAILURE);
+
 }
 
 void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C) {
 
+    printf("const int %s[%d][%d][%d] = {\n", name, A, B, C);
+
+    for (int a = 0; a < A; a++) {
+
+        for (int b = 0; b < B; b++) {
+
+            printf("%s", b ? "   {" : "  {{");;
+
+            for (int c = 0; c < C; c++, i++) {
+                printf("S(%4d, %4d)", params[i][MG], params[i][EG]);
+                printf("%s", c == C - 1 ? "" : ", ");
+            }
+
+            printf("%s", b == B - 1 ? "}},\n" : "},\n");
+        }
+
+    }
+
+    printf("};\n");
 }
 
 #endif
