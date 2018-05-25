@@ -71,7 +71,7 @@ extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
-extern const int KingDefenders[12];
+extern const int KingDefenders;
 extern const int KingShelter[2][FILE_NB][RANK_NB];
 extern const int PassedPawn[2][2][RANK_NB];
 extern const int ThreatPawnAttackedByOne;
@@ -327,7 +327,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneRookOnSeventh             ) INIT_COEFF_0(RookOnSeventh)             ;
     if (TuneRookMobility              ) INIT_COEFF_1(RookMobility, 15)          ;
     if (TuneQueenMobility             ) INIT_COEFF_1(QueenMobility, 28)         ;
-    if (TuneKingDefenders             ) INIT_COEFF_1(KingDefenders, 12)         ;
+    if (TuneKingDefenders             ) INIT_COEFF_0(KingDefenders)             ;
     if (TuneKingShelter               ) INIT_COEFF_3(KingShelter, 2, 8, 8)      ;
     if (TunePassedPawn                ) INIT_COEFF_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) INIT_COEFF_0(ThreatPawnAttackedByOne)   ;
@@ -372,7 +372,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneRookOnSeventh             ) INIT_PARAM_0(RookOnSeventh)             ;
     if (TuneRookMobility              ) INIT_PARAM_1(RookMobility, 15)          ;
     if (TuneQueenMobility             ) INIT_PARAM_1(QueenMobility, 28)         ;
-    if (TuneKingDefenders             ) INIT_PARAM_1(KingDefenders, 12)         ;
+    if (TuneKingDefenders             ) INIT_PARAM_0(KingDefenders)             ;
     if (TuneKingShelter               ) INIT_PARAM_3(KingShelter, 2, 8, 8)      ;
     if (TunePassedPawn                ) INIT_PARAM_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) INIT_PARAM_0(ThreatPawnAttackedByOne)   ;
@@ -425,7 +425,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneRookOnSeventh             ) PRINT_PARAM_0(RookOnSeventh)             ;
     if (TuneRookMobility              ) PRINT_PARAM_1(RookMobility, 15)          ;
     if (TuneQueenMobility             ) PRINT_PARAM_1(QueenMobility, 28)         ;
-    if (TuneKingDefenders             ) PRINT_PARAM_1(KingDefenders, 12)         ;
+    if (TuneKingDefenders             ) PRINT_PARAM_0(KingDefenders)             ;
     if (TuneKingShelter               ) PRINT_PARAM_3(KingShelter, 2, 8, 8)      ;
     if (TunePassedPawn                ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) PRINT_PARAM_0(ThreatPawnAttackedByOne)   ;

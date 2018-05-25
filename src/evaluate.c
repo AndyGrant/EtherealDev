@@ -141,11 +141,7 @@ const int QueenMobility[28] = {
 
 // Definition of evaluation terms related to Kings
 
-const int KingDefenders[12] = {
-    S( -37,  -4), S( -18,   6), S(   0,   1), S(  10,   0),
-    S(  24,  -3), S(  35,   2), S(  39,  14), S(  28,-207),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
-};
+const int KingDefenders = S(  11,   0);
 
 const int KingThreatWeight[PIECE_NB] = { 4, 8, 8, 12, 16, 0 };
 
@@ -630,8 +626,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     // Bonus for our pawns and minors sitting within our king area
     count = popcount(myDefenders & ei->kingAreas[colour]);
-    eval += KingDefenders[count];
-    if (TRACE) T.KingDefenders[count][colour]++;
+    eval += count * KingDefenders;
+    if (TRACE) T.KingDefenders[colour] += count;
 
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
