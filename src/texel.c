@@ -78,12 +78,13 @@ extern const int ThreatPawnAttackedByOne;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
 extern const int ThreatQueenAttackedByOne;
+extern const int ThreatToQueenByKnightMove;
 
 void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = BASE_RATE;
     double rates[NTERMS][PHASE_NB] = {{0}, {0}};
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
@@ -334,6 +335,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneThreatMinorAttackedByPawn ) INIT_COEFF_0(ThreatMinorAttackedByPawn) ;
     if (TuneThreatMinorAttackedByMajor) INIT_COEFF_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) INIT_COEFF_0(ThreatQueenAttackedByOne)  ;
+    if (TuneThreatToQueenByKnightMove ) INIT_COEFF_0(ThreatToQueenByKnightMove) ;
 
     if (i != NTERMS){
         printf("Error in initCoefficients(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -379,6 +381,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneThreatMinorAttackedByPawn ) INIT_PARAM_0(ThreatMinorAttackedByPawn) ;
     if (TuneThreatMinorAttackedByMajor) INIT_PARAM_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) INIT_PARAM_0(ThreatQueenAttackedByOne)  ;
+    if (TuneThreatToQueenByKnightMove ) INIT_PARAM_0(ThreatToQueenByKnightMove) ;
 
     if (i != NTERMS){
         printf("Error in initCurrentParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -432,6 +435,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneThreatMinorAttackedByPawn ) PRINT_PARAM_0(ThreatMinorAttackedByPawn) ;
     if (TuneThreatMinorAttackedByMajor) PRINT_PARAM_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) PRINT_PARAM_0(ThreatQueenAttackedByOne)  ;
+    if (TuneThreatToQueenByKnightMove ) PRINT_PARAM_0(ThreatToQueenByKnightMove) ;
 
     if (i != NTERMS){
         printf("Error in printParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);

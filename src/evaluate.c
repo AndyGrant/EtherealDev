@@ -196,6 +196,8 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 
+const int ThreatToQueenByKnightMove  = S( -17,  -4);
+
 
 // Definition of evaluation terms related to general properties
 
@@ -731,8 +733,10 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     uint64_t bishops = board->colours[colour] & board->pieces[BISHOP];
     uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
 
-    uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
-    uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
+    uint64_t attacksByPawns   = ei->attackedBy[!colour][PAWN  ];
+    uint64_t attacksByKnights = ei->attackedBy[!colour][KNIGHT];
+    uint64_t attacksByMajors  = ei->attackedBy[!colour][ROOK  ]
+                              | ei->attackedBy[!colour][QUEEN ];
 
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
@@ -753,6 +757,13 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount(queens & ei->attacked[!colour]);
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.ThreatQueenAttackedByOne[colour] += count;
+
+    // Penalty for any threat against our queens by knight moves
+    while (queens) {
+        count = !!(knightAttacks(poplsb(&queens)) & attacksByKnights & ~ei->attacked[colour]);
+        eval += count * ThreatToQueenByKnightMove;
+        if (TRACE) T.ThreatToQueenByKnightMove[colour] += count;
+    }
 
     return eval;
 }
