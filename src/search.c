@@ -571,7 +571,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
         if (    isQuiet
-            &&  depth > 2
+            &&  depth > 3
             &&  played > 3){
 
             R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
