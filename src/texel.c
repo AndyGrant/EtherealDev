@@ -554,7 +554,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
             printf("%s", b ? "   {" : "  {{");;
 
             for (int c = 0; c < C; c++, i++) {
-                printf("S(%4d, %4d)", params[i][MG], params[i][EG]);
+                printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
                 printf("%s", c == C - 1 ? "" : ", ");
             }
 
