@@ -196,6 +196,8 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 
+const int ThreatByPawnPush           = S(  12,  15);
+
 
 // Definition of evaluation terms related to general properties
 
@@ -724,7 +726,14 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
 int evaluateThreats(EvalInfo* ei, Board* board, int colour){
 
+    const uint64_t rank3Rel = board->turn == WHITE ? RANK_3 : RANK_6;
+
     int count, eval = 0;
+
+    uint64_t pushThreat;
+    uint64_t friendly = board->colours[ colour];
+    uint64_t enemy    = board->colours[!colour];
+    uint64_t occupied = friendly | enemy;
 
     uint64_t pawns   = board->colours[colour] & board->pieces[PAWN  ];
     uint64_t knights = board->colours[colour] & board->pieces[KNIGHT];
@@ -733,6 +742,11 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
 
     uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
     uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
+
+    pushThreat  = pawnAdvance(pawns, occupied, colour);
+    pushThreat |= pawnAdvance(pushThreat & rank3Rel, occupied, colour);
+    pushThreat &= ~attacksByPawns & (ei->attacked[colour] | ~ei->attacked[!colour]);
+    pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[colour][PAWN], colour);
 
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
@@ -753,6 +767,12 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount(queens & ei->attacked[!colour]);
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.ThreatQueenAttackedByOne[colour] += count;
+
+    // Bonus for giving threats by pawn push
+    count = popcount(pushThreat);
+    eval += count * ThreatByPawnPush;
+    if (TRACE) T.ThreatByPawnPush[colour] += count;
+
 
     return eval;
 }
