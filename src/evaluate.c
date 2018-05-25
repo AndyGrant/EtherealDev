@@ -196,7 +196,7 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 
-const int ThreatToQueenByKnightMove  = S( -17,  -4);
+const int ThreatToQueenByKnightMove  = S(  -8,  -2);
 
 
 // Definition of evaluation terms related to general properties
@@ -760,7 +760,7 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
 
     // Penalty for any threat against our queens by knight moves
     while (queens) {
-        count = !!(knightAttacks(poplsb(&queens)) & attacksByKnights & ~ei->attacked[colour]);
+        count = !!(knightAttacks(poplsb(&queens)) & attacksByKnights & ~ei->pawnAttacks[colour]);
         eval += count * ThreatToQueenByKnightMove;
         if (TRACE) T.ThreatToQueenByKnightMove[colour] += count;
     }
