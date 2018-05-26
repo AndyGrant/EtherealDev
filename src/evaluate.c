@@ -198,7 +198,7 @@ const int ThreatQueenAttackedByOne   = S( -84,   3);
 
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
-const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatByPawnPush           = S(   8,  10);
 
 
 // Definition of evaluation terms related to general properties
@@ -755,7 +755,7 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     // threat by a pawn, and don't look at squares which may not be safe
     pushThreat  = pawnAdvance(pawns, occupied, colour);
     pushThreat |= pawnAdvance(pushThreat & RANK3REL, occupied, colour);
-    pushThreat &= ~attacksByPawns & (ei->attacked[colour] | ~ei->attacked[!colour]);
+    pushThreat &= ~attacksByPawns & ei->attacked[colour] & ~ei->attacked[!colour];
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[colour][PAWN], colour);
 
     // Penalty for each unsupported pawn on the board
