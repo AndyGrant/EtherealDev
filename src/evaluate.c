@@ -156,25 +156,6 @@ const double KingPolynomial[6] = {
     0.03141319,  2.18429452, -3.33669140,
 };
 
-const int KingShelter[2][FILE_NB][RANK_NB] = {
-  {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2), S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
-   {S(   4,   6), S(  16,  -8), S(  12, -10), S(  -2, -13), S( -27,   0), S( -66,  79), S( 101,  94), S( -30,   1)},
-   {S(  13,  13), S(   8,  -2), S( -20,   0), S(  -7,  -2), S( -22,  -3), S(  14,  -9), S(   4,  65), S( -16,   2)},
-   {S(   9,  31), S(  14,   0), S(  -4,  -8), S(  20, -16), S(  16, -36), S( -23, -33), S(-148,  41), S(  -1,   0)},
-   {S( -19,  20), S(  -2,   3), S( -31,   2), S( -11,   5), S( -25, -17), S( -41, -19), S(  39,  -8), S( -14,   0)},
-   {S(  22,   3), S(  17,  -4), S( -21,   0), S(  -3, -21), S(   7, -32), S(  17, -49), S(  50, -34), S( -12,   0)},
-   {S(  19,   3), S(   2, -10), S( -30,  -8), S( -17, -14), S( -24, -21), S( -43,   9), S(   7,  47), S( -26,   8)},
-   {S( -19,  -3), S(  -1,  -9), S(   4,   0), S(   3,   3), S( -11,  14), S(   4,  33), S(-201,  79), S( -18,  15)}},
-  {{S(   0,   0), S(   5, -16), S(   6, -14), S( -46,  19), S(   0, -10), S(   9,  51), S(-171, -15), S( -51,  11)},
-   {S(   0,   0), S(  17,  -7), S(   8,  -7), S(  -5,  -8), S(  11, -33), S(  52, 103), S(-188, -11), S( -45,   4)},
-   {S(   0,   0), S(  24,   0), S(   0,  -7), S(  20, -27), S(  14,  -8), S(-114,  45), S( -90, -84), S( -22,  -1)},
-   {S(   0,   0), S(  -6,   9), S( -11,  13), S( -14,   3), S( -24,   0), S(-117,  10), S(   5, -50), S( -28,   1)},
-   {S(   0,   0), S(   4,   5), S(   8,  -7), S(  25,  -4), S(  10, -23), S( -45,   8), S(-109, -73), S(  -4,  -3)},
-   {S(   0,   0), S(  10,   1), S( -17,  -1), S( -12, -14), S(  30, -38), S( -45,   5), S(  59,  47), S( -30,   1)},
-   {S(   0,   0), S(  12,  -1), S(  -3,   0), S( -20,  -5), S( -20, -13), S(  23,  12), S( -58, -64), S( -43,  14)},
-   {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
-};
-
 
 // Definition of evaluation terms related to Passed Pawns
 
@@ -662,26 +643,6 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
     if (ei->pkentry != NULL) return eval;
-
-    // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
-    // to the King's file. We evaluate the distance between the king and the most backward
-    // pawn. We will not look at pawns behind the king, and will consider that as having
-    // no pawn on the file. No pawn on a file is used with distance equals 7, as no pawn
-    // can ever be a distance of 7 from the king. Different bonus is in order when we are
-    // looking at the file on which the King sits.
-
-    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
-
-        filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
-
-        distance = filePawns ?
-                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                   : kingRank - rankOf(getmsb(filePawns))
-                                   : 7;
-
-        pkeval += KingShelter[file == kingFile][file][distance];
-        if (TRACE) T.KingShelter[file == kingFile][file][distance][colour]++;
-    }
 
     ei->pkeval[colour] += pkeval;
 
