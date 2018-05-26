@@ -21,7 +21,7 @@
 
 #include "types.h"
 
-#define NTHREADS   (      4) // # of Threads to use
+#define NTHREADS   (      1) // # of Threads to use
 #define NTERMS     (     32) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
 

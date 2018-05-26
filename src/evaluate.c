@@ -156,13 +156,7 @@ const double KingPolynomial[6] = {
     0.03141319,  2.18429452, -3.33669140,
 };
 
-const int KingShelter[4][8] = {
-{S( -10,   0), S(   0,  -4), S(   4,   1), S(   2,   3), S(  -6,   5), S(  13,  14), S(-105,  10), S(  -7,   6)},
-{S(   4,   4), S(   7,   0), S(  -5,  -1), S( -21,  -5), S( -24,  -7), S(   2,  16), S( -46, -21), S( -26,   1)},
-{S(  16,  10), S(  17,   3), S( -19,  -1), S(  -7,  -7), S(   0, -11), S(   0,  -7), S(  40,  19), S(  -9,   1)},
-{S(  -7,  12), S(   2,   3), S(  -2,   0), S(  16,  -2), S(   7, -14), S( -27,  -5), S(  -7,  -5), S(  -3,  -2)},
-
-};
+const int KingShelter[4][8];
 
 
 // Definition of evaluation terms related to Passed Pawns
@@ -664,9 +658,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
 
         distance = filePawns ?
-                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                   : kingRank - rankOf(getmsb(filePawns))
-                                   : 7;
+                   colour = WHITE ? relativeRankOf(WHITE, getlsb(filePawns))
+                                  : relativeRankOf(BLACK, getmsb(filePawns))
+                                  : 0;
 
         static const int INV[8] = {0, 1, 2, 3, 3, 2, 1, 0};
 
