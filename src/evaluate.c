@@ -689,7 +689,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // of 7 to denote a file which has no Pawn, or the pawn is behind the
         // King. We use a differnt value depending on the blocked status
 
-        filePawns = enemyPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
+        filePawns = enemyPawns & Files[file] & ranksAboveMasks(colour, kingRank);
 
         distance = filePawns ?
                    colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
