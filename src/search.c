@@ -315,7 +315,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (i < board->numMoves - board->fiftyMoveRule) break;
 
             // No three fold can occur before a NULL move
-            // if (board->moveHistory[i] == NULL_MOVE) break;
+            if (board->moveHistory[i] == NULL_MOVE) break;
         }
     }
 
