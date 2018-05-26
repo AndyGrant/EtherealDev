@@ -304,7 +304,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             return 0;
 
         // Check for any two-fold after root, or three-fold in general
-        for (reps = 0, i = board->numMoves - 1; i >= 0; i -= 2){
+        for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
 
             // No three fold can occur since a zeroing move
             if (i < board->numMoves - board->fiftyMoveRule) break;
