@@ -616,7 +616,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     int file, distance, count, blocked, eval = 0, pkeval = 0;
 
-    uint64_t filePawns, weak;
+    uint64_t myFilePawns, enemyFilePawns, weak;
 
     uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
     uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
@@ -673,11 +673,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // nearest friendly Pawn at or above the King's rank. Use a distance
         // of 7 to denote a file which has no pawn, or the pawn is behind the king
 
-        filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
+        myFilePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
 
-        distance = filePawns ?
-                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                   : kingRank - rankOf(getmsb(filePawns))
+        distance = myFilePawns ?
+                   colour == WHITE ? rankOf(getlsb(myFilePawns)) - kingRank
+                                   : kingRank - rankOf(getmsb(myFilePawns))
                                    : 7;
 
         pkeval += KingShelter[file == kingFile][file][distance];
@@ -689,14 +689,17 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // of 7 to denote a file which has no Pawn, or the pawn is behind the
         // King. We use a differnt value depending on the blocked status
 
-        filePawns = enemyPawns & Files[file] & ranksAboveMasks(colour, kingRank);
+        enemyFilePawns = enemyPawns & Files[file] & ranksAboveMasks(colour, kingRank);
 
-        distance = filePawns ?
-                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                   : kingRank - rankOf(getmsb(filePawns))
+        distance = enemyFilePawns ?
+                   colour == WHITE ? rankOf(getlsb(enemyFilePawns)) - kingRank
+                                   : kingRank - rankOf(getmsb(enemyFilePawns))
                                    : 7;
 
-        blocked = !!(filePawns & ei->rammedPawns[!colour]);
+        blocked =  myFilePawns && enemyFilePawns
+               && (colour == WHITE ? getlsb(myFilePawns) + 8 == getlsb(enemyFilePawns)
+                                   : getmsb(myFilePawns) - 8 == getmsb(enemyFilePawns));
+
 
         pkeval += KingStorm[blocked][square32(0, file)][distance];
         if (TRACE) T.KingStorm[blocked][square32(0, file)][distance][colour]++;
