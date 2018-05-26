@@ -291,9 +291,9 @@ void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
 
     for (int i = 0; i < NTERMS; i++){
         if (occurances[i][MG] >= 1.0)
-            rates[i][MG] = 1;//avgByPhase[MG] / occurances[i][MG];
+            rates[i][MG] = avgByPhase[MG] / occurances[i][MG];
         if (occurances[i][EG] >= 1.0)
-            rates[i][EG] = 1;//avgByPhase[EG] / occurances[i][EG];
+            rates[i][EG] = avgByPhase[EG] / occurances[i][EG];
     }
 }
 
