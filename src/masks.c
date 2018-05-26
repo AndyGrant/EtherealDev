@@ -59,10 +59,10 @@ void initMasks() {
             RanksAtOrAboveMasks[BLACK][r] |= Ranks[i];
 
         for (int i = r + 1; i < RANK_NB; i++)
-            RanksAtOrAboveMasks[WHITE][r] |= Ranks[i];
+            RanksAboveMasks[WHITE][r] |= Ranks[i];
 
         for (int i = r - 1; i >= 0; i--)
-            RanksAtOrAboveMasks[BLACK][r] |= Ranks[i];
+            RanksAboveMasks[BLACK][r] |= Ranks[i];
     }
 
     // Initalize isolated pawn masks
