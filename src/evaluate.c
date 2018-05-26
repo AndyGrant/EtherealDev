@@ -156,7 +156,12 @@ const double KingPolynomial[6] = {
     0.03141319,  2.18429452, -3.33669140,
 };
 
-const int KingShelter[4][8];
+const int KingShelter[4][8] = {
+    {S( -17,   9), S(  -2,  -4), S(   3,  -1), S(   0,   2), S(  -5,  -1), S(   0,   0), S(   6,  -4), S(  -3,  11)},
+    {S( -33,   2), S(  11,   0), S(  -1,  -1), S(   4,   2), S( -15,   0), S(   0,   0), S( -13,  -5), S(  16,   6)},
+    {S( -17,   2), S(   6,   4), S(   2,  -2), S(  10,  -3), S( -29,  -2), S(   0,   0), S( -20,  -1), S(  26,  -3)},
+    {S(  -1,  -2), S(   5,   3), S(   4,  -1), S(  -4,  -3), S(   1,  -4), S(   0,   0), S(   6,  -2), S(   4,   1)},
+};
 
 
 // Definition of evaluation terms related to Passed Pawns
