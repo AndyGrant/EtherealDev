@@ -691,9 +691,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         enemyFilePawns = enemyPawns & Files[file] & ranksAboveMasks(colour, kingRank);
 
-        distance = enemyFilePawns ?
-                   colour == WHITE ? rankOf(getlsb(enemyFilePawns)) - kingRank
-                                   : kingRank - rankOf(getmsb(enemyFilePawns))
+        distance = enemyFilePawns  ?
+                   colour == WHITE ? relativeRankOf(getlsb(enemyFilePawns))
+                                   : relativeRankOf(getmsb(enemyFilePawns))
                                    : 7;
 
         blocked =  myFilePawns && enemyFilePawns
