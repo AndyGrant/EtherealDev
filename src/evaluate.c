@@ -157,10 +157,10 @@ const double KingPolynomial[6] = {
 };
 
 const int KingShelter[FILE_NB/2][RANK_NB] = {
-   {   0,  70,  80,  40,  10,   0, -20 },
-   { -12,  80,  40, -10, -20, -30, -45 },
-   { -24,  60,  10,   0, -10, -25, -59 },
-   { -20,  50, -10, -20, -25, -50, -60 },
+   { 70,  80,  40,  10,   0, -20,   0 },
+   { 80,  40, -10, -20, -30, -45, -12 },
+   { 60,  10,   0, -10, -25, -59, -24 },
+   { 50, -10, -20, -25, -50, -60, -20 },
 };
 
 // Definition of evaluation terms related to Passed Pawns
@@ -599,7 +599,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
-    int file, rank, count, eval = 0, pkeval = 0;
+    int file, distance, count, eval = 0, pkeval = 0;
 
     uint64_t filePawns, weak;
 
@@ -654,13 +654,13 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
 
-        rank = filePawns ?
-               colour == WHITE ? relativeRankOf(WHITE, getlsb(filePawns))
-                               : relativeRankOf(BLACK, getmsb(filePawns))
-                               : 0;
+        distance = filePawns ?
+                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
+                                   : kingRank - rankOf(getmsb(filePawns))
+                                   : 7;
 
         static const int INV[FILE_NB] = {0,1,2,3,3,2,1,0};
-        pkeval += MakeScore(KingShelter[INV[file]][rank] / 3, 0);
+        pkeval += MakeScore(KingShelter[INV[file]][distance], 0);
     }
 
     ei->pkeval[colour] += pkeval;
