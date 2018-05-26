@@ -184,11 +184,13 @@ void boardFromFEN(Board *board, const char *fen) {
     // 50 move counter
     board->fiftyMoveRule = atoi(strtok_r(NULL, " ", &strPos));
 
-    // Move count: ignore and use zero, as we count since root
-    board->numMoves = 0;
-
     // Need king attackers for move generation
     board->kingAttackers = attackersToKingSquare(board);
+
+    // Setup the Move and Hash history
+    board->numMoves = 0;
+    board->moveHistory[board->numMoves] = NULL_MOVE;
+    board->hashHistory[board->numMoves] = board->hash;
 
     free(str);
 }

@@ -303,25 +303,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (board->fiftyMoveRule > 100)
             return 0;
 
-        // Check for three fold repetition. If the repetition occurs since
-        // the root move of this search, we will exit early as if it was a draw.
-        // Otherwise, we will look for an actual three fold repetition draw.
-        for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+        // Check for any two-fold after root, or three-fold in general
+        for (reps = 0, i = board->numMoves - 1; i >= 0; i -= 2){
 
-            // We can't have repeated positions before the most recent
-            // move which triggered a reset of the fifty move rule counter
+            // No three fold can occur since a zeroing move
             if (i < board->numMoves - board->fiftyMoveRule) break;
 
-            if (board->history[i] == board->hash){
-
-                // Repetition occured after the root
-                if (i > board->numMoves - height)
-                    return 0;
-
-                // An actual three fold repetition
-                if (++reps == 2)
-                    return 0;
-            }
+            // Matching hash after root or repeated twice
+            if (    board->hashHistory[i] == board->hash
+                && (++reps == 2 || i > board->numMoves - height))
+                return 0;
         }
     }
 
@@ -442,10 +433,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
-        &&  board->history[board->numMoves-1] != NULL_MOVE){
+        &&  board->moveHistory[board->numMoves] != NONE_MOVE){
 
         R = 4 + depth / 6 + (eval - beta + 200) / 400;
 

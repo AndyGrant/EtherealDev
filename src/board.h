@@ -33,7 +33,8 @@ struct Board {
     int fiftyMoveRule;
     int psqtmat;
     int numMoves;
-    uint64_t history[512];
+    uint16_t moveHistory[512];
+    uint64_t hashHistory[512];
 };
 
 struct Undo {
