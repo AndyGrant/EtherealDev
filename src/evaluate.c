@@ -175,6 +175,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
+const int KingStorm[2][FILE_NB][RANK_NB];
 
 // Definition of evaluation terms related to Passed Pawns
 
@@ -612,20 +613,19 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
-    int file, distance, count, eval = 0, pkeval = 0;
+    int count, eval = 0, pkeval = 0;
 
-    uint64_t filePawns, weak;
+    const uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
+    const uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    const uint64_t myKings    = board->pieces[KING] & board->colours[ colour];
 
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    const uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
+                                | (board->pieces[KNIGHT] & board->colours[colour])
+                                | (board->pieces[BISHOP] & board->colours[colour]);
 
-    uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
-                          | (board->pieces[KNIGHT] & board->colours[colour])
-                          | (board->pieces[BISHOP] & board->colours[colour]);
-
-    int kingSq = getlsb(myKings);
-    int kingFile = fileOf(kingSq);
-    int kingRank = rankOf(kingSq);
+    const int kingSq = getlsb(myKings);
+    const int kingFile = fileOf(kingSq);
+    const int kingRank = rankOf(kingSq);
 
     if (TRACE) T.KingValue[colour]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, colour)][colour]++;
@@ -641,11 +641,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         // Attacked squares are weak if we only defend once with king or queen.
         // This definition of square weakness is taken from Stockfish's king safety
-        weak =  ei->attacked[!colour]
-             & ~ei->attackedBy2[colour]
-             & (  ~ei->attacked[colour]
-                |  ei->attackedBy[colour][QUEEN]
-                |  ei->attackedBy[colour][KING]);
+        const uint64_t weak =  ei->attacked[!colour]
+                            & ~ei->attackedBy2[colour]
+                            & (  ~ei->attacked[colour]
+                               |  ei->attackedBy[colour][QUEEN]
+                               |  ei->attackedBy[colour][KING]);
 
         // Compute King Safety index based on safety factors
         count =  8                                              // King Safety Baseline
@@ -663,24 +663,43 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
     if (ei->pkentry != NULL) return eval;
 
-    // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
-    // to the King's file. We evaluate the distance between the king and the most backward
-    // pawn. We will not look at pawns behind the king, and will consider that as having
-    // no pawn on the file. No pawn on a file is used with distance equals 7, as no pawn
-    // can ever be a distance of 7 from the king. Different bonus is in order when we are
-    // looking at the file on which the King sits.
 
-    for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
+    for (int file = MAX(0, kingFile - 1); file <= MIN(FILE_NB - 1, kingFile + 1); file++){
 
-        filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
+        // Pawns on the current file, but only ones on the same rank or above our King
+        const uint64_t myFilePawns    =    myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
+        const uint64_t enemyFilePawns = enemyPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
 
-        distance = filePawns ?
-                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                   : kingRank - rankOf(getmsb(filePawns))
-                                   : 7;
+        // Distance from King Rank to the closest friendy pawn at or above the King's rank
+        int myDistance = !myFilePawns     ? 7
+                       :  colour == WHITE ? rankOf(getlsb(myFilePawns) - kingRank)
+                                          : kingRank - rankOf(getmsb(myFilePawns));
 
-        pkeval += KingShelter[file == kingFile][file][distance];
-        if (TRACE) T.KingShelter[file == kingFile][file][distance][colour]++;
+        // Distance from King Rank to the closest enemy pawn at or above the King's rank
+        int enemyDistance = !myFilePawns     ? 7
+                          :  colour == WHITE ? rankOf(getlsb(myFilePawns) - kingRank)
+                                             : kingRank - rankOf(getmsb(myFilePawns));
+
+        // Rank of our pawn we found with myDistance
+        int myRank = !myFilePawns    ? 0
+                   : colour == WHITE ? relativeRankOf(WHITE, getlsb(myFilePawns))
+                                     : relativeRankOf(BLACK, getmsb(myFilePawns));
+
+        // Rank of our pawn we found with enemyDistance
+        int enemyRank = !enemyFilePawns  ? 0
+                      :  colour == WHITE ? relativeRankOf(WHITE, getlsb(enemyFilePawns))
+                                         : relativeRankOf(BLACK, getmsb(enemyFilePawns));
+
+        // Blocking the Storming Pawn with one of our own
+        int blocked = (myRank && (myRank == enemyRank - 1));
+
+        // Score our King's Pawn Shelter
+        pkeval += KingShelter[file == kingFile][file][myDistance];
+        if (TRACE) T.KingShelter[file == kingFile][file][myDistance][colour]++;
+
+        // Score our King's Pawn Storm Safety
+        pkeval += KingStorm[blocked][file][enemyDistance];
+        if (TRACE) T.KingStorm[blocked][file][enemyDistance][colour]++;
     }
 
     ei->pkeval[colour] += pkeval;
