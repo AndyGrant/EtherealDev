@@ -156,9 +156,9 @@ const double KingPolynomial[6] = {
     0.03141319,  2.18429452, -3.33669140,
 };
 
-const int KingShelter[4][RANK_NB];
+const int KingShelter[2][RANK_NB];
 
-const int KingStorm[2][4][RANK_NB];
+const int KingStorm[2][2][RANK_NB];
 
 
 // Definition of evaluation terms related to Passed Pawns
@@ -597,7 +597,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
-    int file, myRank, enemyRank, blocked, distance, count, eval = 0, pkeval = 0;
+    int file, myRank, enemyRank, blocked, count, eval = 0, pkeval = 0;
 
     uint64_t myFilePawns, enemyFilePawns, weak;
 
@@ -669,16 +669,13 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // See if we have a Pawn blocking the storm threat
         blocked = myRank && (myRank == enemyRank - 1);
 
-        // Get distance from edge of the board
-        distance = square32(0, file);
-
         // Score King Shelter
-        pkeval += KingShelter[distance][myRank];
-        if (TRACE) T.KingShelter[distance][myRank][colour]++;
+        pkeval += KingShelter[file == kingFile][myRank];
+        if (TRACE) T.KingShelter[file == kingFile][myRank][colour]++;
 
         // Score King Storm
-        pkeval += KingStorm[blocked][distance][enemyRank];
-        if (TRACE) T.KingStorm[blocked][distance][enemyRank][colour]++;
+        pkeval += KingStorm[blocked][file == kingFile][enemyRank];
+        if (TRACE) T.KingStorm[blocked][file == kingFile][enemyRank][colour]++;
     }
 
     ei->pkeval[colour] += pkeval;
