@@ -48,6 +48,13 @@ int square(int r, int f) {
     return r * FILE_NB + f;
 }
 
+int square32(int r, int f) {
+    assert(0 <= c && c < COLOUR_NB);
+    assert(0 <= s && s < SQUARE_NB);
+    static const int edgeDistance[FILE_NB] = {0, 1, 2, 3, 3, 2, 1, 0};
+    return 4 * r + edgeDistance[f];
+}
+
 int popcount(uint64_t b) {
     return __builtin_popcountll(b);
 }

@@ -73,6 +73,7 @@ extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
 extern const int KingShelter[2][FILE_NB][RANK_NB];
+extern const int KingStorm[2][FILE_NB/2][RANK_NB];
 extern const int PassedPawn[2][2][RANK_NB];
 extern const int ThreatPawnAttackedByOne;
 extern const int ThreatMinorAttackedByPawn;
@@ -330,6 +331,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneQueenMobility             ) INIT_COEFF_1(QueenMobility, 28)         ;
     if (TuneKingDefenders             ) INIT_COEFF_1(KingDefenders, 12)         ;
     if (TuneKingShelter               ) INIT_COEFF_3(KingShelter, 2, 8, 8)      ;
+    if (TuneKingStorm                 ) INIT_COEFF_3(KingStorm, 2, 4, 8)        ;
     if (TunePassedPawn                ) INIT_COEFF_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) INIT_COEFF_0(ThreatPawnAttackedByOne)   ;
     if (TuneThreatMinorAttackedByPawn ) INIT_COEFF_0(ThreatMinorAttackedByPawn) ;
@@ -376,6 +378,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneQueenMobility             ) INIT_PARAM_1(QueenMobility, 28)         ;
     if (TuneKingDefenders             ) INIT_PARAM_1(KingDefenders, 12)         ;
     if (TuneKingShelter               ) INIT_PARAM_3(KingShelter, 2, 8, 8)      ;
+    if (TuneKingStorm                 ) INIT_PARAM_3(KingStorm, 2, 4, 8)        ;
     if (TunePassedPawn                ) INIT_PARAM_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) INIT_PARAM_0(ThreatPawnAttackedByOne)   ;
     if (TuneThreatMinorAttackedByPawn ) INIT_PARAM_0(ThreatMinorAttackedByPawn) ;
@@ -430,6 +433,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneQueenMobility             ) PRINT_PARAM_1(QueenMobility, 28)         ;
     if (TuneKingDefenders             ) PRINT_PARAM_1(KingDefenders, 12)         ;
     if (TuneKingShelter               ) PRINT_PARAM_3(KingShelter, 2, 8, 8)      ;
+    if (TuneKingStorm                 ) PRINT_PARAM_3(KingStorm, 2, 4, 8)        ;
     if (TunePassedPawn                ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) PRINT_PARAM_0(ThreatPawnAttackedByOne)   ;
     if (TuneThreatMinorAttackedByPawn ) PRINT_PARAM_0(ThreatMinorAttackedByPawn) ;

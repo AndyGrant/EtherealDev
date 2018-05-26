@@ -175,6 +175,8 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
+const int KingStorm[2][FILE_NB/2][RANK_NB];
+
 
 // Definition of evaluation terms related to Passed Pawns
 
@@ -612,12 +614,13 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
-    int file, distance, count, eval = 0, pkeval = 0;
+    int file, distance, count, blocked, eval = 0, pkeval = 0;
 
     uint64_t filePawns, weak;
 
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    uint64_t myPawns    = board->pieces[PAWN] & board->colours[ colour];
+    uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t myKings    = board->pieces[KING] & board->colours[ colour];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
@@ -663,14 +666,12 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
     if (ei->pkentry != NULL) return eval;
 
-    // Evaluate Pawn Shelter. We will look at the King's file and any adjacent files
-    // to the King's file. We evaluate the distance between the king and the most backward
-    // pawn. We will not look at pawns behind the king, and will consider that as having
-    // no pawn on the file. No pawn on a file is used with distance equals 7, as no pawn
-    // can ever be a distance of 7 from the king. Different bonus is in order when we are
-    // looking at the file on which the King sits.
 
     for (file = MAX(0, kingFile - 1); file <= MIN(7, kingFile + 1); file++){
+
+        // Evaluate Pawn Shelter as function of distance from the King to the
+        // nearest friendly Pawn at or above the King's rank. Use a distance
+        // of 7 to denote a file which has no pawn, or the pawn is behind the king
 
         filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
 
@@ -681,6 +682,24 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         pkeval += KingShelter[file == kingFile][file][distance];
         if (TRACE) T.KingShelter[file == kingFile][file][distance][colour]++;
+
+
+        // Evaluate Pawn Storm as a function of the distance from the King to
+        // the nearest enemy Pawn at or above the King's rank. Use a distance
+        // of 7 to denote a file which has no Pawn, or the pawn is behind the
+        // King. We use a differnt value depending on the blocked status
+
+        filePawns = enemyPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
+
+        distance = filePawns ?
+                   colour == WHITE ? rankOf(getlsb(filePawns)) - kingRank
+                                   : kingRank - rankOf(getmsb(filePawns))
+                                   : 7;
+
+        blocked = !!(filePawns & ei->rammedPawns[!colour]);
+
+        pkeval += KingStorm[blocked][square32(0, file)][distance];
+        if (TRACE) T.KingStorm[blocked][square32(0, file)][distance][colour]++;
     }
 
     ei->pkeval[colour] += pkeval;
