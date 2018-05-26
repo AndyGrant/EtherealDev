@@ -72,7 +72,7 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
+extern const int KingShelter[2][RANK_NB];
 extern const int PassedPawn[2][2][RANK_NB];
 extern const int ThreatPawnAttackedByOne;
 extern const int ThreatMinorAttackedByPawn;
@@ -97,7 +97,7 @@ void runTexelTuning(Thread *thread) {
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
+    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]......  [%7d of %7d]",
            (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
@@ -329,7 +329,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneRookMobility              ) INIT_COEFF_1(RookMobility, 15)          ;
     if (TuneQueenMobility             ) INIT_COEFF_1(QueenMobility, 28)         ;
     if (TuneKingDefenders             ) INIT_COEFF_1(KingDefenders, 12)         ;
-    if (TuneKingShelter               ) INIT_COEFF_3(KingShelter, 2, 8, 8)      ;
+    if (TuneKingShelter               ) INIT_COEFF_2(KingShelter, 2, 8)         ;
     if (TunePassedPawn                ) INIT_COEFF_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) INIT_COEFF_0(ThreatPawnAttackedByOne)   ;
     if (TuneThreatMinorAttackedByPawn ) INIT_COEFF_0(ThreatMinorAttackedByPawn) ;
@@ -375,7 +375,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneRookMobility              ) INIT_PARAM_1(RookMobility, 15)          ;
     if (TuneQueenMobility             ) INIT_PARAM_1(QueenMobility, 28)         ;
     if (TuneKingDefenders             ) INIT_PARAM_1(KingDefenders, 12)         ;
-    if (TuneKingShelter               ) INIT_PARAM_3(KingShelter, 2, 8, 8)      ;
+    if (TuneKingShelter               ) INIT_PARAM_2(KingShelter, 2, 8)         ;
     if (TunePassedPawn                ) INIT_PARAM_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) INIT_PARAM_0(ThreatPawnAttackedByOne)   ;
     if (TuneThreatMinorAttackedByPawn ) INIT_PARAM_0(ThreatMinorAttackedByPawn) ;
@@ -429,7 +429,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneRookMobility              ) PRINT_PARAM_1(RookMobility, 15)          ;
     if (TuneQueenMobility             ) PRINT_PARAM_1(QueenMobility, 28)         ;
     if (TuneKingDefenders             ) PRINT_PARAM_1(KingDefenders, 12)         ;
-    if (TuneKingShelter               ) PRINT_PARAM_3(KingShelter, 2, 8, 8)      ;
+    if (TuneKingShelter               ) PRINT_PARAM_2(KingShelter, 2, 8)         ;
     if (TunePassedPawn                ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)       ;
     if (TuneThreatPawnAttackedByOne   ) PRINT_PARAM_0(ThreatPawnAttackedByOne)   ;
     if (TuneThreatMinorAttackedByPawn ) PRINT_PARAM_0(ThreatMinorAttackedByPawn) ;
@@ -540,11 +540,19 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
 
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++) {
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("%s", b == B - 1 ? "},\n" : ", ");
+        }
+    }
+
+    printf("};\n");
 }
 
 void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C) {
@@ -564,7 +572,6 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
             printf("%s", b == B - 1 ? "}},\n" : "},\n");
         }
-
     }
 
     printf("};\n");
