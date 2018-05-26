@@ -334,7 +334,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
 
         // Check for a cycle in previous moves
-        if (    alpha < 0
+        if (   !PvNode
+            &&  alpha < 0
             &&  hasGameCycle(board, height)
             && (alpha = 0) >= beta)
             return alpha;
