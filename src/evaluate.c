@@ -156,10 +156,17 @@ const double KingPolynomial[6] = {
     0.03141319,  2.18429452, -3.33669140,
 };
 
-const int KingShelter[2][RANK_NB];
+const int KingShelter[2][8] = {
+   {S( -10,   0), S(   8,   0), S(  -3,   0), S(   4,   0), S(   3,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S( -20,   0), S(   4,   0), S(   5,   0), S(   6,   0), S(   2,   0), S(   7,   0), S(   0,   0), S(   0,   0)},
+};
 
-const int KingStorm[2][2][RANK_NB];
-
+const int KingStorm[2][2][8] = {
+  {{S(   6,   0), S( -24,   0), S( -23,   0), S( -11,   0), S(   4,   0), S(   5,   0), S(  -4,   0), S(   0,   0)},
+   {S(  -9,   0), S(  14,   0), S(  13,   0), S(   5,   0), S(   4,   0), S(   9,   0), S(  -5,   0), S(   0,   0)}},
+  {{S(   0,   0), S(   0,   0), S( -19,   0), S(   4,   0), S(  12,   0), S(   2,   0), S(   7,   0), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S( -48,   0), S(  10,   0), S(   9,   0), S(   3,   0), S(   8,   0), S(   0,   0)}},
+};
 
 // Definition of evaluation terms related to Passed Pawns
 
