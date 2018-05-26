@@ -114,6 +114,8 @@ const int BishopMobility[14] = {
 
 // Definition of evaluation terms related to Rooks
 
+const int RookPair = S(  30, -40);
+
 const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 
 const int RookOnSeventh = S(   0,  25);
@@ -517,6 +519,12 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
     uint64_t enemyKings = board->pieces[KING] & board->colours[!colour];
 
     ei->attackedBy[colour][ROOK] = 0ull;
+
+    // Apply a bonus or penalty for having a pair of rooks
+    if (several(tempRooks)){
+        eval += RookPair;
+        if (TRACE) T.RookPair[colour]++;
+    }
 
     // Evaluate each rook
     while (tempRooks){

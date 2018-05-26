@@ -67,6 +67,7 @@ extern const int BishopPair;
 extern const int BishopRammedPawns;
 extern const int BishopOutpost[2];
 extern const int BishopMobility[14];
+extern const int RookPair;
 extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
@@ -84,7 +85,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = 100.0;
     double rates[NTERMS][PHASE_NB] = {{0}, {0}};
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
@@ -117,7 +118,7 @@ void runTexelTuning(Thread *thread) {
 
         iteration++;
 
-        if (iteration % 25 == 0) {
+        if (iteration % 100 == 0) {
 
             // Check for a regression in the tuning process
             thisError = completeLinearError(tes, params, K);
@@ -324,6 +325,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneBishopRammedPawns         ) INIT_COEFF_0(BishopRammedPawns)         ;
     if (TuneBishopOutpost             ) INIT_COEFF_1(BishopOutpost, 2)          ;
     if (TuneBishopMobility            ) INIT_COEFF_1(BishopMobility, 14)        ;
+    if (TuneRookPair                  ) INIT_COEFF_0(RookPair)                  ;
     if (TuneRookFile                  ) INIT_COEFF_1(RookFile, 2)               ;
     if (TuneRookOnSeventh             ) INIT_COEFF_0(RookOnSeventh)             ;
     if (TuneRookMobility              ) INIT_COEFF_1(RookMobility, 15)          ;
@@ -370,6 +372,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneBishopRammedPawns         ) INIT_PARAM_0(BishopRammedPawns)         ;
     if (TuneBishopOutpost             ) INIT_PARAM_1(BishopOutpost, 2)          ;
     if (TuneBishopMobility            ) INIT_PARAM_1(BishopMobility, 14)        ;
+    if (TuneRookPair                  ) INIT_PARAM_0(RookPair)                  ;
     if (TuneRookFile                  ) INIT_PARAM_1(RookFile, 2)               ;
     if (TuneRookOnSeventh             ) INIT_PARAM_0(RookOnSeventh)             ;
     if (TuneRookMobility              ) INIT_PARAM_1(RookMobility, 15)          ;
@@ -424,6 +427,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneBishopRammedPawns         ) PRINT_PARAM_0(BishopRammedPawns)         ;
     if (TuneBishopOutpost             ) PRINT_PARAM_1(BishopOutpost, 2)          ;
     if (TuneBishopMobility            ) PRINT_PARAM_1(BishopMobility, 14)        ;
+    if (TuneRookPair                  ) PRINT_PARAM_0(RookPair)                  ;
     if (TuneRookFile                  ) PRINT_PARAM_1(RookFile, 2)               ;
     if (TuneRookOnSeventh             ) PRINT_PARAM_0(RookOnSeventh)             ;
     if (TuneRookMobility              ) PRINT_PARAM_1(RookMobility, 15)          ;
