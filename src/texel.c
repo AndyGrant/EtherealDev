@@ -148,9 +148,9 @@ void runTexelTuning(Thread *thread) {
                                                                 * tes[i].tuples[j].coeff;
 
                     // Update gradients for the j-th tuple for the end game
-                    localgradients[tes[i].tuples[j].index][EG] += thisError
-                                                                * tes[i].factors[EG]
-                                                                * tes[i].tuples[j].coeff;
+                    //localgradients[tes[i].tuples[j].index][EG] += thisError
+                    //                                            * tes[i].factors[EG]
+                    //                                            * tes[i].tuples[j].coeff;
                 }
             }
 
@@ -158,7 +158,7 @@ void runTexelTuning(Thread *thread) {
             // in order to speed up memory access times when doing the tuning with SMP
             for (i = 0; i < NTERMS; i++) {
                 gradients[i][MG] += localgradients[i][MG];
-                gradients[i][EG] += localgradients[i][EG];
+                //gradients[i][EG] += localgradients[i][EG];
             }
         }
 
@@ -167,7 +167,7 @@ void runTexelTuning(Thread *thread) {
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
             params[i][MG] += (2.0 / NPOSITIONS) * baseRate * rates[i][MG] * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
+            //params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
         }
     }
 }
