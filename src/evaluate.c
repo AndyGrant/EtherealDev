@@ -156,9 +156,11 @@ const double KingPolynomial[6] = {
     0.03141319,  2.18429452, -3.33669140,
 };
 
-const int KingShelter[2][8] = {
-   {S(   5,  11), S(  13,  -2), S(  -6,   3), S(   8,  -7), S(   6, -13), S(  11,   7), S(  -5,  19), S(  -6,   5)},
-   {S(   0,   0), S(   6,   3), S(   0,   0), S(   7, -10), S(  -3, -13), S(  -1,  10), S( -82, -21), S( -15,   0)},
+const int KingShelter[4][RANK_NB] = {
+   {S( -12,   0), S(   2,  -7), S(   6,   1), S(   4,   4), S(  -8,  11), S(  12,  22), S(-150,  40), S( -12,  11)},
+   {S(   5,   6), S(   7,  -3), S(  -7,  -2), S( -25,  -5), S( -27,  -8), S(  -5,  26), S( -63, -26), S( -36,   4)},
+   {S(  22,  14), S(  20,   3), S( -19,   3), S(  -3,  -9), S(   5, -17), S(   4, -11), S(  48,  24), S(  -9,   5)},
+   {S( -12,  18), S(   4,   4), S(  -1,  -1), S(  19,  -8), S(  10, -26), S( -32,  -4), S(  -8,  -6), S(  -3,  -2)},
 };
 
 
@@ -665,8 +667,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                                    : kingRank - rankOf(getmsb(filePawns))
                                    : 7;
 
-        pkeval += KingShelter[file == kingFile][distance];
-        if (TRACE) T.KingShelter[file == kingFile][distance][colour]++;
+        pkeval += KingShelter[square32(0, file)][distance];
+        if (TRACE) T.KingShelter[square32(0, file)][distance][colour]++;
     }
 
     ei->pkeval[colour] += pkeval;

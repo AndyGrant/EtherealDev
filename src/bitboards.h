@@ -58,6 +58,7 @@ int fileOf(int s);
 int rankOf(int s);
 int relativeRankOf(int c, int s);
 int square(int r, int f);
+int square32(int r, int f);
 
 int popcount(uint64_t b);
 int getlsb(uint64_t b);
