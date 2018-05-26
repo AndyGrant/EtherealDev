@@ -658,9 +658,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(colour, kingRank);
 
         distance = filePawns ?
-                   colour = WHITE ? relativeRankOf(WHITE, getlsb(filePawns))
-                                  : relativeRankOf(BLACK, getmsb(filePawns))
-                                  : 0;
+                   colour == WHITE ? relativeRankOf(WHITE, getlsb(filePawns))
+                                   : relativeRankOf(BLACK, getmsb(filePawns))
+                                   : 0;
 
         static const int INV[8] = {0, 1, 2, 3, 3, 2, 1, 0};
 
