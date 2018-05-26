@@ -306,13 +306,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Check for any two-fold after root, or three-fold in general
         for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
 
-            // No three fold can occur since a zeroing move
-            if (i < board->numMoves - board->fiftyMoveRule) break;
-
             // Matching hash after root or repeated twice
             if (    board->hashHistory[i] == board->hash
                 && (++reps == 2 || i > board->numMoves - height))
                 return 0;
+
+            // No three fold can occur since a zeroing move
+            if (i < board->numMoves - board->fiftyMoveRule) break;
+
+            // No three fold can occur before a NULL move
+            // if (board->moveHistory[i] == NULL_MOVE) break;
         }
     }
 
