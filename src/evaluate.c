@@ -660,7 +660,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                                : 0;
 
         static const int INV[FILE_NB] = {0,1,2,3,3,2,1,0};
-        pkeval += MakeScore(KingShelter[INV[file]][rank], 0);
+        pkeval += MakeScore(KingShelter[INV[file]][rank] / 3, 0);
     }
 
     ei->pkeval[colour] += pkeval;
