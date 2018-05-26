@@ -558,25 +558,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
             continue;
 
-        // Apply the move, and verify legality
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
-            continue;
-        }
-
-        // Update counter of moves actually played
-        played += 1;
-
         // Step 16. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
         if (    isQuiet
             &&  depth > 2
-            &&  played > 3){
+            &&  played > 2){
 
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
+            R = 2 + (played - 3) / 8 + (depth - 6) / 4; // LMR Formula
 
             R += 2 * !PvNode; // Increase for non PV nodes
+
+            R -= board->fiftyMoveRule >= 10
+              && PieceType(board->squares[MoveFrom(move)]) == PAWN;
 
             R -= quiets <= 3; // Reduce for first few quiets
 
@@ -587,6 +580,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
+
+        // Apply the move, and verify legality
+        applyMove(board, move, undo);
+        if (!isNotInCheck(board, !board->turn)){
+            revertMove(board, move, undo);
+            continue;
+        }
+
+        // Update counter of moves actually played
+        played += 1;
 
         // Step 17A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
