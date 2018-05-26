@@ -198,7 +198,7 @@ const int ThreatQueenAttackedByOne   = S( -84,   3);
 
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
-const int ThreatByPawnPush           = S(   8,  10);
+const int ThreatByPawnPush           = S(  11,  26);
 
 
 // Definition of evaluation terms related to general properties
