@@ -32,23 +32,41 @@
 #include "evaluate.h"
 #include "fathom/tbprobe.h"
 #include "history.h"
+#include "masks.h"
+#include "move.h"
+#include "movegen.h"
+#include "movepicker.h"
 #include "piece.h"
 #include "psqt.h"
 #include "search.h"
 #include "syzygy.h"
 #include "thread.h"
+#include "time.h"
 #include "transposition.h"
 #include "types.h"
-#include "time.h"
-#include "move.h"
-#include "movegen.h"
-#include "movepicker.h"
 #include "uci.h"
 
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
+
+static int hasGameCycle(Board *board, int height) {
+
+    if (height < 3 || board->fiftyMoveRule < 3)
+        return 0;
+
+    uint16_t pmove   = board->moveHistory[board->numMoves-0];
+    uint16_t ppmove  = board->moveHistory[board->numMoves-1];
+    uint16_t pppmove = board->moveHistory[board->numMoves-2];
+
+    if (pmove == NULL_MOVE || ppmove == NULL_MOVE || pppmove == NULL_MOVE)
+        return 0;
+
+    return   MoveFrom(pppmove) == MoveTo(pmove)
+        &&   MoveTo(pppmove) == MoveFrom(pmove)
+        && !(bitsBetweenMasks(MoveFrom(ppmove), MoveTo(ppmove)) & MoveTo(pmove));
+}
 
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
@@ -314,6 +332,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 && (++reps == 2 || i > board->numMoves - height))
                 return 0;
         }
+
+        // Check for a cycle in previous moves
+        if (    alpha < 0
+            &&  hasGameCycle(board, height)
+            && (alpha = 0) >= beta)
+            return alpha;
     }
 
     // Step 3. Probe the Transposition Table, adjust the value, and consider cutoffs
