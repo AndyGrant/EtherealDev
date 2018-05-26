@@ -72,8 +72,9 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
-extern const int PassedPawn[2][2][RANK_NB];
+extern const int KingShelter[4][8];
+extern const int KingStorm[2][4][8];
+extern const int PassedPawn[2][2][8];
 extern const int ThreatPawnAttackedByOne;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -301,41 +302,42 @@ void initCoefficients(int coeffs[NTERMS]) {
 
     int i = 0; // INIT_COEFF_N will update i accordingly
 
-    if (TunePawnValue                 ) INIT_COEFF_0(PawnValue)                 ;
-    if (TuneKnightValue               ) INIT_COEFF_0(KnightValue)               ;
-    if (TuneBishopValue               ) INIT_COEFF_0(BishopValue)               ;
-    if (TuneRookValue                 ) INIT_COEFF_0(RookValue)                 ;
-    if (TuneQueenValue                ) INIT_COEFF_0(QueenValue)                ;
-    if (TuneKingValue                 ) INIT_COEFF_0(KingValue)                 ;
-    if (TunePawnPSQT32                ) INIT_COEFF_1(PawnPSQT32, 32)            ;
-    if (TuneKnightPSQT32              ) INIT_COEFF_1(KnightPSQT32, 32)          ;
-    if (TuneBishopPSQT32              ) INIT_COEFF_1(BishopPSQT32, 32)          ;
-    if (TuneRookPSQT32                ) INIT_COEFF_1(RookPSQT32, 32)            ;
-    if (TuneQueenPSQT32               ) INIT_COEFF_1(QueenPSQT32, 32)           ;
-    if (TuneKingPSQT32                ) INIT_COEFF_1(KingPSQT32, 32)            ;
-    if (TunePawnIsolated              ) INIT_COEFF_0(PawnIsolated)              ;
-    if (TunePawnStacked               ) INIT_COEFF_0(PawnStacked)               ;
-    if (TunePawnBackwards             ) INIT_COEFF_1(PawnBackwards, 2)          ;
-    if (TunePawnConnected32           ) INIT_COEFF_1(PawnConnected32, 32)       ;
-    if (TuneKnightRammedPawns         ) INIT_COEFF_0(KnightRammedPawns)         ;
-    if (TuneKnightOutpost             ) INIT_COEFF_1(KnightOutpost, 2)          ;
-    if (TuneKnightMobility            ) INIT_COEFF_1(KnightMobility, 9)         ;
-    if (TuneBishopPair                ) INIT_COEFF_0(BishopPair)                ;
-    if (TuneBishopRammedPawns         ) INIT_COEFF_0(BishopRammedPawns)         ;
-    if (TuneBishopOutpost             ) INIT_COEFF_1(BishopOutpost, 2)          ;
-    if (TuneBishopMobility            ) INIT_COEFF_1(BishopMobility, 14)        ;
-    if (TuneRookFile                  ) INIT_COEFF_1(RookFile, 2)               ;
-    if (TuneRookOnSeventh             ) INIT_COEFF_0(RookOnSeventh)             ;
-    if (TuneRookMobility              ) INIT_COEFF_1(RookMobility, 15)          ;
-    if (TuneQueenMobility             ) INIT_COEFF_1(QueenMobility, 28)         ;
-    if (TuneKingDefenders             ) INIT_COEFF_1(KingDefenders, 12)         ;
-    if (TuneKingShelter               ) INIT_COEFF_3(KingShelter, 2, 8, 8)      ;
-    if (TunePassedPawn                ) INIT_COEFF_3(PassedPawn, 2, 2, 8)       ;
-    if (TuneThreatPawnAttackedByOne   ) INIT_COEFF_0(ThreatPawnAttackedByOne)   ;
-    if (TuneThreatMinorAttackedByPawn ) INIT_COEFF_0(ThreatMinorAttackedByPawn) ;
-    if (TuneThreatMinorAttackedByMajor) INIT_COEFF_0(ThreatMinorAttackedByMajor);
-    if (TuneThreatQueenAttackedByOne  ) INIT_COEFF_0(ThreatQueenAttackedByOne)  ;
-    if (TuneThreatOverloadedPieces    ) INIT_COEFF_0(ThreatOverloadedPieces)    ;
+    if (TunePawnValue                   ) INIT_COEFF_0(PawnValue)                   ;
+    if (TuneKnightValue                 ) INIT_COEFF_0(KnightValue)                 ;
+    if (TuneBishopValue                 ) INIT_COEFF_0(BishopValue)                 ;
+    if (TuneRookValue                   ) INIT_COEFF_0(RookValue)                   ;
+    if (TuneQueenValue                  ) INIT_COEFF_0(QueenValue)                  ;
+    if (TuneKingValue                   ) INIT_COEFF_0(KingValue)                   ;
+    if (TunePawnPSQT32                  ) INIT_COEFF_1(PawnPSQT32, 32)              ;
+    if (TuneKnightPSQT32                ) INIT_COEFF_1(KnightPSQT32, 32)            ;
+    if (TuneBishopPSQT32                ) INIT_COEFF_1(BishopPSQT32, 32)            ;
+    if (TuneRookPSQT32                  ) INIT_COEFF_1(RookPSQT32, 32)              ;
+    if (TuneQueenPSQT32                 ) INIT_COEFF_1(QueenPSQT32, 32)             ;
+    if (TuneKingPSQT32                  ) INIT_COEFF_1(KingPSQT32, 32)              ;
+    if (TunePawnIsolated                ) INIT_COEFF_0(PawnIsolated)                ;
+    if (TunePawnStacked                 ) INIT_COEFF_0(PawnStacked)                 ;
+    if (TunePawnBackwards               ) INIT_COEFF_1(PawnBackwards, 2)            ;
+    if (TunePawnConnected32             ) INIT_COEFF_1(PawnConnected32, 32)         ;
+    if (TuneKnightRammedPawns           ) INIT_COEFF_0(KnightRammedPawns)           ;
+    if (TuneKnightOutpost               ) INIT_COEFF_1(KnightOutpost, 2)            ;
+    if (TuneKnightMobility              ) INIT_COEFF_1(KnightMobility, 9)           ;
+    if (TuneBishopPair                  ) INIT_COEFF_0(BishopPair)                  ;
+    if (TuneBishopRammedPawns           ) INIT_COEFF_0(BishopRammedPawns)           ;
+    if (TuneBishopOutpost               ) INIT_COEFF_1(BishopOutpost, 2)            ;
+    if (TuneBishopMobility              ) INIT_COEFF_1(BishopMobility, 14)          ;
+    if (TuneRookFile                    ) INIT_COEFF_1(RookFile, 2)                 ;
+    if (TuneRookOnSeventh               ) INIT_COEFF_0(RookOnSeventh)               ;
+    if (TuneRookMobility                ) INIT_COEFF_1(RookMobility, 15)            ;
+    if (TuneQueenMobility               ) INIT_COEFF_1(QueenMobility, 28)           ;
+    if (TuneKingDefenders               ) INIT_COEFF_1(KingDefenders, 12)           ;
+    if (TuneKingShelter                 ) INIT_COEFF_2(KingShelter, 4, 8)           ;
+    if (TuneKingStorm                   ) INIT_COEFF_3(KingStorm, 2, 4, 8)          ;
+    if (TunePassedPawn                  ) INIT_COEFF_3(PassedPawn, 2, 2, 8)         ;
+    if (TuneThreatPawnAttackedByOne     ) INIT_COEFF_0(ThreatPawnAttackedByOne)     ;
+    if (TuneThreatMinorAttackedByPawn   ) INIT_COEFF_0(ThreatMinorAttackedByPawn)   ;
+    if (TuneThreatMinorAttackedByMajor  ) INIT_COEFF_0(ThreatMinorAttackedByMajor)  ;
+    if (TuneThreatQueenAttackedByOne    ) INIT_COEFF_0(ThreatQueenAttackedByOne)    ;
+    if (TuneThreatOverloadedPieces      ) INIT_COEFF_0(ThreatOverloadedPieces)      ;
 
     if (i != NTERMS){
         printf("Error in initCoefficients(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -347,41 +349,42 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
 
     int i = 0; // INIT_PARAM_N will update i accordingly
 
-    if (TunePawnValue                 ) INIT_PARAM_0(PawnValue)                 ;
-    if (TuneKnightValue               ) INIT_PARAM_0(KnightValue)               ;
-    if (TuneBishopValue               ) INIT_PARAM_0(BishopValue)               ;
-    if (TuneRookValue                 ) INIT_PARAM_0(RookValue)                 ;
-    if (TuneQueenValue                ) INIT_PARAM_0(QueenValue)                ;
-    if (TuneKingValue                 ) INIT_PARAM_0(KingValue)                 ;
-    if (TunePawnPSQT32                ) INIT_PARAM_1(PawnPSQT32, 32)            ;
-    if (TuneKnightPSQT32              ) INIT_PARAM_1(KnightPSQT32, 32)          ;
-    if (TuneBishopPSQT32              ) INIT_PARAM_1(BishopPSQT32, 32)          ;
-    if (TuneRookPSQT32                ) INIT_PARAM_1(RookPSQT32, 32)            ;
-    if (TuneQueenPSQT32               ) INIT_PARAM_1(QueenPSQT32, 32)           ;
-    if (TuneKingPSQT32                ) INIT_PARAM_1(KingPSQT32, 32)            ;
-    if (TunePawnIsolated              ) INIT_PARAM_0(PawnIsolated)              ;
-    if (TunePawnStacked               ) INIT_PARAM_0(PawnStacked)               ;
-    if (TunePawnBackwards             ) INIT_PARAM_1(PawnBackwards, 2)          ;
-    if (TunePawnConnected32           ) INIT_PARAM_1(PawnConnected32, 32)       ;
-    if (TuneKnightRammedPawns         ) INIT_PARAM_0(KnightRammedPawns)         ;
-    if (TuneKnightOutpost             ) INIT_PARAM_1(KnightOutpost, 2)          ;
-    if (TuneKnightMobility            ) INIT_PARAM_1(KnightMobility, 9)         ;
-    if (TuneBishopPair                ) INIT_PARAM_0(BishopPair)                ;
-    if (TuneBishopRammedPawns         ) INIT_PARAM_0(BishopRammedPawns)         ;
-    if (TuneBishopOutpost             ) INIT_PARAM_1(BishopOutpost, 2)          ;
-    if (TuneBishopMobility            ) INIT_PARAM_1(BishopMobility, 14)        ;
-    if (TuneRookFile                  ) INIT_PARAM_1(RookFile, 2)               ;
-    if (TuneRookOnSeventh             ) INIT_PARAM_0(RookOnSeventh)             ;
-    if (TuneRookMobility              ) INIT_PARAM_1(RookMobility, 15)          ;
-    if (TuneQueenMobility             ) INIT_PARAM_1(QueenMobility, 28)         ;
-    if (TuneKingDefenders             ) INIT_PARAM_1(KingDefenders, 12)         ;
-    if (TuneKingShelter               ) INIT_PARAM_3(KingShelter, 2, 8, 8)      ;
-    if (TunePassedPawn                ) INIT_PARAM_3(PassedPawn, 2, 2, 8)       ;
-    if (TuneThreatPawnAttackedByOne   ) INIT_PARAM_0(ThreatPawnAttackedByOne)   ;
-    if (TuneThreatMinorAttackedByPawn ) INIT_PARAM_0(ThreatMinorAttackedByPawn) ;
-    if (TuneThreatMinorAttackedByMajor) INIT_PARAM_0(ThreatMinorAttackedByMajor);
-    if (TuneThreatQueenAttackedByOne  ) INIT_PARAM_0(ThreatQueenAttackedByOne)  ;
-    if (TuneThreatOverloadedPieces    ) INIT_PARAM_0(ThreatOverloadedPieces)    ;
+    if (TunePawnValue                   ) INIT_PARAM_0(PawnValue)                   ;
+    if (TuneKnightValue                 ) INIT_PARAM_0(KnightValue)                 ;
+    if (TuneBishopValue                 ) INIT_PARAM_0(BishopValue)                 ;
+    if (TuneRookValue                   ) INIT_PARAM_0(RookValue)                   ;
+    if (TuneQueenValue                  ) INIT_PARAM_0(QueenValue)                  ;
+    if (TuneKingValue                   ) INIT_PARAM_0(KingValue)                   ;
+    if (TunePawnPSQT32                  ) INIT_PARAM_1(PawnPSQT32, 32)              ;
+    if (TuneKnightPSQT32                ) INIT_PARAM_1(KnightPSQT32, 32)            ;
+    if (TuneBishopPSQT32                ) INIT_PARAM_1(BishopPSQT32, 32)            ;
+    if (TuneRookPSQT32                  ) INIT_PARAM_1(RookPSQT32, 32)              ;
+    if (TuneQueenPSQT32                 ) INIT_PARAM_1(QueenPSQT32, 32)             ;
+    if (TuneKingPSQT32                  ) INIT_PARAM_1(KingPSQT32, 32)              ;
+    if (TunePawnIsolated                ) INIT_PARAM_0(PawnIsolated)                ;
+    if (TunePawnStacked                 ) INIT_PARAM_0(PawnStacked)                 ;
+    if (TunePawnBackwards               ) INIT_PARAM_1(PawnBackwards, 2)            ;
+    if (TunePawnConnected32             ) INIT_PARAM_1(PawnConnected32, 32)         ;
+    if (TuneKnightRammedPawns           ) INIT_PARAM_0(KnightRammedPawns)           ;
+    if (TuneKnightOutpost               ) INIT_PARAM_1(KnightOutpost, 2)            ;
+    if (TuneKnightMobility              ) INIT_PARAM_1(KnightMobility, 9)           ;
+    if (TuneBishopPair                  ) INIT_PARAM_0(BishopPair)                  ;
+    if (TuneBishopRammedPawns           ) INIT_PARAM_0(BishopRammedPawns)           ;
+    if (TuneBishopOutpost               ) INIT_PARAM_1(BishopOutpost, 2)            ;
+    if (TuneBishopMobility              ) INIT_PARAM_1(BishopMobility, 14)          ;
+    if (TuneRookFile                    ) INIT_PARAM_1(RookFile, 2)                 ;
+    if (TuneRookOnSeventh               ) INIT_PARAM_0(RookOnSeventh)               ;
+    if (TuneRookMobility                ) INIT_PARAM_1(RookMobility, 15)            ;
+    if (TuneQueenMobility               ) INIT_PARAM_1(QueenMobility, 28)           ;
+    if (TuneKingDefenders               ) INIT_PARAM_1(KingDefenders, 12)           ;
+    if (TuneKingShelter                 ) INIT_PARAM_2(KingShelter, 4, 8)           ;
+    if (TuneKingStorm                   ) INIT_PARAM_3(KingStorm, 2, 4, 8)          ;
+    if (TunePassedPawn                  ) INIT_PARAM_3(PassedPawn, 2, 2, 8)         ;
+    if (TuneThreatPawnAttackedByOne     ) INIT_PARAM_0(ThreatPawnAttackedByOne)     ;
+    if (TuneThreatMinorAttackedByPawn   ) INIT_PARAM_0(ThreatMinorAttackedByPawn)   ;
+    if (TuneThreatMinorAttackedByMajor  ) INIT_PARAM_0(ThreatMinorAttackedByMajor)  ;
+    if (TuneThreatQueenAttackedByOne    ) INIT_PARAM_0(ThreatQueenAttackedByOne)    ;
+    if (TuneThreatOverloadedPieces      ) INIT_PARAM_0(ThreatOverloadedPieces)      ;
 
     if (i != NTERMS){
         printf("Error in initCurrentParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -401,41 +404,42 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
         tparams[j][EG] = (int)((100.0 / pvalue) * (params[j][EG] + cparams[j][EG]));
     }
 
-    if (TunePawnValue                 ) PRINT_PARAM_0(PawnValue)                 ;
-    if (TuneKnightValue               ) PRINT_PARAM_0(KnightValue)               ;
-    if (TuneBishopValue               ) PRINT_PARAM_0(BishopValue)               ;
-    if (TuneRookValue                 ) PRINT_PARAM_0(RookValue)                 ;
-    if (TuneQueenValue                ) PRINT_PARAM_0(QueenValue)                ;
-    if (TuneKingValue                 ) PRINT_PARAM_0(KingValue)                 ;
-    if (TunePawnPSQT32                ) PRINT_PARAM_1(PawnPSQT32, 32)            ;
-    if (TuneKnightPSQT32              ) PRINT_PARAM_1(KnightPSQT32, 32)          ;
-    if (TuneBishopPSQT32              ) PRINT_PARAM_1(BishopPSQT32, 32)          ;
-    if (TuneRookPSQT32                ) PRINT_PARAM_1(RookPSQT32, 32)            ;
-    if (TuneQueenPSQT32               ) PRINT_PARAM_1(QueenPSQT32, 32)           ;
-    if (TuneKingPSQT32                ) PRINT_PARAM_1(KingPSQT32, 32)            ;
-    if (TunePawnIsolated              ) PRINT_PARAM_0(PawnIsolated)              ;
-    if (TunePawnStacked               ) PRINT_PARAM_0(PawnStacked)               ;
-    if (TunePawnBackwards             ) PRINT_PARAM_1(PawnBackwards, 2)          ;
-    if (TunePawnConnected32           ) PRINT_PARAM_1(PawnConnected32, 32)       ;
-    if (TuneKnightRammedPawns         ) PRINT_PARAM_0(KnightRammedPawns)         ;
-    if (TuneKnightOutpost             ) PRINT_PARAM_1(KnightOutpost, 2)          ;
-    if (TuneKnightMobility            ) PRINT_PARAM_1(KnightMobility, 9)         ;
-    if (TuneBishopPair                ) PRINT_PARAM_0(BishopPair)                ;
-    if (TuneBishopRammedPawns         ) PRINT_PARAM_0(BishopRammedPawns)         ;
-    if (TuneBishopOutpost             ) PRINT_PARAM_1(BishopOutpost, 2)          ;
-    if (TuneBishopMobility            ) PRINT_PARAM_1(BishopMobility, 14)        ;
-    if (TuneRookFile                  ) PRINT_PARAM_1(RookFile, 2)               ;
-    if (TuneRookOnSeventh             ) PRINT_PARAM_0(RookOnSeventh)             ;
-    if (TuneRookMobility              ) PRINT_PARAM_1(RookMobility, 15)          ;
-    if (TuneQueenMobility             ) PRINT_PARAM_1(QueenMobility, 28)         ;
-    if (TuneKingDefenders             ) PRINT_PARAM_1(KingDefenders, 12)         ;
-    if (TuneKingShelter               ) PRINT_PARAM_3(KingShelter, 2, 8, 8)      ;
-    if (TunePassedPawn                ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)       ;
-    if (TuneThreatPawnAttackedByOne   ) PRINT_PARAM_0(ThreatPawnAttackedByOne)   ;
-    if (TuneThreatMinorAttackedByPawn ) PRINT_PARAM_0(ThreatMinorAttackedByPawn) ;
-    if (TuneThreatMinorAttackedByMajor) PRINT_PARAM_0(ThreatMinorAttackedByMajor);
-    if (TuneThreatQueenAttackedByOne  ) PRINT_PARAM_0(ThreatQueenAttackedByOne)  ;
-    if (TuneThreatOverloadedPieces    ) PRINT_PARAM_0(ThreatOverloadedPieces)    ;
+    if (TunePawnValue                   ) PRINT_PARAM_0(PawnValue)                  ;
+    if (TuneKnightValue                 ) PRINT_PARAM_0(KnightValue)                ;
+    if (TuneBishopValue                 ) PRINT_PARAM_0(BishopValue)                ;
+    if (TuneRookValue                   ) PRINT_PARAM_0(RookValue)                  ;
+    if (TuneQueenValue                  ) PRINT_PARAM_0(QueenValue)                 ;
+    if (TuneKingValue                   ) PRINT_PARAM_0(KingValue)                  ;
+    if (TunePawnPSQT32                  ) PRINT_PARAM_1(PawnPSQT32, 32)             ;
+    if (TuneKnightPSQT32                ) PRINT_PARAM_1(KnightPSQT32, 32)           ;
+    if (TuneBishopPSQT32                ) PRINT_PARAM_1(BishopPSQT32, 32)           ;
+    if (TuneRookPSQT32                  ) PRINT_PARAM_1(RookPSQT32, 32)             ;
+    if (TuneQueenPSQT32                 ) PRINT_PARAM_1(QueenPSQT32, 32)            ;
+    if (TuneKingPSQT32                  ) PRINT_PARAM_1(KingPSQT32, 32)             ;
+    if (TunePawnIsolated                ) PRINT_PARAM_0(PawnIsolated)               ;
+    if (TunePawnStacked                 ) PRINT_PARAM_0(PawnStacked)                ;
+    if (TunePawnBackwards               ) PRINT_PARAM_1(PawnBackwards, 2)           ;
+    if (TunePawnConnected32             ) PRINT_PARAM_1(PawnConnected32, 32)        ;
+    if (TuneKnightRammedPawns           ) PRINT_PARAM_0(KnightRammedPawns)          ;
+    if (TuneKnightOutpost               ) PRINT_PARAM_1(KnightOutpost, 2)           ;
+    if (TuneKnightMobility              ) PRINT_PARAM_1(KnightMobility, 9)          ;
+    if (TuneBishopPair                  ) PRINT_PARAM_0(BishopPair)                 ;
+    if (TuneBishopRammedPawns           ) PRINT_PARAM_0(BishopRammedPawns)          ;
+    if (TuneBishopOutpost               ) PRINT_PARAM_1(BishopOutpost, 2)           ;
+    if (TuneBishopMobility              ) PRINT_PARAM_1(BishopMobility, 14)         ;
+    if (TuneRookFile                    ) PRINT_PARAM_1(RookFile, 2)                ;
+    if (TuneRookOnSeventh               ) PRINT_PARAM_0(RookOnSeventh)              ;
+    if (TuneRookMobility                ) PRINT_PARAM_1(RookMobility, 15)           ;
+    if (TuneQueenMobility               ) PRINT_PARAM_1(QueenMobility, 28)          ;
+    if (TuneKingDefenders               ) PRINT_PARAM_1(KingDefenders, 12)          ;
+    if (TuneKingShelter                 ) PRINT_PARAM_2(KingShelter, 4, 8)          ;
+    if (TuneKingStorm                   ) PRINT_PARAM_3(KingStorm, 2, 4, 8)         ;
+    if (TunePassedPawn                  ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)        ;
+    if (TuneThreatPawnAttackedByOne     ) PRINT_PARAM_0(ThreatPawnAttackedByOne)    ;
+    if (TuneThreatMinorAttackedByPawn   ) PRINT_PARAM_0(ThreatMinorAttackedByPawn)  ;
+    if (TuneThreatMinorAttackedByMajor  ) PRINT_PARAM_0(ThreatMinorAttackedByMajor) ;
+    if (TuneThreatQueenAttackedByOne    ) PRINT_PARAM_0(ThreatQueenAttackedByOne)   ;
+    if (TuneThreatOverloadedPieces      ) PRINT_PARAM_0(ThreatOverloadedPieces)     ;
 
     if (i != NTERMS){
         printf("Error in printParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -540,10 +544,19 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
+
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++) {
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("%s", b == B - 1 ? "},\n" : ", ");
+        }
+    }
+
+    printf("};\n");
 
 }
 
