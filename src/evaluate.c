@@ -141,12 +141,6 @@ const int QueenMobility[28] = {
 
 // Definition of evaluation terms related to Kings
 
-const int KingDefenders[12] = {
-    S( -37,  -4), S( -18,   6), S(   0,   1), S(  10,   0),
-    S(  24,  -3), S(  35,   2), S(  39,  14), S(  28,-207),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
-};
-
 const int KingThreatWeight[PIECE_NB] = { 4, 8, 8, 12, 16, 0 };
 
 int KingSafety[256]; // Defined by the Polynomial below
@@ -630,11 +624,6 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.KingValue[colour]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, colour)][colour]++;
 
-    // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[colour]);
-    eval += KingDefenders[count];
-    if (TRACE) T.KingDefenders[count][colour]++;
-
     // If we have two or more threats to our king area, we will apply a penalty
     // based on the number of squares attacked, and the strength of the attackers
     if (ei->attackerCounts[!colour] >= 2){
@@ -648,10 +637,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                 |  ei->attackedBy[colour][KING]);
 
         // Compute King Safety index based on safety factors
-        count =  8                                              // King Safety Baseline
-              +  1 * ei->attackCounts[!colour]                  // Computed attack weights
-              + 16 * popcount(weak & ei->kingAreas[colour])     // Weak squares in King Area
-              -  8 * popcount(myPawns & ei->kingAreas[colour]); // Pawns sitting in our King Area
+        count = 30                                                  // King Safety Baseline
+              +  1 * ei->attackCounts[!colour]                      // Computed attack weights
+              + 16 * popcount(weak & ei->kingAreas[colour])         // Weak squares in King Area
+              -  8 * popcount(myPawns & ei->kingAreas[colour])      // Pawns sitting in our King Area
+              -  4 * popcount(myDefenders & ei->kingAreas[colour]); // Minors or Pawns in our King Area
 
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
