@@ -167,11 +167,8 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 };
 
 const int KingSafetyThreatWeight[KING] = {   4,   8,   8,   12,   16   };
-
 const int KingSafetyWeakSquares        =   48;
-
 const int KingSafetyFriendlyPawns      =  -24;
-
 const int KingSafetyNoEnemyQueens      = -132;
 
 // Definition of evaluation terms related to Passed Pawns
@@ -187,13 +184,9 @@ const int PassedPawn[2][2][RANK_NB] = {
 // Definition of evaluation terms related to Threats
 
 const int ThreatPawnAttackedByOne    = S( -17, -27);
-
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
-
 const int ThreatMinorAttackedByMajor = S( -43, -41);
-
 const int ThreatQueenAttackedByOne   = S( -84,   3);
-
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
 
@@ -601,7 +594,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         attacks = attacks & ei->kingAreas[!colour];
         if (attacks != 0ull){
             ei->attackCounts[colour] += KingSafetyThreatWeight[QUEEN] * popcount(attacks);
-            ei->attackerCounts[colour] += 2;
+            ei->attackerCounts[colour]++;
         }
     }
 
@@ -614,8 +607,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     uint64_t filePawns, weak;
 
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    uint64_t myPawns     = board->pieces[PAWN ] & board->colours[ colour];
+    uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[!colour];
+    uint64_t myKings     = board->pieces[KING ] & board->colours[ colour];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
@@ -633,9 +627,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][colour]++;
 
-    // If we have two or more threats to our king area, we will apply a penalty
-    // based on the number of squares attacked, and the strength of the attackers
-    if (ei->attackerCounts[!colour] >= 2){
+    if (ei->attackerCounts[!colour] > 1 - popcount(enemyQueens)){
 
         weak =   ei->attacked[!colour]
              &  ~ei->attackedBy2[colour]
@@ -647,7 +639,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
 
-        count += KingSafetyNoEnemyQueens * !(board->colours[!colour] & board->pieces[QUEEN]);
+        count += KingSafetyNoEnemyQueens * !enemyQueens;
 
         if (count > 0) eval -= MakeScore(count * count / 1024, count / 4);
     }
