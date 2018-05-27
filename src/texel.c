@@ -104,14 +104,10 @@ void runTexelTuning(Thread *thread) {
     printf("\n\nReading and Initializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
-    printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
-    initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
-
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 1.148889; //computeOptimalK(tes);
+    printf("ERROR = %f\n", completeEvaluationError(tes, K));
+    exit(EXIT_SUCCESS);
 
     while (1) {
 
@@ -173,10 +169,9 @@ void runTexelTuning(Thread *thread) {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
-    int i, j, k;
+    int i, j;
     Undo undo[1];
     Limits limits;
-    int coeffs[NTERMS];
     char line[128];
 
     // Initialize limits for the search
@@ -218,49 +213,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         T = EmptyTrace;
         tes[i].eval = evaluateBoard(&thread->board, NULL);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
-
-        // Determine the game phase based on remaining material
-        tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
-                          - 2 * popcount(thread->board.pieces[ROOK  ])
-                          - 1 * popcount(thread->board.pieces[KNIGHT])
-                          - 1 * popcount(thread->board.pieces[BISHOP]);
-
-        // Compute phase factors for updating the gradients
-        tes[i].factors[MG] = 1 - tes[i].phase / 24.0;
-        tes[i].factors[EG] = 0 + tes[i].phase / 24.0;
-
-        // Finish with the usual phase for the evaluation
-        tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
-
-        // Vectorize the evaluation coefficients into coeffs
-        initCoefficients(coeffs);
-
-        // Determine how many TexelTuples will be needed
-        for (k = 0, j = 0; j < NTERMS; j++)
-            k += coeffs[j] != 0;
-
-        // Determine if we need to allocate more Texel Tuples
-        if (k > TupleStackSize) {
-            TupleStackSize = STACKSIZE;
-            TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
-
-            printf("\rAllocating Memory for Texel Tuple Stack [%dMB]...\n\n",
-                    (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
-        }
-
-        // Tell the Texel Entry where its Texel Tuples are
-        tes[i].tuples = TupleStack;
-        tes[i].ntuples = k;
-        TupleStack += k;
-        TupleStackSize -= k;
-
-        // Finally, initialize the Texel Tuples
-        for (k = 0, j = 0; j < NTERMS; j++) {
-            if (coeffs[j] != 0){
-                tes[i].tuples[k].index = j;
-                tes[i].tuples[k++].coeff = coeffs[j];
-            }
-        }
     }
 
     fclose(fin);

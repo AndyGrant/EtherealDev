@@ -166,11 +166,12 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KingAttackWeight[]      = { 0, 8, 6, 4, 2, 0 };
-const int KingSafetyAttackValue   =   12;
-const int KingSafetyWeakSquares   =   48;
-const int KingSafetyFriendlyPawns =  -24;
-const int KingSafetyNoEnemyQueens = -132;
+const int KingAttackWeight[]      = { 0, 10, 4, 6, 8, 0 };
+const int KingSafetyAdjustment    =    0;
+const int KingSafetyAttackValue   =   38;
+const int KingSafetyWeakSquares   =   40;
+const int KingSafetyFriendlyPawns =  -20;
+const int KingSafetyNoEnemyQueens = -256;
 
 // Definition of evaluation terms related to Passed Pawns
 
@@ -603,8 +604,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     uint64_t filePawns, weak;
 
-    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
-    uint64_t myKings = board->pieces[KING] & board->colours[colour];
+    uint64_t myPawns     = board->pieces[PAWN ] & board->colours[ colour];
+    uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[!colour];
+    uint64_t myKings     = board->pieces[KING ] & board->colours[ colour];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
@@ -623,8 +625,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.KingDefenders[count][colour]++;
 
     // Perform King Safety when we have two attackers, or a Queen attacker
-    if (   ei->kingAttackersCount[!colour] >= 2
-        || ei->kingAttackersWeight[!colour] == KingAttackWeight[QUEEN]){
+    if (ei->kingAttackersCount[!colour] > 1 - popcount(enemyQueens)){
 
         weak =   ei->attacked[!colour]
              &  ~ei->attackedBy2[colour]
@@ -634,9 +635,10 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count += KingSafetyAttackValue * ei->kingAttacksCount[!colour];
         count += KingSafetyWeakSquares * popcount(weak & ei->kingAreas[colour]);
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
-        count += KingSafetyNoEnemyQueens * !(board->colours[!colour] & board->pieces[QUEEN]);
+        count += KingSafetyNoEnemyQueens * !enemyQueens;
+        count += KingSafetyAdjustment;
 
-        if (count > 0) eval -= MakeScore(count * count / 1024, count / 4);
+        if (count > 0) eval -= MakeScore(count * count / 875, count / 20);
     }
 
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
