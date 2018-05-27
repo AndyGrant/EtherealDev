@@ -106,6 +106,7 @@ void runTexelTuning(Thread *thread) {
 
     printf("\n\nComputing Optimal K Value...\n");
     K = 1.148889; //computeOptimalK(tes);
+    K = 0.826240;
     printf("ERROR = %f\n", completeEvaluationError(tes, K));
     exit(EXIT_SUCCESS);
 

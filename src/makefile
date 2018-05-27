@@ -24,7 +24,7 @@ WFLAGS = -std=gnu11 -Wall -Wextra -Wshadow
 CFLAGS = -DNDEBUG -O3 $(WFLAGS) -march=native -flto
 RFLAGS = -DNDEBUG -O3 $(WFLAGS) -flto -static
 AFLAGS = -DNDEBUG -O3 $(WFLAGS) -march=armv7 -flto -static
-TFLAGS = -DNDEBUG -Ofast $(WFLAGS) -march=native -flto -fopenmp -DTUNE
+TFLAGS = -DNDEBUG -O3 $(WFLAGS) -march=native -flto -fopenmp -DTUNE
 PFLAGS = -DNDEBUG -O0 $(WFLAGS) -p -pg
 DFLAGS = -O0 $(WFLAGS)
 

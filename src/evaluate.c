@@ -166,11 +166,11 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KingAttackWeight[]      = { 0, 10, 4, 6, 8, 0 };
+const int KingAttackWeight[]      = { 0, 12, 6, 8, 8, 0 };
 const int KingSafetyAdjustment    =    0;
-const int KingSafetyAttackValue   =   38;
+const int KingSafetyAttackValue   =   42;
 const int KingSafetyWeakSquares   =   40;
-const int KingSafetyFriendlyPawns =  -20;
+const int KingSafetyFriendlyPawns =  -24;
 const int KingSafetyNoEnemyQueens = -256;
 
 // Definition of evaluation terms related to Passed Pawns
@@ -309,7 +309,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     const int forward = (colour == WHITE) ? 8 : -8;
 
     int sq, semi, eval = 0;
-    uint64_t pawns, myPawns, tempPawns, enemyPawns;
+    uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
@@ -319,7 +319,8 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
     ei->attackedBy[colour][PAWN] = ei->pawnAttacks[colour];
 
     // Update pawn attacks into the enemy's King area
-    ei->kingAttackersCount[colour] += popcount(ei->pawnAttacks[colour] & ei->kingAreas[!colour]);
+    attacks = ei->pawnAttacks[colour] & ei->kingAreas[!colour];
+    ei->kingAttacksCount[colour] += popcount(attacks);
 
     // The pawn table holds the rest of the eval information we will calculate.
     // We return the saved value only when we evaluate for white, since we save
@@ -600,6 +601,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
 
 int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
+    float scaledAttackCounts;
     int file, distance, count, eval = 0, pkeval = 0;
 
     uint64_t filePawns, weak;
@@ -631,14 +633,16 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
              &  ~ei->attackedBy2[colour]
              & (~ei->attacked[colour] | ei->attackedBy[colour][QUEEN] | ei->attackedBy[colour][KING]);
 
+        scaledAttackCounts = 9.0 * ei->kingAttacksCount[!colour] / popcount(ei->kingAreas[colour]);
+
         count  = ei->kingAttackersCount[!colour] * ei->kingAttackersWeight[!colour];
-        count += KingSafetyAttackValue * ei->kingAttacksCount[!colour];
+        count += KingSafetyAttackValue * scaledAttackCounts;
         count += KingSafetyWeakSquares * popcount(weak & ei->kingAreas[colour]);
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
         count += KingSafetyNoEnemyQueens * !enemyQueens;
         count += KingSafetyAdjustment;
 
-        if (count > 0) eval -= MakeScore(count * count / 875, count / 20);
+        if (count > 0) eval -= MakeScore(count * count / 800, count / 20);
     }
 
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
