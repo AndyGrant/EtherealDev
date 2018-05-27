@@ -168,7 +168,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 const int KingSafetyThreatWeight[KING] = {   4,   8,   8,   12,   16   };
 
-const int KingSafetyWeakSquares        =   48;
+const int KingSafetyWeakSquares        =   68;
 
 const int KingSafetyFriendlyPawns      =  -24;
 
