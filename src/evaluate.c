@@ -615,7 +615,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[colour])
                           | (board->pieces[KNIGHT] & board->colours[colour])
-                          | (board->pieces[BISHOP] & board->colours[colour]);
+                          | (board->pieces[BISHOP] & board->colours[colour])
+                          | (board->pieces[ROOK  ] & board->colours[colour]);
 
     int kingSq = getlsb(myKings);
     int kingFile = fileOf(kingSq);
@@ -637,11 +638,10 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                 |  ei->attackedBy[colour][KING]);
 
         // Compute King Safety index based on safety factors
-        count = 30                                                  // King Safety Baseline
+        count = 32                                                  // King Safety Baseline
               +  1 * ei->attackCounts[!colour]                      // Computed attack weights
               + 16 * popcount(weak & ei->kingAreas[colour])         // Weak squares in King Area
-              -  8 * popcount(myPawns & ei->kingAreas[colour])      // Pawns sitting in our King Area
-              -  4 * popcount(myDefenders & ei->kingAreas[colour]); // Minors or Pawns in our King Area
+              -  8 * popcount(myDefenders & ei->kingAreas[colour]); // Non Queen defenders in King Area
 
         // Scale down attack count if there are no enemy queens
         if (!(board->colours[!colour] & board->pieces[QUEEN]))
