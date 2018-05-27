@@ -649,7 +649,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         count += KingSafetyNoEnemyQueens * !(board->colours[!colour] & board->pieces[QUEEN]);
 
-        if (count > 0) eval -= MakeScore(count * count / 2048, count / 8);
+        if (count > 0) eval -= MakeScore(count * count / 512, count / 8);
     }
 
     // Pawn Shelter evaluation is stored in the PawnKing evaluation table
