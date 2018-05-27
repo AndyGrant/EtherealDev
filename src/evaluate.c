@@ -167,9 +167,10 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 };
 
 const int KingSafetyThreatWeight[KING] = {   4,   8,   8,   12,   16   };
+const int KingSafetyBaseline           =   30;
 const int KingSafetyWeakSquares        =   48;
 const int KingSafetyFriendlyPawns      =  -24;
-const int KingSafetyNoEnemyQueens      = -132;
+const int KingSafetyNoEnemyQueens      = -142;
 
 // Definition of evaluation terms related to Passed Pawns
 
@@ -633,7 +634,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
              &  ~ei->attackedBy2[colour]
              & (~ei->attacked[colour] | ei->attackedBy[colour][QUEEN] | ei->attackedBy[colour][KING]);
 
-        count  = ei->attackCounts[!colour] * ei->attackerCounts[!colour];
+        count  = KingSafetyBaseline;
+
+        count += ei->attackCounts[!colour] * ei->attackerCounts[!colour];
 
         count += KingSafetyWeakSquares * popcount(weak & ei->kingAreas[colour]);
 
