@@ -48,15 +48,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -150,15 +145,12 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KingAttackWeight[]      = { 0, 12, 6, 8, 8, 0 };
-
-const int KingSafetyAttackValue   =   42;
-
-const int KingSafetyWeakSquares   =   40;
-
-const int KingSafetyFriendlyPawns =  -24;
-
-const int KingSafetyNoEnemyQueens = -256;
+const int KingSafetyAttackWeight[] = { 0, 12, 6, 5, 4, 0 };
+const int KingSafetyAttackValue    =   42;
+const int KingSafetyWeakSquares    =   31;
+const int KingSafetyWeakSquares2   =   27;
+const int KingSafetyFriendlyPawns  =  -40;
+const int KingSafetyNoEnemyQueens  = -265;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
@@ -168,13 +160,9 @@ const int PassedPawn[2][2][RANK_NB] = {
 };
 
 const int ThreatPawnAttackedByOne    = S( -17, -27);
-
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
-
 const int ThreatMinorAttackedByMajor = S( -43, -41);
-
 const int ThreatQueenAttackedByOne   = S( -84,   3);
-
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
@@ -409,7 +397,7 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         if (attacks != 0ull){
             ei->kingAttacksCount[colour] += popcount(attacks);
             ei->kingAttackersCount[colour] += 1;
-            ei->kingAttackersWeight[colour] += KingAttackWeight[KNIGHT];
+            ei->kingAttackersWeight[colour] += KingSafetyAttackWeight[KNIGHT];
         }
     }
 
@@ -472,7 +460,7 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
         if (attacks != 0ull){
             ei->kingAttacksCount[colour] += popcount(attacks);
             ei->kingAttackersCount[colour] += 1;
-            ei->kingAttackersWeight[colour] += KingAttackWeight[BISHOP];
+            ei->kingAttackersWeight[colour] += KingSafetyAttackWeight[BISHOP];
         }
     }
 
@@ -533,7 +521,7 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
         if (attacks != 0ull){
             ei->kingAttacksCount[colour] += popcount(attacks);
             ei->kingAttackersCount[colour] += 1;
-            ei->kingAttackersWeight[colour] += KingAttackWeight[ROOK];
+            ei->kingAttackersWeight[colour] += KingSafetyAttackWeight[ROOK];
         }
     }
 
@@ -575,7 +563,7 @@ int evaluateQueens(EvalInfo* ei, Board* board, int colour){
         if (attacks != 0ull){
             ei->kingAttacksCount[colour] += popcount(attacks);
             ei->kingAttackersCount[colour] += 1;
-            ei->kingAttackersWeight[colour] += KingAttackWeight[QUEEN];
+            ei->kingAttackersWeight[colour] += KingSafetyAttackWeight[QUEEN];
         }
     }
 
@@ -612,7 +600,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
-        uint64_t weak =   ei->attacked[!colour]
+        uint64_t weak =   ei->kingAreas[colour]
+                      &   ei->attacked[!colour]
                       &  ~ei->attackedBy2[colour]
                       & (~ei->attacked[colour] | ei->attackedBy[colour][QUEEN] | ei->attackedBy[colour][KING]);
 
@@ -624,7 +613,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         count += KingSafetyAttackValue * scaledAttackCounts;
 
-        count += KingSafetyWeakSquares * popcount(weak & ei->kingAreas[colour]);
+        count += KingSafetyWeakSquares * popcount(weak);
+
+        count += KingSafetyWeakSquares2 * popcount(weak & ei->attackedBy2[!colour]);
 
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
 
