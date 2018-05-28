@@ -156,6 +156,8 @@ const int KingSafetyAttackValue   =   42;
 
 const int KingSafetyWeakSquares   =   40;
 
+const int KingSafetyWeakSquares2  =   15;
+
 const int KingSafetyFriendlyPawns =  -24;
 
 const int KingSafetyNoEnemyQueens = -256;
@@ -612,7 +614,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
-        uint64_t weak =   ei->attacked[!colour]
+        uint64_t weak =   ei->kingAreas[colour]
+                      &   ei->attacked[!colour]
                       &  ~ei->attackedBy2[colour]
                       & (~ei->attacked[colour] | ei->attackedBy[colour][QUEEN] | ei->attackedBy[colour][KING]);
 
@@ -624,7 +627,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         count += KingSafetyAttackValue * scaledAttackCounts;
 
-        count += KingSafetyWeakSquares * popcount(weak & ei->kingAreas[colour]);
+        count += KingSafetyWeakSquares * popcount(weak);
+
+        count += KingSafetyWeakSquares2 * popcount(weak & ei->attackedBy2[!colour]);
 
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
 
