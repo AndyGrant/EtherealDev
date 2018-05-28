@@ -152,11 +152,13 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 const int KingAttackWeight[]      = { 0, 12, 6, 8, 8, 0 };
 
-const int KingSafetyAttackValue   =   42;
+const int KingSafetyAttackValue   =   37;
 
-const int KingSafetyWeakSquares   =   40;
+const int KingSafetyWeakSquares   =   32;
 
-const int KingSafetyFriendlyPawns =  -24;
+const int KingSafetyLostSquares   =   17;
+
+const int KingSafetyFriendlyPawns =  -29;
 
 const int KingSafetyNoEnemyQueens = -256;
 
@@ -616,6 +618,12 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                       &  ~ei->attackedBy2[colour]
                       & (~ei->attacked[colour] | ei->attackedBy[colour][QUEEN] | ei->attackedBy[colour][KING]);
 
+        // Lost squares are a more extreme version of weak. These are
+        // attacked by two enemies and only defended by the King
+        uint64_t lost =   ei->attackedBy2[!colour]
+                      &  ~ei->attackedBy2[colour]
+                      & (~ei->attacked[colour] | ei->attackedBy[colour][KING]);
+
         // Usually the King Area is 9 squares. Scale are attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[!colour] / popcount(ei->kingAreas[colour]);
@@ -625,6 +633,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count += KingSafetyAttackValue * scaledAttackCounts;
 
         count += KingSafetyWeakSquares * popcount(weak & ei->kingAreas[colour]);
+
+        count += KingSafetyLostSquares * popcount(lost & ei->kingAreas[colour]);
 
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
 
