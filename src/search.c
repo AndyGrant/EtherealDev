@@ -581,7 +581,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             else if (   !PvNode
                      && !inCheck
                      && !improving
-                     && !staticExchangeEvaluation(board, move, -100))
+                     && !staticExchangeEvaluation(board, move, 0))
                      R = 2;
 
             else R = 1;
