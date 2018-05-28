@@ -558,6 +558,36 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
             continue;
 
+        // Step 16. Late Move Reductions. Compute the reduction,
+        // allow the later steps to perform the reduced searches
+        if (depth > 2 &&  played > 2){
+
+            if (isQuiet) {
+
+                R = 2 + (played - 3) / 8 + (depth - 6) / 4; // LMR Formula
+
+                R += 2 * !PvNode; // Increase for non PV nodes
+
+                R -= quiets <= 3; // Reduce for first few quiets
+
+                // Adjust based on the history score, within [+1, -6]
+                R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
+
+                // Don't extend the search and don't go into qsearch
+                R = MIN(depth - 1, MAX(R, 1));
+            }
+
+
+            else if (   !PvNode
+                     && !inCheck
+                     && !improving
+                     && !staticExchangeEvaluation(board, move, -100))
+                     R = 2;
+
+            else R = 1;
+
+        } else R = 1;
+
         // Apply the move, and verify legality
         applyMove(board, move, undo);
         if (!isNotInCheck(board, !board->turn)){
@@ -567,26 +597,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Update counter of moves actually played
         played += 1;
-
-        // Step 16. Late Move Reductions. Compute the reduction,
-        // allow the later steps to perform the reduced searches
-        if (    isQuiet
-            &&  depth > 2
-            &&  played > 3){
-
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
-
-            R += 2 * !PvNode; // Increase for non PV nodes
-
-            R -= quiets <= 3; // Reduce for first few quiets
-
-            // Adjust based on the history score, within [+1, -6]
-            R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
-
-            // Don't extend the search and don't go into qsearch
-            R = MIN(depth - 1, MAX(R, 1));
-
-        } else R = 1;
 
         // Step 17A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
