@@ -154,9 +154,9 @@ const int KingAttackWeight[]      = { 0, 12, 6, 8, 8, 0 };
 
 const int KingSafetyAttackValue   =   42;
 
-const int KingSafetyWeakSquares   =   40;
+const int KingSafetyWeakSquares   =   34;
 
-const int KingSafetyWeakSquares2  =   15;
+const int KingSafetyWeakSquares2  =   16;
 
 const int KingSafetyFriendlyPawns =  -24;
 
