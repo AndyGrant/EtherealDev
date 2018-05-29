@@ -619,13 +619,18 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                       &  ~ei->attackedBy2[US]
                       & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
-        // Usually the King Area is 9 squares. Scale are attack counts to account for
+        // Usually the King Area is 9 squares. Scale our attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        uint64_t safe     = ~ei->attacked[US] | (weak & ei->attackedBy2[THEM]);
-        uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+        uint64_t safe = ~board->~ei->attacked[US] | (weak & ei->attackedBy2[THEM]);
 
+        uint64_t enemyKnights  = board->pieces[KNIGHT] & board->colours[THEM];
+        uint64_t enemyBishops  = board->pieces[BISHOP] & board->colours[THEM];
+        uint64_t enemyRooks    = board->pieces[ROOK  ] & board->colours[THEM];
+        uint64_t enemyQueens   = board->pieces[QUEEN ] & board->colours[THEM];
+
+        uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
         uint64_t knightThreats = knightAttacks(kingSq);
         uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
