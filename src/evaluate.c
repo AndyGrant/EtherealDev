@@ -155,11 +155,11 @@ const int KSAttackValue     =   42;
 const int KSWeakSquares     =   40;
 const int KSFriendlyPawns   =  -24;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   62;
-const int KSSafeRookCheck   =   83;
-const int KSSafeBishopCheck =   43;
-const int KSSafeKnightCheck =   85;
-const int KSAdjustment      =  -40;
+const int KSSafeQueenCheck  =  107;
+const int KSSafeRookCheck   =   97;
+const int KSSafeBishopCheck =   46;
+const int KSSafeKnightCheck =  115;
+const int KSAdjustment      =  -60;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
@@ -623,24 +623,24 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        uint64_t safe = ~board->~ei->attacked[US] | (weak & ei->attackedBy2[THEM]);
+        uint64_t safe = ~ei->attacked[US] | (weak & ei->attackedBy2[THEM]);
 
-        uint64_t enemyKnights  = board->pieces[KNIGHT] & board->colours[THEM];
-        uint64_t enemyBishops  = board->pieces[BISHOP] & board->colours[THEM];
-        uint64_t enemyRooks    = board->pieces[ROOK  ] & board->colours[THEM];
-        uint64_t enemyQueens   = board->pieces[QUEEN ] & board->colours[THEM];
+        uint64_t enemyPieces   = board->colours[THEM];
+        uint64_t enemyKnights  = board->pieces[KNIGHT] & enemyPieces;
+        uint64_t enemyBishops  = board->pieces[BISHOP] & enemyPieces;
+        uint64_t enemyRooks    = board->pieces[ROOK  ] & enemyPieces;
 
-        uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
-        uint64_t knightThreats = knightAttacks(kingSq);
-        uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
-        uint64_t rookThreats   = rookAttacks(kingSq, occupied);
+        uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
+        uint64_t knightThreats = safe & knightAttacks(kingSq);
+        uint64_t bishopThreats = safe & bishopAttacks(kingSq, occupied);
+        uint64_t rookThreats   = safe & rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        uint64_t knightChecks = knightThreats & (~enemyPieces | enemyKnights) &  ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks = bishopThreats & (~enemyPieces | enemyBishops) &  ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   = rookThreats   & (~enemyPieces | enemyRooks  ) &  ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  = queenThreats  & (~enemyPieces | enemyQueens ) &  ei->attackedBy[THEM][QUEEN ]
+                                                                              & ~ei->attackedBy[  US][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 

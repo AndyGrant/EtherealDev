@@ -97,21 +97,23 @@ void runTexelTuning(Thread *thread) {
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
-    TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
+    //printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
+    //       (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
+    //TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
     printf("\n\nReading and Initializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
-    printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
-    initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
+    //printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
+    //initCurrentParameters(cparams);
+    //
+    //printf("\n\nScaling Params For Phases and Occurance Rates...");
+    //initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 1.179552;//computeOptimalK(tes);
+    printf("ERROR %f", completeEvaluationError(tes, K));
+    return;
 
     while (1) {
 
@@ -231,6 +233,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Finish with the usual phase for the evaluation
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
+        continue;
 
         // Vectorize the evaluation coefficients into coeffs
         initCoefficients(coeffs);
