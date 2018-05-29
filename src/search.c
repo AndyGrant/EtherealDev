@@ -385,10 +385,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 6. Initialize flags and values used by pruning and search methods
 
-    // Check extension. For non-root pv or near depth zero nodes
-    checkExtended = InCheck && !RootNode && depth <= 8;
-    depth += InCheck && !RootNode && depth <= 8;
-
     // Get a static evaluation and save it into the history. We don't evaluate
     // when in check, and we try to make use of the Table's static evaluation
     eval = InCheck ? VALUE_NONE
