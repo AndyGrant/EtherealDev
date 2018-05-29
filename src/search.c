@@ -407,11 +407,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
          : evaluateBoard(board, &thread->pktable);
     thread->evalStack[height] = eval;
 
-    // Node is improving if we are checked, just left a checked position,
-    // or if our eval is greater than our eval from two plies ago
-    improving =    inCheck
-               || (height >= 2 && thread->evalStack[height-2] == VALUE_NONE)
-               || (height >= 2 && thread->evalStack[height-2] < eval);
+    improving =   (height >= 4 && !inCheck)
+               && (   thread->evalStack[height-0] >= thread->evalStack[height-2]
+                   || thread->evalStack[height-2] == VALUE_NONE)
+               && (   thread->evalStack[height-2] >= thread->evalStack[height-4]
+                   || thread->evalStack[height-4] == VALUE_NONE);
+
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
