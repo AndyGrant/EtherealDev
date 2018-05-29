@@ -254,7 +254,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, checkExtended, extension;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
     Undo undo[1];
@@ -290,7 +290,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
-            return evaluateBoard(board, &thread->pktable);
+            return board->kingAttackers ? VALUE_DRAW
+                                        : evaluateBoard(board, &thread->pktable);
 
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in
@@ -399,16 +400,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
-    eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
-                                     : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
+    // Get a static eval of the position. No eval when we are in check. Try
+    // to reuse the table's static eval. Save this into the eval history stack
+    eval = inCheck ? VALUE_NONE
+         : ttHit && ttEval != VALUE_NONE ? ttEval
+         : evaluateBoard(board, &thread->pktable);
+    thread->evalStack[height] = eval;
 
-    // Finally, we define a node to be improving if the last two moves have increased
-    // the static eval. To have two last moves, we must have a height of at least 4.
-    improving =    height >= 4
-               &&  thread->evalStack[height-0] > thread->evalStack[height-2]
-               &&  thread->evalStack[height-2] > thread->evalStack[height-4];
+    // Node is improving if we are checked, just left a checked position,
+    // or if our eval is greater than our eval from two plies ago
+    improving =    inCheck
+               || (height >= 2 && thread->evalStack[height-2] == VALUE_NONE)
+               || (height >= 2 && thread->evalStack[height-2] < eval);
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -530,11 +533,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
         if (   !PvNode
+            && !inCheck
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  depth <= FutilityPruningDepth
+            &&  eval + FutilityMargin * depth <= alpha)
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
