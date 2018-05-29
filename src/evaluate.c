@@ -633,11 +633,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        uint64_t knightChecks = ~myPieces & knightThreats & safe &  ei->attackedBy[!colour][KNIGHT];
-        uint64_t bishopChecks = ~myPieces & bishopThreats & safe &  ei->attackedBy[!colour][BISHOP];
-        uint64_t rookChecks   = ~myPieces & rookThreats   & safe &  ei->attackedBy[!colour][ROOK  ];
-        uint64_t queenChecks  = ~myPieces & queenThreats  & safe &  ei->attackedBy[!colour][QUEEN ]
-                                                                 & ~ei->attackedBy[ colour][QUEEN ];
+        uint64_t knightChecks = ~enemyPieces & knightThreats & safe &  ei->attackedBy[!colour][KNIGHT];
+        uint64_t bishopChecks = ~enemyPieces & bishopThreats & safe &  ei->attackedBy[!colour][BISHOP];
+        uint64_t rookChecks   = ~enemyPieces & rookThreats   & safe &  ei->attackedBy[!colour][ROOK  ];
+        uint64_t queenChecks  = ~enemyPieces & queenThreats  & safe &  ei->attackedBy[!colour][QUEEN ]
+                                                                    & ~ei->attackedBy[ colour][QUEEN ];
 
         count  = ei->kingAttackersCount[!colour] * ei->kingAttackersWeight[!colour];
 
