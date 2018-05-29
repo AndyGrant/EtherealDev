@@ -740,13 +740,13 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
         // at a quiet move, and are either below depth zero or tried a few moves
         evasionPrunable =   InCheck
                          && best > MATED_IN_MAX
-                         && (depth < 0 || played > 1)
+                         && (depth < 0 || played > 2)
                          && !moveIsTactical(board, move);
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
         if (  (!InCheck || evasionPrunable)
-            && !staticExchangeEvaluation(board, move, QSEEMargin))
+            && !staticExchangeEvaluation(board, move, 0))
             continue;
 
         // Apply and validate move before searching
