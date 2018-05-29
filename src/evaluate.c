@@ -151,15 +151,15 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 };
 
 const int KSAttackWeight[]  = { 0, 12, 6, 8, 8, 0 };
-const int KSAttackValue     =   39;
-const int KSWeakSquares     =   37;
-const int KSFriendlyPawns   =  -24;
+const int KSAttackValue     =   37;
+const int KSWeakSquares     =   39;
+const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   65;
-const int KSSafeRookCheck   =   86;
-const int KSSafeBishopCheck =   46;
-const int KSSafeKnightCheck =   92;
-const int KSAdjustment      =  -50;
+const int KSSafeQueenCheck  =   97;
+const int KSSafeRookCheck   =   93;
+const int KSSafeBishopCheck =   53;
+const int KSSafeKnightCheck =  125;
+const int KSAdjustment      =  -45;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
@@ -169,13 +169,9 @@ const int PassedPawn[2][2][RANK_NB] = {
 };
 
 const int ThreatPawnAttackedByOne    = S( -17, -27);
-
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
-
 const int ThreatMinorAttackedByMajor = S( -43, -41);
-
 const int ThreatQueenAttackedByOne   = S( -84,   3);
-
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
