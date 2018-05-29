@@ -623,7 +623,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        uint64_t safe     = ~ei->attacked[US] | (weak & ei->attackedBy2[THEM]);
+        uint64_t safe     = ~board->colours[THEM] & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
         uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
 
         uint64_t knightThreats = knightAttacks(kingSq);
