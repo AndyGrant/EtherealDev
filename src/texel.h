@@ -71,6 +71,7 @@ struct TexelTuple {
 };
 
 struct TexelEntry {
+    int skip;
     int ntuples;
     double result;
     double eval, phase;

@@ -97,21 +97,23 @@ void runTexelTuning(Thread *thread) {
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
-    TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
+    // printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
+    //        (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
+    // TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
     printf("\n\nReading and Initializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
-    printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
-    initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
+    // printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
+    // initCurrentParameters(cparams);
+    //
+    // printf("\n\nScaling Params For Phases and Occurance Rates...");
+    // initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 1.170433; //computeOptimalK(tes);
+    printf("ERROR %f\n", completeEvaluationError(tes, K));
+    exit(EXIT_SUCCESS);
 
     while (1) {
 
@@ -136,6 +138,8 @@ void runTexelTuning(Thread *thread) {
             double localgradients[NTERMS][PHASE_NB] = {{0}, {0}};
             #pragma omp for schedule(static, NPOSITIONS / NTHREADS)
             for (i = 0; i < NPOSITIONS; i++) {
+
+                if (tes[i].skip) continue;
 
                 thisError = singleLinearError(tes[i], params, K);
 
@@ -210,14 +214,21 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         boardFromFEN(&thread->board, line);
 
         // Resolve FEN to a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        qsearch(thread, &thread->pv, -MATE, MATE, 0, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
+
+        // Throw out final positions InCheck
+        if (thread->board.kingAttackers){
+            tes[i].skip = 1;
+            continue;
+        }
 
         // Prepare coefficients and get a WHITE POV eval
         T = EmptyTrace;
         tes[i].eval = evaluateBoard(&thread->board, NULL);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
+        continue;
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -274,6 +285,8 @@ void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
 
     for (int i = 0; i < NPOSITIONS; i++) {
         for (int j = 0; j < tes[i].ntuples; j++) {
+
+            if (tes[i].skip) continue;
 
             index = tes[i].tuples[j].index;
             coeff = tes[i].tuples[j].coeff;
@@ -481,7 +494,8 @@ double completeEvaluationError(TexelEntry* tes, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NTHREADS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
+            if (!tes[i].skip)
+                total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
     }
 
     return total / (double)NPOSITIONS;
@@ -495,7 +509,8 @@ double completeLinearError(TexelEntry* tes, double params[NTERMS][PHASE_NB], dou
     {
         #pragma omp for schedule(static, NPOSITIONS / NTHREADS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, linearEvaluation(tes[i], params)), 2);
+            if (!tes[i].skip)
+                total += pow(tes[i].result - sigmoid(K, linearEvaluation(tes[i], params)), 2);
     }
 
     return total / (double)NPOSITIONS;
