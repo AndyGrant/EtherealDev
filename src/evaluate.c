@@ -150,15 +150,16 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KingAttackWeight[]      = { 0, 12, 6, 8, 8, 0 };
-
-const int KingSafetyAttackValue   =   42;
-
-const int KingSafetyWeakSquares   =   40;
-
-const int KingSafetyFriendlyPawns =  -24;
-
-const int KingSafetyNoEnemyQueens = -256;
+const int KingAttackWeight[]        = { 0, 12, 6, 8, 8, 0 };
+const int KingSafetyAttackValue     =   42;
+const int KingSafetyWeakSquares     =   40;
+const int KingSafetyFriendlyPawns   =  -24;
+const int KingSafetyNoEnemyQueens   = -256;
+const int KingSafetySafeQueenCheck  =   62;
+const int KingSafetySafeRookCheck   =   83;
+const int KingSafetySafeBishopCheck =   43;
+const int KingSafetySafeKnightCheck =   85;
+const int KingSafetyAdjustment      =  -40;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
@@ -620,6 +621,20 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[!colour] / popcount(ei->kingAreas[colour]);
 
+        uint64_t safe     = ~ei->attacked[colour] | (weak & ei->attackedBy2[!colour]);
+        uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+
+        uint64_t knightThreats = knightAttacks(kingSq);
+        uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
+        uint64_t rookThreats   = rookAttacks(kingSq, occupied);
+        uint64_t queenThreats  = bishopThreats | rookThreats;
+
+        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[!colour][KNIGHT];
+        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[!colour][BISHOP];
+        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[!colour][ROOK  ];
+        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[!colour][QUEEN ]
+                                                     & ~ei->attackedBy[ colour][QUEEN ];
+
         count  = ei->kingAttackersCount[!colour] * ei->kingAttackersWeight[!colour];
 
         count += KingSafetyAttackValue * scaledAttackCounts;
@@ -629,6 +644,16 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count += KingSafetyFriendlyPawns * popcount(myPawns & ei->kingAreas[colour]);
 
         count += KingSafetyNoEnemyQueens * !enemyQueens;
+
+        count += KingSafetySafeQueenCheck  * !!queenChecks;
+
+        count += KingSafetySafeRookCheck   * !!rookChecks;
+
+        count += KingSafetySafeBishopCheck * !!bishopChecks;
+
+        count += KingSafetySafeKnightCheck * !!knightChecks;
+
+        count += KingSafetyAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
         if (count > 0) eval -= MakeScore(count * count / 800, count / 20);
