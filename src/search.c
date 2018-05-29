@@ -677,7 +677,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
     const int InCheck = !!board->kingAttackers;
 
     int best = -MATE, played = 0;
-    int eval, value, evasionPrunable;
+    int i, reps, eval, value, evasionPrunable;
     uint16_t move;
 
     Undo undo[1];
@@ -705,11 +705,42 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
     // Step 1B. Check to see if the master thread finished
     if (ABORT_SIGNAL) longjmp(thread->jbuffer, 1);
 
-    // Step 2. Max Draft Cutoff. If we are at the maximum search draft,
-    // then end the search here with a static eval of the current board
+    // Check to see if we have exceeded the maxiumum search draft
     if (height >= MAX_PLY)
-        return InCheck ? VALUE_NONE
+        return InCheck ? VALUE_DRAW
                        : evaluateBoard(board, &thread->pktable);
+
+    // Mate Distance Pruning. Check to see if this line is so
+    // good, or so bad, that being mated in the ply, or  mating in
+    // the next one, would still not create a more extreme line
+    int rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
+    int rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
+    if (rAlpha >= rBeta) return rAlpha;
+
+    // Check for the Fifty Move Rule
+    if (board->fiftyMoveRule > 100)
+        return 0;
+
+    // Check for three fold repetition. If the repetition occurs since
+    // the root move of this search, we will exit early as if it was a draw.
+    // Otherwise, we will look for an actual three fold repetition draw.
+    for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+
+        // We can't have repeated positions before the most recent
+        // move which triggered a reset of the fifty move rule counter
+        if (i < board->numMoves - board->fiftyMoveRule) break;
+
+        if (board->history[i] == board->hash){
+
+            // Repetition occured after the root
+            if (i > board->numMoves - height)
+                return 0;
+
+            // An actual three fold repetition
+            if (++reps == 2)
+                return 0;
+        }
+    }
 
     if (!InCheck) {
 
