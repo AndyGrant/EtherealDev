@@ -253,7 +253,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, hist = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int isQuiet, improving, checkExtended, extension;
+    int isQuiet, improving, extension;
     int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -577,7 +577,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
         extension =  !RootNode
-                  && !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
                   &&  ttDepth >= depth - 3
@@ -588,8 +587,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // check positions, so long as no other extension has been made
         extension +=  InCheck
                   && !isQuiet
-                  && !extension
-                  && !checkExtended;
+                  && !extension;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
