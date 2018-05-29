@@ -520,8 +520,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             && !InCheck
             &&  isQuiet
-            &&  hist < 8192
             &&  best > MATED_IN_MAX
+            && (hist < 4096 || !improving)
             &&  depth <= FutilityPruningDepth
             &&  eval + depth * FutilityMargin <= alpha)
             break;
@@ -531,8 +531,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // anything from this move, we can undo it and skip all remaining quiets
         if (   !PvNode
             &&  isQuiet
-            &&  hist < 8192
             &&  best > MATED_IN_MAX
+            && (hist < 4096 || !improving)
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[improving][depth])
             break;
@@ -544,7 +544,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !InCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
+            && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
             continue;
 
         // Apply the move, and verify legality
@@ -777,7 +777,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
         if (  (!InCheck || evasionPrunable)
-            && !staticExchangeEvaluation(board, move, 0))
+            && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
         // Apply and validate move before searching

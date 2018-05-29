@@ -100,8 +100,10 @@ static const int LateMovePruningCounts[2][9] = {
 
 static const int SEEPruningDepth = 8;
 
-static const int SEEMargin = -20;
+static const int SEEMargin[] = { -20, -30 };
 
-static const int QFutilityMargin = 72;
+static const int QFutilityMargin = 100;
+
+static const int QSEEMargin = -100;
 
 #endif
