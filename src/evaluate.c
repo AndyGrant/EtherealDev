@@ -623,19 +623,24 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        uint64_t safe     = ~board->colours[THEM] & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
-        uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+        uint64_t enemyPieces   = board->colours[THEM];
+        uint64_t safe          = ~enemyPieces & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
+        uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
 
-        uint64_t knightThreats = knightAttacks(kingSq);
-        uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
-        uint64_t rookThreats   = rookAttacks(kingSq, occupied);
+        uint64_t knightThreats = safe & knightAttacks(kingSq);
+        uint64_t bishopThreats = safe & bishopAttacks(kingSq, occupied);
+        uint64_t rookThreats   = safe & rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        uint64_t enemyKnights = board->pieces[KNIGHT] & enemyPieces;
+        uint64_t enemyBishops = board->pieces[BISHOP] & enemyPieces;
+        uint64_t enemyRooks   = board->pieces[ROOK  ] & enemyPieces;
+
+        uint64_t knightChecks = (knightThreats | enemyKnights) &  ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks = (bishopThreats | enemyBishops) &  ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   = (rookThreats   | enemyRooks  ) &  ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  = (queenThreats  | enemyQueens ) &  ei->attackedBy[THEM][QUEEN ]
+                                                               & ~ei->attackedBy[  US][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -650,7 +655,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 800, count / 20);
+if (count > 0) eval -= MakeScore(count * count / 800, count / 20);
     }
 
     // Shelter eval is already stored in the Pawn King Table. evaluatePawns()
