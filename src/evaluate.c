@@ -150,16 +150,16 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KSAttackWeight[]  = { 0, 12, 6, 8, 8, 0 };
-const int KSAttackValue     =   42;
-const int KSWeakSquares     =   40;
-const int KSFriendlyPawns   =  -24;
+const int KSAttackWeight[]  = { 0, 13, 6, 8, 5, 0 };
+const int KSAttackValue     =   40;
+const int KSWeakSquares     =   42;
+const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   62;
-const int KSSafeRookCheck   =   83;
+const int KSSafeQueenCheck  =   83;
+const int KSSafeRookCheck   =   86;
 const int KSSafeBishopCheck =   43;
-const int KSSafeKnightCheck =   85;
-const int KSAdjustment      =  -40;
+const int KSSafeKnightCheck =   97;
+const int KSAdjustment      =  -44;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
@@ -623,9 +623,10 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        uint64_t safe     = ~ei->attacked[US] | (weak & ei->attackedBy2[THEM]);
-        uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+        uint64_t safe =  ~board->colours[THEM]
+                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
+        uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
         uint64_t knightThreats = knightAttacks(kingSq);
         uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
