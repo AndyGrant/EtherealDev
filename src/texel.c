@@ -111,7 +111,7 @@ void runTexelTuning(Thread *thread) {
     // initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = 1.177889; //computeOptimalK(tes);
+    K = 0.833705;// computeOptimalK(tes);
     printf("ERROR %f\n", completeEvaluationError(tes, K));
     exit(EXIT_SUCCESS);
 
@@ -487,7 +487,7 @@ double completeEvaluationError(TexelEntry* tes, double K) {
             total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
     }
 
-    return total / (double)NPOSITIONS;
+    return total;// / (double)NPOSITIONS;
 }
 
 double completeLinearError(TexelEntry* tes, double params[NTERMS][PHASE_NB], double K) {
