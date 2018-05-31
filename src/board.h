@@ -36,6 +36,7 @@ struct Board {
     int psqtmat;
     int numMoves;
     uint64_t history[512];
+    int rootColour;
 };
 
 struct Undo {

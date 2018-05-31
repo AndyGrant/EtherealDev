@@ -180,6 +180,8 @@ const int ThreatOverloadedPieces     = S(  -7, -19);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
+const int Contempt = S(  10,   5);
+
 #undef S
 
 
@@ -205,6 +207,9 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     // Add in the PSQT and Material values, as well as the tempo
     eval += board->psqtmat + Tempo[board->turn];
+
+    // Factor in Contempt, in favour of rootColour
+    eval += board->rootColour == WHITE ? Contempt : -Contempt;
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - popcount(board->pieces[QUEEN]) * 4
