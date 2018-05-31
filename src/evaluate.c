@@ -180,7 +180,7 @@ const int ThreatOverloadedPieces     = S(  -7, -19);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
-const int Contempt = S(  10,   5);
+const int Contempt = S(  20,  10);
 
 #undef S
 
