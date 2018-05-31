@@ -76,7 +76,7 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         memcpy(&threads[i].board, board, sizeof(Board));
 
         // Save off root colour for doing Contempt
-        threads[i].board->rootColour = board->turn;
+        threads[i].board.rootColour = board->turn;
 
         // Zero our the depth, nodes for the new search
         threads[i].depth  = 0;
