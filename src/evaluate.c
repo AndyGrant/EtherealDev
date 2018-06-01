@@ -188,7 +188,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     EvalInfo ei; // Fix bogus GCC warning
     ei.pkeval[WHITE] = ei.pkeval[BLACK] = 0;
 
-    int phase, eval, pkeval;
+    int phase, mg, eg, eval, pkeval;
 
     // Check for obviously drawn positions
     if (evaluateDraws(board)) return 0;
@@ -212,8 +212,11 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
                - popcount(board->pieces[KNIGHT] | board->pieces[BISHOP]);
     phase = (phase * 256 + 12) / 24;
 
-    // Compute the interpolated evaluation
-    eval  = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
+    mg   = ScoreMG(eval) * (256 - phase);
+
+    eg   = ScoreEG(eval) * phase * evaluateScaleFactor(board) / SCALE_NORMAL;
+
+    eval = (mg + eg) / 256;
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -765,6 +768,40 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.ThreatOverloadedPieces[colour] += count;
 
     return eval;
+}
+
+int evaluateScaleFactor(Board *board){
+
+    uint64_t white   = board->colours[WHITE];
+    uint64_t black   = board->colours[BLACK];
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+
+    if (    exactlyOne(white & bishops)
+        &&  exactlyOne(black & bishops)
+        &&  exactlyOne(WHITE_SQUARES & bishops)) {
+
+        if (    exactlyOne(white & queens)
+            &&  exactlyOne(black & queens))
+            return SCALE_NORMAL;
+
+        if (   !knights
+            &&  exactlyOne(white & rooks)
+            &&  exactlyOne(black & rooks))
+            return SCALE_OCB_ONE_ROOK;
+
+        if (   !rooks
+            &&  exactlyOne(white & knights)
+            &&  exactlyOne(black & knights))
+            return SCALE_OCB_ONE_KNIGHT;
+
+        if (!(knights | rooks | queens))
+            return SCALE_OCB_ONLY;
+    }
+
+    return SCALE_NORMAL;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){

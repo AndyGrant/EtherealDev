@@ -97,21 +97,23 @@ void runTexelTuning(Thread *thread) {
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
-    TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
+    // printf("\n\nAllocating Memory for Texel Tuple Stack [%dMB]....  [%7d of %7d]",
+    //        (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
+    // TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
     printf("\n\nReading and Initializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
-    printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
-    initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
+    // printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
+    // initCurrentParameters(cparams);
+    //
+    // printf("\n\nScaling Params For Phases and Occurance Rates...");
+    // initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 0.827660; // computeOptimalK(tes);
+    printf("Error %f\n", completeEvaluationError(tes, K));
+    return;
 
     while (1) {
 
@@ -218,7 +220,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         T = EmptyTrace;
         tes[i].eval = evaluateBoard(&thread->board, NULL);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
-
+        continue;
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
                           - 2 * popcount(thread->board.pieces[ROOK  ])
