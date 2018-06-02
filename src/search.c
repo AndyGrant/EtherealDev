@@ -347,17 +347,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 4. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
+    // Step 4. Drop into a Quiescence Search if we are at the
+    // search horizon. Do not double count this node.
     if (depth <= 0){
-
-        // No king attackers indicates we are not checked. We reduce the
-        // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        thread->nodes--;
+        return qsearch(thread, pv, alpha, beta, 0, height);
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -421,10 +415,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + RazorMargins[depth] < alpha){
 
         if (depth <= 1)
-            return qsearch(thread, pv, alpha, beta, height);
+            return qsearch(thread, pv, alpha, beta, 0, height);
 
         rAlpha = alpha - RazorMargins[depth];
-        value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
+        value = qsearch(thread, pv, rAlpha, rAlpha + 1, 0, height);
         if (value <= rAlpha) return alpha;
     }
 
@@ -682,11 +676,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
 
     Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
-    int eval, value, best;
+    int i, reps;
+    int played = 0, best = -MATE;
+    int eval, value, evasionPrunable;
     uint16_t move;
 
     Undo undo[1];
@@ -719,31 +716,74 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_PLY)
         return evaluateBoard(board, &thread->pktable);
 
-    // Step 3. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    // Mate Distance Pruning. Check to see if this line is so
+    // good, or so bad, that being mated in the ply, or  mating in
+    // the next one, would still not create a more extreme line
+    int rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
+    int rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
+    if (rAlpha >= rBeta) return rAlpha;
 
-    // Step 4. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional of the futility margin would still fail
-    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
-        return eval;
+    // Check for the Fifty Move Rule
+    if (board->fiftyMoveRule > 100)
+        return 0;
+
+    // Check for three fold repetition. If the repetition occurs since
+    // the root move of this search, we will exit early as if it was a draw.
+    // Otherwise, we will look for an actual three fold repetition draw.
+    for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
+
+        // We can't have repeated positions before the most recent
+        // move which triggered a reset of the fifty move rule counter
+        if (i < board->numMoves - board->fiftyMoveRule) break;
+
+        if (board->history[i] == board->hash){
+
+            // Repetition occured after the root
+            if (i > board->numMoves - height)
+                return 0;
+
+            // An actual three fold repetition
+            if (++reps == 2)
+                return 0;
+        }
+    }
+
+    if (!InCheck) {
+
+        // Step 3. Eval Pruning. If a static evaluation of the board will
+        // exceed beta, then we can stop the search here. Also, if the static
+        // eval exceeds alpha, we can call our static eval the new alpha
+        best = value = eval = evaluateBoard(board, &thread->pktable);
+        alpha = MAX(alpha, value);
+        if (alpha >= beta) return value;
+
+        // Step 4. Delta Pruning. Even the best possible capture and or promotion
+        // combo with the additional of the futility margin would still fail
+        if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+            return eval;
+    }
 
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, height, !InCheck);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (!InCheck && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
+
+        // Can prune during evasions when we have resolved the check, our looking
+        // at a quiet move, and are either below depth zero or tried a few moves
+        evasionPrunable =    InCheck
+                         &&  best > MATED_IN_MAX
+                         && (depth < 0 || played > 1)
+                         && !moveIsTactical(board, move);
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
-        if (!staticExchangeEvaluation(board, move, QSEEMargin))
+        if (  (!InCheck || evasionPrunable)
+            && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
         // Apply and validate move before searching
@@ -753,8 +793,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             continue;
         }
 
+        played += 1;
+
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
 
         // Revert move from board
         revertMove(board, move, undo);
@@ -779,7 +821,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             return best;
     }
 
-    return best;
+    // Return a MATE score if no legal moves were found
+    return InCheck && played == 0 ? -MATE + height : best;
 }
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
