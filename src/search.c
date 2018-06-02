@@ -776,8 +776,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
         // Can prune during evasions when we have resolved the check, our looking
         // at a quiet move, and are either below depth zero or tried a few moves
         evasionPrunable =    InCheck
+                         &&  played > 3
                          &&  best > MATED_IN_MAX
-                         && (depth < 0 || played > 3)
                          && !moveIsTactical(board, move);
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
