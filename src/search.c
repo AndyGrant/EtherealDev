@@ -404,11 +404,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                                      : evaluateBoard(board, &thread->pktable);
     futilityMargin = eval + FutilityMargin * depth;
 
-    // Finally, we define a node to be improving if the last two moves have increased
-    // the static eval. To have two last moves, we must have a height of at least 4.
-    improving =    height >= 4
-               &&  thread->evalStack[height-0] > thread->evalStack[height-2]
-               &&  thread->evalStack[height-2] > thread->evalStack[height-4];
+    improving = height >= 2 && eval > thread->evalStack[height-2];
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -543,7 +539,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[improving][depth])
             break;
@@ -555,7 +550,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !inCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
+            && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
             continue;
 
         // Apply the move, and verify legality
