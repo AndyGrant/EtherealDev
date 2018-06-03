@@ -47,7 +47,6 @@ struct Undo {
     int epSquare;
     int fiftyMoveRule;
     int psqtmat;
-    int captureSquare;
     int capturePiece;
 };
 
