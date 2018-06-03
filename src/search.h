@@ -104,6 +104,6 @@ static const int SEEMargin[2] = { -20, -30};
 
 static const int QFutilityMargin = 100;
 
-static const int QSEEMargin = -100;
+static const int QSEEMargin = 0;
 
 #endif
