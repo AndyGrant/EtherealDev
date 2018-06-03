@@ -653,7 +653,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        if (count > 0) eval -= MakeScore(count * count / 720, count / 16);
     }
 
     // Shelter eval is already stored in the Pawn King Table. evaluatePawns()
