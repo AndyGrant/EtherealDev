@@ -56,7 +56,7 @@ void initSearch(){
     // Init the LMR table
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = log(depth) * log(played) / 2;
+            LMRTable[depth][played] = log(depth) * log(played) / 2.40;
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
@@ -584,9 +584,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R  = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
-            R += 2 * !PvNode; // Increase for non PV nodes
-
-            R -= quiets <= 3; // Reduce for first few quiets
+            R += !PvNode; // Increase for non PV nodes
 
             R -= hist / 4096; // Adjust based on history
 
