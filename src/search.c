@@ -56,7 +56,7 @@ void initSearch(){
     // Init the LMR table
     for (int d = 1; d < 64; d++)
         for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = log(0.8 * d) * log(1.6 * p) / 2.0;
+            LMRTable[d][p] = log(1.2 * d) * log(0.8 * p) / 2.0;
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
