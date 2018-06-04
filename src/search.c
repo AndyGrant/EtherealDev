@@ -588,7 +588,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R -= quiets <= 3; // Reduce for first few quiets
 
-            R -= (hist + 8192) / 4096; // Adjust based on history
+            R -= hist / 4096; // Adjust based on history
 
             R  = MIN(depth - 1, MAX(R, 1)); // Dont't extend or go into qsearch
 
