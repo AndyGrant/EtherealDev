@@ -54,9 +54,9 @@ pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
 void initSearch(){
 
     // Init the LMR table
-    for (int depth = 1; depth < 64; depth++)
-        for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = log(depth) * log(played) / 2;
+    for (int d = 1; d < 64; d++)
+        for (int p = 1; p < 64; p++)
+            LMRTable[d][p] = log(0.8 * d) * log(2.4 * p) / 2.0;
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
