@@ -45,7 +45,7 @@
 #include "movepicker.h"
 #include "uci.h"
 
-int LMRTable[64][64];
+int LMRTable[64][64]; // Late Move Reduction. LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
@@ -580,19 +580,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (    isQuiet
             &&  depth > 2
-            &&  played > 3){
+            &&  played > 1){
 
-            R = LMRTable[MIN(depth, 63)][MIN(63, played)];
+            R  = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
             R += 2 * !PvNode; // Increase for non PV nodes
 
             R -= quiets <= 3; // Reduce for first few quiets
 
-            // Adjust based on the history score, within [+1, -6]
-            R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
+            R -= (hist + 8192) / 4096; // Adjust based on history
 
-            // Don't extend the search and don't go into qsearch
-            R = MIN(depth - 1, MAX(R, 1));
+            R  = MIN(depth - 1, MAX(R, 1)); // Dont't extend or go into qsearch
 
         } else R = 1;
 
