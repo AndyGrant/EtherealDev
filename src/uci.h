@@ -32,7 +32,6 @@
 #endif
 
 struct Limits {
-
     int depthLimit;
     double timeLimit;
     int limitedByNone;

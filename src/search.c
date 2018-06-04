@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -44,11 +45,19 @@
 #include "movepicker.h"
 #include "uci.h"
 
+int LMRTable[64][64];
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
 
+void initSearch(){
+
+    // Init the LMR table
+    for (int depth = 1; depth < 64; depth++)
+        for (int played = 1; played < 64; played++)
+            LMRTable[depth][played] = log(depth) * log(played) / 2;
+}
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
 
@@ -573,7 +582,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth > 2
             &&  played > 3){
 
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
+            R = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
             R += 2 * !PvNode; // Increase for non PV nodes
 

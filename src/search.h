@@ -43,6 +43,7 @@ struct PVariation {
     int length;
 };
 
+void initSearch();
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits);
 
