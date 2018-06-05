@@ -585,7 +585,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R += !improving; // Increase for non improving nodes
 
-            R -= hist / 4096; // Adjust based on move history
+            R -= (hist + 2048) / 4096; // Adjust based on move history
 
             R  = MIN(depth - 1, MAX(R, 1));
 
