@@ -586,8 +586,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R += 2 * !PvNode; // Increase for non PV nodes
 
-            R -= quiets <= 3; // Reduce for first few quiets
-
             R -= (hist + 8192) / 4096; // Adjust by history
 
             // Don't extend the search and don't go into qsearch
