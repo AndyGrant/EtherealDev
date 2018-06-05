@@ -584,6 +584,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R  = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
+            R += !PvNode; // Increase for non PV nods
+
             R  = MIN(depth - 1, MAX(R, 1));
 
             // R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
