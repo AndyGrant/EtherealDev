@@ -577,7 +577,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (    isQuiet
             &&  depth > 2
-            &&  played > 3){
+            &&  played > 1){
 
             R  = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
