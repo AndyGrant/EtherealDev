@@ -585,6 +585,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R += !improving; // Increase for non improving nodes
 
+            R -= hist / 4096; // Adjust based on move history
+
             R  = MIN(depth - 1, MAX(R, 1));
 
             // R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
