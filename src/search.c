@@ -584,7 +584,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
-            R += 2 * !PvNode; // Increase for non PV nodes
+            R += !PvNode; // Increase for non PV nodes
 
             R -= quiets <= 3; // Reduce for first few quiets
 
