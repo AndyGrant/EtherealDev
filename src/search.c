@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -44,11 +45,19 @@
 #include "movepicker.h"
 #include "uci.h"
 
+int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
 
+void initSearch(){
+
+    // Init Late Move Reductions Table
+    for (int d = 1; d < 64; d++)
+        for (int p = 1; p < 64; p++)
+            LMRTable[d][p] = log(0.8 * d) * log(1.2 * p) / 2.0;
+}
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
 
@@ -573,17 +582,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth > 2
             &&  played > 3){
 
-            R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
+            R  = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
-            R += 2 * !PvNode; // Increase for non PV nodes
+            R  = MIN(depth - 1, MAX(R, 1));
 
-            R -= quiets <= 3; // Reduce for first few quiets
-
-            // Adjust based on the history score, within [+1, -6]
-            R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
-
-            // Don't extend the search and don't go into qsearch
-            R = MIN(depth - 1, MAX(R, 1));
+            // R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
+            //
+            // R += 2 * !PvNode; // Increase for non PV nodes
+            //
+            // R -= quiets <= 3; // Reduce for first few quiets
+            //
+            // // Adjust based on the history score, within [+1, -6]
+            // R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
+            //
+            // // Don't extend the search and don't go into qsearch
+            // R = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
 
