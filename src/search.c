@@ -581,25 +581,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R  = LMRTable[MIN(depth, 63)][MIN(63, played)];
 
-            R += !PvNode; // Increase for non PV nodes
+            R += !PvNode;
 
-            R += !improving; // Increase for non improving nodes
+            R += !PvNode && ttMove != NONE_MOVE;
 
-            R -= hist / 4096; // Adjust based on move history
+            R += !improving;
+
+            R -= hist / 4096;
 
             R  = MIN(depth - 1, MAX(R, 1));
-
-            // R = 2 + (played - 4) / 8 + (depth - 6) / 4; // LMR Formula
-            //
-            // R += 2 * !PvNode; // Increase for non PV nodes
-            //
-            // R -= quiets <= 3; // Reduce for first few quiets
-            //
-            // // Adjust based on the history score, within [+1, -6]
-            // R -= MAX(-1, ((hist + 8192) / 4096) - (hist <= -8192));
-            //
-            // // Don't extend the search and don't go into qsearch
-            // R = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
 
