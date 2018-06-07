@@ -585,6 +585,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            // Reduce for positions in check
+            R -= inCheck;
+
             // Reduce for Killers
             R -= move == movePicker.killer1
               || move == movePicker.killer2;
