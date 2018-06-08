@@ -454,13 +454,22 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         R = 4 + depth / 6 + (eval - beta + 200) / 400;
 
+        // Search at a reduced depth after a NULL move
         applyNullMove(board, undo);
-
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
-
         revertNullMove(board, undo);
 
-        if (value >= beta) return beta;
+        // We fail high even when we give away a move
+        if (value >= beta){
+
+            // No need to verify low depth pruning
+            if (depth < 12)
+                return beta;
+
+            // Verify with a real search to the reduced depth
+            if (search(thread, &lpv, beta-1, beta, depth-R, height) >= beta)
+                return beta;
+        }
     }
 
     // Step 10. ProbCut. If we have a good capture that causes a beta cutoff
