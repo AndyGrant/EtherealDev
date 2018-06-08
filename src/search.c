@@ -237,7 +237,7 @@ int aspirationWindow(Thread* thread, int depth){
             beta = MIN(MATE, beta + delta);
 
         // Increae window size
-        delta = 4 + 5 * delta / 4;
+        delta = 4 + 3 * delta / 2;
     }
 }
 
