@@ -528,7 +528,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             hist = getHistoryScore(thread->history, move, board->turn);
-            lmrDepth = MAX(1, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] - !PvNode);
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
@@ -539,7 +539,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
             &&  lmrDepth <= FutilityPruningDepth
-            &&  eval + (1 + lmrDepth) * FutilityMargin <= alpha)
+            &&  eval + (2 + lmrDepth) * FutilityMargin <= alpha)
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
@@ -558,9 +558,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
             && !inCheck
-            &&  depth <= SEEPruningDepth
+            &&  lmrDepth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin[improving] * depth * depth))
+            && !staticExchangeEvaluation(board, move, SEEMargin * lmrDepth * lmrDepth))
             continue;
 
         // Apply the move, and verify legality
