@@ -49,16 +49,17 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer1    = thread->killers[height][0];
     mp->killer2    = thread->killers[height][1];
 
-    if (height == 0) {
-        for (int i = thread->depth - 1; i > 0; i--) {
-            if (thread->info->bestMoves[i] != ttMove) {
+    if (height) return; // Finished for Non-Root nodes
 
-                if (!mp->root1) mp->root1 = thread->info->bestMoves[i];
-                else            mp->root2 = thread->info->bestMoves[i];
+    for (int i = thread->depth - 1; i > 0; i--) {
 
-                if (mp->root2) break; // Set both root moves
-            }
-        }
+        uint16_t move = thread->info->bestMoves[i];
+
+        if (move == ttMove || move == mp->root1)
+            continue;
+
+        if (!mp->root1) mp->root1 = move;
+        else {mp->root2 = move; break; };
     }
 }
 
