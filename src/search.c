@@ -528,7 +528,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             hist = getHistoryScore(thread->history, move, board->turn);
-            lmrDepth = MAX(1, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
@@ -539,7 +539,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
             &&  lmrDepth <= FutilityPruningDepth
-            &&  eval + lmrDepth * FutilityMargin <= alpha)
+            &&  eval + (1 + lmrDepth) * FutilityMargin <= alpha)
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
