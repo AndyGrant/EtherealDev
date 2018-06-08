@@ -49,18 +49,13 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer1    = thread->killers[height][0];
     mp->killer2    = thread->killers[height][1];
 
-    if (height) return; // Finished for Non-Root nodes
+    // Special root ordering is for root nodes
+    // only after a few depths have been tried
+    if (height || thread->depth <= 4)
+        return;
 
-    for (int i = thread->depth - 1; i > 0; i--) {
-
-        uint16_t move = thread->info->bestMoves[i];
-
-        if (move == ttMove || move == mp->root1)
-            continue;
-
-        if (!mp->root1) mp->root1 = move;
-        else {mp->root2 = move; break; };
-    }
+    mp->root1 = thread->info->bestMoves[thread->depth-2];
+    mp->root2 = thread->info->bestMoves[thread->depth-3];
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board){
@@ -95,6 +90,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board){
             // For Root Nodes, play a previous best move
             mp->stage = STAGE_GENERATE_NOISY;
             if (   mp->root2 != mp->tableMove
+                && mp->root2 != mp->root1
                 && moveIsPsuedoLegal(board, mp->root2))
                 return mp->root2;
 
