@@ -416,7 +416,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
     // Rest the stat score for this node (for children to reference)
-    hist = thread->evalStack[height] = 0;
+    hist = thread->histStack[height] = 0;
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -532,7 +532,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             hist = getHistoryScore(thread->history, move, board->turn);
-            thread->evalStack[height] = hist;
+            thread->histStack[height] = hist;
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
