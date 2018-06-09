@@ -528,7 +528,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
-            hist = getHistoryScore(thread->history, move, board->turn);
+            hist = getHistory(thread->history, board, move);
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
@@ -677,9 +677,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 22. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
-        updateHistory(thread->history, bestMove, board->turn, depth*depth);
+        updateHistory(thread->history, board, bestMove, depth*depth);
         for (i = 0; i < quiets - 1; i++)
-            updateHistory(thread->history, quietsTried[i], board->turn, -depth*depth);
+            updateHistory(thread->history, board, quietsTried[i], -depth*depth);
     }
 
     // Step 23. Store results of search into the table
