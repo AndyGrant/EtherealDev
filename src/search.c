@@ -213,7 +213,6 @@ int aspirationWindow(Thread* thread, int depth){
     alpha = MAX(-MATE, thread->info->values[mainDepth-1] - delta);
     beta  = MIN( MATE, thread->info->values[mainDepth-1] + delta);
 
-    // Keep trying larger windows until one works
     while (1) {
 
         // Perform the search on the modified window
@@ -236,8 +235,8 @@ int aspirationWindow(Thread* thread, int depth){
         if (value >= beta)
             beta = MIN(MATE, beta + delta);
 
-        // Increae window size
-        delta = 4 + 5 * delta / 4;
+        // Increase window size
+        delta += delta / 2;
     }
 }
 
