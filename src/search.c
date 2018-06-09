@@ -588,6 +588,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= move == movePicker.killer1
               || move == movePicker.killer2;
 
+            // Reduce responses to a NULL move
+            R -= !RootNode
+              &&  board->history[board->numMoves-2] == NULL_MOVE;
+
             // Adjust based on history
             R -= hist / 4096;
 
