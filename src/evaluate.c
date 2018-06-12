@@ -46,21 +46,16 @@
 
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
-const int PawnValue   = S( 100, 123);
-
-const int KnightValue = S( 463, 392);
-
-const int BishopValue = S( 473, 417);
-
-const int RookValue   = S( 639, 717);
-
-const int QueenValue  = S(1313,1348);
-
+const int PawnValue   = S( 100, 117);
+const int KnightValue = S( 444, 371);
+const int BishopValue = S( 453, 394);
+const int RookValue   = S( 622, 681);
+const int QueenValue  = S(1255,1286);
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
-    {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
+    { 100, 117}, { 444, 371}, { 453, 394}, { 622, 681},
+    {1255,1286}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 const int PawnIsolated = S(  -3,  -4);
