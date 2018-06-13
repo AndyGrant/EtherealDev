@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -149,7 +144,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
+const int KSAttackWeight[]  = {  0, 20, 10,  8,  6,  0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
