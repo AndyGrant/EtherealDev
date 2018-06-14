@@ -24,17 +24,14 @@
 #include "types.h"
 
 struct SearchInfo {
-
     int depth;
     int values[MAX_PLY];
     uint16_t bestMoves[MAX_PLY];
     double timeUsage[MAX_PLY];
-
     double startTime;
     double idealUsage;
     double maxAlloc;
     double maxUsage;
-
     int bestMoveChanges;
 };
 
@@ -99,8 +96,6 @@ static const int LateMovePruningCounts[2][9] = {
     {  0,  4,  5,  8, 13, 17, 22, 29, 35},
     {  0,  6,  9, 14, 21, 30, 41, 54, 69},
 };
-
-static const int SEEPruningDepth = 8;
 
 static const int SEEMargin = -20;
 
