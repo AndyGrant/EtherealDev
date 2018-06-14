@@ -592,7 +592,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= hist / 4096;
 
             // Reduce for good checking moves
-            R -= hist > 0 && board->kingAttackers;
+            R -= hist > 4096 && board->kingAttackers;
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
