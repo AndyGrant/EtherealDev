@@ -93,11 +93,11 @@ static const int FutilityMargin = 100;
 
 static const int FutilityPruningDepth = 8;
 
-static const int LateMovePruningDepth = 8;
+static const int LateMovePruningDepth = 12;
 
-static const int LateMovePruningCounts[2][9] = {
-    {  0,  4,  5,  8, 13, 17, 22, 29, 35},
-    {  0,  6,  9, 14, 21, 30, 41, 54, 69},
+static const int LateMovePruningCounts[2][13] = {
+    {  0,  4,  5,  8, 13, 17, 22, 29, 35, 43, 52, 62, 73},
+    {  0,  6,  9, 14, 21, 30, 41, 54, 69, 86,115,136,159},
 };
 
 static const int SEEPruningDepth = 8;
