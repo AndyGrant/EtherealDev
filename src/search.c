@@ -746,8 +746,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        value = eval + QFutilityMargin + thisTacticalMoveValue(board, move);
+        if (value < alpha){
+            best = MAX(best, value);
             continue;
+        }
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
@@ -784,7 +787,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
         // Search has failed high
         if (alpha >= beta)
-            return best;
+            break;
     }
 
     return best;
