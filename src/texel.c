@@ -78,6 +78,7 @@ extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
 extern const int ThreatQueenAttackedByOne;
 extern const int ThreatOverloadedPieces;
+extern const int MaterialImbalance[5][5];
 
 void runTexelTuning(Thread *thread) {
 
@@ -335,6 +336,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneThreatMinorAttackedByMajor) INIT_COEFF_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) INIT_COEFF_0(ThreatQueenAttackedByOne)  ;
     if (TuneThreatOverloadedPieces    ) INIT_COEFF_0(ThreatOverloadedPieces)    ;
+    if (TuneMaterialImbalance         ) INIT_COEFF_2(MaterialImbalance, 5, 5)   ;
 
     if (i != NTERMS){
         printf("Error in initCoefficients(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -381,6 +383,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneThreatMinorAttackedByMajor) INIT_PARAM_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) INIT_PARAM_0(ThreatQueenAttackedByOne)  ;
     if (TuneThreatOverloadedPieces    ) INIT_PARAM_0(ThreatOverloadedPieces)    ;
+    if (TuneMaterialImbalance         ) INIT_PARAM_2(MaterialImbalance, 5, 5)   ;
 
     if (i != NTERMS){
         printf("Error in initCurrentParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -435,6 +438,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneThreatMinorAttackedByMajor) PRINT_PARAM_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) PRINT_PARAM_0(ThreatQueenAttackedByOne)  ;
     if (TuneThreatOverloadedPieces    ) PRINT_PARAM_0(ThreatOverloadedPieces)    ;
+    if (TuneMaterialImbalance         ) PRINT_PARAM_2(MaterialImbalance, 5, 5)   ;
 
     if (i != NTERMS){
         printf("Error in printParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -539,10 +543,22 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
+
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++) {
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("%s", b == B - 1 ? "" : ", ");
+        }
+
+        printf("},\n");
+    }
+
+
+    printf("};\n");
 
 }
 

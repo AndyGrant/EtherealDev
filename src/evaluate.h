@@ -57,6 +57,7 @@ struct EvalTrace {
     int ThreatMinorAttackedByMajor[COLOUR_NB];
     int ThreatQueenAttackedByOne[COLOUR_NB];
     int ThreatOverloadedPieces[COLOUR_NB];
+    int MaterialImbalance[5][5][COLOUR_NB];
 };
 
 struct EvalInfo {
@@ -89,6 +90,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassedPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
+int evaluateMaterialImbalance(EvalInfo *ei, Board *board);
 void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable);
 
 #define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))

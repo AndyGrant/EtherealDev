@@ -173,6 +173,15 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
+const int MaterialImbalance[5][5] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   1,   2), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   2), S(  -1,  -3), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   1), S(  -3,   3), S( -10,   0), S(   0,   0), S(   0,   0)},
+   {S(  -7,   8), S(   6,  23), S(   2,  27), S( -28,   3), S(   0,   0)},
+};
+
+
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
@@ -188,9 +197,12 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     // Check for obviously drawn positions
     if (evaluateDraws(board)) return 0;
 
-    // Setup and perform the evaluation of all pieces
+    // Setup masks and king safety information
     initializeEvalInfo(&ei, board, pktable);
-    eval = evaluatePieces(&ei, board);
+
+    // .
+    eval  = evaluatePieces(&ei, board);
+    eval += evaluateMaterialImbalance(&ei, board);
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && !TEXEL){
@@ -758,6 +770,30 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount(overloaded);
     eval += count * ThreatOverloadedPieces;
     if (TRACE) T.ThreatOverloadedPieces[colour] += count;
+
+    return eval;
+}
+
+int evaluateMaterialImbalance(EvalInfo *ei, Board *board){
+
+    (void)ei;
+
+    int wcount, bcount, eval = 0;
+
+    for (int p1 = KNIGHT; p1 <= QUEEN; p1++) {
+        for (int p2 = PAWN; p2 < p1; p2++) {
+
+            wcount = popcount(board->colours[WHITE] & board->pieces[p1])
+                   * popcount(board->colours[BLACK] & board->pieces[p2]);
+
+            bcount = popcount(board->colours[WHITE] & board->pieces[p2])
+                   * popcount(board->colours[BLACK] & board->pieces[p1]);
+
+            eval += (wcount - bcount) * MaterialImbalance[p1][p2];
+            if (TRACE) T.MaterialImbalance[p1][p2][WHITE] = wcount;
+            if (TRACE) T.MaterialImbalance[p1][p2][BLACK] = bcount;
+        }
+    }
 
     return eval;
 }
