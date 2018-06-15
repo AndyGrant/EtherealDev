@@ -557,10 +557,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
             && !inCheck
-            &&  depth <= SEEPruningDepth
-            &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
-            continue;
+            &&  best > MATED_IN_MAX){
+
+            if (isQuiet && !staticExchangeEvaluation(board, move, SEEQuietMargin * depth * depth))
+                continue;
+
+            if (!isQuiet && !staticExchangeEvaluation(board, move, SEETacticalMargin * depth))
+                continue;
+        }
 
         // Apply the move, and verify legality
         applyMove(board, move, undo);
