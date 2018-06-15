@@ -149,20 +149,12 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 4){
 
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealUsage *= 1.050;
-
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealUsage *= 0.975;
-
             if (info->bestMoves[depth] == info->bestMoves[depth-1]){
 
                 // If we still have remaining increments from best move
                 // changes reduce our ideal time usage by a factor, such that
                 // after we deplete bestMoveChanges, we are near the original time
-                info->idealUsage *= info->bestMoveChanges ? 0.935 : 1.000;
+                info->idealUsage *= info->bestMoveChanges ? 0.889 : 1.000;
 
                 // We have recovered one best move change
                 info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
@@ -171,13 +163,13 @@ void* iterativeDeepening(void* vthread){
             else {
 
                 // Increase our time by based on our best move debt. If this is the
-                // first PV change in some time, we increase our time by 48%. If we
+                // first PV change in some time, we increase our time by 60%. If we
                 // have recently changed best moves, we will only adjust our usage
-                // to get back to the initial 48% time allocation by the first change
-                info->idealUsage *= 1.000 + 0.080 * (6 - info->bestMoveChanges);
+                // to get back to the initial time allocation by the first change
+                info->idealUsage *= 1.000 + 0.150 * (4 - info->bestMoveChanges);
 
                 // Set out counter back to six as the best move has changed
-                info->bestMoveChanges = 6;
+                info->bestMoveChanges = 4;
             }
 
             // Cap our ideal usage using our maximum allocation
