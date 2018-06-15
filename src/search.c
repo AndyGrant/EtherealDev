@@ -557,6 +557,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
             && !inCheck
+            &&  depth <= 8
             &&  best > MATED_IN_MAX){
 
             if (isQuiet && !staticExchangeEvaluation(board, move, SEEQuietMargin * depth * depth))
