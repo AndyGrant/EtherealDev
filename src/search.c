@@ -531,36 +531,39 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, move, board->turn);
         }
 
-        // Step 13. Futility Pruning. If our score is far below alpha,
-        // and we don't expect anything from this move, we can skip this
-        // one, and also skip all other quiet moves from this position
-        if (   !PvNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            break;
+        if (hasNonPawnMaterial(board, board->turn)) {
 
-        // Step 14. Late Move Pruning / Move Count Pruning. If we have
-        // tried many quiets in this position already, and we don't expect
-        // anything from this move, we can undo it and skip all remaining quiets
-        if (   !PvNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth])
-            break;
+            // Step 13. Futility Pruning. If our score is far below alpha,
+            // and we don't expect anything from this move, we can skip this
+            // one, and also skip all other quiet moves from this position
+            if (   !PvNode
+                &&  isQuiet
+                &&  best > MATED_IN_MAX
+                && (hist < 4096 || !improving)
+                &&  futilityMargin <= alpha
+                &&  depth <= FutilityPruningDepth)
+                break;
 
-        // Step 15. Static Exchange Evaluation Pruning. Prune moves which fail
-        // to beat a depth dependent SEE threshold. The usual exceptions for
-        // positions in check, pvnodes, and MATED positions apply here as well.
-        if (   !PvNode
-            && !inCheck
-            &&  depth <= SEEPruningDepth
-            &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
-            continue;
+            // Step 14. Late Move Pruning / Move Count Pruning. If we have
+            // tried many quiets in this position already, and we don't expect
+            // anything from this move, we can undo it and skip all remaining quiets
+            if (   !PvNode
+                &&  isQuiet
+                &&  best > MATED_IN_MAX
+                &&  depth <= LateMovePruningDepth
+                &&  quiets > LateMovePruningCounts[improving][depth])
+                break;
+
+            // Step 15. Static Exchange Evaluation Pruning. Prune moves which fail
+            // to beat a depth dependent SEE threshold. The usual exceptions for
+            // positions in check, pvnodes, and MATED positions apply here as well.
+            if (   !PvNode
+                && !inCheck
+                &&  depth <= SEEPruningDepth
+                &&  best > MATED_IN_MAX
+                && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
+                continue;
+        }
 
         // Apply the move, and verify legality
         applyMove(board, move, undo);
