@@ -78,6 +78,8 @@ extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
 extern const int ThreatQueenAttackedByOne;
 extern const int ThreatOverloadedPieces;
+extern const int ThreatBySafeKnightMove;
+extern const int ThreatBySafeSliderMove;
 
 void runTexelTuning(Thread *thread) {
 
@@ -335,6 +337,8 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneThreatMinorAttackedByMajor) INIT_COEFF_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) INIT_COEFF_0(ThreatQueenAttackedByOne)  ;
     if (TuneThreatOverloadedPieces    ) INIT_COEFF_0(ThreatOverloadedPieces)    ;
+    if (TuneThreatBySafeKnightMove    ) INIT_COEFF_0(ThreatBySafeKnightMove)    ;
+    if (TuneThreatBySafeSliderMove    ) INIT_COEFF_0(ThreatBySafeSliderMove)    ;
 
     if (i != NTERMS){
         printf("Error in initCoefficients(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -381,6 +385,8 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneThreatMinorAttackedByMajor) INIT_PARAM_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) INIT_PARAM_0(ThreatQueenAttackedByOne)  ;
     if (TuneThreatOverloadedPieces    ) INIT_PARAM_0(ThreatOverloadedPieces)    ;
+    if (TuneThreatBySafeKnightMove    ) INIT_PARAM_0(ThreatBySafeKnightMove)    ;
+    if (TuneThreatBySafeSliderMove    ) INIT_PARAM_0(ThreatBySafeSliderMove)    ;
 
     if (i != NTERMS){
         printf("Error in initCurrentParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -435,6 +441,8 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneThreatMinorAttackedByMajor) PRINT_PARAM_0(ThreatMinorAttackedByMajor);
     if (TuneThreatQueenAttackedByOne  ) PRINT_PARAM_0(ThreatQueenAttackedByOne)  ;
     if (TuneThreatOverloadedPieces    ) PRINT_PARAM_0(ThreatOverloadedPieces)    ;
+    if (TuneThreatBySafeKnightMove    ) PRINT_PARAM_0(ThreatBySafeKnightMove)    ;
+    if (TuneThreatBySafeSliderMove    ) PRINT_PARAM_0(ThreatBySafeSliderMove)    ;
 
     if (i != NTERMS){
         printf("Error in printParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);

@@ -167,11 +167,13 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
-const int ThreatPawnAttackedByOne    = S( -17, -27);
-const int ThreatMinorAttackedByPawn  = S( -73, -54);
-const int ThreatMinorAttackedByMajor = S( -43, -41);
-const int ThreatQueenAttackedByOne   = S( -84,   3);
-const int ThreatOverloadedPieces     = S(  -7, -19);
+const int ThreatPawnAttackedByOne    = S( -18, -27);
+const int ThreatMinorAttackedByPawn  = S( -70, -50);
+const int ThreatMinorAttackedByMajor = S( -52, -43);
+const int ThreatQueenAttackedByOne   = S( -75,   7);
+const int ThreatOverloadedPieces     = S( -13, -26);
+const int ThreatBySafeKnightMove     = S( -10,   4);
+const int ThreatBySafeSliderMove     = S( -10,  -2);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
@@ -718,46 +720,74 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
 int evaluateThreats(EvalInfo* ei, Board* board, int colour){
 
-    int count, eval = 0;
+    const int US = colour, THEM = !colour;
 
-    uint64_t pawns   = board->colours[colour] & board->pieces[PAWN  ];
-    uint64_t knights = board->colours[colour] & board->pieces[KNIGHT];
-    uint64_t bishops = board->colours[colour] & board->pieces[BISHOP];
-    uint64_t rooks   = board->colours[colour] & board->pieces[ROOK  ];
-    uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
+    int sq, count, eval = 0;
+    uint64_t threats;
 
-    uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
-    uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
+    uint64_t occupied = board->colours[US] | board->colours[THEM];
+
+    uint64_t pawns    = board->colours[US] & board->pieces[PAWN  ];
+    uint64_t knights  = board->colours[US] & board->pieces[KNIGHT];
+    uint64_t bishops  = board->colours[US] & board->pieces[BISHOP];
+    uint64_t rooks    = board->colours[US] & board->pieces[ROOK  ];
+    uint64_t queens   = board->colours[US] & board->pieces[QUEEN ];
+
+    uint64_t attacksByPawns  = ei->attackedBy[THEM][PAWN  ];
+    uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
-                        & ei->attacked[ colour] & ~ei->attackedBy2[ colour]
-                        & ei->attacked[!colour] & ~ei->attackedBy2[!colour];
+                        & ei->attacked[US  ] & ~ei->attackedBy2[US  ]
+                        & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
+
+    // Fortified squares out strong positions for enemy pieces
+    uint64_t fortified = ~ei->attackedBy[US][PAWN]
+                       & (attacksByPawns | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US]));
 
     // Penalty for each unsupported pawn on the board
-    count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
+    count = popcount(pawns & ~ei->attacked[US] & ei->attacked[THEM]);
     eval += count * ThreatPawnAttackedByOne;
-    if (TRACE) T.ThreatPawnAttackedByOne[colour] += count;
+    if (TRACE) T.ThreatPawnAttackedByOne[US] += count;
 
     // Penalty for pawn threats against our minors
     count = popcount((knights | bishops) & attacksByPawns);
     eval += count * ThreatMinorAttackedByPawn;
-    if (TRACE) T.ThreatMinorAttackedByPawn[colour] += count;
+    if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
 
     // Penalty for all major threats against our unsupported knights and bishops
-    count = popcount((knights | bishops) & ~ei->attacked[colour] & attacksByMajors);
+    count = popcount((knights | bishops) & ~ei->attacked[US] & attacksByMajors);
     eval += count * ThreatMinorAttackedByMajor;
-    if (TRACE) T.ThreatMinorAttackedByMajor[colour] += count;
+    if (TRACE) T.ThreatMinorAttackedByMajor[US] += count;
 
     // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[!colour]);
+    count = popcount(queens & ei->attacked[THEM]);
     eval += count * ThreatQueenAttackedByOne;
-    if (TRACE) T.ThreatQueenAttackedByOne[colour] += count;
+    if (TRACE) T.ThreatQueenAttackedByOne[US] += count;
 
     // Penalty for any overloaded minors or majors
     count = popcount(overloaded);
     eval += count * ThreatOverloadedPieces;
-    if (TRACE) T.ThreatOverloadedPieces[colour] += count;
+    if (TRACE) T.ThreatOverloadedPieces[US] += count;
+
+    // Evaluate future threats to our queens
+    while (queens) {
+
+        sq = poplsb(&queens);
+
+        // Penalty for future threats by a safe knight move
+        threats = knightAttacks(sq) & ei->attackedBy[THEM][KNIGHT];
+        count = popcount(threats & fortified);
+        eval += count * ThreatBySafeKnightMove;
+        if (TRACE) T.ThreatBySafeKnightMove[US] += count;
+
+        // Penalty for future threats by a safe slider move
+        threats = (bishopAttacks(sq, occupied) & ei->attackedBy[THEM][BISHOP])
+                | (  rookAttacks(sq, occupied) & ei->attackedBy[THEM][ROOK  ]);
+        count = popcount(threats & fortified);
+        eval += count * ThreatBySafeSliderMove;
+        if (TRACE) T.ThreatBySafeSliderMove[US] += count;
+    }
 
     return eval;
 }
