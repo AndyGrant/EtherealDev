@@ -45,10 +45,6 @@
 #include "movepicker.h"
 #include "uci.h"
 
-
-int TRIED[MAX_PLY], WORKED[MAX_PLY];
-
-
 int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
@@ -91,10 +87,6 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
     // Wait for all (helper) threads to finish
     for (int i = 1; i < threads[0].nthreads; i++)
         pthread_join(pthreads[i], NULL);
-
-    for (int i = 0; i < MAX_PLY; i++)
-        if (TRIED[i])
-            printf("[%2d] %8d %8d %.3f\n", i, TRIED[i], WORKED[i], 100.0 * WORKED[i] / TRIED[i]);
 
     // Return highest depth best move
     return info.bestMoves[info.depth];
@@ -270,7 +262,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, checkExtended, extension;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
     Undo undo[1];
@@ -415,10 +407,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off a static evaluation
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
@@ -532,8 +523,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
 
-        int tried = 0;
-
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
@@ -541,7 +530,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, move, board->turn);
         }
 
-        int lmrDepth = MAX(1, depth - LMRTable[MIN(depth, 63)][MIN(quiets, 63)]);
+        int lmrDepth = MAX(1, depth - LMRTable[MIN(depth, 63)][MIN(quiets, 63)] + hist / 4196);
 
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
@@ -551,7 +540,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
             &&  eval + lmrDepth * 150 - 75 < alpha)
-            tried = 1;
+            break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -649,10 +638,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Revert the board state
         revertMove(board, move, undo);
-
-        if (tried)
-            TRIED[depth] += 1,
-            WORKED[depth] += value <= alpha;
 
         // Step 19. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
