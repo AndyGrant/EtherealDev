@@ -45,6 +45,10 @@
 #include "movepicker.h"
 #include "uci.h"
 
+
+int TRIED[MAX_PLY], WORKED[MAX_PLY];
+
+
 int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
@@ -87,6 +91,10 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
     // Wait for all (helper) threads to finish
     for (int i = 1; i < threads[0].nthreads; i++)
         pthread_join(pthreads[i], NULL);
+
+    for (int i = 0; i < MAX_PLY; i++)
+        if (TRIED[i])
+            printf("[%2d] %8d %8d %.3f\n", i, TRIED[i], WORKED[i], 100.0 * WORKED[i] / TRIED[i]);
 
     // Return highest depth best move
     return info.bestMoves[info.depth];
@@ -524,12 +532,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height, 0);
     while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
 
+        int tried = 0;
+
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             hist = getHistoryScore(thread->history, move, board->turn);
         }
+
+        int lmrDepth = MAX(1, depth - LMRTable[MIN(depth, 63)][MIN(quiets, 63)]);
 
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
@@ -538,9 +550,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
-            break;
+            &&  eval + lmrDepth * 150 - 75 < alpha)
+            tried = 1;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -638,6 +649,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Revert the board state
         revertMove(board, move, undo);
+
+        if (tried)
+            TRIED[depth] += 1,
+            WORKED[depth] += value <= alpha;
 
         // Step 19. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
