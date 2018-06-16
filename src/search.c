@@ -262,7 +262,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, checkExtended, extension;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
     Undo undo[1];
@@ -407,10 +407,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     checkExtended = inCheck && !RootNode && depth <= 8;
     depth += inCheck && !RootNode && depth <= 8;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off a static evaluation
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
@@ -531,6 +530,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, move, board->turn);
         }
 
+        int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(quiets, 63)] + hist / 4196);
+
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
@@ -538,8 +539,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  eval + 75 + lmrDepth * 150 < alpha)
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
