@@ -395,12 +395,11 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
 
     int i = 0; // PRINT_PARAM_N will update i accordingly
     int tparams[NTERMS][PHASE_NB];
-    int pvalue = ScoreMG(PawnValue) + (TunePawnValue ? params[0][MG] : 0);
 
     // Combine original and updated, scale so PawnValue[MG] = 100
     for (int j = 0; j < NTERMS; j++) {
-        tparams[j][MG] = (int)((100.0 / pvalue) * (params[j][MG] + cparams[j][MG]));
-        tparams[j][EG] = (int)((100.0 / pvalue) * (params[j][EG] + cparams[j][EG]));
+        tparams[j][MG] = params[j][MG] + cparams[j][MG];
+        tparams[j][EG] = params[j][EG] + cparams[j][EG];
     }
 
     if (TunePawnValue                 ) PRINT_PARAM_0(PawnValue)                 ;
