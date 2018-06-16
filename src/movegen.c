@@ -363,3 +363,28 @@ uint64_t attackersToKingSquare(Board* board){
     int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
     return attackersToSquare(board, board->turn, kingsq);
 }
+
+uint64_t pinnedForColour(Board *board, int colour){
+
+    uint64_t friendly = board->colours[ colour];
+    uint64_t enemy    = board->colours[!colour];
+
+    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
+    uint64_t kings   = board->pieces[KING  ];
+
+    int sq, kingsq = getlsb(friendly & kings);
+
+    uint64_t potentialPinners = (bishopAttacks(kingsq, enemy) & (enemy & bishops))
+                              | (  rookAttacks(kingsq, enemy) & (enemy &   rooks));
+
+    uint64_t pinnedPieces = 0ull;
+
+    while (potentialPinners){
+        sq = poplsb(&potentialPinners);
+        if (onlyone(bitsBetweenMasks(kingsq, sq) & friendly))
+            pinnedPieces |= bitsBetweenMasks(kingsq, sq) & friendly;
+    }
+
+    return pinnedPieces;
+}

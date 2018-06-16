@@ -103,14 +103,15 @@ void runTexelTuning(Thread *thread) {
     printf("\n\nReading and Initializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
-    printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
-    initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
+    // printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
+    // initCurrentParameters(cparams);
+    //
+    // printf("\n\nScaling Params For Phases and Occurance Rates...");
+    // initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    printf("ERROR : %f\n", completeLinearError(tes, params, 0.823000));
+    exit(EXIT_SUCCESS);
 
     while (1) {
 
@@ -230,6 +231,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Finish with the usual phase for the evaluation
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
+
+        continue;
 
         // Vectorize the evaluation coefficients into coeffs
         initCoefficients(coeffs);

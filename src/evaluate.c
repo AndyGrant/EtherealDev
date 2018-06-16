@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -176,7 +171,6 @@ const int ThreatOverloadedPieces     = S(  -7, -19);
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
-
 
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
@@ -644,6 +638,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US])
+               + 90                * popcount(pinnedForColour(board, US) & ~myPawns)
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * !!queenChecks
                + KSSafeRookCheck   * !!rookChecks
