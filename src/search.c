@@ -537,7 +537,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
+            &&  move != movePicker.killer1
+            &&  move != movePicker.killer2
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
