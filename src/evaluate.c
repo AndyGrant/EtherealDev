@@ -638,7 +638,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US])
-               + 90                * popcount(pinnedForColour(board, US) & ~myPawns)
+               + 52                * popcount(pinnedForColour(board, US))
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * !!queenChecks
                + KSSafeRookCheck   * !!rookChecks
