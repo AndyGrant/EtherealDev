@@ -46,16 +46,16 @@
 
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
-const int PawnValue   = S( 115, 112);
-const int KnightValue = S( 451, 376);
-const int BishopValue = S( 459, 383);
-const int RookValue   = S( 638, 711);
-const int QueenValue  = S(1264,1295);
+const int PawnValue   = S( 123, 129);
+const int KnightValue = S( 464, 381);
+const int BishopValue = S( 477, 405);
+const int RookValue   = S( 666, 710);
+const int QueenValue  = S(1329,1353);
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 115, 112}, { 451, 376}, { 459, 383}, { 638, 711},
-    {1264,1295}, {   0,   0}, {   0,   0}, {   0,   0},
+    { 123, 129}, { 464, 381}, { 477, 405}, { 666, 710},
+    {1329,1353}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 const int PawnIsolated = S(  -3,  -4);
@@ -75,7 +75,7 @@ const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
-const int KnightRammedPawns = S(  -9,  11);
+const int KnightRammedPawns = S(   1,  11);
 
 const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
 
@@ -87,7 +87,7 @@ const int KnightMobility[9] = {
 
 const int BishopPair = S(  40,  69);
 
-const int BishopRammedPawns = S( -14, -19);
+const int BishopRammedPawns = S(  -8,  -7);
 
 const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
 
@@ -170,10 +170,10 @@ const int ThreatOverloadedPieces     = S(  -7, -19);
 
 const int MaterialImbalance[5][5] = {
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   1), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(  -3,  13), S(   0,  -9), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(  -8, -14), S(   8,  13), S(   4,  20), S(   0,   0), S(   0,   0)},
-   {S(   6, -15), S(  13,  12), S(   6,   7), S( -13,  -6), S(   0,   0)},
+   {S(   2,   4), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   1,   6), S(  -1,  -3), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   1,   5), S(  -3,   0), S(  -9,  -2), S(   0,   0), S(   0,   0)},
+   {S(   1,  10), S(   5,  17), S(   3,  20), S( -14,   2), S(   0,   0)},
 };
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
