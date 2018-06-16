@@ -167,13 +167,15 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
-const int ThreatPawnAttackedByOne    = S( -18, -27);
-const int ThreatMinorAttackedByPawn  = S( -70, -50);
-const int ThreatMinorAttackedByMajor = S( -52, -43);
-const int ThreatQueenAttackedByOne   = S( -75,   7);
-const int ThreatOverloadedPieces     = S( -13, -26);
-const int ThreatBySafeKnightMove     = S( -10,   4);
-const int ThreatBySafeSliderMove     = S( -10,  -2);
+const int ThreatPawnAttackedByOne = S( -12, -38);
+const int ThreatMinorAttackedByPawn = S( -66, -44);
+const int ThreatMinorAttackedByMajor = S( -46, -36);
+const int ThreatQueenAttackedByOne = S( -53, -20);
+const int ThreatOverloadedPieces = S( -11, -22);
+const int ThreatBySafeKnightMove = S( -12,   0);
+const int ThreatBySafeSliderMove = S( -11,  -3);
+
+
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
