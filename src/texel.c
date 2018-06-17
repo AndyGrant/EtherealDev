@@ -58,7 +58,7 @@ extern const int KingPSQT32[32];
 extern const int PawnIsolated;
 extern const int PawnStacked;
 extern const int PawnBackwards[2];
-extern const int PawnConnected[2][3][8];
+extern const int PawnConnected[2][2][3];
 extern const int KnightRammedPawns;
 extern const int KnightOutpost[2];
 extern const int KnightMobility[9];
@@ -315,7 +315,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TunePawnIsolated              ) INIT_COEFF_0(PawnIsolated)              ;
     if (TunePawnStacked               ) INIT_COEFF_0(PawnStacked)               ;
     if (TunePawnBackwards             ) INIT_COEFF_1(PawnBackwards, 2)          ;
-    if (TunePawnConnected             ) INIT_COEFF_3(PawnConnected, 2, 2, 8)    ;
+    if (TunePawnConnected             ) INIT_COEFF_3(PawnConnected, 2, 2, 3)    ;
     if (TuneKnightRammedPawns         ) INIT_COEFF_0(KnightRammedPawns)         ;
     if (TuneKnightOutpost             ) INIT_COEFF_1(KnightOutpost, 2)          ;
     if (TuneKnightMobility            ) INIT_COEFF_1(KnightMobility, 9)         ;
@@ -361,7 +361,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TunePawnIsolated              ) INIT_PARAM_0(PawnIsolated)              ;
     if (TunePawnStacked               ) INIT_PARAM_0(PawnStacked)               ;
     if (TunePawnBackwards             ) INIT_PARAM_1(PawnBackwards, 2)          ;
-    if (TunePawnConnected             ) INIT_PARAM_3(PawnConnected, 2, 2, 8)    ;
+    if (TunePawnConnected             ) INIT_PARAM_3(PawnConnected, 2, 2, 3)    ;
     if (TuneKnightRammedPawns         ) INIT_PARAM_0(KnightRammedPawns)         ;
     if (TuneKnightOutpost             ) INIT_PARAM_1(KnightOutpost, 2)          ;
     if (TuneKnightMobility            ) INIT_PARAM_1(KnightMobility, 9)         ;
@@ -415,7 +415,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TunePawnIsolated              ) PRINT_PARAM_0(PawnIsolated)              ;
     if (TunePawnStacked               ) PRINT_PARAM_0(PawnStacked)               ;
     if (TunePawnBackwards             ) PRINT_PARAM_1(PawnBackwards, 2)          ;
-    if (TunePawnConnected             ) PRINT_PARAM_3(PawnConnected, 2, 2, 8)    ;
+    if (TunePawnConnected             ) PRINT_PARAM_3(PawnConnected, 2, 2, 3)    ;
     if (TuneKnightRammedPawns         ) PRINT_PARAM_0(KnightRammedPawns)         ;
     if (TuneKnightOutpost             ) PRINT_PARAM_1(KnightOutpost, 2)          ;
     if (TuneKnightMobility            ) PRINT_PARAM_1(KnightMobility, 9)         ;

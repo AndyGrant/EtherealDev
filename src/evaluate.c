@@ -69,7 +69,12 @@ const int PawnStacked = S( -10, -32);
 
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
-const int PawnConnected[2][3][RANK_NB];
+const int PawnConnected[2][2][3] = {
+  {{S(   0,   0), S(  30,   1), S(  36,   5)},
+   {S(   8,  17), S(  71,  30), S(  11,  29)}},
+  {{S(   0,   0), S(  12,   6), S(  15,   1)},
+   {S(   6,   2), S(  33,  22), S( -13,  51)}},
+};
 
 const int KnightRammedPawns = S(   0,   5);
 
@@ -277,9 +282,8 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
 
     const int forward = (colour == WHITE) ? 8 : -8;
 
-    int sq, semi, weight, relrank, eval = 0;
+    int sq, semi, eval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
-    uint64_t phalanx, opposition, supporters;
 
     // Update the attacks array with the pawn attacks. We will use this to
     // determine whether or not passed pawns may advance safely later on.
@@ -311,10 +315,10 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PawnValue[colour]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, colour)][colour]++;
 
-        phalanx    = !!(isolatedPawnMasks(sq) & Ranks[rankOf(sq)]);
-        opposition = !!(passedPawnMasks(colour, sq) & enemyPawns);
-        supporters = pawnAttacks(!colour, sq) & myPawns;
-        relrank    = relativeRankOf(colour, sq);
+        int phalanx    = !!(isolatedPawnMasks(sq) & Ranks[rankOf(sq)] & myPawns);
+        int opposition = !!(passedPawnMasks(colour, sq) & enemyPawns);
+        int supporters = popcount(pawnAttacks(!colour, sq) & myPawns);
+        int weightrank = relativeRankOf(colour, sq) - 2;
 
         // Save the fact that this pawn is passed
         if (!opposition)
@@ -342,9 +346,8 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
 
         // Bonus if the pawn is connected
         if (phalanx || supporters){
-            weight = popcount(supporters) >= 2;
-            eval += PawnConnected[opposition][weight][relrank];
-            if (TRACE) T.PawnConnected[opposition][weight][relrank][colour]++;
+            eval += PawnConnected[opposition][phalanx][supporters] * weightrank;
+            if (TRACE) T.PawnConnected[opposition][phalanx][supporters][colour] += weightrank;
         }
     }
 
