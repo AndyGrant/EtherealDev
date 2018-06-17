@@ -34,6 +34,7 @@ struct MovePicker {
     int noisySize, quietSize;
     uint16_t tableMove, killer1, killer2, counter;
     uint16_t moves[MAX_MOVES];
+    int recapture;
     int values[MAX_MOVES];
     HistoryTable* history;
 };

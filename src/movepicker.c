@@ -42,6 +42,7 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer2    = thread->killers[height][1];
     mp->counter    = getCounterMove(thread, height);
     mp->history    = &thread->history;
+    mp->recapture  = MoveTo(thread->moveStack[height-1]);
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board){
@@ -216,6 +217,10 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
         // Enpass is a special case of MVV-LVA
         else if (MoveType(move) == ENPASS_MOVE)
             value = PieceValues[PAWN][EG] - PAWN;
+
+        // Always look at recaptures first
+        if (MoveTo(move) == mp->recapture)
+            value += 2048;
 
         mp->values[i] = value;
     }
