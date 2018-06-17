@@ -592,9 +592,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            // Reduce for Killers
+            // Reduce for Killers and Counters
             R -= move == movePicker.killer1
-              || move == movePicker.killer2;
+              || move == movePicker.killer2
+              || move == movePicker.counter;
 
             // Adjust based on history
             R -= hist / 4096;
