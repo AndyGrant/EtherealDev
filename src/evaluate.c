@@ -46,16 +46,13 @@
 
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
+/* Material Evaluation Terms */
+
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -63,7 +60,9 @@ const int PieceValues[8][PHASE_NB] = {
     {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
-const int PawnIsolated = S(  -3,  -4);
+/** Pawn Evaluation Terms **/
+
+const int PawnIsolated = S(  -9, -12);
 
 const int PawnStacked = S( -10, -32);
 
@@ -80,6 +79,8 @@ const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
+/** Knight Evaluation Terms **/
+
 const int KnightRammedPawns = S(   0,   5);
 
 const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
@@ -89,6 +90,8 @@ const int KnightMobility[9] = {
     S(  -6, -14), S(   2, -14), S(   7,  -1),
     S(  17,  -2), S(  32,  -3), S(  48, -33),
 };
+
+/** Bishop Evaluation Terms **/
 
 const int BishopPair = S(  40,  69);
 
@@ -103,6 +106,8 @@ const int BishopMobility[14] = {
     S(  46,  -4), S(  40, -35),
 };
 
+/** Rook Evaluation Terms **/
+
 const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 
 const int RookOnSeventh = S(   0,  25);
@@ -114,6 +119,8 @@ const int RookMobility[15] = {
     S(  19,  50), S(  25,  46), S(  20,  47),
 };
 
+/** Queen Evaluation Terms **/
+
 const int QueenMobility[28] = {
     S( -61,-263), S(-217,-390), S( -48,-205), S( -36,-190),
     S( -15,-126), S( -24, -66), S( -15, -91), S( -17, -83),
@@ -123,6 +130,8 @@ const int QueenMobility[28] = {
     S(   4,  26), S(  18,  28), S(  13,   8), S(  39,  13),
     S(  44,  20), S(  62,   1), S( -33,  -7), S(  14,   3),
 };
+
+/** King Evaluation Terms **/
 
 const int KingDefenders[12] = {
     S( -37,  -4), S( -18,   6), S(   0,   1), S(  10,   0),
@@ -149,6 +158,8 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
+/** King Safety Evaluation Terms **/
+
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
@@ -160,6 +171,8 @@ const int KSSafeBishopCheck =   46;
 const int KSSafeKnightCheck =  119;
 const int KSAdjustment      =  -36;
 
+/** Passed Pawn Evaluation Terms **/
+
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
    {S(   0,   0), S(  -1,   2), S( -19,  24), S( -12,  37), S(   6,  46), S(  66,  63), S( 191, 133), S(   0,   0)}},
@@ -167,11 +180,15 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
+/** Threat Evaluation Terms **/
+
 const int ThreatPawnAttackedByOne    = S( -17, -27);
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -19);
+
+/** Miscellaneous Evaluation Terms **/
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
@@ -324,7 +341,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
             ei->passedPawns |= (1ull << sq);
 
         // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & tempPawns)){
+        if (!(isolatedPawnMasks(sq) & myPawns)){
             eval += PawnIsolated;
             if (TRACE) T.PawnIsolated[colour]++;
         }
