@@ -49,7 +49,8 @@ void updateCounterMove(Thread *thread, int height, uint16_t move) {
 
     uint16_t previous = thread->moveStack[height-1];
 
-    if (previous == NULL_MOVE) return;
+    if (previous == NULL_MOVE || previous == NONE_MOVE)
+        return;
 
     int to     = MoveTo(previous);
     int piece  = pieceType(thread->board.squares[to]);
@@ -62,7 +63,8 @@ uint16_t getCounterMove(Thread *thread, int height) {
 
     uint16_t previous = thread->moveStack[height-1];
 
-    if (previous == NULL_MOVE) return NONE_MOVE;
+    if (previous == NULL_MOVE || previous == NONE_MOVE)
+        return NONE_MOVE;
 
     int to     = MoveTo(previous);
     int piece  = pieceType(thread->board.squares[to]);

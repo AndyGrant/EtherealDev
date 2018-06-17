@@ -42,8 +42,9 @@ Thread* createThreadPool(int nthreads){
         threads[i].evalStack = &(threads[i]._evalStack[4]);
         threads[i].moveStack = &(threads[i]._moveStack[4]);
 
-        memset(&threads[i]._evalStack, 0, sizeof(threads[i].evalStack));
-        memset(&threads[i]._moveStack, 0, sizeof(threads[i].moveStack));
+        memset(&threads[i]._evalStack, 0, sizeof(int) * (MAX_PLY + 4));
+        memset(&threads[i]._moveStack, 0, sizeof(uint16_t) * (MAX_PLY + 4));
+
     }
 
     resetThreadPool(threads);
