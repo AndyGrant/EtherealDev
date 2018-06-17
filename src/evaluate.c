@@ -63,7 +63,7 @@ const int PieceValues[8][PHASE_NB] = {
     {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
-const int PawnIsolated = S(  -3,  -4);
+const int PawnIsolated = S(  -6,  -3);
 
 const int PawnStacked = S( -10, -32);
 
@@ -324,7 +324,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
             ei->passedPawns |= (1ull << sq);
 
         // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & tempPawns)){
+        if (!(isolatedPawnMasks(sq) & myPawns)){
             eval += PawnIsolated;
             if (TRACE) T.PawnIsolated[colour]++;
         }
