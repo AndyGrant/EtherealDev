@@ -91,8 +91,8 @@ void initMasks() {
 
     // Initalize pawn connected masks
     for (int s = 8 ; s < 56; s++) {
-        PawnConnectedMasks[WHITE][s] = pawnAttacks(BLACK, s) | pawnAttacks(BLACK, s + 8);
-        PawnConnectedMasks[BLACK][s] = pawnAttacks(WHITE, s) | pawnAttacks(WHITE, s - 8);
+        PawnConnectedMasks[WHITE][s] = pawnAttacks(BLACK, s);
+        PawnConnectedMasks[BLACK][s] = pawnAttacks(WHITE, s);
     }
 }
 
