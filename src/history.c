@@ -45,12 +45,15 @@ int getHistoryScore(HistoryTable history, uint16_t move, int colour) {
     return history[colour][MoveFrom(move)][MoveTo(move)];
 }
 
-void updateCounterMove(Thread *thread, uint16_t move) {
+void updateCounterMove(Thread *thread, int height, uint16_t move) {
 
-    int from   = MoveFrom(move);
-    int to     = MoveTo(move);
-    int piece  = pieceType(thread->board.squares[from]);
-    int colour = thread->board.turn;
+    uint16_t previous = thread->moveStack[height-1];
+
+    if (previous == NULL_MOVE) return;
+
+    int to     = MoveTo(previous);
+    int piece  = pieceType(thread->board.squares[to]);
+    int colour = !thread->board.turn;
 
     thread->cmtable[colour][piece][to] = move;
 }
