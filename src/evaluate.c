@@ -67,13 +67,13 @@ const int PawnIsolated = S(  -3,  -4);
 
 const int PawnStacked = S( -10, -32);
 
-const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
+const int PawnBackwards[2];
 
 const int PawnConnected[2][2][3] = {
-  {{S(   0,   0), S(  30,   1), S(  36,   5)},
-   {S(   8,  17), S(  71,  30), S(  11,  29)}},
-  {{S(   0,   0), S(  12,   6), S(  15,   1)},
-   {S(   6,   2), S(  33,  22), S( -13,  51)}},
+  {{S(   0,   0), S(  19,   7), S(  34,   2)},
+   {S(   9,  15), S(  77,  15), S( 171,  12)}},
+  {{S(   0,   0), S(   5,   3), S(  13,   1)},
+   {S(   0,   3), S(  21,  10), S(  17,  12)}},
 };
 
 const int KnightRammedPawns = S(   0,   5);
