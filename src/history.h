@@ -22,4 +22,7 @@
 void updateHistory(HistoryTable history, uint16_t move, int colour, int delta);
 int getHistoryScore(HistoryTable history, uint16_t move, int colour);
 
+void updateCounterMove(Thread *thread, uint16_t move);
+uint16_t getCounterMove(Thread *thread, int height);
+
 #endif

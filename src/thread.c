@@ -35,8 +35,15 @@ Thread* createThreadPool(int nthreads){
     // Provide each thread with a reference to the others,
     // as well as a counter of how many threads there are
     for (i = 0; i < nthreads; i++){
+
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
+
+        threads[i].evalStack = &(threads[i]._evalStack[4]);
+        threads[i].moveStack = &(threads[i]._moveStack[4]);
+
+        memset(&threads[i]._evalStack, 0, sizeof(threads[i].evalStack));
+        memset(&threads[i]._moveStack, 0, sizeof(threads[i].moveStack));
     }
 
     resetThreadPool(threads);
@@ -52,9 +59,10 @@ void resetThreadPool(Thread* threads){
     // needed between 'ucinewgame's in order to get deterministic results
     // between games. Between individual searches the tables aid us
     for (i = 0; i < threads[0].nthreads; i++){
-        memset(&threads[i].killers, 0, sizeof(KillerTable  ));
-        memset(&threads[i].history, 0, sizeof(HistoryTable ));
-        memset(&threads[i].pktable, 0, sizeof(PawnKingTable));
+        memset(&threads[i].killers, 0, sizeof(KillerTable     ));
+        memset(&threads[i].history, 0, sizeof(HistoryTable    ));
+        memset(&threads[i].pktable, 0, sizeof(PawnKingTable   ));
+        memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));
     }
 }
 

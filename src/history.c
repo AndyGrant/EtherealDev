@@ -22,9 +22,10 @@
 #include "board.h"
 #include "history.h"
 #include "move.h"
+#include "thread.h"
 #include "types.h"
 
-void updateHistory(HistoryTable history, uint16_t move, int colour, int delta){
+void updateHistory(HistoryTable history, uint16_t move, int colour, int delta) {
 
     int from  = MoveFrom(move);
     int to    = MoveTo(move);
@@ -40,6 +41,29 @@ void updateHistory(HistoryTable history, uint16_t move, int colour, int delta){
     history[colour][from][to] = entry;
 }
 
-int getHistoryScore(HistoryTable history, uint16_t move, int colour){
+int getHistoryScore(HistoryTable history, uint16_t move, int colour) {
     return history[colour][MoveFrom(move)][MoveTo(move)];
+}
+
+void updateCounterMove(Thread *thread, uint16_t move) {
+
+    int from   = MoveFrom(move);
+    int to     = MoveTo(move);
+    int piece  = pieceType(thread->board.squares[from]);
+    int colour = thread->board.turn;
+
+    thread->cmtable[colour][piece][to] = move;
+}
+
+uint16_t getCounterMove(Thread *thread, int height) {
+
+    uint16_t previous = thread->moveStack[height-1];
+
+    if (previous == NULL_MOVE) return NONE_MOVE;
+
+    int to     = MoveTo(previous);
+    int piece  = pieceType(thread->board.squares[to]);
+    int colour = !thread->board.turn;
+
+    return thread->cmtable[colour][piece][to];
 }
