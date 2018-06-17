@@ -219,7 +219,7 @@ void evaluateNoisyMoves(MovePicker* mp, Board* board){
             value = PieceValues[PAWN][EG] - PAWN;
 
         // Always look at recaptures first
-        if (MoveTo(move) == mp->recapture)
+        if (MoveTo(move) == mp->recapture && mp->skipQuiets)
             value += 2048;
 
         mp->values[i] = value;
