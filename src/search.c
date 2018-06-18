@@ -592,6 +592,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            // Redyce for uncertainty in the table move
+            R -= ttMove != NONE_MOVE
+              && ttMove != bestMove;
+
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
