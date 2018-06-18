@@ -413,7 +413,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     futilityMargin = eval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
-    improving = height >= 2 && eval > thread->evalStack[height-2];
+    improving = eval > thread->evalStack[height-2];
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
