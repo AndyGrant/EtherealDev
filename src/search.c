@@ -705,7 +705,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
-    const int InCheck  = !!thread->kingAttackers;
+    const int InCheck  = !!board->kingAttackers;
 
     int eval, value, best;
     uint16_t move;
