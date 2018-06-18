@@ -705,6 +705,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
+    const int InCheck  = !!thread->kingAttackers;
 
     int eval, value, best;
     uint16_t move;
@@ -763,7 +764,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
-        if (!staticExchangeEvaluation(board, move, QSEEMargin))
+        if (!InCheck && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
         // Apply and validate move before searching
