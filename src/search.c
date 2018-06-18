@@ -705,6 +705,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
     int eval, value, best;
     uint16_t move;
@@ -748,7 +749,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     // Step 4. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fail
-    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+    if (!InCheck && value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
@@ -758,12 +759,12 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (!InCheck && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
-        if (!staticExchangeEvaluation(board, move, QSEEMargin))
+        if (!InCheck && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
         // Apply and validate move before searching
