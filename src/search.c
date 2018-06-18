@@ -45,8 +45,6 @@
 #include "movepicker.h"
 #include "uci.h"
 
-int WORKED[MAX_PLY], TRIED[MAX_PLY];
-
 int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
@@ -89,10 +87,6 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
     // Wait for all (helper) threads to finish
     for (int i = 1; i < threads[0].nthreads; i++)
         pthread_join(pthreads[i], NULL);
-
-    for (int i = 0; i < MAX_PLY; i++)
-        if (TRIED[i])
-            printf("[%2d]%d %d %.3f\n", i, TRIED[i], WORKED[i], 100.0 * WORKED[i] / TRIED[i]);
 
     // Return highest depth best move
     return info.bestMoves[info.depth];
@@ -271,8 +265,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
-    int tried = 0;
-
     Undo undo[1];
     MovePicker movePicker;
 
@@ -434,7 +426,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         rAlpha = alpha - RazorMargins[improving][depth];
         value = qsearch(thread, pv, rAlpha, rAlpha + 1, height);
-        if (value <= rAlpha) tried = 1;
+        if (value <= rAlpha) return alpha;
     }
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -683,10 +675,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             break;
         }
     }
-
-    if (tried)
-        TRIED[depth]++,
-        WORKED[depth] += value <= oldAlpha;
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal (search makes sure to play at least one legal move, if any),
