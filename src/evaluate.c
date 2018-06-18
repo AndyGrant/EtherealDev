@@ -47,23 +47,16 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
     { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
     {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
-
-const int PawnIsolated = S(  -3,  -4);
 
 const int PawnStacked = S( -10, -32);
 
@@ -322,12 +315,6 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
         // Save the fact that this pawn is passed
         if (!(passedPawnMasks(colour, sq) & enemyPawns))
             ei->passedPawns |= (1ull << sq);
-
-        // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & tempPawns)){
-            eval += PawnIsolated;
-            if (TRACE) T.PawnIsolated[colour]++;
-        }
 
         // Apply a penalty if the pawn is stacked
         if (Files[fileOf(sq)] & tempPawns){
