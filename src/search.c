@@ -435,7 +435,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
-    if (   !PvNode
+    if (   !RootNode
         && !inCheck
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
