@@ -313,7 +313,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (!board->kingAttackers)
                 return 0;
 
-            int size;
+            int size = 0;
             uint16_t moves[MAX_MOVES];
             genAllLegalMoves(board, moves, &size);
 
