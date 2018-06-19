@@ -606,7 +606,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)){
+    if (ei->kingAttackersCount[THEM] >= 2){
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
