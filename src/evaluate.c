@@ -47,19 +47,14 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
-const int KnightValue = S( 463, 392);
-
-const int BishopValue = S( 473, 417);
-
+const int KnightValue = S( 469, 381);
+const int BishopValue = S( 476, 405);
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
+    { 100, 123}, { 469, 381}, { 476, 405}, { 639, 717},
     {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
@@ -82,7 +77,9 @@ const int PawnConnected32[32] = {
 
 const int KnightRammedPawns = S(   0,   5);
 
-const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
+const int KnightOutpost[2] = { S(  18, -24), S(  35,   2) };
+
+const int KnightBehindPawn = S(   5,   9);
 
 const int KnightMobility[9] = {
     S( -87, -97), S( -37, -90), S( -19, -42),
@@ -94,7 +91,9 @@ const int BishopPair = S(  40,  69);
 
 const int BishopRammedPawns = S( -11,  -7);
 
-const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
+const int BishopOutpost[2] = { S(  18, -12), S(  40,   0) };
+
+const int BishopBehindPawn = S(   4,   8);
 
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
@@ -176,7 +175,6 @@ const int ThreatOverloadedPieces     = S(  -7, -19);
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
-
 
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
@@ -357,11 +355,12 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
 
 int evaluateKnights(EvalInfo* ei, Board* board, int colour){
 
+    uint64_t attacks;
     int sq, defended, count, eval = 0;
-    uint64_t tempKnights, enemyPawns, attacks;
 
-    tempKnights = board->pieces[KNIGHT] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[colour];
 
     ei->attackedBy[colour][KNIGHT] = 0ull;
 
@@ -395,6 +394,10 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.KnightOutpost[defended][colour]++;
         }
 
+        // Apply a bonus if the knight is behind a pawn
+        if (pawnAdvance(myPawns, ~(1ull << sq), !colour))
+            eval += KnightBehindPawn;
+
         // Apply a bonus (or penalty) based on the mobility of the knight
         count = popcount((ei->mobilityAreas[colour] & attacks));
         eval += KnightMobility[count];
@@ -414,11 +417,12 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
 
 int evaluateBishops(EvalInfo* ei, Board* board, int colour){
 
+    uint64_t attacks;
     int sq, defended, count, eval = 0;
-    uint64_t tempBishops, enemyPawns, attacks;
 
-    tempBishops = board->pieces[BISHOP] & board->colours[colour];
-    enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t myPawns = board->pieces[PAWN] & board->colours[colour];
+    uint64_t enemyPawns = board->pieces[PAWN] & board->colours[!colour];
+    uint64_t tempBishops = board->pieces[BISHOP] & board->colours[colour];
 
     ei->attackedBy[colour][BISHOP] = 0ull;
 
@@ -457,6 +461,10 @@ int evaluateBishops(EvalInfo* ei, Board* board, int colour){
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][colour]++;
         }
+
+        // Apply a bonus if the bishop is behind a pawn
+        if (pawnAdvance(myPawns, ~(1ull << sq), !colour))
+            eval += BishopBehindPawn;
 
         // Apply a bonus (or penalty) based on the mobility of the bishop
         count = popcount((ei->mobilityAreas[colour] & attacks));
