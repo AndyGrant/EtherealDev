@@ -105,18 +105,23 @@ void* iterativeDeepening(void* vthread){
 
         // Always acquire the lock before setting thread->depth. thread->depth
         // is needed by others to determine when to skip certain search iterations
+
         pthread_mutex_lock(&LOCK);
 
         thread->depth = depth;
 
-        // Helper threads are subject to skipping depths in order to better help
-        // the main thread, based on the number of threads already on some depths
-        if (!mainThread){
+        // Helper threads may skip depths are the first
+        if (!mainThread && depth > 1){
 
+            // Count number of threads at or above our depth
             for (count = 0, i = 1; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
+                count += thread != &thread->threads[i]
+                      && thread->threads[i].depth >= depth;
 
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
+            // Skip if the main thread has already completed this depth, or
+            // if a large number of threads are working on this or higher ones.
+            // The thread's depth MUST be updated before dropping the lock.
+            if (depth < thread->threads[0].depth || count >= thread->nthreads / 2){
                 thread->depth = depth + 1;
                 pthread_mutex_unlock(&LOCK);
                 continue;
@@ -198,39 +203,23 @@ void* iterativeDeepening(void* vthread){
     return NULL;
 }
 
-int aspirationWindow(Thread* thread, int depth){
+int aspirationWindow(Thread *thread, int depth){
 
-    int* const values = thread->info->values;
-
+    int* const values    = thread->info->values;
     const int mainThread = thread == &thread->threads[0];
 
-    int alpha, beta, value, upper, lower;
-
-    int mainDepth = MAX(5, 1 + thread->info->depth);
+    int alpha, beta, delta, value;
 
     // Without at least a few searches, we cannot guess a good search window
     if (depth <= 4) return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
-    // Dynamically compute the upper margin based on previous scores
-    upper = MAX(   12,  1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-    upper = MAX(upper,  1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-    upper = MAX(upper,  1.0 * (values[mainDepth-3] - values[mainDepth-4]));
-
-    // Dynamically compute the lower margin based on previous scores
-    lower = MAX(   12, -1.6 * (values[mainDepth-1] - values[mainDepth-2]));
-    lower = MAX(lower, -1.3 * (values[mainDepth-2] - values[mainDepth-3]));
-    lower = MAX(lower, -1.0 * (values[mainDepth-3] - values[mainDepth-4]));
-
     // Create the aspiration window
-    alpha = MAX(-MATE, values[mainDepth-1] - lower);
-    beta  = MIN( MATE, values[mainDepth-1] + upper);
+    delta = 16;
+    alpha = MAX(-MATE, values[thread->info->depth] - delta);
+    beta  = MIN( MATE, values[thread->info->depth] + delta);
 
     // Keep trying larger windows until one works
-    for (;; lower *= 2, upper *= 2){
-
-        // If we are nearing a mate, force a full search
-        if (abs(alpha) >= MATE / 4) alpha = -MATE, beta = MATE;
-        if (abs(beta ) >= MATE / 4) alpha = -MATE, beta = MATE;
+    while (1) {
 
         // Perform the search on the modified window
         value = search(thread, &thread->pv, alpha, beta, depth, 0);
@@ -243,25 +232,28 @@ int aspirationWindow(Thread* thread, int depth){
             uciReport(thread->threads, alpha, beta, value);
 
         // Search failed low
-        if (value <= alpha) alpha = MAX(-MATE, alpha - 2 * lower);
+        if (value <= alpha) alpha = MAX(-MATE, alpha - delta);
 
         // Search failed high
-        if (value >= beta)  beta  = MIN( MATE,  beta + 2 * upper);
+        if (value >= beta)  beta  = MIN( MATE,  beta + delta);
+
+        // Increase window with Can Cetin's formula
+        delta += delta / 2;
     }
 }
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
 
+    Board* const board = &thread->board;
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
-
-    Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, checkExtended, extension;
+    int isQuiet, improving, checkExtended, extension;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -272,10 +264,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
 
-    // Increment nodes counter for this Thread
+    // Update tracking for UCI outputs
     thread->nodes++;
-
-    // Update longest searched line for this Thread
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
 
     // Step 1A. Check to see if search time has expired. We will force the search
@@ -398,14 +388,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 6. Initialize flags and values used by pruning and search methods
 
-    // We can grab in check based on the already computed king attackers bitboard
-    inCheck = !!board->kingAttackers;
-
     // Here we perform our check extension, for non-root pvnodes, or for non-root
     // nodes near depth zero. Note that when we bypass the qsearch as a result of
     // being in check, we set depth to zero. This step adjusts depth back to one.
-    checkExtended = inCheck && !RootNode && depth <= 8;
-    depth += inCheck && !RootNode && depth <= 8;
+    checkExtended = InCheck && !RootNode && depth <= 8;
+    depth += InCheck && !RootNode && depth <= 8;
 
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
@@ -421,7 +408,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // return a Quiescence Search score because it is unlikely a quiet
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
 
@@ -436,7 +423,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return beta;
@@ -446,7 +433,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // for them to gain control of the game, we can be somewhat safe
     // in saying that our position is too good to be true
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
@@ -472,7 +459,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // likely going to be good at a full depth. To save some work we will prune
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
@@ -562,7 +549,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // to beat a depth dependent SEE threshold. The usual exceptions for
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
-            && !inCheck
+            && !InCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
@@ -618,7 +605,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17B. Check Extensions. We extend captures from any in
         // check positions, so long as no other extension has been made
-        extension +=  inCheck
+        extension +=  InCheck
                   && !isQuiet
                   && !extension
                   && !checkExtended;
@@ -682,10 +669,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal (search makes sure to play at least one legal move, if any),
-    // then we are either mated or stalemated, which we can tell by the inCheck
+    // then we are either mated or stalemated, which we can tell by the InCheck
     // flag. For mates, return a score based on the distance from root, so we
     // can differentiate between close mates and far away mates from the root
-    if (played == 0) return inCheck ? -MATE + height : 0;
+    if (played == 0) return InCheck ? -MATE + height : 0;
 
     // Step 22. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
