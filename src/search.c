@@ -308,8 +308,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (rAlpha >= rBeta) return rAlpha;
 
         // Check for the Fifty Move Rule
-        if (board->fiftyMoveRule > 99)
-            return 0;
+        if (board->fiftyMoveRule > 99) {
+
+            if (!board->kingAttackers)
+                return 0;
+
+            int size;
+            uint16_t moves[MAX_MOVES];
+            genAllLegalMoves(board, moves, &size);
+
+            if (size != 0) return 0;
+        }
 
         // Check for three fold repetition. If the repetition occurs since
         // the root move of this search, we will exit early as if it was a draw.
