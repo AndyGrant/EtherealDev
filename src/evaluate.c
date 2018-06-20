@@ -511,9 +511,9 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
             if (TRACE) T.RookFile[open][colour]++;
         }
 
-        // Rook gains a bonus for being located on seventh rank relative to its
+        // Rook gains a bonus for being located on foremost ranks relative to its
         // colour so long as the enemy king is on the last two ranks of the board
-        if (   rankOf(sq) == (colour == BLACK ? 1 : 6)
+        if (   relativeRankOf(colour, sq) >= 6
             && relativeRankOf(colour, getlsb(enemyKings)) >= 6) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[colour]++;
