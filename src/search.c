@@ -546,7 +546,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
         if (   !PvNode
-            && !special
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
@@ -602,7 +601,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= special;
 
             // Adjust based on history
-            R -= hist / 4096;
+            R -= MAX(-!special, hist / 4096);
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
