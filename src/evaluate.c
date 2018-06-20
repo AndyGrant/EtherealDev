@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -63,11 +58,13 @@ const int PieceValues[8][PHASE_NB] = {
     {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
-const int PawnIsolated = S(  -3,  -4);
+const int PawnIsolated = S(  -9,  -2);
 
-const int PawnStacked = S( -10, -32);
+const int PawnStacked = S(  -3, -33);
 
-const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
+const int PawnBackwards[2] = {
+    S(   8,  -2), S(  -9, -12),
+};
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
@@ -324,7 +321,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
             ei->passedPawns |= (1ull << sq);
 
         // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & tempPawns)){
+        if (!(isolatedPawnMasks(sq) & myPawns)){
             eval += PawnIsolated;
             if (TRACE) T.PawnIsolated[colour]++;
         }
