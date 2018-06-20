@@ -546,6 +546,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
         if (   !PvNode
+            && !special
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
@@ -557,7 +558,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and skip all remaining quiets
         if (   !PvNode
-            && !special
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
