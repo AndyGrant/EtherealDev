@@ -202,7 +202,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     eval += board->psqtmat + Tempo[board->turn];
 
     // Calcuate the game phase based on remaining material (Fruit Method)
-    phase = 24 - popcount(board->pieces[QUEEN]) * 4
+    phase = 28 - popcount(board->pieces[QUEEN]) * 6
                - popcount(board->pieces[ROOK]) * 2
                - popcount(board->pieces[KNIGHT] | board->pieces[BISHOP]);
     phase = (phase * 256 + 12) / 24;
