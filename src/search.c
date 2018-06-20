@@ -261,7 +261,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, hist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, checkExtended, extension;
+    int inCheck, isQuiet, improving, checkExtended, extension, special;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -537,6 +537,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist = getHistoryScore(thread->history, move, board->turn);
         }
 
+        // Specially sorted moves may be treated differently
+        special = move == movePicker.killer1
+               || move == movePicker.killer2
+               || move == movePicker.counter;
+
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
@@ -592,10 +597,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
+            // Reduce for Killer and Counter moves
+            R -= special;
 
             // Adjust based on history
             R -= hist / 4096;
