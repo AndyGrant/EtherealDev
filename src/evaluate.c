@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -64,11 +59,8 @@ const int PieceValues[8][PHASE_NB] = {
 };
 
 const int PawnIsolated = S(  -3,  -4);
-
 const int PawnStacked = S( -10, -32);
-
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
-
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
     S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
@@ -81,9 +73,7 @@ const int PawnConnected32[32] = {
 };
 
 const int KnightRammedPawns = S(   0,   5);
-
 const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
-
 const int KnightMobility[9] = {
     S( -87, -97), S( -37, -90), S( -19, -42),
     S(  -6, -14), S(   2, -14), S(   7,  -1),
@@ -91,11 +81,8 @@ const int KnightMobility[9] = {
 };
 
 const int BishopPair = S(  40,  69);
-
 const int BishopRammedPawns = S( -11,  -7);
-
 const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
-
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
     S(   5,  -9), S(  17,   0), S(  22,   7), S(  27,   4),
@@ -104,9 +91,7 @@ const int BishopMobility[14] = {
 };
 
 const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
-
 const int RookOnSeventh = S(   0,  25);
-
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
     S(  -8,  -3), S(  -7,  14), S(  -8,  25), S(  -3,  32),
@@ -170,13 +155,12 @@ const int PassedPawn[2][2][RANK_NB] = {
 const int ThreatPawnAttackedByOne    = S( -17, -27);
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
-const int ThreatQueenAttackedByOne   = S( -84,   3);
+const int ThreatQueenAttackedByOne   = S( -84, -43);
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
-
 
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
