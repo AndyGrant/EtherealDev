@@ -173,7 +173,7 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -19);
 
-const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
+const int Tempo[COLOUR_NB] = { S(  16,  16), S( -16, -16) };
 
 #undef S
 
