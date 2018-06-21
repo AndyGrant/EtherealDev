@@ -532,10 +532,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
-        if ((isQuiet = !moveIsTactical(board, move))){
-            quietsTried[quiets++] = move;
+        if ((isQuiet = !moveIsTactical(board, move)))
             hist = getHistoryScore(thread->history, move, board->turn);
-        }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
@@ -555,7 +553,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth])
+            &&  quiets + 1> LateMovePruningCounts[improving][depth])
             break;
 
         // Step 15. Static Exchange Evaluation Pruning. Prune moves which fail
@@ -579,6 +577,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Update counter of moves actually played
         played += 1;
+        if (isQuiet) quietsTried[quiets++] = move;
 
         // Step 16. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
