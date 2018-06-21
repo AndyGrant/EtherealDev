@@ -549,13 +549,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
-        // tried many quiets in this position already, and we don't expect
+        // tried many moves in this position already, and we don't expect
         // anything from this move, we can undo it and skip all remaining quiets
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth])
+            &&  played > LateMovePruningCounts[improving][depth])
             break;
 
         // Step 15. Static Exchange Evaluation Pruning. Prune moves which fail
