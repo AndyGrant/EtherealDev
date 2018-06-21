@@ -623,11 +623,13 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         uint64_t safe =  ~board->colours[THEM]
                       & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
-        // Find square and piece combinations which would check our King
+        // Find square and piece combinations which would check our King. Include
+        // xray attacks through our queen, which would allow for a supported safe check
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
+        uint64_t myQueens      = board->colours[US] & board->pieces[QUEEN];
         uint64_t knightThreats = knightAttacks(kingSq);
-        uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
-        uint64_t rookThreats   = rookAttacks(kingSq, occupied);
+        uint64_t bishopThreats = bishopAttacks(kingSq, occupied ^ myQueens);
+        uint64_t rookThreats   = rookAttacks(kingSq, occupied ^ myQueens);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
         // Identify if pieces can move to those checking squares safely.
