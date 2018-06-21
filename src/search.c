@@ -610,7 +610,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // all other possible moves, we will extend the search of the table move
         extension =  !RootNode
                   && !checkExtended
-                  &&  depth >= 10
+                  &&  depth >= 8
                   &&  move == ttMove
                   &&  ttDepth >= depth - 3
                   && (ttBound & BOUND_LOWER)
