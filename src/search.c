@@ -587,7 +587,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV nodes
-            R += !PvNode;
+            R += !PvNode && (!improving || hist < 0);
 
             // Increase for non improving nodes
             R += !improving;
