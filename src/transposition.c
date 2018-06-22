@@ -135,7 +135,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // an exact bound or depth that is nearly as good as the old one
     if (    bound != BOUND_EXACT
         &&  hash16 == replace->hash16
-        &&  depth < replace->depth - 3)
+        &&  depth < replace->depth - 1)
         return;
 
     // Finally, copy the new data into the replaced slot
