@@ -35,9 +35,6 @@ void updateHistory(HistoryTable history, uint16_t move, int colour, int delta) {
     assert(0 <= from && from < SQUARE_NB);
     assert(0 <= to && to < SQUARE_NB);
 
-    // Bound the update. Weight the change so that the
-    // new entry value is within the range of int16_t
-    delta = MAX(-400, MIN(400, delta));
     entry = history[colour][from][to];
     entry += 32 * delta - entry * abs(delta) / 512;
     history[colour][from][to] = entry;
