@@ -69,15 +69,9 @@ const int PawnStacked = S( -10, -32);
 
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
-const int PawnConnected32[32] = {
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  21),
-    S(   6,   0), S(  20,   3), S(  14,   7), S(  16,  17),
-    S(   6,  11), S(  20,  20), S(  19,  24), S(  37,  24),
-    S(  23,  55), S(  24,  65), S(  66,  63), S(  50,  75),
-    S( 106, -14), S( 199,  17), S( 227,  22), S( 250,  76),
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+const int PawnConnected[RANK_NB] = {
+    S(   0,   0), S(   5,  -3), S(  18,   6), S(  16,   5),
+    S(  29,  14), S(  40,  51), S( 211,  31), S(   0,   0),
 };
 
 const int KnightRammedPawns = S(   0,   5);
@@ -345,8 +339,8 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
 
         // Apply a bonus if the pawn is connected and not backward
         else if (pawnConnectedMasks(colour, sq) & myPawns){
-            eval += PawnConnected32[relativeSquare32(sq, colour)];
-            if (TRACE) T.PawnConnected32[relativeSquare32(sq, colour)][colour]++;
+            eval += PawnConnected[relativeRankOf(colour, sq)];
+            if (TRACE) T.PawnConnected[relativeRankOf(colour, sq)][colour]++;
         }
     }
 
