@@ -69,10 +69,11 @@ const int PawnStacked = S( -10, -32);
 
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
-const int PawnConnected[RANK_NB] = {
-    S(   0,   0), S(   5,  -3), S(  18,   6), S(  16,   5),
-    S(  29,  14), S(  40,  51), S( 211,  31), S(   0,   0),
+const int PawnConnected[8] = {
+    S(   0,   0), S(   0,   5), S(  18,  10), S(  22,  12),
+    S(  47,  17), S(  83,   7), S( 122, -85), S(   0,   0),
 };
+
 
 const int KnightRammedPawns = S(   0,   5);
 
