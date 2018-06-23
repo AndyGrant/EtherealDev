@@ -252,16 +252,16 @@ int aspirationWindow(Thread* thread, int depth){
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
 
+    Board* const board = &thread->board;
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
-
-    Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, checkExtended, extension;
+    int isQuiet, improving, extension;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -398,15 +398,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 6. Initialize flags and values used by pruning and search methods
 
-    // We can grab in check based on the already computed king attackers bitboard
-    inCheck = !!board->kingAttackers;
-
-    // Here we perform our check extension, for non-root pvnodes, or for non-root
-    // nodes near depth zero. Note that when we bypass the qsearch as a result of
-    // being in check, we set depth to zero. This step adjusts depth back to one.
-    checkExtended = inCheck && !RootNode && depth <= 8;
-    depth += inCheck && !RootNode && depth <= 8;
-
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
@@ -421,7 +412,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // return a Quiescence Search score because it is unlikely a quiet
     // move would close the massive gap between the evaluation and alpha
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha){
 
@@ -436,7 +427,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return beta;
@@ -446,7 +437,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // for them to gain control of the game, we can be somewhat safe
     // in saying that our position is too good to be true
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
@@ -472,7 +463,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // likely going to be good at a full depth. To save some work we will prune
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
-        && !inCheck
+        && !InCheck
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
@@ -562,7 +553,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // to beat a depth dependent SEE threshold. The usual exceptions for
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
-            && !inCheck
+            && !InCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
@@ -576,6 +567,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
 
         thread->moveStack[height] = move;
+
+        int givesCheck = !!board->kingAttackers;
 
         // Update counter of moves actually played
         played += 1;
@@ -609,7 +602,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
         extension =  !RootNode
-                  && !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
                   &&  ttDepth >= depth - 3
@@ -618,10 +610,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17B. Check Extensions. We extend captures from any in
         // check positions, so long as no other extension has been made
-        extension +=  inCheck
+        extension +=  InCheck
                   && !isQuiet
-                  && !extension
-                  && !checkExtended;
+                  && !extension;
+
+        // Step 17C. Checking Extensions. Extend strong quiets or captures
+        // which give check, so long as no other extension has been made
+        extension += !extension
+                  &&  givesCheck
+                  && (!isQuiet || hist > 0);
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
@@ -685,7 +682,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // then we are either mated or stalemated, which we can tell by the inCheck
     // flag. For mates, return a score based on the distance from root, so we
     // can differentiate between close mates and far away mates from the root
-    if (played == 0) return inCheck ? -MATE + height : 0;
+    if (played == 0) return InCheck ? -MATE + height : 0;
 
     // Step 22. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
