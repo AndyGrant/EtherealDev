@@ -94,7 +94,7 @@ static const int LateMovePruningDepth = 8;
 
 static const int LateMovePruningCounts[2][9] = {
     {  0,  3,  4,  7, 12, 16, 21, 28, 34},
-    {  0,  6,  9, 14, 21, 30, 41, 54, 69},
+    {  0,  5,  8, 13, 19, 28, 39, 51, 64},
 };
 
 static const int SEEPruningDepth = 8;
