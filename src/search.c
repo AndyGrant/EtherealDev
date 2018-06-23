@@ -413,7 +413,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     futilityMargin = eval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
-    improving = height >= 2 && eval > thread->evalStack[height-2];
+    improving = !inCheck && height >= 2 && eval > thread->evalStack[height-2];
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -541,6 +541,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
         if (   !PvNode
+            && !inCheck
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 4096 || !improving)
@@ -562,7 +563,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // to beat a depth dependent SEE threshold. The usual exceptions for
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !PvNode
-            && !inCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
