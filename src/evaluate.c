@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -614,10 +609,6 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                       &  ~ei->attackedBy2[US]
                       & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
-        // Usually the King Area is 9 squares. Scale are attack counts to account for
-        // when the king is in an open area and expects more attacks, or the opposite
-        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
-
         // Safe target squares are defended or are weak and attacked by two.
         // We exclude squares containing pieces which we cannot caputre
         uint64_t safe =  ~board->colours[THEM]
@@ -641,7 +632,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count += KSAttackValue     * scaledAttackCounts
+        count += KSAttackValue     * ei->kingAttacksCount[THEM]
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US])
                + KSNoEnemyQueens   * !enemyQueens
