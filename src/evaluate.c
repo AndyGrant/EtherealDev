@@ -280,6 +280,9 @@ int evaluatePieces(EvalInfo* ei, Board* board){
     eval += evaluateThreats(ei, board, WHITE)
           - evaluateThreats(ei, board, BLACK);
 
+    eval += 12 * (  popcount(board->colours[WHITE] & board->pieces[PAWN])
+                  - popcount(board->colours[BLACK] & board->pieces[PAWN]));
+
     return eval;
 }
 
