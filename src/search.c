@@ -226,7 +226,7 @@ int aspirationWindow(Thread* thread, int depth){
     beta  = MIN( MATE, values[mainDepth-1] + upper);
 
     // Keep trying larger windows until one works
-    for (;; lower *= 2, upper *= 2){
+    for (;; lower += lower / 2, upper += upper / 2){
 
         // If we are nearing a mate, force a full search
         if (abs(alpha) >= MATE / 4) alpha = -MATE, beta = MATE;
