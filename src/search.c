@@ -618,7 +618,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17B. Check Extensions. We extend captures from any in
         // check positions, so long as no other extension has been made
-        extension +=  inCheck
+        extension += !RootNode
+                  &&  inCheck
                   && !isQuiet
                   && !extension
                   && !checkExtended;
