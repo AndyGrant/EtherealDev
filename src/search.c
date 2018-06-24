@@ -570,6 +570,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // tried many quiets in this position already, and we don't expect
         // anything from this move, we can undo it and skip all remaining quiets
         if (   !PvNode
+            && !board->kingAttackers
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
