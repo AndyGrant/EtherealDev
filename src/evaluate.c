@@ -80,7 +80,7 @@ const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
-const int KnightRammedPawns = S(   0,   5);
+const int KnightRammedPawns = S(   7,   9);
 
 const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
 
