@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -154,10 +149,11 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   86;
-const int KSSafeRookCheck   =   86;
-const int KSSafeBishopCheck =   46;
-const int KSSafeKnightCheck =  119;
+const int KSSafeQueenCheck  =   80;
+const int KSSafeRookCheck   =   80;
+const int KSSafeBishopCheck =   40;
+const int KSSafeKnightCheck =  110;
+const int KSSafeCheckCount  =   10;
 const int KSAdjustment      =  -36;
 
 const int PassedPawn[2][2][RANK_NB] = {
@@ -638,6 +634,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
                                                      & ~ei->attackedBy[  US][QUEEN ];
+        uint64_t safeChecks   = knightChecks | bishopChecks | rookChecks | queenChecks;
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -649,6 +646,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                + KSSafeRookCheck   * !!rookChecks
                + KSSafeBishopCheck * !!bishopChecks
                + KSSafeKnightCheck * !!knightChecks
+               + KSSafeCheckCount  * popcount(safeChecks)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
