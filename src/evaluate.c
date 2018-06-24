@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -513,8 +508,8 @@ int evaluateRooks(EvalInfo* ei, Board* board, int colour){
 
         // Rook gains a bonus for being located on seventh rank relative to its
         // colour so long as the enemy king is on the last two ranks of the board
-        if (   rankOf(sq) == (colour == BLACK ? 1 : 6)
-            && relativeRankOf(colour, getlsb(enemyKings)) >= 6) {
+        if (   relativeRankOf(colour, sq) == 6
+            && relativeRankOf(colour, getlsb(enemyKings)) == 7) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[colour]++;
         }
