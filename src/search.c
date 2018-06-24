@@ -111,12 +111,16 @@ void* iterativeDeepening(void* vthread){
 
         // Helper threads are subject to skipping depths in order to better help
         // the main thread, based on the number of threads already on some depths
-        if (!mainThread){
+        if (!mainThread && depth > 1){
 
+            // Count # of threads on a greater or equal depth
             for (count = 0, i = 1; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
+                count += thread != &thread->threads[i]
+                      && thread->threads[i].depth >= depth;
 
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
+            // Skip depth if depth was already completed by main thread, or
+            // if there are many threads working on this or higher depths
+            if (depth <= info->depth || count >= thread->nthreads / 2){
                 thread->depth = depth + 1;
                 pthread_mutex_unlock(&LOCK);
                 continue;
