@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -154,6 +149,7 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
+const int KSUnsafeChecks    =   26;
 const int KSSafeQueenCheck  =   86;
 const int KSSafeRookCheck   =   86;
 const int KSSafeBishopCheck =   46;
@@ -639,12 +635,19 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
                                                      & ~ei->attackedBy[  US][QUEEN ];
 
+        // Unasfe checks are the sum of all checks, but only the unsafe one
+        uint64_t unsafeChecks = (knightThreats & ~safe &  ei->attackedBy[THEM][KNIGHT])
+                              | (bishopThreats & ~safe &  ei->attackedBy[THEM][BISHOP])
+                              | (rookThreats   & ~safe &  ei->attackedBy[THEM][ROOK  ])
+                              | (queenThreats  & ~safe &  ei->attackedBy[THEM][QUEEN ]);
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US])
                + KSNoEnemyQueens   * !enemyQueens
+               + KSUnsafeChecks    * popcount(unsafeChecks)
                + KSSafeQueenCheck  * !!queenChecks
                + KSSafeRookCheck   * !!rookChecks
                + KSSafeBishopCheck * !!bishopChecks
