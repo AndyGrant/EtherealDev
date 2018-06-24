@@ -171,7 +171,8 @@ const int ThreatPawnAttackedByOne    = S( -17, -27);
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
-const int ThreatOverloadedPieces     = S(  -7, -19);
+const int ThreatOverloadedMinors     = S( -10, -17);
+const int ThreatOverloadedMajors     = S( -14, -23);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
@@ -755,9 +756,11 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.ThreatQueenAttackedByOne[colour] += count;
 
     // Penalty for any overloaded minors or majors
-    count = popcount(overloaded);
-    eval += count * ThreatOverloadedPieces;
-    if (TRACE) T.ThreatOverloadedPieces[colour] += count;
+    count = popcount(overloaded & (knights | bishops));
+    eval += count * ThreatOverloadedMinors;
+
+    count = popcount(overloaded & (rooks | queens));
+    eval += count * ThreatOverloadedMajors;
 
     return eval;
 }
