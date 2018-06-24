@@ -608,8 +608,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 17A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  && !checkExtended
+        extension =  !checkExtended
                   &&  depth >= 10
                   &&  move == ttMove
                   &&  ttDepth >= depth - 3
