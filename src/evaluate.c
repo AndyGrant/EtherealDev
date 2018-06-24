@@ -150,15 +150,16 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 };
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
+const int KSAttackValue     =   36;
+const int KSWeakSquares     =   32;
+const int KSFriendlyPawns   =  -18;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   86;
+const int KSSafeQueenCheck  =   92;
 const int KSSafeRookCheck   =   86;
-const int KSSafeBishopCheck =   46;
+const int KSSafeBishopCheck =   56;
 const int KSSafeKnightCheck =  119;
-const int KSAdjustment      =  -36;
+const int KSUnsafeChecks    =   16;
+const int KSAdjustment      =  -42;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
@@ -639,6 +640,13 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
                                                      & ~ei->attackedBy[  US][QUEEN ];
 
+        // Unasfe checks are the sum of all checks, but only the unsafe one
+        uint64_t unsafeChecks = (knightThreats & ~safe &  ei->attackedBy[THEM][KNIGHT])
+                              | (bishopThreats & ~safe &  ei->attackedBy[THEM][BISHOP])
+                              | (rookThreats   & ~safe &  ei->attackedBy[THEM][ROOK  ])
+                              | (queenThreats  & ~safe &  ei->attackedBy[THEM][QUEEN ]
+                                                       & ~ei->attackedBy[  US][QUEEN ]);
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
@@ -649,10 +657,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                + KSSafeRookCheck   * !!rookChecks
                + KSSafeBishopCheck * !!bishopChecks
                + KSSafeKnightCheck * !!knightChecks
+               + KSUnsafeChecks    * popcount(unsafeChecks & weak)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        if (count > 0) eval -= MakeScore(count * count / 750, count / 25);
     }
 
     // Shelter eval is already stored in the Pawn King Table. evaluatePawns()
