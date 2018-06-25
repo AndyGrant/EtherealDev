@@ -130,7 +130,7 @@ void* iterativeDeepening(void* vthread){
         if (setjmp(thread->jbuffer)) break;
 
         // Perform the actual search for the current depth
-        value = aspirationWindow(thread, depth);
+        thread->value = value = aspirationWindow(thread, depth);
 
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
@@ -200,23 +200,18 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth){
 
-    int* const values    = thread->info->values;
     const int mainThread = thread == &thread->threads[0];
-    const int aspDepth   = thread->info->depth;
 
     int alpha, beta, value, upper, lower;
 
     // Without at least a few searches, we cannot guess a good search window
-    if (depth <= 4 || aspDepth <= 4)
+    if (depth <= 4)
         return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
-    // Compute bounds based on score difference of last iteration
-    upper = MAX(12, abs(values[aspDepth] - values[aspDepth-1]));
-    lower = MAX(12, abs(values[aspDepth] - values[aspDepth-1]));
-
     // Create the aspiration window
-    alpha = MAX(-MATE, values[aspDepth] - lower);
-    beta  = MIN( MATE, values[aspDepth] + upper);
+    upper = lower = 16;
+    alpha = MAX(-MATE, thread->value - lower);
+    beta  = MIN( MATE, thread->value + upper);
 
     // Keep trying larger windows until one works
     while (1) {
