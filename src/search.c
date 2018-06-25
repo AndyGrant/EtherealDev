@@ -613,7 +613,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17B. Check Extensions.
         extension +=  inCheck
-                  && (!isQuiet || hist > 8192)
+                  && (!isQuiet || hist > 4096)
                   && !extension
                   && !checkExtended;
 
