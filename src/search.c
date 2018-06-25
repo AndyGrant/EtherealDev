@@ -613,9 +613,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17B. Check Extensions.
         extension +=  inCheck
-                  && (!isQuiet || hist > 4096)
                   && !extension
                   && !checkExtended;
+                  && (!isQuiet || hist > 0)
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
