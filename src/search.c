@@ -447,7 +447,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  hasNonPawnMaterial(board, board->turn)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = 4 + depth / 5 + MIN(3, (eval - beta) / 200);
 
         applyNullMove(board, undo);
 
@@ -611,12 +611,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
-        // Step 17B. Check Extensions. We extend captures from any in
-        // check positions, so long as no other extension has been made
+        // Step 17B. Check Extensions. We extend captures and good quiets from
+        // any in check positions, so long as no other extension has been made
         extension +=  inCheck
-                  && !isQuiet
                   && !extension
-                  && !checkExtended;
+                  && !checkExtended
+                  && (!isQuiet || hist > 4096);
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
