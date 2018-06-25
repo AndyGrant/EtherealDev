@@ -86,7 +86,7 @@ static const int ProbCutMargin = 100;
 
 static const int IIDDepth = 3;
 
-static const int FutilityBase = 64;
+static const int FutilityBase = 32;
 
 static const int FutilityMargin = 96;
 
