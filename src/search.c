@@ -825,7 +825,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     if (balance < 0) return 0;
 
     // Worst case is losing the moved piece
-    balance -= PieceValues[nextVictim][MG];
+    balance -= PieceValues[nextVictim][EG];
     if (balance >= 0) return 1;
 
     // Grab sliders for updating revealed attackers
@@ -873,7 +873,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         colour = !colour;
 
         // Negamax the balance and add the value of the next victim
-        balance = -balance - 1 - PieceValues[nextVictim][MG];
+        balance = -balance - 1 - PieceValues[nextVictim][EG];
 
         // If the balance is non negative after giving away our piece then we win
         if (balance >= 0){
@@ -919,13 +919,13 @@ int valueToTT(int value, int height){
 
 int thisTacticalMoveValue(Board* board, uint16_t move){
 
-    int value = PieceValues[pieceType(board->squares[MoveTo(move)])][MG];
+    int value = PieceValues[pieceType(board->squares[MoveTo(move)])][EG];
 
     if (MoveType(move) == PROMOTION_MOVE)
-        value += PieceValues[MovePromoPiece(move)][MG] - PieceValues[PAWN][MG];
+        value += PieceValues[MovePromoPiece(move)][EG] - PieceValues[PAWN][EG];
 
     if (MoveType(move) == ENPASS_MOVE)
-        value += PieceValues[PAWN][MG];
+        value += PieceValues[PAWN][EG];
 
     return value;
 }
@@ -939,33 +939,33 @@ int bestTacticalMoveValue(Board* board){
 
     // We may have a queen capture
     if (targets & board->pieces[QUEEN])
-        value += PieceValues[QUEEN][MG];
+        value += PieceValues[QUEEN][EG];
 
     // We may have a rook capture
     else if (targets & board->pieces[ROOK])
-        value += PieceValues[ROOK][MG];
+        value += PieceValues[ROOK][EG];
 
     // We may have a minor capture
     else if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
         value += MAX(
-            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][MG],
-            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][MG]
+            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][EG],
+            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][EG]
         );
 
     // We may have a pawn capture
     else if (targets & board->pieces[PAWN])
-        value += PieceValues[PAWN][MG];
+        value += PieceValues[PAWN][EG];
 
     // We may have an enpass capture
     else if (board->epSquare != -1)
-        value += PieceValues[PAWN][MG];
+        value += PieceValues[PAWN][EG];
 
     // See if we have any pawns on promoting ranks. If so, assume that
     // we can promote one of our pawns to at least a queen
     if (   board->pieces[PAWN]
         &  board->colours[board->turn]
         & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += PieceValues[QUEEN][MG] - PieceValues[PAWN][MG];
+        value += PieceValues[QUEEN][EG] - PieceValues[PAWN][EG];
 
     return value;
 }
