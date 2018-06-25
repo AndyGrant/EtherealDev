@@ -611,10 +611,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
-        // Step 17B. Check Extensions. We extend captures from any in
-        // check positions, so long as no other extension has been made
+        // Step 17B. Check Extensions.
         extension +=  inCheck
-                  && !isQuiet
+                  && (!isQuiet || hist > 8192)
                   && !extension
                   && !checkExtended;
 
