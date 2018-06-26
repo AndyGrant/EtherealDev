@@ -47,15 +47,10 @@
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
 const int PawnValue   = S( 100, 123);
-
 const int KnightValue = S( 463, 392);
-
 const int BishopValue = S( 473, 417);
-
 const int RookValue   = S( 639, 717);
-
 const int QueenValue  = S(1313,1348);
-
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
@@ -82,7 +77,7 @@ const int PawnConnected32[32] = {
 
 const int KnightRammedPawns = S(   0,   5);
 
-const int KnightOutpost[2] = { S(  18, -35), S(  36,   5) };
+const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
 
 const int KnightMobility[9] = {
     S( -87, -97), S( -37, -90), S( -19, -42),
@@ -94,7 +89,7 @@ const int BishopPair = S(  40,  69);
 
 const int BishopRammedPawns = S( -11,  -7);
 
-const int BishopOutpost[2] = { S(  18, -16), S(  50,  -9) };
+const int BishopOutpost[2] = { S(  26,   0), S(  40,   0) };
 
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
@@ -154,11 +149,11 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   86;
-const int KSSafeRookCheck   =   86;
-const int KSSafeBishopCheck =   46;
-const int KSSafeKnightCheck =  119;
-const int KSAdjustment      =  -36;
+const int KSSafeQueenCheck  =   95;
+const int KSSafeRookCheck   =   94;
+const int KSSafeBishopCheck =   51;
+const int KSSafeKnightCheck =  123;
+const int KSAdjustment      =  -38;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
