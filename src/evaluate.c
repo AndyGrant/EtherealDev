@@ -149,11 +149,11 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
-const int KSSafeQueenCheck  =   95;
-const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -38;
+const int KSSafeQueenCheck  =  104;
+const int KSSafeRookCheck   =  103;
+const int KSSafeBishopCheck =   57;
+const int KSSafeKnightCheck =  127;
+const int KSAdjustment      =  -40;
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
