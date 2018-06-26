@@ -210,11 +210,8 @@ int aspirationWindow(Thread* thread, int depth){
     if (depth <= 4 || aspDepth <= 4)
         return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
-    // Compute bounds based on score difference of last iteration
-    upper = MAX(12, abs(values[aspDepth] - values[aspDepth-1]));
-    lower = MAX(12, abs(values[aspDepth] - values[aspDepth-1]));
-
     // Create the aspiration window
+    upper = 14, lower = 14;
     alpha = MAX(-MATE, values[aspDepth] - lower);
     beta  = MIN( MATE, values[aspDepth] + upper);
 
