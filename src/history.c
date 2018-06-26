@@ -39,7 +39,7 @@ void updateHistory(HistoryTable history, uint16_t move, int colour, int delta) {
     // new entry value is within the range of int16_t
     delta = MAX(-400, MIN(400, delta));
     entry = history[colour][from][to];
-    entry += 16 * delta - entry * abs(delta) / 1024;
+    entry += 8 * delta - entry * abs(delta) / 2048;
     history[colour][from][to] = entry;
 }
 
