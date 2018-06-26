@@ -319,7 +319,7 @@ int evaluatePawns(EvalInfo* ei, Board* board, int colour){
             ei->passedPawns |= (1ull << sq);
 
         // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & tempPawns)){
+        if (!(isolatedPawnMasks(sq) & myPawns)){
             eval += PawnIsolated;
             if (TRACE) T.PawnIsolated[colour]++;
         }
