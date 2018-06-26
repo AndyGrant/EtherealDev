@@ -72,7 +72,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
 
 static const int RazorDepth = 4;
 
-static const int RazorMargins[] = {0, 300, 350, 410, 500};
+static const int RazorMargins[] = {0, 300, 350, 500, 650};
 
 static const int BetaPruningDepth = 8;
 
