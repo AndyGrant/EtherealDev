@@ -463,7 +463,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  abs(beta) < MATE_IN_MAX
-        &&  depth >= ProbCutDepth){
+        &&  depth >= ProbCutDepth
+        &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
@@ -472,7 +473,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
 
             // Move should pass an SEE() to be worth at least rBeta
-            if (!staticExchangeEvaluation(board, move, rBeta - eval))
+            if (!staticExchangeEvaluation(board, move, 0))
                 continue;
 
             // Apply and validate move before searching
@@ -487,7 +488,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       0, height+1) >= rBeta
+            if (   -search(thread, &lpv, -rBeta, -rBeta+1,       1, height+1) >= rBeta
                 && -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1) >= rBeta){
 
                 revertMove(board, move, undo);
