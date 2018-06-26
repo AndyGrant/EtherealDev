@@ -532,7 +532,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
+            && (hist < 0 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
