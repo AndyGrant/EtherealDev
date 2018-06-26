@@ -606,8 +606,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17B. Check Extensions. Extend moves that give
         // check, so long as no other extensions have occured
-        extension += !RootNode
-                  && !extension
+        extension += !extension
                   &&  board->kingAttackers;
 
         // New depth is what our search depth would be, assuming that we do no LMR
