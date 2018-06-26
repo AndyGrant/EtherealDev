@@ -60,7 +60,7 @@ double estimatedUsage(SearchInfo* info){
 
     double timeFactor = info->timeUsage[depth] / MAX(1, info->timeUsage[depth-1]);
 
-    return info->timeUsage[depth] * (timeFactor + .40);
+    return info->timeUsage[depth] * timeFactor;
 
 }
 
