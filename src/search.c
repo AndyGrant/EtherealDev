@@ -464,7 +464,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
-        &&  hasNonPawnMaterial(board, board->turn)
+        &&  hasNonPawnMaterial(board, !board->turn)
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
