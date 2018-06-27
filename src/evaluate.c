@@ -151,7 +151,7 @@ const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
+const int KSSafeBishopCheck =   81;
 const int KSSafeKnightCheck =  123;
 const int KSAdjustment      =  -38;
 
