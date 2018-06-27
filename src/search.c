@@ -413,7 +413,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargins[depth] < alpha
-        &&  hasNonPawnMaterial(board, board->turn)){
+        &&  hasNonPawnMaterial(board, !board->turn)){
 
         if (depth <= 1)
             return qsearch(thread, pv, alpha, beta, height);
