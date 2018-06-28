@@ -524,7 +524,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
-            hist = getHistoryScore(thread->history, move, board->turn);
+            hist = getHistoryScore(thread->history, move, board->turn)
+                 + getCMHistoryScore(thread, height, move);
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
@@ -533,10 +534,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 4096 || !improving)
+            && (hist < 6000 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
+
+        if (   !PvNode
+            &&  isQuiet
+            &&  best > MATED_IN_MAX
+            &&  depth <= 2
+            &&  getCMHistoryScore(thread, height, move) < -2048)
+            continue;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -588,7 +596,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            R -= hist / 4096;
+            R -= hist / 6000;
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
