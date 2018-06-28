@@ -52,7 +52,7 @@ void updateHistory(Thread *thread, uint16_t move, int delta) {
     delta = MAX(-400, MIN(400, delta));
 
     entry = thread->history[colour][from][to];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 16 * delta - entry * abs(delta) / 1024;
     thread->history[colour][from][to] = entry;
 }
 
