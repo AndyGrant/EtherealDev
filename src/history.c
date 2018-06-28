@@ -63,15 +63,13 @@ void updateCounterMove(Thread *thread, int height, uint16_t move) {
     if (previous == NULL_MOVE || previous == NONE_MOVE)
         return;
 
-    int colour = !thread->board.turn;
     int to     = MoveTo(previous);
     int piece  = pieceType(thread->board.squares[to]);
 
-    assert(0 <= colour && colour < COLOUR_NB);
     assert(0 <= piece && piece < PIECE_NB);
     assert(0 <= to && to < SQUARE_NB);
 
-    thread->cmtable[colour][piece][to] = move;
+    thread->cmtable[piece][to] = move;
 }
 
 uint16_t getCounterMove(Thread *thread, int height) {
@@ -82,13 +80,11 @@ uint16_t getCounterMove(Thread *thread, int height) {
     if (previous == NULL_MOVE || previous == NONE_MOVE)
         return NONE_MOVE;
 
-    int colour = !thread->board.turn;
     int to     = MoveTo(previous);
     int piece  = pieceType(thread->board.squares[to]);
 
-    assert(0 <= colour && colour < COLOUR_NB);
     assert(0 <= piece && piece < PIECE_NB);
     assert(0 <= to && to < SQUARE_NB);
 
-    return thread->cmtable[colour][piece][to];
+    return thread->cmtable[piece][to];
 }

@@ -110,5 +110,5 @@ typedef struct ThreadsGo ThreadsGo;
 // Renamings, currently for move ordering
 
 typedef uint16_t KillerTable[MAX_PLY][2];
-typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
+typedef uint16_t CounterMoveTable[PIECE_NB][SQUARE_NB];
 typedef int16_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];
