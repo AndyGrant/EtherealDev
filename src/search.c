@@ -552,6 +552,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15. Counter Move Pruning. Moves with poor counter
         // move history are pruned at near leaf nodes of the search.
         if (   !PvNode
+            && !inCheck
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= CounterMovePruningDepth
