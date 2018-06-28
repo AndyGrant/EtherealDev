@@ -542,7 +542,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= 2
-            &&  getCMHistoryScore(thread, height, move) < -8192)
+            &&  getCMHistoryScore(thread, height, move) < -2048)
             continue;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
