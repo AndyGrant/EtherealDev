@@ -338,8 +338,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // when in a PvNode, unless we would otherwise hit a qsearch
         if (ttDepth >= depth && (depth == 0 || !PvNode)){
 
-            if (ttValue >= beta && (ttBound & BOUND_LOWER))
+            if (ttValue >= beta && (ttBound & BOUND_LOWER)) {
+
+                // Update history for a fail high with a quiet move. If a hash collision
+                // occured, it is quite likely that there is no piece able to make the move
+                // stored in the table. In this case, the assertions guarding the CMHistory
+                // table will be triggered. Verifying move legality prevents this situation
+                if (  !moveIsTactical(board, ttMove)
+                    && moveIsPsuedoLegal(board, ttMove)) {
+                    updateHistory(thread, ttMove, depth*depth);
+                    updateCMHistory(thread, height, ttMove, depth*depth);
+                }
+
                 return beta;
+            }
 
             if (ttValue <= alpha && (ttBound & BOUND_UPPER))
                 return alpha;
