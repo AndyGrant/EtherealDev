@@ -619,7 +619,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
                   &&  inCheck
-                  && !extension;
+                  && !extension
+                  && (!isQuiet || hist > 0);
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
