@@ -534,7 +534,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !PvNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 6000 || !improving)
+            && (hist < 8192 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth)
             break;
@@ -598,7 +598,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            R -= hist / 6000;
+            R -= hist / 8192;
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
