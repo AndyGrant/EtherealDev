@@ -42,6 +42,9 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer2    = thread->killers[height][1];
     mp->counter    = getCounterMove(thread, height);
     mp->history    = &thread->history;
+
+    mp->thread = thread;
+    mp->height = height;
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board){
@@ -227,7 +230,8 @@ void evaluateQuietMoves(MovePicker* mp, Board* board){
 
     // Use the History score from the Butterfly Bitboards for sorting
     for (i = mp->split; i < mp->split + mp->quietSize; i++)
-        mp->values[i] = getHistoryScore(*mp->history, mp->moves[i], board->turn);
+        mp->values[i] = getHistoryScore(*mp->history, mp->moves[i], board->turn)
+                      + getCMHistoryScore(mp->thread, mp->height, mp->moves[i]);
 }
 
 int moveIsPsuedoLegal(Board* board, uint16_t move){
