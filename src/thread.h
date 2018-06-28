@@ -54,6 +54,7 @@ struct Thread {
     HistoryTable history;
     PawnKingTable pktable;
     CounterMoveTable cmtable;
+    CMHistoryTable cmhistory;
 };
 
 
