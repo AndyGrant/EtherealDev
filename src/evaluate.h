@@ -49,7 +49,7 @@ struct EvalTrace {
     int RookOnSeventh[COLOUR_NB];
     int RookMobility[15][COLOUR_NB];
     int QueenMobility[28][COLOUR_NB];
-    int KingDefenders[12][COLOUR_NB];
+    int KingDefenders[COLOUR_NB];
     int KingShelter[2][8][8][COLOUR_NB];
     int PassedPawn[2][2][8][COLOUR_NB];
     int ThreatPawnAttackedByOne[COLOUR_NB];

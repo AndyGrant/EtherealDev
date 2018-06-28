@@ -119,11 +119,7 @@ const int QueenMobility[28] = {
     S(  44,  20), S(  62,   1), S( -33,  -7), S(  14,   3),
 };
 
-const int KingDefenders[12] = {
-    S( -37,  -4), S( -18,   6), S(   0,   1), S(  10,   0),
-    S(  24,  -3), S(  35,   2), S(  39,  14), S(  28,-207),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
-};
+const int KingDefenders = S(  11,   0);
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2), S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
@@ -595,9 +591,9 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
 
     // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[US]);
-    eval += KingDefenders[count];
-    if (TRACE) T.KingDefenders[count][US]++;
+    count = MIN(5, popcount(myDefenders & ei->kingAreas[US]));
+    eval += count * KingDefenders;
+    if (TRACE) T.KingDefenders[US] += count;
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
