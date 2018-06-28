@@ -685,8 +685,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // can differentiate between close mates and far away mates from the root
     if (played == 0) return inCheck ? -MATE + height : 0;
 
-    // Step 22. Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove)){
+    // Step 22. Update History counters on a fail high for a quiet move.
+    // Only update below depth 15 in order to avoid stat score inflation
+    if (best >= beta && !moveIsTactical(board, bestMove) && depth <= 15){
 
         updateHistory(thread, bestMove, depth*depth);
         updateCMHistory(thread, height, bestMove, depth*depth);
