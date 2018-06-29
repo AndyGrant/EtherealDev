@@ -582,7 +582,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 17. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1){
+        if (isQuiet && depth > 2 && played > 3){
 
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
