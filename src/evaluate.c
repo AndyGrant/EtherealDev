@@ -146,7 +146,8 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
+const int KSWeakSquares     =   34;
+const int KSWeakSquares2    =   45;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
 const int KSSafeQueenCheck  =   95;
@@ -637,7 +638,8 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
+               + KSWeakSquares     * popcount(weak & ei->kingAreas[US] & ~ei->attackedBy2[THEM])
+               + KSWeakSquares2    * popcount(weak & ei->kingAreas[US] &  ei->attackedBy2[THEM])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US])
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * !!queenChecks
