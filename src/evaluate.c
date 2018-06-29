@@ -376,11 +376,6 @@ int evaluateKnights(EvalInfo* ei, Board* board, int colour){
         ei->attacked[colour]           |= attacks;
         ei->attackedBy[colour][KNIGHT] |= attacks;
 
-        // Apply a bonus for the knight based on number of rammed pawns
-        count = popcount(ei->rammedPawns[colour]);
-        eval += count * KnightRammedPawns;
-        if (TRACE) T.KnightRammedPawns[colour] += count;
-
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight.
         if (    (outpostRanks(colour) & (1ull << sq))
