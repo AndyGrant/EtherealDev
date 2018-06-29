@@ -528,6 +528,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                  + getCMHistoryScore(thread, height, move);
         }
 
+        int pruneDepth = depth + PvNode;
+
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
@@ -536,7 +538,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 6000 || !improving)
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth)
+            &&  pruneDepth <= FutilityPruningDepth)
             break;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
@@ -545,8 +547,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth])
+            &&  pruneDepth <= LateMovePruningDepth
+            &&  quiets > LateMovePruningCounts[improving][pruneDepth])
             break;
 
         // Step 15. Counter Move Pruning. Moves with poor counter
@@ -554,7 +556,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            &&  depth <= CounterMovePruningDepth
+            &&  pruneDepth <= CounterMovePruningDepth
             &&  getCMHistoryScore(thread, height, move) < -2048)
             continue;
 
@@ -563,9 +565,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // positions in check, pvnodes, and MATED positions apply here as well.
         if (   !RootNode
             && !inCheck
-            &&  depth <= SEEPruningDepth
+            &&  pruneDepth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
-            && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
+            && !staticExchangeEvaluation(board, move, SEEMargin * pruneDepth * pruneDepth))
             continue;
 
         // Apply the move, and verify legality
