@@ -628,11 +628,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
         // Identify if pieces can move to those checking squares safely.
         // We check if our Queen can attack the square for safe Queen checks.
         // No attacks of other pieces is implicit in our definition of weak.
-        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        int knightChecks = !!(knightThreats & safe &  ei->attackedBy[THEM][KNIGHT]);
+        int bishopChecks = !!(bishopThreats & safe &  ei->attackedBy[THEM][BISHOP]);
+        int rookChecks   = !!(rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ]);
+        int queenChecks  = !!(queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
+                                                   & ~ei->attackedBy[  US][QUEEN ]);
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -640,10 +640,11 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US])
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * !!queenChecks
-               + KSSafeRookCheck   * !!rookChecks
-               + KSSafeBishopCheck * !!bishopChecks
-               + KSSafeKnightCheck * !!knightChecks
+               + KSSafeQueenCheck  * queenChecks
+               + KSSafeRookCheck   * rookChecks
+               + KSSafeBishopCheck * bishopChecks
+               + KSSafeKnightCheck * knightChecks
+               + 20  * ((queenChecks + rookChecks + bishopChecks + knightChecks) >= 2)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
