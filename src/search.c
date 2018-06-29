@@ -496,7 +496,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Revert the board state
             revertMove(board, move, undo);
 
-            if (value >= rBeta) return value;
+            if (value >= rBeta) return rBeta;
         }
     }
 
