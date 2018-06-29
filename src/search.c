@@ -473,7 +473,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         int mcp = 0;
 
-        while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE && mcp <= 3){
+        while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE && mcp <= 2){
 
             // Move should pass an SEE() to be worth at least rBeta
             if (!staticExchangeEvaluation(board, move, rBeta - eval))
