@@ -471,7 +471,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         initializeMovePicker(&movePicker, thread, NONE_MOVE, height, 1);
 
-        while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE){
+        int mcp = 0;
+
+        while ((move = selectNextMove(&movePicker, board)) != NONE_MOVE && mcp <= 3){
 
             // Move should pass an SEE() to be worth at least rBeta
             if (!staticExchangeEvaluation(board, move, rBeta - eval))
@@ -483,6 +485,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 revertMove(board, move, undo);
                 continue;
             }
+
+            mcp += 1;
 
             thread->moveStack[height] = move;
 
