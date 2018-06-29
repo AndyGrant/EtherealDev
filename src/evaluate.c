@@ -119,10 +119,8 @@ const int QueenMobility[28] = {
     S(  44,  20), S(  62,   1), S( -33,  -7), S(  14,   3),
 };
 
-const int KingDefenders[12] = {
-    S( -37,  -4), S( -18,   6), S(   0,   1), S(  10,   0),
-    S(  24,  -3), S(  35,   2), S(  39,  14), S(  28,-207),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
+const int KingDefenders[4] = {
+    S( -36,  -8), S( -18,  -4), S(   0,  -2), S(  10,   0),
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
@@ -595,7 +593,7 @@ int evaluateKings(EvalInfo* ei, Board* board, int colour){
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
 
     // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[US]);
+    count = MIN(3, popcount(myDefenders & ei->kingAreas[US]));
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
 
