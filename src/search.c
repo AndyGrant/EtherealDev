@@ -268,6 +268,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
 
+    thread->histStack[height] = 0;
+
     // Increment nodes counter for this Thread
     thread->nodes++;
 
@@ -526,6 +528,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             quietsTried[quiets++] = move;
             cmhist = getCMHistoryScore(thread, height, move);
             hist   = getHistoryScore(thread, move) + cmhist;
+            thread->histStack[height] = hist;
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
