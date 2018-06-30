@@ -33,15 +33,21 @@
 #include "thread.h"
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height){
-    mp->height    = height;
-    mp->stage     = STAGE_TABLE;
-    mp->noisySize = 0;
-    mp->quietSize = 0;
+
+    // Picker starts with the table move. Zero out move list sizes
+    mp->stage = STAGE_TABLE;
+    mp->noisySize = mp->quietSize = 0;
+
+    // Special move stages. selectNextMove() takes care of checking
+    // for duplicate or unplayable moves found in special stages
     mp->tableMove = ttMove;
-    mp->killer1   = thread->killers[height][0];
-    mp->killer2   = thread->killers[height][1];
-    mp->counter   = getCounterMove(thread, height);
-    mp->thread    = thread;
+    mp->killer1 = thread->killers[height][0];
+    mp->killer2 = thread->killers[height][1];
+    mp->counter = getCounterMove(thread, height);
+
+    // Reference to the board and move statistics
+    mp->height = height;
+    mp->thread = thread;
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
@@ -53,7 +59,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_TABLE:
 
-        // Play table move if psuedo legal
+        // Play table move if it is psuedo legal
         mp->stage = STAGE_GENERATE_NOISY;
         if (moveIsPsuedoLegal(board, mp->tableMove))
             return mp->tableMove;
@@ -64,12 +70,13 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Generate and evaluate noisy moves. mp->split tracks the
         // break point between noisy and quiets, which allows us
-        // to use a BAD_NOISY stage after finishing the quiets
+        // to use a BAD_NOISY stage, where we skip noisy moves which
+        // fail a simple SEE, and try them after all quiet moves
 
         genAllNoisyMoves(board, mp->moves, &mp->noisySize);
         evaluateNoisyMoves(mp);
         mp->split = mp->noisySize;
-        mp->stage = STAGE_GOOD_NOISY ;
+        mp->stage = STAGE_GOOD_NOISY;
 
         /* fallthrough */
 
@@ -154,8 +161,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_GENERATE_QUIET:
 
-        // Generate and evaluate all quiet moves
-        if (!skipQuiets) {
+        // Generate and evaluate all quiet moves when not skipping quiet moves.
+        // If we are skipping, we will fall through to STAGE_BAD_NOISY.
+        if (!skipQuiets){
             genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
             evaluateQuietMoves(mp);
         }
@@ -240,6 +248,7 @@ void evaluateNoisyMoves(MovePicker* mp){
 
     for (int i = 0; i < mp->noisySize; i++){
 
+        // Use modified MVV-LVA to evaluate moves which pass a simple SEE
         if (staticExchangeEvaluation(&mp->thread->board, mp->moves[i], 0)) {
 
             fromType = pieceType(mp->thread->board.squares[ MoveFrom(mp->moves[i])]);
@@ -257,15 +266,15 @@ void evaluateNoisyMoves(MovePicker* mp){
                 mp->values[i] = PieceValues[PAWN][EG] - PAWN;
         }
 
-        else
-            mp->values[i] = -1;
+        // Flag those which cannot pass an SEE as bad noisy moves
+        else mp->values[i] = -1;
     }
 }
 
 void evaluateQuietMoves(MovePicker* mp){
 
     // Use the History score from the Butterfly History,
-    // and the counter move history to sort the quiet moves
+    // and the Counter Move History to sort the quiet moves
     for (int i = mp->split; i < mp->split + mp->quietSize; i++)
         mp->values[i] = getHistoryScore(mp->thread, mp->moves[i])
                       + getCMHistoryScore(mp->thread, mp->height, mp->moves[i]);
