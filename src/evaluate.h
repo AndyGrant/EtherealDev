@@ -21,6 +21,12 @@
 
 #include "types.h"
 
+enum {
+    SCALE_NORMAL            = 128,
+    SCALE_OCB_BISHOPS_ONLY  =  56,
+    SCALE_OCB_WITH_MATERIAL = 112,
+};
+
 struct EvalTrace {
     int PawnValue[COLOUR_NB];
     int KnightValue[COLOUR_NB];
@@ -88,6 +94,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassedPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
+int evaluateScaleFactor(Board *board);
 void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable);
 
 #define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
