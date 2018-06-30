@@ -716,10 +716,7 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
-    uint64_t attacksByMinors = ei->attackedBy[!colour][KNIGHT] | ei->attackedBy[!colour][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
-    uint64_t attacksByKings  = ei->attackedBy[!colour][KING  ];
-
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
