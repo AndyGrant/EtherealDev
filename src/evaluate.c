@@ -715,7 +715,11 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
+    uint64_t attacksByMinors = ei->attackedBy[!colour][KNIGHT] | ei->attackedBy[!colour][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
+    uint64_t attacksByKings  = ei->attackedBy[!colour][KING  ];
+
+    uint64_t foobar = attacksByMinors | attacksByMajors | attacksByKings;
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
@@ -723,7 +727,7 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
                         & ei->attacked[!colour] & ~ei->attackedBy2[!colour];
 
     // Penalty for each unsupported pawn on the board
-    count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
+    count = popcount(pawns & ~ei->attacked[colour] & foobar);
     eval += count * ThreatPawnAttackedByOne;
     if (TRACE) T.ThreatPawnAttackedByOne[colour] += count;
 
