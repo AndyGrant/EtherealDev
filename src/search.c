@@ -983,7 +983,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
     Board* const board = &thread->board;
 
     int value = -MATE;
-    int rBeta = MAX(ttValue - 3 * depth, -MATE);
+    int rBeta = MAX(ttValue - depth, -MATE);
 
     uint16_t move;
     MovePicker movePicker;
