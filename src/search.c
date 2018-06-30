@@ -555,7 +555,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= CounterMovePruningDepth
-            &&  cmhist < CounterMoveHistoryLimit)
+            &&  cmhist < CounterMoveHistoryLimit[depth])
             continue;
 
         // Step 16. Static Exchange Evaluation Pruning. Prune moves which fail
