@@ -165,6 +165,7 @@ const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -19);
+const int ThreatByPawnPush           = S(  12,  15);
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
@@ -706,13 +707,20 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
 int evaluateThreats(EvalInfo* ei, Board* board, int colour){
 
-    int count, eval = 0;
+    const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
 
-    uint64_t pawns   = board->colours[colour] & board->pieces[PAWN  ];
-    uint64_t knights = board->colours[colour] & board->pieces[KNIGHT];
-    uint64_t bishops = board->colours[colour] & board->pieces[BISHOP];
-    uint64_t rooks   = board->colours[colour] & board->pieces[ROOK  ];
-    uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
+    int count, eval = 0;
+    uint64_t pushThreat;
+
+    uint64_t friendly = board->colours[ colour];
+    uint64_t enemy    = board->colours[!colour];
+    uint64_t occupied = friendly | enemy;
+
+    uint64_t pawns   = friendly & board->pieces[PAWN  ];
+    uint64_t knights = friendly & board->pieces[KNIGHT];
+    uint64_t bishops = friendly & board->pieces[BISHOP];
+    uint64_t rooks   = friendly & board->pieces[ROOK  ];
+    uint64_t queens  = friendly & board->pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
     uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
@@ -721,6 +729,12 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     uint64_t overloaded = (knights | bishops | rooks | queens)
                         & ei->attacked[ colour] & ~ei->attackedBy2[ colour]
                         & ei->attacked[!colour] & ~ei->attackedBy2[!colour];
+
+    // ???
+    pushThreat  = pawnAdvance(pawns, occupied, colour);
+    pushThreat |= pawnAdvance(pushThreat & Rank3Relative, occupied, colour);
+    pushThreat &= ~attacksByPawns & (ei->attacked[colour] | ~ei->attacked[!colour]);
+    pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[colour][PAWN], colour);
 
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
@@ -746,6 +760,11 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     count = popcount(overloaded);
     eval += count * ThreatOverloadedPieces;
     if (TRACE) T.ThreatOverloadedPieces[colour] += count;
+
+    // Bonus for giving threats by pawn push
+    count = popcount(pushThreat);
+    eval += count * ThreatByPawnPush;
+    // OLD :: if (TRACE) T.ThreatByPawnPush[colour] += count;
 
     return eval;
 }
