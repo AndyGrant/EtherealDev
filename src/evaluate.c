@@ -160,7 +160,8 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
-const int ThreatPawnAttackedByOne    = S( -17, -27);
+const int ThreatPawnUnsupported      = S( -12, -15);
+const int ThreatPawnHanging          = S( -13, -18);
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
@@ -715,7 +716,10 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
     uint64_t queens  = board->colours[colour] & board->pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[!colour][PAWN  ];
+    uint64_t attacksByMinors = ei->attackedBy[!colour][KNIGHT] | ei->attackedBy[!colour][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[!colour][ROOK  ] | ei->attackedBy[!colour][QUEEN ];
+    uint64_t attacksByKings  = ei->attackedBy[!colour][KING  ];
+
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
@@ -723,9 +727,14 @@ int evaluateThreats(EvalInfo* ei, Board* board, int colour){
                         & ei->attacked[!colour] & ~ei->attackedBy2[!colour];
 
     // Penalty for each unsupported pawn on the board
+    count = popcount(pawns & ~ei->attackedBy[colour][PAWN] & ~ei->attackedBy2[colour] & ei->attackedBy2[!colour]);
+    eval += count * ThreatPawnUnsupported;
+    if (TRACE) T.ThreatPawnUnsupported[colour] += count;
+
+    // Penalty for each hanging pawn on the board
     count = popcount(pawns & ~ei->attacked[colour] & ei->attacked[!colour]);
-    eval += count * ThreatPawnAttackedByOne;
-    if (TRACE) T.ThreatPawnAttackedByOne[colour] += count;
+    eval += count * ThreatPawnHanging;
+    if (TRACE) T.ThreatPawnHanging[colour] += count;
 
     // Penalty for pawn threats against our minors
     count = popcount((knights | bishops) & attacksByPawns);
