@@ -724,7 +724,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
-    const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6; // BUG!
+    const uint64_t Rank3Relative = US == WHITE ? RANK_3 : RANK_6;
 
     int count, eval = 0;
 
