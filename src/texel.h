@@ -23,7 +23,7 @@
 
 #define NTHREADS   (      4) // # of Threads to use
 #define NTERMS     (      2) // # of Terms to tune
-#define NPOSITIONS (1491000) // # of FENs in book
+#define NPOSITIONS (7000000) // # of FENs in book
 
 // Each Eval Term (Total = 486)
 #define TunePawnValue                  (0)

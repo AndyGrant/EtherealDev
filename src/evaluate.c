@@ -160,8 +160,8 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
-const int ThreatPawnUnsupported      = S( -12, -15);
-const int ThreatPawnHanging          = S( -13, -18);
+const int ThreatPawnUnsupported      = S( -14, -25);
+const int ThreatPawnHanging          = S( -14, -24);
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
