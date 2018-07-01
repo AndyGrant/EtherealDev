@@ -101,9 +101,10 @@ int relativeSquare32(int s, int c) {
     return 4 * relativeRankOf(c, s) + edgeDistance[fileOf(s)];
 }
 
-void initializePSQT() {
+void initPSQT() {
 
     for (int s = 0; s < SQUARE_NB; s++) {
+
         const int w32 = relativeSquare32(s, WHITE);
         const int b32 = relativeSquare32(s, BLACK);
 

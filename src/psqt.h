@@ -18,7 +18,7 @@
 
 #pragma once
 
-void initializePSQT();
+void initPSQT();
 
 int relativeSquare32(int s, int c);
 

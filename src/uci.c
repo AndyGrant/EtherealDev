@@ -39,7 +39,7 @@
 #include "transposition.h"
 #include "types.h"
 #include "uci.h"
-#include "zorbist.h"
+#include "zobrist.h"
 
 
 extern int MoveOverhead; // Defined by Time.c
@@ -63,9 +63,9 @@ int main(int argc, char **argv) {
 
     // Initialize the core components of Ethereal
     initAttacks();
-    initializePSQT();
+    initPSQT();
     initMasks();
-    initializeZorbist();
+    initZobrist();
     initSearch();
 
     // Default to 16MB TT
