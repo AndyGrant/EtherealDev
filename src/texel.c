@@ -84,7 +84,6 @@ void runTexelTuning(Thread *thread) {
     TexelEntry *tes;
     int i, j, iteration = -1;
     double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double rates[NTERMS][PHASE_NB] = {{0}, {0}};
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -105,9 +104,6 @@ void runTexelTuning(Thread *thread) {
 
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
     K = computeOptimalK(tes);
@@ -164,8 +160,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * rates[i][MG] * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][EG];
         }
     }
 }
@@ -208,15 +204,18 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
 
-        // Resolve FEN to a quiet position
+        // Get a long term evaluation for the position
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 8, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+
+        // Resolve to a quiet position
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
 
-        // Prepare coefficients and get a WHITE POV eval
+        // Linearize the evaluation process
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, NULL);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+        evaluateBoard(&thread->board, NULL);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -263,37 +262,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     }
 
     fclose(fin);
-}
-
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
-
-    int index, coeff;
-    double avgByPhase[PHASE_NB] = {0};
-    double occurances[NTERMS][PHASE_NB] = {{0}, {0}};
-
-    for (int i = 0; i < NPOSITIONS; i++) {
-        for (int j = 0; j < tes[i].ntuples; j++) {
-
-            index = tes[i].tuples[j].index;
-            coeff = tes[i].tuples[j].coeff;
-
-            occurances[index][MG] += abs(coeff) * tes[i].factors[MG];
-            occurances[index][EG] += abs(coeff) * tes[i].factors[EG];
-
-            avgByPhase[MG] += abs(coeff) * tes[i].factors[MG];
-            avgByPhase[EG] += abs(coeff) * tes[i].factors[EG];
-        }
-    }
-
-    avgByPhase[MG] /= NTERMS;
-    avgByPhase[EG] /= NTERMS;
-
-    for (int i = 0; i < NTERMS; i++){
-        if (occurances[i][MG] >= 1.0)
-            rates[i][MG] = avgByPhase[MG] / occurances[i][MG];
-        if (occurances[i][EG] >= 1.0)
-            rates[i][EG] = avgByPhase[EG] / occurances[i][EG];
-    }
 }
 
 void initCoefficients(int coeffs[NTERMS]) {
