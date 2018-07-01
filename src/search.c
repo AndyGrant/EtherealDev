@@ -268,6 +268,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
 
+    thread->playedStack[height] = 0;
+
     // Increment nodes counter for this Thread
     thread->nodes++;
 
@@ -579,6 +581,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Update counter of moves actually played
         played += 1;
+        thread->playedStack[height] = played;
 
         // Step 17. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
@@ -588,6 +591,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Increase for non PV nodes
             R += !PvNode;
+
+            R -= thread->playedStack[height-1] >= 10;
 
             // Increase for non improving nodes
             R += !improving;
