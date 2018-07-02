@@ -547,7 +547,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth]){
+            &&  played > LateMovePruningCounts[improving][depth]){
             skipQuiets = 1;
             continue;
         }
