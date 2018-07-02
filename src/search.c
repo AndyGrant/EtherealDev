@@ -513,7 +513,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
         if (ttHit) ttValue = valueFromTT(ttValue, height);
     }
-
+int foo = 0;
     // Step 12. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initializeMovePicker(&movePicker, thread, ttMove, height);
@@ -549,6 +549,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[improving][depth]){
             skipQuiets = 1;
+            foo = 1;
             continue;
         }
 
@@ -608,7 +609,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         }
 
-        else if (!isQuiet && depth > 2 && played > 1 && skipQuiets)
+        else if (!isQuiet && depth > 2 && played > 1 && foo)
             R = 2;
 
         else
