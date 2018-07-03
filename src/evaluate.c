@@ -181,12 +181,12 @@ const int PassedPawn[2][2][RANK_NB] = {
 /* Threat Evaluation Terms */
 
 const int ThreatPawnAttackedByOne    = S( -17, -27);
-const int ThreatMinorAttackedByPawn  = S( -73, -54);
-const int ThreatMinorAttackedByMajor = S( -43, -41);
-const int ThreatRookAttackedByLesser = S( -40, -20);
-const int ThreatQueenAttackedByOne   = S( -84,   3);
-const int ThreatOverloadedPieces     = S(  -7, -19);
-const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatMinorAttackedByPawn  = S( -72, -51);
+const int ThreatMinorAttackedByMajor = S( -46, -44);
+const int ThreatRookAttackedByLesser = S( -61, -24);
+const int ThreatQueenAttackedByOne   = S( -79,   6);
+const int ThreatOverloadedPieces     = S( -10, -22);
+const int ThreatByPawnPush           = S(  13,  15);
 
 /* General Evaluation Terms */
 
@@ -725,7 +725,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
-    const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6; // BUG!
+    const uint64_t Rank3Relative = US == WHITE ? RANK_3 : RANK_6;
 
     int count, eval = 0;
 
