@@ -505,7 +505,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (    PvNode
         && !inCheck
         &&  depth >= IIDDepth
-        && (ttMove == NONE_MOVE || depth - 6 > ttDepth)){
+        && (ttMove == NONE_MOVE || depth - 4 > ttDepth)){
 
         // Search with a reduced depth
         value = search(thread, &lpv, alpha, beta, depth-2, height);
