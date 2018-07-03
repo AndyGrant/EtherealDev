@@ -601,9 +601,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            R -= MAX(-1, MIN(1, hist /  3000));
-            R -= MAX(-1, MIN(1, hist /  9000));
-            R -= MAX(-1, MIN(1, hist / 18000));
+            R -= MAX(-1, MIN(1, hist /  2000));
+            R -= MAX(-1, MIN(1, hist /  8000));
+            R -= MAX(-1, MIN(1, hist / 24000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
