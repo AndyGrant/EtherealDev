@@ -791,7 +791,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatOverloadedPieces[US] += count;
 
     // Penalty for any overloaded2 minors or majors
-    count = popcount(overloaded);
+    count = popcount(overloaded2);
     eval += count * ThreatOverloadedPieces2;
 
     // Bonus for giving threats by safe pawn pushes
