@@ -41,9 +41,9 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     // Special move stages. selectNextMove() takes care of checking
     // for duplicate or unplayable moves found in special stages
     mp->tableMove = ttMove;
-    mp->killer1 = thread->killers[height][0];
-    mp->killer2 = thread->killers[height][1];
-    mp->counter = getCounterMove(thread, height);
+    mp->killer1 = thread->board.kingAttackers ? NONE_MOVE : thread->killers[height][0];
+    mp->killer2 = thread->board.kingAttackers ? NONE_MOVE : thread->killers[height][1];
+    mp->counter = thread->board.kingAttackers ? NONE_MOVE : getCounterMove(thread, height);
 
     // Reference to the board and move statistics
     mp->height = height;

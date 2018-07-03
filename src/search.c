@@ -669,12 +669,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Search failed high. Update move tables and break.
         if (alpha >= beta){
 
-            if (isQuiet && thread->killers[height][0] != move){
+            if (!inCheck && isQuiet && thread->killers[height][0] != move){
                 thread->killers[height][1] = thread->killers[height][0];
                 thread->killers[height][0] = move;
             }
 
-            if (isQuiet)
+            if (!inCheck && isQuiet)
                 updateCounterMove(thread, height, move);
 
             break;
