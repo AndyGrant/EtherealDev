@@ -244,6 +244,11 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
 void evaluateNoisyMoves(MovePicker* mp){
 
+    static const int SortingValues[] = {
+        100, 300, 300, 500,
+        900,   0,   0,   0,
+    };
+
     int fromType, toType;
 
     for (int i = 0; i < mp->noisySize; i++){
@@ -255,15 +260,15 @@ void evaluateNoisyMoves(MovePicker* mp){
             toType   = pieceType(mp->thread->board.squares[MoveTo(mp->moves[i])]);
 
             // Use the standard MVV-LVA
-            mp->values[i] = PieceValues[toType][EG] - fromType;
+            mp->values[i] = SortingValues[toType] - fromType;
 
             // A bonus is in order for queen promotions
             if ((mp->moves[i] & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
-                mp->values[i] += PieceValues[QUEEN][EG];
+                mp->values[i] += SortingValues[QUEEN];
 
             // Enpass is a special case of MVV-LVA
             else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
-                mp->values[i] = PieceValues[PAWN][EG] - PAWN;
+                mp->values[i] = SortingValues[PAWN] - PAWN;
         }
 
         // Flag those which cannot pass an SEE as bad noisy moves
