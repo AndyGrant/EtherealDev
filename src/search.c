@@ -524,7 +524,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             cmhist = getCMHistoryScore(thread, height, move);
-            hist   = getHistoryScore(thread, move) + cmhist;
+            hist   = (3 * getHistoryScore(thread, move) + cmhist) / 4;
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
