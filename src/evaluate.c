@@ -348,8 +348,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (   !(passedPawnMasks(THEM, sq) & myPawns)
             &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
             semi = !(Files[fileOf(sq)] & enemyPawns);
-            eval += PawnBackwards[semi];
-            if (TRACE) T.PawnBackwards[semi][US]++;
+            // eval += PawnBackwards[semi];
+            // if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
         // Apply a bonus if the pawn is connected and not backward
