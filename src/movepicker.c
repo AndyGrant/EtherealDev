@@ -261,6 +261,10 @@ void evaluateNoisyMoves(MovePicker* mp){
             if ((mp->moves[i] & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
                 mp->values[i] += PieceValues[QUEEN][EG];
 
+            // Other promotions are considered bad noisy moves
+            else if (MoveType(mp->moves[i]) == PROMOTION_MOVE)
+                mp->values[i] = -1;
+
             // Enpass is a special case of MVV-LVA
             else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
                 mp->values[i] = PieceValues[PAWN][EG] - PAWN;
