@@ -609,7 +609,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
 
         else if (depth > 2 && played > 1 && movePicker.stage >= STAGE_BAD_NOISY)
-            R = MAX(1, MIN(2, LMRTable[MIN(depth, 63)][MIN(played, 63)]));
+            R = MAX(1, LMRTable[MIN(depth, 63)][MIN(played, 63)] - 1);
 
         else
             R = 1;
