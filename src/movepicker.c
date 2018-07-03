@@ -263,7 +263,7 @@ void evaluateNoisyMoves(MovePicker* mp){
 
             // Enpass is a special case of MVV-LVA
             else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
-                mp->values[i] = PieceValues[PAWN][EG] - PAWN;
+                mp->values[i] = PieceValues[QUEEN][EG];
         }
 
         // Flag those which cannot pass an SEE as bad noisy moves
