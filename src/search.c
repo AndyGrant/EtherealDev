@@ -568,6 +568,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !inCheck
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
+            &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
             continue;
 
@@ -769,7 +770,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
         // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful in improving our position
-        if (!staticExchangeEvaluation(board, move, QSEEMargin))
+        if (    movePicker.stage > STAGE_GOOD_NOISY
+            && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
         // Apply and validate move before searching
