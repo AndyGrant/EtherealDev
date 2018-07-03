@@ -535,10 +535,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             && (hist < 6000 || !improving)
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth){
+            &&  depth <= FutilityPruningDepth)
             skipQuiets = 1;
-            continue;
-         }
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
@@ -547,10 +545,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth]){
+            &&  quiets > LateMovePruningCounts[improving][depth])
             skipQuiets = 1;
-            continue;
-        }
 
         // Step 15. Counter Move Pruning. Moves with poor counter
         // move history are pruned at near leaf nodes of the search.
