@@ -276,8 +276,8 @@ void evaluateQuietMoves(MovePicker* mp){
     // Use the History score from the Butterfly History,
     // and the Counter Move History to sort the quiet moves
     for (int i = mp->split; i < mp->split + mp->quietSize; i++)
-        mp->values[i] = getHistoryScore(mp->thread, mp->moves[i])
-                      + getCMHistoryScore(mp->thread, mp->height, mp->moves[i]);
+        mp->values[i] = 1 * getHistoryScore(mp->thread, mp->moves[i])
+                      + 2 * getCMHistoryScore(mp->thread, mp->height, mp->moves[i]);
 }
 
 int moveIsPsuedoLegal(Board* board, uint16_t move){
