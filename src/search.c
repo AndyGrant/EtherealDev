@@ -532,8 +532,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // one, and also skip all other quiet moves from this position
         if (   !RootNode
             &&  isQuiet
+            &&  cmhist < 4000
             &&  best > MATED_IN_MAX
-            && (hist < 6000 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth){
             skipQuiets = 1;
