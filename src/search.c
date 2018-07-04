@@ -584,7 +584,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
 
-        quietsTried[quiets-1] = move;
+        if (isQuiet) quietsTried[quiets-1] = move;
 
         // Step 17. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
