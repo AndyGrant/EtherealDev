@@ -119,7 +119,7 @@ void* iterativeDeepening(void* vthread){
 
             // Skip depth if already completed by the main thread,
             // or if many threads are already at or above this depth
-            if (depth <= info->depth || count >= thread->nthreads / 2){
+            if (depth < thread->threads[0].depth || count >= thread->nthreads / 2){
                 thread->depth = depth + 1;
                 pthread_mutex_unlock(&LOCK);
                 continue;

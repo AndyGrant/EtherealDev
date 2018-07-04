@@ -34,8 +34,9 @@ struct Thread {
     PVariation pv;
 
     int value;
-    int depth;
     int seldepth;
+
+    volatile int depth;
 
     uint64_t nodes;
     uint64_t tbhits;
