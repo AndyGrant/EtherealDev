@@ -184,7 +184,7 @@ const int ThreatPawnAttackedByOne    = S( -17, -27);
 const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
-const int ThreatQueenAttackedByOne   = S( -84,   3);
+const int ThreatQueenAttackedByOne   = S( -94, -57);
 const int ThreatOverloadedPieces     = S(  -7, -19);
 const int ThreatByPawnPush           = S(  12,  15);
 
@@ -776,7 +776,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
 
     // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[THEM]);
+    count = popcount(queens & (attacksByPawns | attacksByMinors | ei->attackedBy[THEM][ROOK]));
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.ThreatQueenAttackedByOne[US] += count;
 
