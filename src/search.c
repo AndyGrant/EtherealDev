@@ -203,7 +203,7 @@ int aspirationWindow(Thread* thread, int depth){
     const int mainThread = thread == &thread->threads[0];
     const int aspDepth   = thread->info->depth;
 
-    int alpha, beta, value, delta = 10;
+    int alpha, beta, value, delta = 18;
 
     // Without at least a few searches, we cannot guess a good search window
     if (depth <= 4 || aspDepth <= 4)
