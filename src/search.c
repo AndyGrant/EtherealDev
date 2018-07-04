@@ -522,7 +522,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
-            quiets++;
             cmhist = getCMHistoryScore(thread, height, move);
             hist   = getHistoryScore(thread, move) + cmhist;
         }
@@ -584,7 +583,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
 
-        if (isQuiet) quietsTried[quiets-1] = move;
+        if (isQuiet) quietsTried[quiets++] = move;
 
         // Step 17. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
