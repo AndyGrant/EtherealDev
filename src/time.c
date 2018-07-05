@@ -54,7 +54,50 @@ double elapsedTime(SearchInfo* info){
 
 }
 
-void initializeTimeManagment(SearchInfo* info, Limits* limits){
+void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
+
+    // Don't update if we are not running the clock,
+    // or if we are looking at a very low depth search
+    if (!limits->limitedBySelf || depth < 4)
+        return;
+
+    // Increase our time if the score suddenly dropped
+    if (info->values[depth-1] > value + 10)
+        info->idealUsage *= 1.050;
+
+    // Decrease our time if the score suddently jumped
+    if (info->values[depth-1] < value - 10)
+        info->idealUsage *= 0.975;
+
+    // Adjust time when the best move stayed the same
+    if (info->bestMoves[depth] == info->bestMoves[depth-1]){
+
+        // If we still have remaining increments from best move
+        // changes reduce our ideal time usage by a factor, such that
+        // after we deplete bestMoveChanges, we are near the original time
+        info->idealUsage *= info->bestMoveChanges ? 0.946 : 1.000;
+
+        // We have recovered one best move change
+        info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
+    }
+
+    else { // Adjust time when the best move changed between iterations
+
+        // Increase our time by based on our best move debt. If this is the
+        // first PV change in some time, we increase our time by 56%. If we
+        // have recently changed best moves, we will only adjust our usage
+        // to get back to the initial 56% time allocation by the first change
+        info->idealUsage *= 1.000 + 0.070 * (8 - info->bestMoveChanges);
+
+        // Set out counter back to six as the best move has changed
+        info->bestMoveChanges = 8;
+    }
+
+    // Cap our ideal usage using our maximum allocation
+    info->idealUsage = MIN(info->idealUsage, info->maxAlloc);
+}
+
+void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 

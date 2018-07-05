@@ -70,10 +70,10 @@ uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
     // a depth MAX_PLY - 1 search to the interface. If found, we are done here.
     uint16_t move; if (tablebasesProbeDTZ(board, &move)) return move;
 
-    // Initialize SearchInfo, used for reporting and time managment logic
+    // Init time control and reporting mechanisms
     SearchInfo info;
     memset(&info, 0, sizeof(SearchInfo));
-    initializeTimeManagment(&info, limits);
+    initTimeManagment(&info, limits);
 
     // Setup the thread pool for a new search
     newSearchThreadPool(threads, board, limits, &info);
@@ -103,27 +103,29 @@ void* iterativeDeepening(void* vthread){
 
     for (depth = 1; depth < MAX_PLY; depth++){
 
-        // Always acquire the lock before setting thread->depth. thread->depth
-        // is needed by others to determine when to skip certain search iterations
+        // We lock each thread->depth for scheduling
         pthread_mutex_lock(&LOCK);
 
-        thread->depth = depth;
+        // Helper threads might skip depths
+        if (!mainThread && depth > 1){
 
-        // Helper threads are subject to skipping depths in order to better help
-        // the main thread, based on the number of threads already on some depths
-        if (!mainThread){
-
+            // Count # of threads at or above this depth
             for (count = 0, i = 1; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
+                count += thread != &thread->threads[i]
+                      && thread->threads[i].depth >= depth;
 
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
+            // Many threads are working here, skip this depth
+            if (count >= thread->nthreads / 2){
                 thread->depth = depth + 1;
                 pthread_mutex_unlock(&LOCK);
                 continue;
             }
         }
 
-        // Drop the lock as we have finished depth scheduling
+        // Finalize our depth
+        thread->depth = depth;
+
+        // Drop the lock, we have finished scheduling
         pthread_mutex_unlock(&LOCK);
 
         // If we abort to here, we stop searching
@@ -144,51 +146,13 @@ void* iterativeDeepening(void* vthread){
         // Send information about this search to the interface
         uciReport(thread->threads, -MATE, MATE, value);
 
-        // If Ethereal is managing the clock, determine if we should be spending
-        // more time on this search, based on the score difference between iterations
-        // and any changes in the principle variation since the last iteration
-        if (limits->limitedBySelf && depth >= 4){
-
-            // Increase our time if the score suddently dropped by eight centipawns
-            if (info->values[depth-1] > value + 10)
-                info->idealUsage *= 1.050;
-
-            // Decrease our time if the score suddently jumped by eight centipawns
-            if (info->values[depth-1] < value - 10)
-                info->idealUsage *= 0.975;
-
-            if (info->bestMoves[depth] == info->bestMoves[depth-1]){
-
-                // If we still have remaining increments from best move
-                // changes reduce our ideal time usage by a factor, such that
-                // after we deplete bestMoveChanges, we are near the original time
-                info->idealUsage *= info->bestMoveChanges ? 0.935 : 1.000;
-
-                // We have recovered one best move change
-                info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
-            }
-
-            else {
-
-                // Increase our time by based on our best move debt. If this is the
-                // first PV change in some time, we increase our time by 48%. If we
-                // have recently changed best moves, we will only adjust our usage
-                // to get back to the initial 48% time allocation by the first change
-                info->idealUsage *= 1.000 + 0.080 * (6 - info->bestMoveChanges);
-
-                // Set out counter back to six as the best move has changed
-                info->bestMoveChanges = 6;
-            }
-
-            // Cap our ideal usage using our maximum allocation
-            info->idealUsage = MIN(info->idealUsage, info->maxAlloc);
-        }
+        // Update time usage based on score or pv changes
+        updateTimeManagment(info, limits, depth, value);
 
         // Check for termination by any of the possible limits
         if (   (limits->limitedByDepth && depth >= limits->depthLimit)
             || (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
-            || (limits->limitedBySelf  && elapsedTime(info) > info->idealUsage)
-            || (limits->limitedBySelf  && elapsedTime(info) > info->maxUsage))
+            || (limits->limitedBySelf  && elapsedTime(info) > info->idealUsage))
             break;
     }
 
