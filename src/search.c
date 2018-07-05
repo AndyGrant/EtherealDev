@@ -476,6 +476,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (!staticExchangeEvaluation(board, move, rBeta - eval))
                 continue;
 
+            if (movePicker.stage > STAGE_GOOD_NOISY) break;
+
             // Apply and validate move before searching
             applyMove(board, move, undo);
             if (!isNotInCheck(board, !board->turn)){
