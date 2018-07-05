@@ -22,10 +22,10 @@
 #include "types.h"
 
 #define NTHREADS   (      4) // # of Threads to use
-#define NTERMS     (      0) // # of Terms to tune
+#define NTERMS     (    128) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
 
-// Each Eval Term (Total = 488)
+// Each Eval Term (Total = 476)
 #define TunePawnValue                  (0)
 #define TuneKnightValue                (0)
 #define TuneBishopValue                (0)
@@ -52,8 +52,7 @@
 #define TuneRookOnSeventh              (0)
 #define TuneRookMobility               (0)
 #define TuneQueenMobility              (0)
-#define TuneKingDefenders              (0)
-#define TuneKingShelter                (0)
+#define TuneKingShelter                (1)
 #define TunePassedPawn                 (0)
 #define TuneThreatPawnAttackedByOne    (0)
 #define TuneThreatMinorAttackedByPawn  (0)
@@ -81,7 +80,6 @@ struct TexelEntry {
 
 void runTexelTuning(Thread* thread);
 void initTexelEntries(TexelEntry* tes, Thread* thread);
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]);
 
 void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(double cparams[NTERMS][PHASE_NB]);

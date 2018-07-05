@@ -69,7 +69,6 @@ extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
-extern const int KingDefenders[12];
 extern const int KingShelter[2][FILE_NB][RANK_NB];
 extern const int PassedPawn[2][2][RANK_NB];
 extern const int ThreatPawnAttackedByOne;
@@ -85,7 +84,6 @@ void runTexelTuning(Thread *thread) {
     TexelEntry *tes;
     int i, j, iteration = -1;
     double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double rates[NTERMS][PHASE_NB] = {{0}, {0}};
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -106,9 +104,6 @@ void runTexelTuning(Thread *thread) {
 
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
     K = computeOptimalK(tes);
@@ -165,8 +160,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * rates[i][MG] * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][EG];
         }
     }
 }
@@ -266,37 +261,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     fclose(fin);
 }
 
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
-
-    int index, coeff;
-    double avgByPhase[PHASE_NB] = {0};
-    double occurances[NTERMS][PHASE_NB] = {{0}, {0}};
-
-    for (int i = 0; i < NPOSITIONS; i++) {
-        for (int j = 0; j < tes[i].ntuples; j++) {
-
-            index = tes[i].tuples[j].index;
-            coeff = tes[i].tuples[j].coeff;
-
-            occurances[index][MG] += abs(coeff) * tes[i].factors[MG];
-            occurances[index][EG] += abs(coeff) * tes[i].factors[EG];
-
-            avgByPhase[MG] += abs(coeff) * tes[i].factors[MG];
-            avgByPhase[EG] += abs(coeff) * tes[i].factors[EG];
-        }
-    }
-
-    avgByPhase[MG] /= NTERMS;
-    avgByPhase[EG] /= NTERMS;
-
-    for (int i = 0; i < NTERMS; i++){
-        if (occurances[i][MG] >= 1.0)
-            rates[i][MG] = avgByPhase[MG] / occurances[i][MG];
-        if (occurances[i][EG] >= 1.0)
-            rates[i][EG] = avgByPhase[EG] / occurances[i][EG];
-    }
-}
-
 void initCoefficients(int coeffs[NTERMS]) {
 
     int i = 0; // INIT_COEFF_N will update i accordingly
@@ -327,7 +291,6 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneRookOnSeventh               ) INIT_COEFF_0(RookOnSeventh)               ;
     if (TuneRookMobility                ) INIT_COEFF_1(RookMobility, 15)            ;
     if (TuneQueenMobility               ) INIT_COEFF_1(QueenMobility, 28)           ;
-    if (TuneKingDefenders               ) INIT_COEFF_1(KingDefenders, 12)           ;
     if (TuneKingShelter                 ) INIT_COEFF_3(KingShelter, 2, 8, 8)        ;
     if (TunePassedPawn                  ) INIT_COEFF_3(PassedPawn, 2, 2, 8)         ;
     if (TuneThreatPawnAttackedByOne     ) INIT_COEFF_0(ThreatPawnAttackedByOne)     ;
@@ -374,7 +337,6 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneRookOnSeventh               ) INIT_PARAM_0(RookOnSeventh)               ;
     if (TuneRookMobility                ) INIT_PARAM_1(RookMobility, 15)            ;
     if (TuneQueenMobility               ) INIT_PARAM_1(QueenMobility, 28)           ;
-    if (TuneKingDefenders               ) INIT_PARAM_1(KingDefenders, 12)           ;
     if (TuneKingShelter                 ) INIT_PARAM_3(KingShelter, 2, 8, 8)        ;
     if (TunePassedPawn                  ) INIT_PARAM_3(PassedPawn, 2, 2, 8)         ;
     if (TuneThreatPawnAttackedByOne     ) INIT_PARAM_0(ThreatPawnAttackedByOne)     ;
@@ -429,7 +391,6 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneRookOnSeventh               ) PRINT_PARAM_0(RookOnSeventh)              ;
     if (TuneRookMobility                ) PRINT_PARAM_1(RookMobility, 15)           ;
     if (TuneQueenMobility               ) PRINT_PARAM_1(QueenMobility, 28)          ;
-    if (TuneKingDefenders               ) PRINT_PARAM_1(KingDefenders, 12)          ;
     if (TuneKingShelter                 ) PRINT_PARAM_3(KingShelter, 2, 8, 8)       ;
     if (TunePassedPawn                  ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)        ;
     if (TuneThreatPawnAttackedByOne     ) PRINT_PARAM_0(ThreatPawnAttackedByOne)    ;
