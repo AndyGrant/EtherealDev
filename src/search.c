@@ -533,9 +533,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 12000 || !improving)
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth){
+            &&  depth <= FutilityPruningDepth
+            &&  hist <= FutilityPruningHistory){
             skipQuiets = 1;
             continue;
          }
