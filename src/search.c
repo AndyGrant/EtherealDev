@@ -256,7 +256,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, cmhist = 0, hist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, skipQuiets = 0;
+    int inCheck, isQuiet, bestWasReduced = 0, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -656,6 +656,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             best = value;
             bestMove = move;
+            bestWasReduced = R > 1;
 
             if (value > alpha){
                 alpha = value;
@@ -695,7 +696,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         updateHistory(thread, bestMove, depth*depth);
         updateCMHistory(thread, height, bestMove, depth*depth);
 
-        if (ttMove && moveIsTactical(board, ttMove)) {
+        if (bestWasReduced) {
             updateHistory(thread, bestMove, depth*depth);
             updateCMHistory(thread, height, bestMove, depth*depth);
         }
