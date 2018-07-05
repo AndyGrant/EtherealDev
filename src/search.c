@@ -335,19 +335,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)){
-
-            if (ttValue >= beta && (ttBound & BOUND_LOWER))
-                return beta;
-
-            if (ttValue <= alpha && (ttBound & BOUND_UPPER))
-                return alpha;
-
-            if (ttBound == BOUND_EXACT){
-                assert(alpha < ttValue && ttValue < beta);
+        if (ttDepth >= depth && (depth == 0 || !PvNode))
+            if (   (ttValue >= beta  && (ttBound & BOUND_LOWER))
+                || (ttValue <= alpha && (ttBound & BOUND_UPPER))
+                ||  ttBound == BOUND_EXACT)
                 return ttValue;
-            }
-        }
     }
 
     // Step 4. Go into the Quiescence Search if we have reached
