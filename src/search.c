@@ -521,15 +521,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
-        if (   !RootNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            && (hist < 6000 || !improving)
-            &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth){
-            skipQuiets = 1;
-            continue;
-         }
+         if (   !RootNode
+             &&  isQuiet
+             &&  best > MATED_IN_MAX
+             &&  futilityMargin <= alpha
+             &&  depth <= FutilityPruningDepth
+             &&  hist <= FutilityPruningHistory){
+             skipQuiets = 1;
+             continue;
+          }
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
