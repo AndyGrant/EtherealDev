@@ -404,6 +404,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
+    int climbing = eval > thread->evalStack[height-2] + 16
+                && eval > thread->evalStack[height-4] + 32;
+
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
     // the Quiescence search was sufficient. For depth 1, we will just
@@ -595,6 +598,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Increase for non improving nodes
             R += !improving;
+
+            R -= climbing;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
