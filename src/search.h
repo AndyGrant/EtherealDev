@@ -90,7 +90,7 @@ static const int FutilityMargin = 100;
 
 static const int FutilityPruningDepth = 8;
 
-static const int FutilityPruningHistory = 6000;
+static const int FutilityPruningHistory = 2500;
 
 static const int CounterMovePruningDepth = 2;
 
