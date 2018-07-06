@@ -54,7 +54,27 @@ double elapsedTime(SearchInfo* info){
 
 }
 
-void initializeTimeManagment(SearchInfo* info, Limits* limits){
+void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
+
+    // Don't update if we are not running the clock,
+    // or if we are looking at a very low depth search
+    if (!limits->limitedBySelf || depth < 4)
+        return;
+
+    // Increase our time if the score suddenly dropped
+    if (info->values[depth-1] > value + 10)
+        info->idealUsage = MIN(info->idealUsage * 1.050, info->maxAlloc);
+
+    // Same best move, reduce time offset
+    if (info->bestMoves[depth] == info->bestMoves[depth-1])
+        info->bestMoveChanges = MAX(0, info->bestMoveChanges - 1);
+
+    // New best move, reset time offset
+    else
+        info->bestMoveChanges = 8;
+}
+
+void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 
