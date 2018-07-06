@@ -263,6 +263,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     lpv.length = 0;
     pv->length = 0;
 
+    thread->killers[height+2][0] = thread->killers[height+2][1] = NONE_MOVE;
+
     // Increment nodes counter for this Thread
     thread->nodes++;
 
