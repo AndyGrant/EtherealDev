@@ -679,12 +679,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 22. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
 
-        updateHistory(thread, bestMove, depth*depth);
-        updateCMHistory(thread, height, bestMove, depth*depth);
+        const int Update = depth * depth + depth - 1;
+
+        updateHistory(thread, bestMove, Update);
+        updateCMHistory(thread, height, bestMove, Update);
 
         for (i = 0; i < quiets - 1; i++) {
-            updateHistory(thread, quietsTried[i], -depth*depth);
-            updateCMHistory(thread, height, quietsTried[i], -depth*depth);
+            updateHistory(thread, quietsTried[i], -Update);
+            updateCMHistory(thread, height, quietsTried[i], -Update);
         }
     }
 
