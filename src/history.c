@@ -49,10 +49,8 @@ void updateHistory(Thread *thread, uint16_t move, int delta) {
     assert(0 <= from && from < SQUARE_NB);
     assert(0 <= to && to < SQUARE_NB);
 
-    delta = MAX(-400, MIN(400, delta));
-
     entry = thread->history[colour][from][to];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 2 * delta - entry * abs(delta) / 8192;
     thread->history[colour][from][to] = entry;
 }
 
@@ -99,10 +97,8 @@ void updateCMHistory(Thread *thread, int height, uint16_t move, int delta) {
     assert(0 <= piece2 && piece2 < PIECE_NB);
     assert(0 <= to2 && to2 < SQUARE_NB);
 
-    delta = MAX(-400, MIN(400, delta));
-
     entry = thread->cmhistory[piece1][to1][piece2][to2];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 4 * delta - entry * abs(delta) / 4096;
     thread->cmhistory[piece1][to1][piece2][to2] = entry;
 }
 
