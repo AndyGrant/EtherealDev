@@ -611,7 +611,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  board->kingAttackers
-                  &&  movePicker.stage < STAGE_BAD_NOISY;
+                  && !isQuiet;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
