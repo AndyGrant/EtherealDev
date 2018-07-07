@@ -178,6 +178,10 @@ const int PassedPawn[2][2][RANK_NB] = {
    {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
 };
 
+const int PassedPawnFile[4] = {
+    S(   5,   4), S(  -2,   6), S(  -3,  -2), S(   1,  -4),
+};
+
 /* Threat Evaluation Terms */
 
 const int ThreatPawnAttackedByOne    = S( -17, -27);
@@ -717,6 +721,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][colour]++;
+
+        static const int TABLE[] = {0, 1, 2, 3, 3, 2, 1, 0};
+        int file = TABLE[fileOf(sq)];
+        eval += PassedPawnFile[file];
+        if (TRACE) T.PassedPawnFile[file][colour]++;
     }
 
     return eval;
