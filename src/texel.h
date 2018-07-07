@@ -22,7 +22,7 @@
 #include "types.h"
 
 #define NTHREADS   (     32) // # of Threads to use
-#define NTERMS     (     16) // # of Terms to tune
+#define NTERMS     (     52) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 488)
@@ -32,15 +32,15 @@
 #define TuneRookValue                  (0)
 #define TuneQueenValue                 (0)
 #define TuneKingValue                  (0)
-#define TunePawnPSQT32                 (0)
+#define TunePawnPSQT32                 (1)
 #define TuneKnightPSQT32               (0)
 #define TuneBishopPSQT32               (0)
 #define TuneRookPSQT32                 (0)
 #define TuneQueenPSQT32                (0)
 #define TuneKingPSQT32                 (0)
-#define TunePawnIsolated               (0)
-#define TunePawnStacked                (0)
-#define TunePawnBackwards              (0)
+#define TunePawnIsolated               (1)
+#define TunePawnStacked                (1)
+#define TunePawnBackwards              (1)
 #define TunePawnConnected              (1)
 #define TunePawnPhalanx                (1)
 #define TuneKnightOutpost              (0)
