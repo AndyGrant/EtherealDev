@@ -171,12 +171,14 @@ const int KSAdjustment      =  -38;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
-   {S(   0,   0), S(  -1,   2), S( -19,  24), S( -12,  37), S(   6,  46), S(  66,  63), S( 191, 133), S(   0,   0)}},
-  {{S(   0,   0), S(  -7,  15), S( -13,   9), S(  -6,  28), S(  29,  34), S(  78,  66), S( 234, 152), S(   0,   0)},
-   {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
+const int PassedPawnRank[RANK_NB] = {
+    S(   0,   0), S(  -9,  -4), S( -10,   3), S(  -2,  28),
+    S(  24,  56), S(  59, 126), S( 178, 213), S(   0,   0),
 };
+
+const int PassedPawnFile[FILE_NB/2] = {
+    S(   2,  16), S(  -5,  16), S(  -7,   4), S(  -5,   0),
+}
 
 /* Threat Evaluation Terms */
 
@@ -193,7 +195,6 @@ const int ThreatByPawnPush           = S(  12,  15);
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
-
 
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
@@ -688,35 +689,29 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
-    int sq, rank, canAdvance, safeAdvance, eval = 0;
-    uint64_t tempPawns, destination, notEmpty;
+    int sq, rank, file, eval = 0;
+    uint64_t tempPawns;
 
     // Fetch Passed Pawns from the Pawn King Entry if we have one
     if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
 
     tempPawns = board->colours[colour] & ei->passedPawns;
-    notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
 
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
 
-        // Pop off the next passed Pawn
+        // Pop off the next Passed Pawn
         sq = poplsb(&tempPawns);
 
-        // Determine the releative rank
-        rank = (colour == BLACK) ? (7 - rankOf(sq)) : rankOf(sq);
+        // Evaluate Passed Pawn based on rank
+        rank = relativeRankOf(colour, sq);
+        eval += PassedPawnRank[rank];
+        if (TRACE) T.PassedPawnRank[rank][colour]++;
 
-        // Determine where the pawn would advance to
-        destination = (colour == BLACK) ? ((1ull << sq) >> 8): ((1ull << sq) << 8);
-
-        // Destination does not have any pieces on it
-        canAdvance = !(destination & notEmpty);
-
-        // Destination is not attacked by the opponent
-        safeAdvance = !(destination & ei->attacked[!colour]);
-
-        eval += PassedPawn[canAdvance][safeAdvance][rank];
-        if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][colour]++;
+        // Evaluate Passed Pawn based on file
+        file = mirroredFileOf(sq);
+        eval += PassedPawnFile[file];
+        if (TRACE) T.PassedPawnFile[file][colour]++;
     }
 
     return eval;

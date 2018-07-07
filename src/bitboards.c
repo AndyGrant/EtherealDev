@@ -36,6 +36,12 @@ int rankOf(int s) {
     return s / FILE_NB;
 }
 
+int mirroredFileOf(int s) {
+    assert(0 <= s && s < SQUARE_NB);
+    static const int edgeDistance[FILE_NB] = {0, 1, 2, 3, 3, 2, 1, 0};
+    return edgeDistance[fileOf(s)];
+}
+
 int relativeRankOf(int c, int s) {
     assert(0 <= c && c < COLOUR_NB);
     assert(0 <= s && s < SQUARE_NB);
