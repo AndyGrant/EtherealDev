@@ -194,7 +194,6 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
 
-
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     EvalInfo ei; // Fix bogus GCC warning
@@ -508,10 +507,11 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         ei->attacked[US]         |= attacks;
         ei->attackedBy[US][ROOK] |= attacks;
 
-        // Rook is on a semi-open file if there are no pawns of the rook's
-        // colour on the file. If there are no pawns at all, it is an open file
-        if (!(myPawns & Files[fileOf(sq)])) {
-            open = !(enemyPawns & Files[fileOf(sq)]);
+        // Apply a bonus for being on a semi or open file. We consider a file
+        // with only our passed pawns to be an open file, as way to promote
+        // the defense of our passed pawns.
+        if (!(Files[fileOf(sq)] & myPawns & ~ei->passedPawns)) {
+            open = !(Files[fileOf(sq)] & enemyPawns);
             eval += RookFile[open];
             if (TRACE) T.RookFile[open][US]++;
         }
@@ -691,9 +691,6 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     int sq, rank, canAdvance, safeAdvance, eval = 0;
     uint64_t tempPawns, destination, notEmpty;
 
-    // Fetch Passed Pawns from the Pawn King Entry if we have one
-    if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
-
     tempPawns = board->colours[colour] & ei->passedPawns;
     notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
 
@@ -841,4 +838,7 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
 
     if (TEXEL) ei->pkentry = NULL;
     else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
+
+    // Fetch Passed Pawns from the Pawn King Entry if we have one
+    if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
 }
