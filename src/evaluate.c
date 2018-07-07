@@ -68,15 +68,11 @@ const int PawnStacked = S( -10, -32);
 
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
-const int PawnConnected32[32] = {
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  21),
-    S(   6,   0), S(  20,   3), S(  14,   7), S(  16,  17),
-    S(   6,  11), S(  20,  20), S(  19,  24), S(  37,  24),
-    S(  23,  55), S(  24,  65), S(  66,  63), S(  50,  75),
-    S( 106, -14), S( 199,  17), S( 227,  22), S( 250,  76),
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+const int PawnConnected[2][2][RANK_NB] = {
+  {{S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(   5,  -4), S(   6,   0), S(  12,   7), S(  27,  36), S(  60,  89), S( 110, 158), S(   0,   0)}},
+  {{S(   0,   0), S(   0,   0), S(  20,   7), S(  13,   5), S(  30,   9), S(  37,  50), S( 222, 221), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(  22,  12), S(  27,  11), S(  76,  45), S(  74,  65), S( 222, 221), S(   0,   0)}},
 };
 
 /* Knight Evaluation Terms */
@@ -301,7 +297,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
     const int Forward = (colour == WHITE) ? 8 : -8;
 
-    int sq, semi, eval = 0;
+    int sq, rank, semi, supported, phalanx, eval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
     // Store off pawn attacks for king safety and threat computations
@@ -328,6 +324,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
 
+        supported = !!(pawnAttacks(THEM, sq) & myPawns);
+        phalanx   = !!(Ranks[rankOf(sq)] & isolatedPawnMasks(sq) & myPawns);
+
         // Save passed pawn information for later evaluation
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
@@ -352,10 +351,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
-        // Apply a bonus if the pawn is connected and not backward
-        else if (pawnConnectedMasks(US, sq) & myPawns) {
-            eval += PawnConnected32[relativeSquare32(sq, US)];
-            if (TRACE) T.PawnConnected32[relativeSquare32(sq, US)][US]++;
+        // Apply a bonus for connected pawns
+        if (phalanx || supported){
+            rank = relativeRankOf(US, sq);
+            eval += PawnConnected[supported][phalanx][rank];
+            if (TRACE) T.PawnConnected[supported][phalanx][rank][colour]++;
         }
     }
 
