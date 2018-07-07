@@ -357,7 +357,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus for being apart of a phalanx
-        if (Ranks[rankOf(sq)] & isolatedPawnMasks(sq)) {
+        if (Ranks[rankOf(sq)] & isolatedPawnMasks(sq) & myPawns) {
             rank = relativeRankOf(US, sq);
             eval += PawnPhalanx[rank];
             if (TRACE) T.PawnPhalanx[rank][US]++;
