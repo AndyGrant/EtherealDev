@@ -106,7 +106,7 @@ const int BishopMobility[14] = {
 
 /* Rook Evaluation Terms */
 
-const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
+const int RookFile[2] = { S(  13,  -3), S(  44,  -2) };
 
 const int RookOnSeventh = S(   0,  25);
 
