@@ -68,15 +68,13 @@ const int PawnStacked = S( -10, -32);
 
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
-const int PawnConnected32[32] = {
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  21),
-    S(   6,   0), S(  20,   3), S(  14,   7), S(  16,  17),
-    S(   6,  11), S(  20,  20), S(  19,  24), S(  37,  24),
-    S(  23,  55), S(  24,  65), S(  66,  63), S(  50,  75),
-    S( 106, -14), S( 199,  17), S( 227,  22), S( 250,  76),
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+const int PawnConnected[8] = {
+    S(   0,   0), S(   0,   0), S(  16,   8), S(  10,   4),
+    S(  22,   8), S(  30,  34), S( 168,  19), S(   0,   0),
+};
+const int PawnPhalanx[8] = {
+    S(   0,   0), S(   4,  -3), S(   2,   1), S(   6,   1),
+    S(   5,   4), S(   3,  13), S(  -8,  12), S(   0,   0),
 };
 
 /* Knight Evaluation Terms */
@@ -194,7 +192,6 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
 
-
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     EvalInfo ei; // Fix bogus GCC warning
@@ -301,7 +298,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
     const int Forward = (colour == WHITE) ? 8 : -8;
 
-    int sq, semi, eval = 0;
+    int sq, semi, rank, eval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
     // Store off pawn attacks for king safety and threat computations
@@ -352,10 +349,18 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
-        // Apply a bonus if the pawn is connected and not backward
-        else if (pawnConnectedMasks(US, sq) & myPawns) {
-            eval += PawnConnected32[relativeSquare32(sq, US)];
-            if (TRACE) T.PawnConnected32[relativeSquare32(sq, US)][US]++;
+        // Apply a bonus for being connected (having supports)
+        if (pawnAttacks(THEM, sq) & myPawns){
+            rank = relativeRankOf(US, sq);
+            eval += PawnConnected[rank];
+            if (TRACE) T.PawnConnected[rank][US]++;
+        }
+
+        // Apply a bonus for being apart of a phalanx
+        if (Ranks[rankOf(sq)] & isolatedPawnMasks(sq)) {
+            rank = relativeRankOf(US, sq);
+            eval += PawnPhalanx[rank];
+            if (TRACE) T.PawnPhalanx[rank][US]++;
         }
     }
 

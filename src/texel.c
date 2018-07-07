@@ -58,7 +58,8 @@ extern const int KingPSQT32[32];
 extern const int PawnIsolated;
 extern const int PawnStacked;
 extern const int PawnBackwards[2];
-extern const int PawnConnected32[32];
+extern const int PawnConnected[8];
+extern const int PawnPhalanx[8];
 extern const int KnightOutpost[2];
 extern const int KnightMobility[9];
 extern const int BishopPair;
@@ -316,7 +317,8 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TunePawnIsolated                ) INIT_COEFF_0(PawnIsolated)                ;
     if (TunePawnStacked                 ) INIT_COEFF_0(PawnStacked)                 ;
     if (TunePawnBackwards               ) INIT_COEFF_1(PawnBackwards, 2)            ;
-    if (TunePawnConnected32             ) INIT_COEFF_1(PawnConnected32, 32)         ;
+    if (TunePawnConnected               ) INIT_COEFF_1(PawnConnected, 8)            ;
+    if (TunePawnPhalanx                 ) INIT_COEFF_1(PawnPhalanx, 8)              ;
     if (TuneKnightOutpost               ) INIT_COEFF_1(KnightOutpost, 2)            ;
     if (TuneKnightMobility              ) INIT_COEFF_1(KnightMobility, 9)           ;
     if (TuneBishopPair                  ) INIT_COEFF_0(BishopPair)                  ;
@@ -363,7 +365,8 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TunePawnIsolated                ) INIT_PARAM_0(PawnIsolated)                ;
     if (TunePawnStacked                 ) INIT_PARAM_0(PawnStacked)                 ;
     if (TunePawnBackwards               ) INIT_PARAM_1(PawnBackwards, 2)            ;
-    if (TunePawnConnected32             ) INIT_PARAM_1(PawnConnected32, 32)         ;
+    if (TunePawnConnected               ) INIT_PARAM_1(PawnConnected, 8)            ;
+    if (TunePawnPhalanx                 ) INIT_PARAM_1(PawnPhalanx, 8)              ;
     if (TuneKnightOutpost               ) INIT_PARAM_1(KnightOutpost, 2)            ;
     if (TuneKnightMobility              ) INIT_PARAM_1(KnightMobility, 9)           ;
     if (TuneBishopPair                  ) INIT_PARAM_0(BishopPair)                  ;
@@ -418,7 +421,8 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TunePawnIsolated                ) PRINT_PARAM_0(PawnIsolated)               ;
     if (TunePawnStacked                 ) PRINT_PARAM_0(PawnStacked)                ;
     if (TunePawnBackwards               ) PRINT_PARAM_1(PawnBackwards, 2)           ;
-    if (TunePawnConnected32             ) PRINT_PARAM_1(PawnConnected32, 32)        ;
+    if (TunePawnConnected               ) PRINT_PARAM_1(PawnConnected, 8)           ;
+    if (TunePawnPhalanx                 ) PRINT_PARAM_1(PawnPhalanx, 8)             ;
     if (TuneKnightOutpost               ) PRINT_PARAM_1(KnightOutpost, 2)           ;
     if (TuneKnightMobility              ) PRINT_PARAM_1(KnightMobility, 9)          ;
     if (TuneBishopPair                  ) PRINT_PARAM_0(BishopPair)                 ;
@@ -435,7 +439,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneThreatPawnAttackedByOne     ) PRINT_PARAM_0(ThreatPawnAttackedByOne)    ;
     if (TuneThreatMinorAttackedByPawn   ) PRINT_PARAM_0(ThreatMinorAttackedByPawn)  ;
     if (TuneThreatMinorAttackedByMajor  ) PRINT_PARAM_0(ThreatMinorAttackedByMajor) ;
-    if (TuneThreatRookAttackedByLesser  ) PRINT_PARAM_0(ThreatRookAttackedByLesser)  ;
+    if (TuneThreatRookAttackedByLesser  ) PRINT_PARAM_0(ThreatRookAttackedByLesser) ;
     if (TuneThreatQueenAttackedByOne    ) PRINT_PARAM_0(ThreatQueenAttackedByOne)   ;
     if (TuneThreatOverloadedPieces      ) PRINT_PARAM_0(ThreatOverloadedPieces)     ;
     if (TuneThreatByPawnPush            ) PRINT_PARAM_0(ThreatByPawnPush)           ;
