@@ -69,12 +69,12 @@ const int PawnStacked = S( -10, -32);
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
 const int PawnConnected[8] = {
-    S(   0,   0), S(   0,   0), S(  16,   8), S(  10,   4),
-    S(  22,   8), S(  30,  34), S( 168,  19), S(   0,   0),
+    S(   0,   0), S(   0,   0), S(  19,   8), S(  13,   5),
+    S(  29,  10), S(  38,  46), S( 214,  22), S(   0,   0),
 };
 const int PawnPhalanx[8] = {
-    S(   0,   0), S(   4,  -3), S(   2,   1), S(   6,   1),
-    S(   5,   4), S(   3,  13), S(  -8,  12), S(   0,   0),
+    S(   0,   0), S(   4,  -4), S(   4,   1), S(  13,   6),
+    S(  35,  28), S(  84,  69), S( 155,  97), S(   0,   0),
 };
 
 /* Knight Evaluation Terms */
