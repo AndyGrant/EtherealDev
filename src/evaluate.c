@@ -178,7 +178,7 @@ const int PassedPawnRank[RANK_NB] = {
 
 const int PassedPawnFile[FILE_NB/2] = {
     S(   2,  16), S(  -5,  16), S(  -7,   4), S(  -5,   0),
-}
+};
 
 /* Threat Evaluation Terms */
 
