@@ -84,9 +84,9 @@ const int PawnConnected32[32] = {
 const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
 
 const int KnightMobility[9] = {
-    S( -87, -97), S( -37, -90), S( -19, -42),
-    S(  -6, -14), S(   2, -14), S(   7,  -1),
-    S(  17,  -2), S(  32,  -3), S(  48, -33),
+    S( -55, -99), S( -24, -78), S( -12, -36), S(  -6, -15),
+    S(   3, -14), S(  11,   0), S(  19,  -4), S(  30, -10),
+    S(  39, -43),
 };
 
 /* Bishop Evaluation Terms */
@@ -98,10 +98,10 @@ const int BishopRammedPawns = S( -11,  -7);
 const int BishopOutpost[2] = { S(  26,   0), S(  40,   0) };
 
 const int BishopMobility[14] = {
-    S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
-    S(   5,  -9), S(  17,   0), S(  22,   7), S(  27,   4),
-    S(  28,   9), S(  34,   3), S(  36,   4), S(  46, -15),
-    S(  46,  -4), S(  40, -35),
+    S( -34,-115), S( -27, -57), S( -10, -42), S(  -3, -22),
+    S(   6,  -9), S(  12,   0), S(  15,   4), S(  18,   2),
+    S(  21,   6), S(  26,  -1), S(  24,  -2), S(  41, -23),
+    S(  41, -16), S(  45, -49),
 };
 
 /* Rook Evaluation Terms */
@@ -111,22 +111,22 @@ const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 const int RookOnSeventh = S(   0,  25);
 
 const int RookMobility[15] = {
-    S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
-    S(  -8,  -3), S(  -7,  14), S(  -8,  25), S(  -3,  32),
-    S(   1,  35), S(   5,  36), S(   9,  42), S(  17,  48),
-    S(  19,  50), S(  25,  46), S(  20,  47),
+    S(-117, -91), S( -25,-100), S(  -9, -55), S(  -9, -22),
+    S( -13,   1), S( -11,  14), S(  -7,  23), S(  -4,  30),
+    S(   0,  33), S(   3,  37), S(   7,  41), S(   8,  46),
+    S(  13,  48), S(  20,  44), S(   9,  46),
 };
 
 /* Queen Evaluation Terms */
 
 const int QueenMobility[28] = {
-    S( -61,-263), S(-217,-390), S( -48,-205), S( -36,-190),
-    S( -15,-126), S( -24, -66), S( -15, -91), S( -17, -83),
-    S( -13, -60), S( -10, -54), S(  -8, -28), S(  -6, -28),
-    S(  -6, -15), S(  -1, -10), S(   0,  -6), S(  -2,   4),
-    S(   3,  17), S(   0,  16), S(  11,  25), S(  -2,  25),
-    S(   4,  26), S(  18,  28), S(  13,   8), S(  39,  13),
-    S(  44,  20), S(  62,   1), S( -33,  -7), S(  14,   3),
+    S( -61,-263), S( -17,-360), S( -27,-207), S( -23,-182),
+    S( -21,-127), S( -23, -70), S( -19, -86), S( -16, -78),
+    S( -15, -58), S(  -9, -53), S(  -7, -27), S(  -4, -28),
+    S(  -4, -14), S(  -1,  -8), S(   0,  -1), S(   0,   7),
+    S(   2,  18), S(   0,  17), S(   0,  21), S(  -3,  25),
+    S(  -2,  20), S(  13,  26), S(  16,   1), S(  18,   6),
+    S(  17,   8), S(  60,  -9), S( -17,  -8), S(   0,  -6),
 };
 
 /* King Evaluation Terms */
@@ -821,8 +821,11 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAreas[WHITE] = kingAttacks(wKingSq) | (1ull << wKingSq) | (kingAttacks(wKingSq) << 8);
     ei->kingAreas[BLACK] = kingAttacks(bKingSq) | (1ull << bKingSq) | (kingAttacks(bKingSq) >> 8);
 
-    ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
-    ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
+    uint64_t b1 = (white & pawns) & (ei->blockedPawns[WHITE] | RANK_2 | RANK_3);
+    ei->mobilityAreas[WHITE] = ~(b1 | (white & (queens | kings)) | ei->pawnAttacks[BLACK]);
+
+    uint64_t b2 = (black & pawns) & (ei->blockedPawns[BLACK] | RANK_7 | RANK_6);
+    ei->mobilityAreas[BLACK] = ~(b2 | (black & (queens | kings)) | ei->pawnAttacks[WHITE]);
 
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
