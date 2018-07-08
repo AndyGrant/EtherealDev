@@ -725,7 +725,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
-    const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6; // BUG!
+    const uint64_t Rank3Relative = US == WHITE ? RANK_3 : RANK_6; // BUG!
 
     int count, eval = 0;
 
@@ -753,7 +753,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
     pushThreat |= pawnAdvance(pushThreat & Rank3Relative, occupied, US);
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
-    pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
+    pushThreat  = pawnAttackSpan(pushThreat, enemy, US);
 
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ~ei->attacked[US] & ei->attacked[THEM]);
