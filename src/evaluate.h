@@ -22,8 +22,8 @@
 #include "types.h"
 
 enum {
-    SCALE_OCB_BISHOPS_ONLY =  96,
-    SCALE_NORMAL           = 128,
+    SCALE_OCB_GENERAL = 116,
+    SCALE_NORMAL      = 128,
 };
 
 struct EvalTrace {

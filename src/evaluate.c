@@ -807,9 +807,8 @@ int evaluateScaleFactor(Board *board) {
 
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
-        &&  onlyOne(bishops & WHITE_SQUARES)
-        && (white | black) == (pawns | bishops | kings))
-        return SCALE_OCB_BISHOPS_ONLY;
+        &&  onlyOne(bishops & WHITE_SQUARES))
+        return SCALE_OCB_GENERAL;
 
     return SCALE_NORMAL;
 }
