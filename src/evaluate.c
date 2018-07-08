@@ -62,22 +62,23 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
-const int PawnIsolated = S(  -3,  -4);
-
-const int PawnStacked = S( -10, -32);
-
-const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
-
+const int PawnIsolated = S(  -5,  -3);
+const int PawnStacked = S(  -7, -32);
+const int PawnBackwards[2] = {
+    S(   6,  -4), S( -10, -11),
+};
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  21),
-    S(   6,   0), S(  20,   3), S(  14,   7), S(  16,  17),
-    S(   6,  11), S(  20,  20), S(  19,  24), S(  37,  24),
-    S(  23,  55), S(  24,  65), S(  66,  63), S(  50,  75),
-    S( 106, -14), S( 199,  17), S( 227,  22), S( 250,  76),
+    S(   0, -16), S(   8,   0), S(   4,  -3), S(   5,  19),
+    S(   8,   0), S(  22,   0), S(  14,   7), S(  17,  21),
+    S(   6,   0), S(  18,   3), S(  13,   6), S(  16,  17),
+    S(   7,  11), S(  17,  20), S(  20,  23), S(  36,  22),
+    S(  13,  54), S(  19,  66), S(  49,  61), S(  53,  72),
+    S( 136, -16), S( 202,  27), S( 205,  18), S( 273,  68),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
+
+
 
 /* Knight Evaluation Terms */
 
@@ -332,12 +333,6 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
 
-        // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & tempPawns)) {
-            eval += PawnIsolated;
-            if (TRACE) T.PawnIsolated[US]++;
-        }
-
         // Apply a penalty if the pawn is stacked
         if (Files[fileOf(sq)] & tempPawns) {
             eval += PawnStacked;
@@ -345,14 +340,20 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the pawn is backward
-        if (   !(passedPawnMasks(THEM, sq) & myPawns)
+        else if (   !(passedPawnMasks(THEM, sq) & myPawns)
             &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
             semi = !(Files[fileOf(sq)] & enemyPawns);
             eval += PawnBackwards[semi];
             if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
-        // Apply a bonus if the pawn is connected and not backward
+        // Apply a penalty if the pawn is isolated
+        else if (!(isolatedPawnMasks(sq) & myPawns)) {
+            eval += PawnIsolated;
+            if (TRACE) T.PawnIsolated[US]++;
+        }
+
+        // Apply a bonus if the pawn is connected
         else if (pawnConnectedMasks(US, sq) & myPawns) {
             eval += PawnConnected32[relativeSquare32(sq, US)];
             if (TRACE) T.PawnConnected32[relativeSquare32(sq, US)][US]++;
