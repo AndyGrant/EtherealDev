@@ -744,9 +744,10 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
-    uint64_t overloaded = (knights | bishops | rooks | queens)
-                        & ei->attacked[  US] & ~ei->attackedBy2[  US]
-                        & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
+    uint64_t overloaded =  (knights | bishops | rooks | queens)
+                        &  ei->attacked[  US]    & ~ei->attackedBy2[  US]
+                        &  ei->attacked[THEM]    & ~ei->attackedBy2[THEM]
+                        & (ei->pawnAttacks[THEM] | ~ei->pawnAttacks[  US]);
 
     // Pawn advances (single or double moves) which threaten an enemy piece.
     // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
