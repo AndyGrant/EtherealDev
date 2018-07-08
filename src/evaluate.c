@@ -821,12 +821,11 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAreas[WHITE] = kingAttacks(wKingSq) | (1ull << wKingSq) | (kingAttacks(wKingSq) << 8);
     ei->kingAreas[BLACK] = kingAttacks(bKingSq) | (1ull << bKingSq) | (kingAttacks(bKingSq) >> 8);
 
-    //ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
-    //ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
+    uint64_t b1 = (white & pawns) & (ei->blockedPawns[WHITE] | RANK_2 | RANK_3);
+    ei->mobilityAreas[WHITE] = ~(b1 | (white & (queens | kings)) | ei->pawnAttacks[BLACK]);
 
-    uint64_t b = (white & pawns) & (ei->blockedPawns[WHITE] | RANK_2 | RANK_3);
-    ei->mobilityAreas[WHITE] = ~(b | (white & (queens | kings)) | ei->pawnA
-
+    uint64_t b2 = (black & pawns) & (ei->blockedPawns[BLACK] | RANK_7 | RANK_6);
+    ei->mobilityAreas[BLACK] = ~(b2 | (black & (queens | kings)) | ei->pawnAttacks[WHITE]);
 
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
