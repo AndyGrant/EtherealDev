@@ -827,11 +827,11 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
 
-    ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
-    ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
+    ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & bishops) ^ queens;
+    ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & bishops) ^ queens;
 
-    ei->occupiedMinusRooks[WHITE] = (white | black) ^ (white & (rooks | queens));
-    ei->occupiedMinusRooks[BLACK] = (white | black) ^ (black & (rooks | queens));
+    ei->occupiedMinusRooks[WHITE] = (white | black) ^ (white & rooks) ^ queens;
+    ei->occupiedMinusRooks[BLACK] = (white | black) ^ (black & rooks) ^ queens;
 
     ei->passedPawns = 0ull;
 
