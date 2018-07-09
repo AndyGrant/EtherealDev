@@ -69,8 +69,8 @@ const int PawnStacked = S( -10, -32);
 const int PawnBackwards[2] = { S(   7,  -3), S( -11, -11) };
 
 const int PawnConnected[RANK_NB] = {
-    S(   0,   0), S(   4,   0), S(  16,  10), S(  14,  10),
-    S(  28,  22), S(  29,  73), S( 223,  36), S(   0,   0),
+    S(   0,   0), S(   3,   8), S(  23,  17), S(  27,  18),
+    S(  61,  24), S( 120,   8), S( 407,-186), S(   0,   0),
 };
 
 /* Knight Evaluation Terms */
