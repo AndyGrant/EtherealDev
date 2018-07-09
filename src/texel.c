@@ -111,7 +111,9 @@ void runTexelTuning(Thread *thread) {
     initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 0.080804;//computeOptimalK(tes);
+    printf("ERROR %f", completeLinearError(tes, params, K));
+    exit(EXIT_SUCCESS);
 
     while (1) {
 

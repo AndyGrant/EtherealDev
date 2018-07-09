@@ -22,12 +22,12 @@
 #include "types.h"
 
 #define NTHREADS   (      4) // # of Threads to use
-#define NTERMS     (      0) // # of Terms to tune
-#define NPOSITIONS (1491000) // # of FENs in book
+#define NTERMS     (      2) // # of Terms to tune
+#define NPOSITIONS (7000000) // # of FENs in book
 
 // Each Eval Term (Total = 488)
-#define TunePawnValue                  (0)
-#define TuneKnightValue                (0)
+#define TunePawnValue                  (1)
+#define TuneKnightValue                (1)
 #define TuneBishopValue                (0)
 #define TuneRookValue                  (0)
 #define TuneQueenValue                 (0)
