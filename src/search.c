@@ -540,7 +540,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            &&  depth <= CounterMovePruningDepth
+            &&  depth <= CounterMovePruningDepth[improving]
             &&  cmhist < CounterMoveHistoryLimit[improving])
             continue;
 
