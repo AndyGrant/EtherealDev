@@ -63,8 +63,9 @@ const int PieceValues[8][PHASE_NB] = {
 /* Pawn Evaluation Terms */
 
 const int PawnIsolated[FILE_NB/2] = {
-    S(  -3,   1), S(  -8,  -1), S(  -8,  -4), S( -11,  -2),
+    S(  -5,  -9), S( -15,  -9), S(  -9, -11), S( -15, -13),
 };
+
 
 const int PawnStacked = S( -10, -34);
 
