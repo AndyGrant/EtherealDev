@@ -55,7 +55,7 @@ extern const int BishopPSQT32[32];
 extern const int RookPSQT32[32];
 extern const int QueenPSQT32[32];
 extern const int KingPSQT32[32];
-extern const int PawnIsolated;
+extern const int PawnIsolated[4];
 extern const int PawnStacked;
 extern const int PawnBackwards[2];
 extern const int PawnConnected32[32];
@@ -313,7 +313,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneRookPSQT32                  ) INIT_COEFF_1(RookPSQT32, 32)              ;
     if (TuneQueenPSQT32                 ) INIT_COEFF_1(QueenPSQT32, 32)             ;
     if (TuneKingPSQT32                  ) INIT_COEFF_1(KingPSQT32, 32)              ;
-    if (TunePawnIsolated                ) INIT_COEFF_0(PawnIsolated)                ;
+    if (TunePawnIsolated                ) INIT_COEFF_1(PawnIsolated, 4)             ;
     if (TunePawnStacked                 ) INIT_COEFF_0(PawnStacked)                 ;
     if (TunePawnBackwards               ) INIT_COEFF_1(PawnBackwards, 2)            ;
     if (TunePawnConnected32             ) INIT_COEFF_1(PawnConnected32, 32)         ;
@@ -360,7 +360,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneRookPSQT32                  ) INIT_PARAM_1(RookPSQT32, 32)              ;
     if (TuneQueenPSQT32                 ) INIT_PARAM_1(QueenPSQT32, 32)             ;
     if (TuneKingPSQT32                  ) INIT_PARAM_1(KingPSQT32, 32)              ;
-    if (TunePawnIsolated                ) INIT_PARAM_0(PawnIsolated)                ;
+    if (TunePawnIsolated                ) INIT_PARAM_1(PawnIsolated, 4)             ;
     if (TunePawnStacked                 ) INIT_PARAM_0(PawnStacked)                 ;
     if (TunePawnBackwards               ) INIT_PARAM_1(PawnBackwards, 2)            ;
     if (TunePawnConnected32             ) INIT_PARAM_1(PawnConnected32, 32)         ;
@@ -415,7 +415,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneRookPSQT32                  ) PRINT_PARAM_1(RookPSQT32, 32)             ;
     if (TuneQueenPSQT32                 ) PRINT_PARAM_1(QueenPSQT32, 32)            ;
     if (TuneKingPSQT32                  ) PRINT_PARAM_1(KingPSQT32, 32)             ;
-    if (TunePawnIsolated                ) PRINT_PARAM_0(PawnIsolated)               ;
+    if (TunePawnIsolated                ) PRINT_PARAM_1(PawnIsolated, 4)            ;
     if (TunePawnStacked                 ) PRINT_PARAM_0(PawnStacked)                ;
     if (TunePawnBackwards               ) PRINT_PARAM_1(PawnBackwards, 2)           ;
     if (TunePawnConnected32             ) PRINT_PARAM_1(PawnConnected32, 32)        ;

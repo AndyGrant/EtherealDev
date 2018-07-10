@@ -62,7 +62,9 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
-const int PawnIsolated = S(  -3,  -1);
+const int PawnIsolated[FILE_NB/2] = {
+    S(  -3,   1), S(  -8,  -1), S(  -8,  -4), S( -11,  -2),
+};
 
 const int PawnStacked = S( -10, -34);
 
@@ -338,8 +340,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is isolated
         if (!(isolatedPawnMasks(sq) & myPawns)) {
-            eval += PawnIsolated;
-            if (TRACE) T.PawnIsolated[US]++;
+            static const int TABLE[] = {0, 1, 2, 3, 3, 2, 1, 0};
+            eval += PawnIsolated[TABLE[fileOf(sq)]];
+            if (TRACE) T.PawnIsolated[TABLE[fileOf(sq)]][US]++;
         }
 
         // Apply a penalty if the pawn is stacked
