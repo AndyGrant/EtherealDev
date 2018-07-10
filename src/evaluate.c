@@ -62,7 +62,7 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
-const int PawnIsolated = S(  -3,  -1);
+const int PawnIsolated = S(  -6,  -1);
 
 const int PawnStacked = S( -10, -34);
 
@@ -186,7 +186,7 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -23);
-const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatByPawnPush           = S(  17,  17);
 
 /* General Evaluation Terms */
 
