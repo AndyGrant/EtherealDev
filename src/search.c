@@ -672,8 +672,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
-    int eval, value, best;
+    int played = 0;
+    int rAlpha, rBeta;
+    int eval, value, best = -MATE;
     uint16_t move;
 
     Undo undo[1];
@@ -701,37 +704,51 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 1B. Check to see if the master thread finished
     if (ABORT_SIGNAL) longjmp(thread->jbuffer, 1);
 
-    // Step 2. Max Draft Cutoff. If we are at the maximum search draft,
-    // then end the search here with a static eval of the current board
+    // Check for the fifty move rule and for draw by repetition
+    if (boardIsDrawn(board, height))
+        return 0;
+
+    // Check to see if we have exceeded the maxiumum search draft
     if (height >= MAX_PLY)
         return evaluateBoard(board, &thread->pktable);
 
-    // Step 3. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    // Mate Distance Pruning. Check to see if this line is so
+    // good, or so bad, that being mated in the ply, or  mating in
+    // the next one, would still not create a more extreme line
+    rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
+    rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
+    if (rAlpha >= rBeta) return rAlpha;
 
-    // Step 4. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional of the futility margin would still fail
-    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
-        return eval;
+    if (!InCheck) {
+
+        // Step 3. Eval Pruning. If a static evaluation of the board will
+        // exceed beta, then we can stop the search here. Also, if the static
+        // eval exceeds alpha, we can call our static eval the new alpha
+        best = eval = evaluateBoard(board, &thread->pktable);
+        alpha = MAX(alpha, eval);
+        if (alpha >= beta) return eval;
+
+        // Step 4. Delta Pruning. Even the best possible capture and or promotion
+        // combo with the additional of the futility margin would still fail
+        if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+            return eval;
+    }
 
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
-    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
+    while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE){
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (!InCheck && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
-        // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
+        // Step 7. Static Exchance Evaluation Pruning. If the move fails a generous
         // SEE threadhold, then it is unlikely to be useful. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (    movePicker.stage > STAGE_GOOD_NOISY
+        if (   (!InCheck || best > MATED_IN_MAX)
+            &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
@@ -742,6 +759,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             continue;
         }
 
+        played += 1;
         thread->moveStack[height] = move;
 
         // Search next depth
@@ -770,7 +788,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             return best;
     }
 
-    return best;
+    // Check for a mate score when no moves were played. Unlike search(), played
+    // equally zero does not indicate a stalemated position, since we skip quiets
+    return played == 0 && InCheck ? -MATE + height : best;
 }
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
