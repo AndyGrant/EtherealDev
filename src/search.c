@@ -202,7 +202,7 @@ int aspirationWindow(Thread* thread, int depth){
 
     // Need a few searches to get a good window
     if (depth <= 4)
-        return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+        return search(thread, &thread->pv, -MATE, MATE, depth, 0, NONE_MOVE);
 
     // Create the aspiration window
     alpha = MAX(-MATE, thread->value - delta);
@@ -212,7 +212,7 @@ int aspirationWindow(Thread* thread, int depth){
     while (1) {
 
         // Perform the search on the modified window
-        value = search(thread, &thread->pv, alpha, beta, depth, 0);
+        value = search(thread, &thread->pv, alpha, beta, depth, 0, NONE_MOVE);
 
         // Result was within our window
         if (value > alpha && value < beta)
@@ -237,7 +237,7 @@ int aspirationWindow(Thread* thread, int depth){
     }
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, uint16_t excluded){
 
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -430,7 +430,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         thread->moveStack[height] = NULL_MOVE;
 
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1, NONE_MOVE);
 
         thread->moveStack[height] = NONE_MOVE;
 
@@ -471,9 +471,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1, NONE_MOVE);
             if (value >= rBeta)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, NONE_MOVE);
 
             // Revert the board state
             revertMove(board, move, undo);
@@ -490,7 +490,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= IIDDepth){
 
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, NONE_MOVE);
 
         // Probe for a new table move, and adjust any mate scores
         ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
@@ -501,6 +501,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // move one at a time, until we run out or a move generates a cutoff
     initializeMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
+
+        // Skip the excluded move always
+        if (move == excluded) continue;
 
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
@@ -614,21 +617,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 19A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1, NONE_MOVE);
 
         // Step 19B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1, NONE_MOVE);
 
         // Step 19C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1, NONE_MOVE);
 
         // Revert the board state
         revertMove(board, move, undo);
@@ -971,47 +974,25 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
 
     Board* const board = &thread->board;
 
-    int value = -MATE;
+    int value;
     int rBeta = MAX(ttValue - 2 * depth, -MATE);
-
-    uint16_t move;
-    MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
-    // Table move was already applied, undo that
+    // Table move has already been applied, undo that
     revertMove(board, ttMove, undo);
 
-    // Iterate and check all moves other than the table move
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
-    while ((move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE){
+    // Tweak the hash to account for the exclusion
+    board->hash ^= (uint64_t)ttMove;
 
-        // Skip the table move
-        if (move == ttMove) continue;
+    // Search with ttMove excluded from the move picker
+    value = search(thread, &lpv, rBeta-1, rBeta, depth/2, height, ttMove);
 
-        // Verify legality before searching
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
-            continue;
-        }
+    // Fix the hash signature
+    board->hash ^= (uint64_t)ttMove;
 
-        thread->moveStack[height] = move;
-
-        // Perform a reduced depth search on a null rbeta window
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
-
-        // Revert board state
-        revertMove(board, move, undo);
-
-        // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
-    }
-
-    // Reapply the table move we took off
+    // Fix the board and move stack state
     applyMove(board, ttMove, undo);
-
     thread->moveStack[height] = ttMove;
 
-    // Move is singular if all other moves failed low
-    return value <= rBeta;
+    return value < rBeta;
 }
