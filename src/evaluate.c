@@ -196,26 +196,21 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
-    EvalInfo ei; // Fix bogus GCC warning
-    ei.pkeval[WHITE] = ei.pkeval[BLACK] = 0;
-
+    EvalInfo ei;
     int phase, factor, eval, pkeval;
 
-    // Check for obviously drawn positions
+    // Check for guaranteed material draws
     if (evaluateDraws(board)) return 0;
 
-    // Setup and perform the evaluation of all pieces
+    // Setup and perform all evaluations
     initializeEvalInfo(&ei, board, pktable);
-    eval = evaluatePieces(&ei, board);
+    eval   = evaluatePieces(&ei, board);
+    pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
+    eval  += pkeval + board->psqtmat + Tempo[board->turn];
 
     // Store a new Pawn King Entry if we did not have one
-    if (ei.pkentry == NULL && !TEXEL){
-        pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
+    if (ei.pkentry == NULL)
         storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
-    }
-
-    // Add in the PSQT and Material values, as well as the tempo
-    eval += board->psqtmat + Tempo[board->turn];
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
@@ -305,7 +300,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
     const int Forward = (colour == WHITE) ? 8 : -8;
 
-    int sq, semi, eval = 0;
+    int sq, semi, eval = 0, pkeval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
     // Store off pawn attacks for king safety and threat computations
@@ -318,7 +313,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     ei->kingAttacksCount[US] += popcount(attacks);
 
     // Pawn hash holds the pawn evaluation for both colours from white's POV
-    if (ei->pkentry != NULL) return US == WHITE ? ei->pkentry->eval : 0;
+    if (ei->pkentry != NULL) return eval;
 
     pawns = board->pieces[PAWN];
     myPawns = tempPawns = pawns & board->colours[US];
@@ -338,13 +333,13 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is isolated
         if (!(isolatedPawnMasks(sq) & myPawns)) {
-            eval += PawnIsolated;
+            pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
 
         // Apply a penalty if the pawn is stacked
         if (Files[fileOf(sq)] & tempPawns) {
-            eval += PawnStacked;
+            pkeval += PawnStacked;
             if (TRACE) T.PawnStacked[US]++;
         }
 
@@ -352,18 +347,18 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (   !(passedPawnMasks(THEM, sq) & myPawns)
             &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
             semi = !(Files[fileOf(sq)] & enemyPawns);
-            eval += PawnBackwards[semi];
+            pkeval += PawnBackwards[semi];
             if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
         // Apply a bonus if the pawn is connected and not backward
         else if (pawnConnectedMasks(US, sq) & myPawns) {
-            eval += PawnConnected32[relativeSquare32(sq, US)];
+            pkeval += PawnConnected32[relativeSquare32(sq, US)];
             if (TRACE) T.PawnConnected32[relativeSquare32(sq, US)][US]++;
         }
     }
 
-    ei->pkeval[US] = eval; // Save eval for the Pawn Hash
+    ei->pkeval[US] = pkeval; // Save eval for the Pawn Hash
 
     return eval;
 }
@@ -687,19 +682,16 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     ei->pkeval[US] += pkeval;
 
-    return eval + pkeval;
+    return eval;
 }
 
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     int sq, rank, canAdvance, safeAdvance, eval = 0;
-    uint64_t tempPawns, destination, notEmpty;
+    uint64_t destination;
 
-    // Fetch Passed Pawns from the Pawn King Entry if we have one
-    if (ei->pkentry != NULL) ei->passedPawns = ei->pkentry->passed;
-
-    tempPawns = board->colours[colour] & ei->passedPawns;
-    notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
+    uint64_t tempPawns = board->colours[colour] & ei->passedPawns;
+    uint64_t notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
 
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
@@ -877,12 +869,12 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->occupiedMinusRooks[WHITE] = (white | black) ^ (white & (rooks | queens));
     ei->occupiedMinusRooks[BLACK] = (white | black) ^ (black & (rooks | queens));
 
-    ei->passedPawns = 0ull;
-
     ei->kingAttacksCount[WHITE]    = ei->kingAttacksCount[BLACK]    = 0;
     ei->kingAttackersCount[WHITE]  = ei->kingAttackersCount[BLACK]  = 0;
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
-    if (TEXEL) ei->pkentry = NULL;
-    else       ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
+    ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
+    ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
+    ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
+    ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
 }
