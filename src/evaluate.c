@@ -34,12 +34,10 @@
 #include "types.h"
 
 #ifdef TUNE
-    const int TEXEL = 1;
     const int TRACE = 1;
     const EvalTrace EmptyTrace;
     EvalTrace T;
 #else
-    const int TEXEL = 0;
     const int TRACE = 0;
     EvalTrace T;
 #endif
@@ -208,10 +206,6 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
     eval  += pkeval + board->psqtmat + Tempo[board->turn];
 
-    // Store a new Pawn King Entry if we did not have one
-    if (ei.pkentry == NULL)
-        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
-
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
                - 2 * popcount(board->pieces[ROOK  ])
@@ -219,12 +213,16 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
                              |board->pieces[BISHOP]);
     phase = (phase * 256 + 12) / 24;
 
-    // Scale based on remaining material
+    // Scale evaluation based on remaining material
     factor = evaluateScaleFactor(board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
          +  ScoreEG(eval) * phase * factor / SCALE_NORMAL) / 256;
+
+    // Store a new Pawn King Entry if we did not have one
+    if (ei.pkentry == NULL)
+        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -874,7 +872,7 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
     ei->pkentry = getPawnKingEntry(pktable, board->pkhash);
-    ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
-    ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
-    ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
+    ei->passedPawns   = ei->pkentry == NULL || TRACE ? 0ull : ei->pkentry->passed;
+    ei->pkeval[WHITE] = ei->pkentry == NULL || TRACE ? 0    : ei->pkentry->eval;
+    ei->pkeval[BLACK] = ei->pkentry == NULL || TRACE ? 0    : 0;
 }
