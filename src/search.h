@@ -51,7 +51,7 @@ int aspirationWindow(Thread* thread, int depth);
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold);
 
@@ -106,7 +106,5 @@ static const int SEEPruningDepth = 8;
 static const int SEEMargin = -20;
 
 static const int QFutilityMargin = 100;
-
-static const int QSEEMargin = -100;
 
 #endif

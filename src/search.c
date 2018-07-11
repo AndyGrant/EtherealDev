@@ -326,7 +326,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // No king attackers indicates we are not checked. We reduce the
         // node count here, in order to avoid counting this node twice
         if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
+            return thread->nodes--, qsearch(thread, pv, alpha, beta, 0, height);
 
         // Search expects depth to be greater than or equal to 0
         depth = 0;
@@ -380,7 +380,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargin < alpha)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
@@ -669,7 +669,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
 
     Board* const board = &thread->board;
     const int InCheck  = !!board->kingAttackers;
@@ -744,11 +744,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (!InCheck && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
-        // SF-ish
-        pruneable = InCheck
-                 && played >= 2
-                 && best > MATED_IN_MAX
-                 && moveIsTactical(board, move);
+        // SF-ish ++
+        pruneable =  InCheck
+                 && (depth != 0 || played >= 2)
+                 &&  best > MATED_IN_MAX
+                 &&  moveIsTactical(board, move);
 
         // Hmmm...
         if (   (!InCheck || pruneable)
@@ -768,7 +768,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         thread->moveStack[height] = move;
 
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
 
         // Revert move from board
         revertMove(board, move, undo);
