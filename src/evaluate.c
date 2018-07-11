@@ -169,12 +169,15 @@ const int KSAdjustment      =  -38;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
-   {S(   0,   0), S(  -1,   2), S( -19,  24), S( -12,  37), S(   6,  46), S(  66,  63), S( 191, 133), S(   0,   0)}},
-  {{S(   0,   0), S(  -7,  15), S( -13,   9), S(  -6,  28), S(  29,  34), S(  78,  66), S( 234, 152), S(   0,   0)},
-   {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
-};
+const int PassedPawnRank[RANK_NB];
+
+const int PassedPawnFile[FILE_NB/2];
+
+const int PassedPawnCanAdvance[RANK_NB];
+
+const int PassedPawnSafeAdvance[RANK_NB];
+
+const int PassedPawnConnected[RANK_NB];
 
 /* Threat Evaluation Terms */
 
@@ -685,32 +688,46 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
-    int sq, rank, canAdvance, safeAdvance, eval = 0;
-    uint64_t destination;
+    const int US = colour, THEM = !colour;
 
-    uint64_t tempPawns = board->colours[colour] & ei->passedPawns;
-    uint64_t notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
+    int sq, rank, file, eval = 0;
+
+    uint64_t myPawns   = board->colours[US] & board->pieces[PAWN];
+    uint64_t tempPawns = ei->passedPawns & myPawns;
+    uint64_t notEmpty  = board->colours[US] | board->colours[THEM];
 
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
 
-        // Pop off the next passed Pawn
         sq = poplsb(&tempPawns);
 
-        // Determine the releative rank
-        rank = (colour == BLACK) ? (7 - rankOf(sq)) : rankOf(sq);
+        // Bonus based on rank of the passer
+        rank = relativeRankOf(US, sq);
+        eval += PassedPawnRank[rank];
+        if (TRACE) T.PassedPawnRank[rank][US]++;
 
-        // Determine where the pawn would advance to
-        destination = (colour == BLACK) ? ((1ull << sq) >> 8): ((1ull << sq) << 8);
+        // Bonus based on the file of the passer
+        file = mirroredFileOf(sq);
+        eval += PassedPawnFile[file];
+        if (TRACE) T.PassedPawnFile[file][US]++;
 
-        // Destination does not have any pieces on it
-        canAdvance = !(destination & notEmpty);
+        // Bonus if the passer is not blocked
+        if (pawnAdvance(1ull << sq, ~notEmpty, US)) {
+            eval += PassedPawnCanAdvance[rank];
+            if (TRACE) T.PassedPawnCanAdvance[rank][US]++;
+        }
 
-        // Destination is not attacked by the opponent
-        safeAdvance = !(destination & ei->attacked[!colour]);
+        // Bonus if the forward square is not defended by them
+        if (pawnAdvance(1ull << sq, 0ull, US) & ~ei->attacked[THEM]) {
+            eval += PassedPawnSafeAdvance[rank];
+            if (TRACE) T.PassedPawnSafeAdvance[rank][US]++;
+        }
 
-        eval += PassedPawn[canAdvance][safeAdvance][rank];
-        if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][colour]++;
+        // Bonus if the passer is connected
+        if (pawnConnectedMasks(US, sq) & myPawns) {
+            eval += PassedPawnConnected[rank];
+            if (TRACE) T.PassedPawnConnected[rank][US]++;
+        }
     }
 
     return eval;
