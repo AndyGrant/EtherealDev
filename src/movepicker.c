@@ -196,7 +196,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             bestMove = mp->moves[best];
 
             // Stop skipping once we hit a very bad quiet
-            if (mp->values[best] < -1024 * mp->depth)
+            if (mp->values[best] < -512 * mp->depth)
                 mp->skipSorting = 1;
 
             // Reduce effective move list size
