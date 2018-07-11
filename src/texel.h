@@ -21,9 +21,9 @@
 
 #include "types.h"
 
-#define NDEPTHS    (      1) // # of Depths for eval
+#define NDEPTHS    (      4) // # of Depths for eval
 #define NTHREADS   (      4) // # of Threads to use
-#define NTERMS     (      0) // # of Terms to tune
+#define NTERMS     (      7) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 488)
@@ -56,13 +56,13 @@
 #define TuneKingDefenders              (0)
 #define TuneKingShelter                (0)
 #define TunePassedPawn                 (0)
-#define TuneThreatPawnAttackedByOne    (0)
-#define TuneThreatMinorAttackedByPawn  (0)
-#define TuneThreatMinorAttackedByMajor (0)
-#define TuneThreatRookAttackedByLesser (0)
-#define TuneThreatQueenAttackedByOne   (0)
-#define TuneThreatOverloadedPieces     (0)
-#define TuneThreatByPawnPush           (0)
+#define TuneThreatPawnAttackedByOne    (1)
+#define TuneThreatMinorAttackedByPawn  (1)
+#define TuneThreatMinorAttackedByMajor (1)
+#define TuneThreatRookAttackedByLesser (1)
+#define TuneThreatQueenAttackedByOne   (1)
+#define TuneThreatOverloadedPieces     (1)
+#define TuneThreatByPawnPush           (1)
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
