@@ -21,6 +21,7 @@
 
 #include "types.h"
 
+#define NDEPTHS    (      1) // # of Depths for eval
 #define NTHREADS   (      4) // # of Threads to use
 #define NTERMS     (      0) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
@@ -64,7 +65,7 @@
 #define TuneThreatByPawnPush           (0)
 
 // Size of each allocated chunk
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
 struct TexelTuple {
     int index;

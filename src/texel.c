@@ -93,6 +93,8 @@ void runTexelTuning(Thread *thread) {
 
     printf("\nTuner Will Be Tuning %d Terms...", NTERMS);
 
+    printf("\n\nTuner Will Be Searching to depth %d...", NDEPTHS);
+
     printf("\n\nAllocating Memory for Texel Entries [%dMB]...",
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
@@ -195,7 +197,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
     for (i = 0; i < NPOSITIONS; i++) {
 
-        if ((i + 1) % 100000 == 0 || i == NPOSITIONS - 1)
+        if ((i + 1) % 25000 == 0 || i == NPOSITIONS - 1)
             printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
         fgets(line, 128, fin);
@@ -209,15 +211,17 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
 
+        // Get an evaluation based on future progression predictions
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, NDEPTHS, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+
         // Resolve FEN to a quiet position
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
 
-        // Prepare coefficients and get a WHITE POV eval
-        T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, NULL);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+        // Linearize the evaluation routine
+        T = EmptyTrace; evaluateBoard(&thread->board, NULL);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
