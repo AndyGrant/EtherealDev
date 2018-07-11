@@ -719,20 +719,17 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
     rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
     if (rAlpha >= rBeta) return rAlpha;
 
-    if (!InCheck) {
+    // Step 3. Eval Pruning. If a static evaluation of the board will
+    // exceed beta, then we can stop the search here. Also, if the static
+    // eval exceeds alpha, we can call our static eval the new alpha
+    best = eval = evaluateBoard(board, &thread->pktable);
+    alpha = MAX(alpha, eval);
+    if (alpha >= beta) return eval;
 
-        // Step 3. Eval Pruning. If a static evaluation of the board will
-        // exceed beta, then we can stop the search here. Also, if the static
-        // eval exceeds alpha, we can call our static eval the new alpha
-        best = eval = evaluateBoard(board, &thread->pktable);
-        alpha = MAX(alpha, eval);
-        if (alpha >= beta) return eval;
-
-        // Step 4. Delta Pruning. Even the best possible capture and or promotion
-        // combo with the additional of the futility margin would still fail
-        if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
-            return eval;
-    }
+    // Step 4. Delta Pruning. Even the best possible capture and or promotion
+    // combo with the additional of the futility margin would still fail
+    if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+        return eval;
 
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
@@ -741,7 +738,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (!InCheck && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
         // SF-ish ++
