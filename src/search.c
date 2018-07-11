@@ -401,6 +401,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the Quiescence search was sufficient.
     if (   !PvNode
         && !inCheck
+        && !excluded
         &&  depth <= RazorDepth
         &&  eval + RazorMargin < alpha)
         return qsearch(thread, pv, alpha, beta, height);
@@ -409,6 +410,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Move Pruning. If the eval is few pawns above beta then exit early
     if (   !PvNode
         && !inCheck
+        && !excluded
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return eval;
@@ -419,6 +421,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // in saying that our position is too good to be true
     if (   !PvNode
         && !inCheck
+        && !excluded
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
@@ -445,6 +448,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
         && !inCheck
+        && !excluded
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
@@ -486,6 +490,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
+        && !excluded
         &&  ttMove == NONE_MOVE
         &&  depth >= IIDDepth){
 
