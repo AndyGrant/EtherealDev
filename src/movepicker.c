@@ -32,11 +32,16 @@
 #include "types.h"
 #include "thread.h"
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height){
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int depth, int height){
 
-    // Picker starts with the table move. Zero out move list sizes
+    // Picker starts with the table move.
     mp->stage = STAGE_TABLE;
+
+    // Zero out move list sizes
     mp->noisySize = mp->quietSize = 0;
+
+    // Skip sorting for low depth moves
+    mp->skipSorting = 0;
 
     // Special move stages. selectNextMove() takes care of checking
     // for duplicate or unplayable moves found in special stages
@@ -46,6 +51,7 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->counter = getCounterMove(thread, height);
 
     // Reference to the board and move statistics
+    mp->depth  = depth;
     mp->height = height;
     mp->thread = thread;
 }
@@ -177,13 +183,21 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         // Check to see if there are still more quiet moves
         if (mp->quietSize != 0 && !skipQuiets){
 
-            // Find highest scoring move
-            for (i = 1 + mp->split, best = mp->split; i < mp->split + mp->quietSize; i++)
-                if (mp->values[i] > mp->values[best])
-                    best = i;
+            best = mp->split; // First quiet move in the list
+
+            // Find the highest scoring move, so long as we have no begun to
+            // skip the sorting phase, using the history trick from Stockfish
+            if (!mp->skipSorting)
+                for (i = 1 + mp->split; i < mp->split + mp->quietSize; i++)
+                    if (mp->values[i] > mp->values[best])
+                        best = i;
 
             // Save the best move before overwriting it
             bestMove = mp->moves[best];
+
+            // Stop skipping once we hit a very bad quiet
+            if (mp->values[best] < -1024 * mp->depth)
+                mp->skipSorting = 1;
 
             // Reduce effective move list size
             mp->quietSize--;

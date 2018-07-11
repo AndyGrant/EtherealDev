@@ -31,14 +31,15 @@ enum {
 };
 
 struct MovePicker {
-    int stage, split, noisySize, quietSize, height;
+    int depth, height, skipSorting;
+    int stage, split, noisySize, quietSize;
     uint16_t tableMove, killer1, killer2, counter;
     uint16_t moves[MAX_MOVES];
     int values[MAX_MOVES];
     Thread *thread;
 };
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height);
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int depth, int height);
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets);
 void evaluateNoisyMoves(MovePicker* mp);
 void evaluateQuietMoves(MovePicker* mp);

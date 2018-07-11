@@ -451,7 +451,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
+        initializeMovePicker(&movePicker, thread, NONE_MOVE, depth, height);
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
@@ -499,7 +499,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 12. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    initializeMovePicker(&movePicker, thread, ttMove, height);
+    initializeMovePicker(&movePicker, thread, ttMove, depth, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
 
         // If this move is quiet we will save it to a list of attemped quiets.
@@ -743,7 +743,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     // Step 5. Move Generation and Looping. Generate all tactical moves for this
     // position (includes Captures, Promotions, and Enpass) and try them
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, 0, height);
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
@@ -982,7 +982,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
     revertMove(board, ttMove, undo);
 
     // Iterate and check all moves other than the table move
-    initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
+    initializeMovePicker(&movePicker, thread, NONE_MOVE, depth, height);
     while ((move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE){
 
         // Skip the table move
