@@ -675,7 +675,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     const int InCheck  = !!board->kingAttackers;
 
     int played = 0;
-    int rAlpha, rBeta;
+    int rAlpha, rBeta, pruneable;
     int eval, value, best = -MATE;
     uint16_t move;
 
@@ -744,12 +744,17 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (!InCheck && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
-        // Step 7. Static Exchance Evaluation Pruning. If the move fails a generous
-        // SEE threadhold, then it is unlikely to be useful. The use of movePicker.stage
-        // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (   (!InCheck || best > MATED_IN_MAX)
-            &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, QSEEMargin))
+        // SF-ish
+        pruneable = InCheck
+                 && played >= 2
+                 && best > MATED_IN_MAX
+                 && moveIsTactical(board, move);
+
+        // Hmmm...
+        if (   (!InCheck || pruneable)
+            &&   movePicker.stage > STAGE_GOOD_NOISY
+            && (    movePicker.stage == STAGE_BAD_NOISY
+                || !staticExchangeEvaluation(board, move, 0)))
             continue;
 
         // Apply and validate move before searching
