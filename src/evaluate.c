@@ -184,7 +184,7 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -23);
-const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatByPawnPush           = S(  15,  14);
 
 /* General Evaluation Terms */
 
@@ -719,6 +719,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
+    const uint64_t Rank3Relative = US == WHITE ? RANK_3 : RANK_6;
 
     int count, eval = 0;
 
@@ -741,11 +742,12 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
                         & ei->attacked[  US] & ~ei->attackedBy2[  US]
                         & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
 
-    // Pawn advances by a single square which threaten an enemy piece.
+    // Pawn advances by a one or two squares which threaten an enemy piece.
     // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
     uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
-    pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
-    pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
+    pushThreat |= pawnAdvance(pushThreat & Rank3Relative & ~attacksByPawns, occupied, US);
+    pushThreat &= ~attacksByPawns & (ei->attackedBy2[US] | ~ei->attacked[THEM]);
+    pushThreat  = pawnAttackSpan(pushThreat, enemy, US);
 
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ~ei->attacked[US] & ei->attacked[THEM]);
