@@ -789,6 +789,7 @@ int evaluateScaleFactor(Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
@@ -796,7 +797,8 @@ int evaluateScaleFactor(Board *board) {
 
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
-        &&  onlyOne(bishops & WHITE_SQUARES)) {
+        &&  onlyOne(bishops & WHITE_SQUARES)
+        &&  abs(popcount(white & pawns) - popcount(black & pawns)) <= 1) {
 
         if (!(knights | rooks | queens))
             return SCALE_OCB_BISHOPS_ONLY;
