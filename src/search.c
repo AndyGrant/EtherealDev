@@ -247,7 +247,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int quiets = 0, played = 0, cmhist = 0, hist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    int i, reps, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -277,11 +277,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1B. Check to see if the master thread finished
     if (ABORT_SIGNAL) longjmp(thread->jbuffer, 1);
 
-    // Step 2. Check for early exit conditions, including the fifty move rule,
-    // mate distance pruning, max depth exceeded, or drawn by repitition. We
-    // will not take any of these exits in the Root Node, or else we would not
-    // have any move saved into the principle variation to send to the GUI
+    // Step 2. Check for early exit conditions. Don't take early exits in
+    // the RootNode, since this would prevent us from having a best move
     if (!RootNode){
+
+        // Check for the fifty move rule and for draw by repetition
+        if (boardIsDrawn(board, height))
+            return 0;
 
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
@@ -293,31 +295,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rAlpha = alpha > -MATE + height     ? alpha : -MATE + height;
         rBeta  =  beta <  MATE - height - 1 ?  beta :  MATE - height - 1;
         if (rAlpha >= rBeta) return rAlpha;
-
-        // Check for the Fifty Move Rule
-        if (board->fiftyMoveRule > 99)
-            return 0;
-
-        // Check for three fold repetition. If the repetition occurs since
-        // the root move of this search, we will exit early as if it was a draw.
-        // Otherwise, we will look for an actual three fold repetition draw.
-        for (reps = 0, i = board->numMoves - 2; i >= 0; i -= 2){
-
-            // We can't have repeated positions before the most recent
-            // move which triggered a reset of the fifty move rule counter
-            if (i < board->numMoves - board->fiftyMoveRule) break;
-
-            if (board->history[i] == board->hash){
-
-                // Repetition occured after the root
-                if (i > board->numMoves - height)
-                    return 0;
-
-                // An actual three fold repetition
-                if (++reps == 2)
-                    return 0;
-            }
-        }
     }
 
     // Step 3. Probe the Transposition Table, adjust the value, and consider cutoffs
@@ -746,16 +723,14 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
-        // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
+        // Step 6. Static Exchance Evaluation Pruning. All bad noisy moves
+        // have faild an SEE about zero. We will skip all such moves
+        if (movePicker.stage == STAGE_BAD_NOISY)
+            break;
+
+        // Step 7. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
-
-        // Step 8. Static Exchance Evaluation Pruning. If the move fails a generous
-        // SEE threadhold, then it is unlikely to be useful. The use of movePicker.stage
-        // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (    movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, QSEEMargin))
             continue;
 
         // Apply and validate move before searching
@@ -822,7 +797,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     if (balance < 0) return 0;
 
     // Worst case is losing the moved piece
-    balance -= PieceValues[nextVictim][MG];
+    balance -= SEEPieceValues[nextVictim];
     if (balance >= 0) return 1;
 
     // Grab sliders for updating revealed attackers
@@ -870,7 +845,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         colour = !colour;
 
         // Negamax the balance and add the value of the next victim
-        balance = -balance - 1 - PieceValues[nextVictim][MG];
+        balance = -balance - 1 - SEEPieceValues[nextVictim];
 
         // If the balance is non negative after giving away our piece then we win
         if (balance >= 0){
@@ -916,53 +891,38 @@ int valueToTT(int value, int height){
 
 int thisTacticalMoveValue(Board* board, uint16_t move){
 
-    int value = PieceValues[pieceType(board->squares[MoveTo(move)])][MG];
+    int value = SEEPieceValues[pieceType(board->squares[MoveTo(move)])];
 
     if (MoveType(move) == PROMOTION_MOVE)
-        value += PieceValues[MovePromoPiece(move)][MG] - PieceValues[PAWN][MG];
+        value += SEEPieceValues[MovePromoPiece(move)] - SEEPieceValues[PAWN];
 
     if (MoveType(move) == ENPASS_MOVE)
-        value += PieceValues[PAWN][MG];
+        value += SEEPieceValues[PAWN];
 
     return value;
 }
 
 int bestTacticalMoveValue(Board* board){
 
-    int value = 0;
+    int value = SEEPieceValues[PAWN];
 
     // Look at enemy pieces we might try to capture
     uint64_t targets = board->colours[!board->turn];
 
-    // We may have a queen capture
-    if (targets & board->pieces[QUEEN])
-        value += PieceValues[QUEEN][MG];
-
-    // We may have a rook capture
-    else if (targets & board->pieces[ROOK])
-        value += PieceValues[ROOK][MG];
-
-    // We may have a minor capture
-    else if (targets & (board->pieces[KNIGHT] | board->pieces[BISHOP]))
-        value += MAX(
-            !!(targets & board->pieces[KNIGHT]) * PieceValues[KNIGHT][MG],
-            !!(targets & board->pieces[BISHOP]) * PieceValues[BISHOP][MG]
-        );
-
-    // We may have a pawn capture
-    else if (targets & board->pieces[PAWN])
-        value += PieceValues[PAWN][MG];
-
-    // We may have an enpass capture
-    else if (board->epSquare != -1)
-        value += PieceValues[PAWN][MG];
+    // Look for our strongest possible target on the board
+    for (int piece = QUEEN; piece > PAWN; piece--) {
+        if (targets & board->pieces[piece]) {
+            value = SEEPieceValues[piece];
+            break;
+        }
+    }
 
     // See if we have any pawns on promoting ranks. If so, assume that
     // we can promote one of our pawns to at least a queen
     if (   board->pieces[PAWN]
         &  board->colours[board->turn]
         & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += PieceValues[QUEEN][MG] - PieceValues[PAWN][MG];
+        value += SEEPieceValues[QUEEN] - SEEPieceValues[PAWN];
 
     return value;
 }
