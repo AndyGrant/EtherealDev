@@ -169,9 +169,14 @@ const int KSAdjustment      =  -38;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawnRank[RANK_NB];
+const int PassedPawnRank[RANK_NB] = {
+    S(   0,   0), S(  -8,   0), S( -10,   9), S(  -3,  35),
+    S(  17,  69), S(  43, 146), S( 129, 248), S(   0,   0),
+};
 
-const int PassedPawnFile[FILE_NB/2];
+const int PassedPawnFile[FILE_NB/2] = {
+    S(   3,   8), S(  -1,   7), S(  -5,  -2), S(  -2,  -6),
+};
 
 const int PassedPawnCanAdvance[RANK_NB];
 
@@ -712,22 +717,23 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PassedPawnFile[file][US]++;
 
         // Bonus if the passer is not blocked
-        if (pawnAdvance(1ull << sq, ~notEmpty, US)) {
-            eval += PassedPawnCanAdvance[rank];
-            if (TRACE) T.PassedPawnCanAdvance[rank][US]++;
-        }
+        // if (pawnAdvance(1ull << sq, ~notEmpty, US)) {
+        //     eval += PassedPawnCanAdvance[rank];
+        //     if (TRACE) T.PassedPawnCanAdvance[rank][US]++;
+        // }
 
         // Bonus if the forward square is not defended by them
-        if (pawnAdvance(1ull << sq, 0ull, US) & ~ei->attacked[THEM]) {
-            eval += PassedPawnSafeAdvance[rank];
-            if (TRACE) T.PassedPawnSafeAdvance[rank][US]++;
-        }
+        // if (    pawnAdvance(1ull << sq, ~notEmpty, US)
+        //     && (pawnAdvance(1ull << sq, 0ull, US) & ~ei->attacked[THEM])) {
+        //     eval += PassedPawnSafeAdvance[0];
+        //     if (TRACE) T.PassedPawnSafeAdvance[0][US]++;
+        // }
 
         // Bonus if the passer is connected
-        if (pawnConnectedMasks(US, sq) & myPawns) {
-            eval += PassedPawnConnected[rank];
-            if (TRACE) T.PassedPawnConnected[rank][US]++;
-        }
+        // if (pawnConnectedMasks(US, sq) & myPawns) {
+        //     eval += PassedPawnConnected[rank];
+        //     if (TRACE) T.PassedPawnConnected[rank][US]++;
+        // }
     }
 
     return eval;
