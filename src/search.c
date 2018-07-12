@@ -738,7 +738,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
 
         // Step 6. Futility Pruning. Similar to Delta Pruning, if this capture in the
         // best case would still fail to beat alpha minus some margin, we can skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (  (!InCheck || best > MATED_IN_MAX)
+            &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
         // SF-ish ++
