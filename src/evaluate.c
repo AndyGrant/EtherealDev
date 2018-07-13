@@ -214,7 +214,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
+    factor = evaluateScaleFactor(&ei, board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -785,7 +785,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
     int factor;
 
@@ -830,7 +830,8 @@ int evaluateScaleFactor(Board *board) {
     else
         factor = SCALE_NORMAL;
 
-    factor += 8 * abs(popcount(white & pawns) - popcount(black & pawns));
+    factor += 8 * abs(popcount(white & pawns & ei->passedPawns)
+                    - popcount(black & pawns & ei->passedPawns));
 
     return MIN(factor, SCALE_NORMAL);
 }
