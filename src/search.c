@@ -368,7 +368,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FuFutilityMargin / 2 + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin / 2 + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
