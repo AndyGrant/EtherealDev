@@ -518,6 +518,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= CounterMovePruningDepth
+            &&  hist < CounterMoveHistoryLimit[improving]
             &&  cmhist < CounterMoveHistoryLimit[improving])
             continue;
 
