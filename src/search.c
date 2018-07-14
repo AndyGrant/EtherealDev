@@ -464,10 +464,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
         &&  ttMove == NONE_MOVE
-        &&  depth >= IIDDepth){
+        &&  depth >= 5){
 
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-3, height);
+        value = search(thread, &lpv, alpha, beta, depth-4, height);
 
         // Probe for a new table move, and adjust any mate scores
         ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
