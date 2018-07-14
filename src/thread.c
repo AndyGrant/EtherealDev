@@ -34,6 +34,7 @@ Thread* createThreadPool(int nthreads){
     for (int i = 0; i < nthreads; i++){
 
         // Threads will know of each other
+        threads[i].index = i;
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
 
