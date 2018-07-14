@@ -398,7 +398,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
+        &&  hasNonPawnMaterial(board, WHITE)
+        &&  hasNonPawnMaterial(board, BLACK)
         &&  board->history[board->numMoves-1] != NULL_MOVE){
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
