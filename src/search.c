@@ -379,7 +379,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargin < alpha)
+        &&  eval + RazorMargin < alpha
+        &&  board->history[board->numMoves-1] != NULL_MOVE)
         return qsearch(thread, pv, alpha, beta, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
