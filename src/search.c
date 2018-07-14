@@ -377,9 +377,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // still falls way below alpha, we will assume that the score from
     // the Quiescence search was sufficient.
     if (   !PvNode
-        && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargin < alpha)
+        &&  eval + (1 + 2 * inCheck) * RazorMargin < alpha)
         return qsearch(thread, pv, alpha, beta, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
