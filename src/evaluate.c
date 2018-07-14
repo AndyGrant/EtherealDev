@@ -60,7 +60,7 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
-const int PawnIsolated = S(  -3,  -1);
+const int PawnIsolated = S(  -6,  -3);
 
 const int PawnStacked = S( -10, -34);
 
@@ -329,8 +329,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
 
-        // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & myPawns)) {
+        // Apply a penalty if the pawn is isolated and not passed
+        else if (!(isolatedPawnMasks(sq) & myPawns)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
