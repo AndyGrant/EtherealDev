@@ -22,7 +22,7 @@
 #include "types.h"
 
 #define NTHREADS   (      4) // # of Threads to use
-#define NTERMS     (      0) // # of Terms to tune
+#define NTERMS     (      1) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 488)
@@ -58,7 +58,7 @@
 #define TuneThreatPawnAttackedByOne    (0)
 #define TuneThreatMinorAttackedByPawn  (0)
 #define TuneThreatMinorAttackedByMajor (0)
-#define TuneThreatRookAttackedByLesser (0)
+#define TuneThreatRookAttackedByLesser (1)
 #define TuneThreatQueenAttackedByOne   (0)
 #define TuneThreatOverloadedPieces     (0)
 #define TuneThreatByPawnPush           (0)
