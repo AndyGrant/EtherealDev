@@ -188,7 +188,7 @@ const int ThreatByPawnPush           = S(  12,  15);
 
 /* General Evaluation Terms */
 
-const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
+const int Tempo[] = { S(  20,  20), S( -20, -20) };
 
 #undef S
 
