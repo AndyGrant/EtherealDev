@@ -51,13 +51,13 @@ volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
 
-void initSearch() {
+void initSearch(){
 
     // Init Late Move Reductions Table
     for (int d = 1; d < 64; d++) {
         for (int p = 1; p < 64; p++) {
-            LMRTable[d][p][0] = 1.50 + log(d) * log(p) / 1.90;
-            LMRTable[d][p][1] = 0.75 + log(d) * log(p) / 2.30;
+            LMRTable[d][p][0] = 1.75 + log(d) * log(p) / 2.00;
+            LMRTable[d][p][1] = 0.50 + log(d) * log(p) / 2.50;
         }
     }
 }
@@ -551,10 +551,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)][improving];
+            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)][PvNode];
 
-            // Increase for non PV nodes
-            R += !PvNode;
+            // Increase for non improving nodes
+            R += !improving;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
