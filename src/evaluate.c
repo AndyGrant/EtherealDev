@@ -211,7 +211,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
                - 2 * popcount(board->pieces[ROOK  ])
                - 1 * popcount(board->pieces[KNIGHT]
                              |board->pieces[BISHOP]);
-    phase = (phase * 256 + 12) / 24;
+    phase = 256 * phase / 24;
 
     // Scale evaluation based on remaining material
     factor = evaluateScaleFactor(board);
