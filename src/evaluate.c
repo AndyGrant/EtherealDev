@@ -736,6 +736,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT] | ei->attackedBy[THEM][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
 
+    uint64_t attacksByWeakerThanQueen = attacksByPawns | attacksByMinors | ei->attackedBy[THEM][ROOK];
+
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
                         & ei->attacked[  US] & ~ei->attackedBy2[  US]
@@ -768,7 +770,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
 
     // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[THEM]);
+    count = popcount(queens & attacksByWeakerThanQueen);
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.ThreatQueenAttackedByOne[US] += count;
 
