@@ -198,7 +198,7 @@ int aspirationWindow(Thread* thread, int depth){
 
     const int mainThread = thread == &thread->threads[0];
 
-    int alpha, beta, value, delta = 12 + 3 * thread->index % 4;
+    int alpha, beta, value, delta = 14;
 
     // Need a few searches to get a good window
     if (depth <= 4)
@@ -562,7 +562,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            R -= MAX(-2, MIN(2, hist / 5000));
+
+            const int divisor = 5000 + 1000 * (2 - ((thread->index + 2) % 4));
+
+            R -= MAX(-2, MIN(2, hist / divisor));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
