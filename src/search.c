@@ -45,18 +45,21 @@
 #include "movepicker.h"
 #include "uci.h"
 
-int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
+int LMRTable[64][64][2]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
 pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
 
-void initSearch(){
+void initSearch() {
 
     // Init Late Move Reductions Table
-    for (int d = 1; d < 64; d++)
-        for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = 0.75 + log(d) * log(p) / 2.25;
+    for (int d = 1; d < 64; d++) {
+        for (int p = 1; p < 64; p++) {
+            LMRTable[d][p][0] = 1.50 + log(d) * log(p) / 1.90;
+            LMRTable[d][p][1] = 0.75 + log(d) * log(p) / 2.30;
+        }
+    }
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
@@ -548,13 +551,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)][improving];
 
             // Increase for non PV nodes
             R += !PvNode;
-
-            // Increase for non improving nodes
-            R += !improving;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
