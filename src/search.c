@@ -202,7 +202,7 @@ int aspirationWindow(Thread* thread, int depth){
 
     // Need a few searches to get a good window
     if (depth <= 4)
-        return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+        return search(thread, &thread->pv, -MATE, MATE, depth, 0, 0);
 
     // Create the aspiration window
     alpha = MAX(-MATE, thread->value - delta);
@@ -212,7 +212,7 @@ int aspirationWindow(Thread* thread, int depth){
     while (1) {
 
         // Perform the search on the modified window
-        value = search(thread, &thread->pv, alpha, beta, depth, 0);
+        value = search(thread, &thread->pv, alpha, beta, depth, 0, 0);
 
         // Result was within our window
         if (value > alpha && value < beta)
@@ -237,7 +237,7 @@ int aspirationWindow(Thread* thread, int depth){
     }
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int skip){
 
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -378,6 +378,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the Quiescence search was sufficient.
     if (   !PvNode
         && !inCheck
+        && !skip
         &&  depth <= RazorDepth
         &&  eval + RazorMargin < alpha)
         return qsearch(thread, pv, alpha, beta, height);
@@ -407,7 +408,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         thread->moveStack[height] = NULL_MOVE;
 
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1, 1);
 
         thread->moveStack[height] = NONE_MOVE;
 
@@ -448,9 +449,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move is good with a depth zero search (qsearch, unless in check)
             // and then with a slightly reduced search. If both searches still exceed rBeta,
             // we will prune this node's subtree with resonable assurance that we made no error
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1, 1);
             if (value >= rBeta)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, 1);
 
             // Revert the board state
             revertMove(board, move, undo);
@@ -467,7 +468,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= IIDDepth){
 
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-2, height, 0);
 
         // Probe for a new table move, and adjust any mate scores
         ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
@@ -591,21 +592,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 19A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1, 0);
 
         // Step 19B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1, 0);
 
         // Step 19C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1, 0);
 
         // Revert the board state
         revertMove(board, move, undo);
@@ -958,7 +959,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
         thread->moveStack[height] = move;
 
         // Perform a reduced depth search on a null rbeta window
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1, 0);
 
         // Revert board state
         revertMove(board, move, undo);
