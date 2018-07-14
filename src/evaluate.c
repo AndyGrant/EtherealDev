@@ -749,7 +749,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     // Penalty for each unsupported pawn on the board
     count = popcount(pawns & ((~ei->attacked[US] & ei->attacked[THEM])
-    | (~ei->attackedBy2[US] & ei->attackedBy2[THEM] & ~ei->attackedBy[US][PAWN])));
+    | (~ei->attackedBy2[US] & ei->attackedBy2[THEM])));
 
     eval += count * ThreatPawnAttackedByOne;
     if (TRACE) T.ThreatPawnAttackedByOne[US] += count;
