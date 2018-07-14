@@ -73,7 +73,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
 static const int RazorDepth = 1;
 static const int RazorMargin = 350;
 
-static const int BetaPruningDepth = 6;
+static const int BetaPruningDepth = 10;
 static const int BetaMargin = 85;
 
 static const int NullMovePruningDepth = 2;
@@ -84,7 +84,7 @@ static const int ProbCutMargin = 100;
 static const int IIDDepth = 3;
 
 static const int FutilityMargin = 100;
-static const int FutilityPruningDepth = 6;
+static const int FutilityPruningDepth = 10;
 
 static const int CounterMovePruningDepth = 2;
 static const int CounterMoveHistoryLimit[] = { 0, -2000 };
