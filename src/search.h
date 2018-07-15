@@ -89,10 +89,10 @@ static const int FutilityPruningDepth = 8;
 static const int CounterMovePruningDepth = 2;
 static const int CounterMoveHistoryLimit[] = { 0, -2000 };
 
-static const int LateMovePruningDepth = 8;
-static const int LateMovePruningCounts[2][9] = {
-    {  0,  3,  4,  7, 12, 16, 21, 28, 34},
-    {  0,  5,  7, 12, 18, 27, 38, 50, 65},
+static const int LateMovePruningDepth = 12;
+static const int LateMovePruningCounts[2][13] = {
+    {  0,  3,  4,  7, 12, 16, 21, 28, 34, 42, 51, 61, 72},
+    {  0,  5,  7, 12, 18, 27, 38, 50, 65, 81, 97,114,132},
 };
 
 static const int SEEPruningDepth = 8;
