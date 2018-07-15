@@ -83,7 +83,7 @@ static const int ProbCutMargin = 100;
 
 static const int IIDDepth = 3;
 
-static const int FutilityMargin = 75;
+static const int FutilityMargin = 100;
 static const int FutilityPruningDepth = 8;
 
 static const int CounterMovePruningDepth = 2;
@@ -96,7 +96,7 @@ static const int LateMovePruningCounts[2][9] = {
 };
 
 static const int SEEPruningDepth = 8;
-static const int SEEMargin = -100;
+static const int SEEMargin = -75;
 
 static const int QFutilityMargin = 100;
 
