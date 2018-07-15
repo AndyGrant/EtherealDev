@@ -491,6 +491,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
         if (   !RootNode
+            && !inCheck
             &&  isQuiet
             &&  best > MATED_IN_MAX
             && (hist < 6000 || !improving)
