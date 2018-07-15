@@ -125,9 +125,9 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
             continue;
         }
 
-        // Replace using MAX(x1, x2), where xN = depth - 8 * age difference
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & 0xFC) * 2
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & 0xFC) * 2)
+        // Replace using MAX(x1, x2), where xN = depth - 4 * age difference
+        if (   replace->depth - ((259 + Table.generation - replace->generation) & 0xFC)
+            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & 0xFC))
             replace = &slots[i];
     }
 
