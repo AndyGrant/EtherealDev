@@ -707,7 +707,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         canAdvance = !(destination & notEmpty);
 
         // Destination is not attacked by the opponent
-        safeAdvance = !(destination & ei->attacked[!colour]);
+        safeAdvance = !!(destination & (~ei->attacked[!colour] | (ei->attacked[colour] & ~ei->attackedBy2[!colour])));
 
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][colour]++;
