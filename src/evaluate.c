@@ -184,6 +184,7 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -23);
+const int ThreatOverloadedPieces2    = S( -13, -25);
 const int ThreatByPawnPush           = S(  12,  15);
 
 /* General Evaluation Terms */
@@ -745,6 +746,10 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
                         & ei->attacked[  US] & ~ei->attackedBy2[  US]
                         & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
 
+    uint64_t overloaded2 = (knights | bishops | rooks | queens)
+                         & ei->attackedBy2[  US] & ~ei->attackedBy[  US][PAWN]
+                         & ei->attackedBy2[THEM] & ~ei->attackedBy[THEM][PAWN];
+
     // Pawn advances by a single square which threaten an enemy piece.
     // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
     uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
@@ -780,6 +785,11 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(overloaded);
     eval += count * ThreatOverloadedPieces;
     if (TRACE) T.ThreatOverloadedPieces[US] += count;
+
+    // Penalty for any overloaded minors or majors
+    count = popcount(overloaded2);
+    eval += count * ThreatOverloadedPieces2;
+    //if (TRACE) T.ThreatOverloadedPieces2[US] += count;
 
     // Bonus for giving threats by safe pawn pushes
     count = popcount(pushThreat);
