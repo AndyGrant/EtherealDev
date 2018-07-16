@@ -733,8 +733,9 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t queens  = friendly & board->pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[THEM][PAWN  ];
-    uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT] | ei->attackedBy[THEM][BISHOP];
-    uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
+    uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT]
+                             | ei->attackedBy[THEM][BISHOP];
+    uint64_t attacksByRooks  = ei->attackedBy[THEM][ROOK  ];
 
     // Squares with more attackers, few defenders, and no pawn support
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
@@ -762,7 +763,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
 
     // Penalty for all major threats against our unsupported knights and bishops
-    count = popcount((knights | bishops) & poorlyDefended & attacksByMajors);
+    count = popcount((knights | bishops) & poorlyDefended & attacksByRooks);
     eval += count * ThreatMinorAttackedByMajor;
     if (TRACE) T.ThreatMinorAttackedByMajor[US] += count;
 
