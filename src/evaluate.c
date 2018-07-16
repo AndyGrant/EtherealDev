@@ -615,7 +615,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // than once and only defended by our Queens or our King
         uint64_t weak =   ei->attacked[THEM]
                       &  ~ei->attackedBy2[US]
-                      & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
+                      & (~ei->attacked[US] | ei->attackedBy[US][KING]);
 
         // Usually the King Area is 9 squares. Scale are attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
@@ -633,14 +633,11 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        // Identify if pieces can move to those checking squares safely.
-        // We check if our Queen can attack the square for safe Queen checks.
-        // No attacks of other pieces is implicit in our definition of weak.
+        // Identify if pieces can move to those checking squares safely
         uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
         uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
         uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
