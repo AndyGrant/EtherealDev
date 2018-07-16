@@ -559,7 +559,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Reduce for Killers and Counters
             R -= (   move == movePicker.killer1
                   || move == movePicker.killer2
-                  || move == movePicker.counter) * (1 + PvNode);
+                  || move == movePicker.counter) * (1 + improving);
 
 
             // Adjust based on history
