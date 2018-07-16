@@ -740,10 +740,12 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
                             | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
 
-    // A friendly minor / major is overloaded if attacked and defended by exactly one
+    // A friendly minor / major is overloaded if attacked and defended
+    // by exactly one piece, where the defender is not one of our pawns
     uint64_t overloaded = (knights | bishops | rooks | queens)
-                        & ei->attacked[  US] & ~ei->attackedBy2[  US]
-                        & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
+                        & ~ei->attackedBy[US][PAWN]
+                        &  ei->attacked[  US] & ~ei->attackedBy2[  US]
+                        &  ei->attacked[THEM] & ~ei->attackedBy2[THEM];
 
     // Pawn advances by a single square which threaten an enemy piece.
     // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
