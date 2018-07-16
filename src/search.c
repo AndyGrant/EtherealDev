@@ -958,7 +958,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
         thread->moveStack[height] = move;
 
         // Perform a reduced depth search on a null rbeta window
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2, height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 + 1, height+1);
 
         // Revert board state
         revertMove(board, move, undo);
