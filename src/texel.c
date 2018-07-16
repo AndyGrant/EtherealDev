@@ -70,8 +70,8 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
-extern const int PassedPawn[2][2][RANK_NB];
+extern const int KingShelter[2][4][8];
+extern const int PassedPawn[2][2][8];
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -209,15 +209,18 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
 
+        // Get a strong evaluation via a search (White's POV)
+        tes[i].eval = search(thread, &thread->pv, -MATE, MATE, 5, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+
         // Resolve FEN to a quiet position
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
 
-        // Prepare coefficients and get a WHITE POV eval
+        // Reduce evaluation to a set of weights
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, &thread->pktable);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+        evaluateBoard(&thread->board, &thread->pktable);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -328,7 +331,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneRookMobility                ) INIT_COEFF_1(RookMobility, 15)            ;
     if (TuneQueenMobility               ) INIT_COEFF_1(QueenMobility, 28)           ;
     if (TuneKingDefenders               ) INIT_COEFF_1(KingDefenders, 12)           ;
-    if (TuneKingShelter                 ) INIT_COEFF_3(KingShelter, 2, 8, 8)        ;
+    if (TuneKingShelter                 ) INIT_COEFF_3(KingShelter, 2, 4, 8)        ;
     if (TunePassedPawn                  ) INIT_COEFF_3(PassedPawn, 2, 2, 8)         ;
     if (TuneThreatWeakPawn              ) INIT_COEFF_0(ThreatWeakPawn)              ;
     if (TuneThreatMinorAttackedByPawn   ) INIT_COEFF_0(ThreatMinorAttackedByPawn)   ;
@@ -375,7 +378,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneRookMobility                ) INIT_PARAM_1(RookMobility, 15)            ;
     if (TuneQueenMobility               ) INIT_PARAM_1(QueenMobility, 28)           ;
     if (TuneKingDefenders               ) INIT_PARAM_1(KingDefenders, 12)           ;
-    if (TuneKingShelter                 ) INIT_PARAM_3(KingShelter, 2, 8, 8)        ;
+    if (TuneKingShelter                 ) INIT_PARAM_3(KingShelter, 2, 4, 8)        ;
     if (TunePassedPawn                  ) INIT_PARAM_3(PassedPawn, 2, 2, 8)         ;
     if (TuneThreatWeakPawn              ) INIT_PARAM_0(ThreatWeakPawn)              ;
     if (TuneThreatMinorAttackedByPawn   ) INIT_PARAM_0(ThreatMinorAttackedByPawn)   ;
@@ -430,7 +433,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneRookMobility                ) PRINT_PARAM_1(RookMobility, 15)           ;
     if (TuneQueenMobility               ) PRINT_PARAM_1(QueenMobility, 28)          ;
     if (TuneKingDefenders               ) PRINT_PARAM_1(KingDefenders, 12)          ;
-    if (TuneKingShelter                 ) PRINT_PARAM_3(KingShelter, 2, 8, 8)       ;
+    if (TuneKingShelter                 ) PRINT_PARAM_3(KingShelter, 2, 4, 8)       ;
     if (TunePassedPawn                  ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)        ;
     if (TuneThreatWeakPawn              ) PRINT_PARAM_0(ThreatWeakPawn)             ;
     if (TuneThreatMinorAttackedByPawn   ) PRINT_PARAM_0(ThreatMinorAttackedByPawn)  ;
