@@ -558,7 +558,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Allow a few quiets to be tried following a null move
             R -= quiets <= 3
-              && thread->moveStack[height-1] == NULL_MOVE
+              && thread->moveStack[height-1] == NULL_MOVE;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
