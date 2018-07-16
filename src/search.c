@@ -150,9 +150,9 @@ void* iterativeDeepening(void* vthread){
         // and any changes in the principle variation since the last iteration
         if (limits->limitedBySelf && depth >= 4){
 
-            // Increase our time if the score suddently dropped
-            if (info->values[depth-1] > value + 10)
-                info->idealUsage *= 1.050;
+            // Increase our time if the score suddenly dropped
+            if (info->values[depth-1] > value + 16)
+                info->idealUsage *= 1.100;
 
             if (info->bestMoves[depth] == info->bestMoves[depth-1]){
 
