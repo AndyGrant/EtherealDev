@@ -159,13 +159,13 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   47;
-const int KSFriendlyPawns   =  -28;
+const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -256;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -38;
+const int KSAdjustment      =  -48;
 
 /* Passed Pawn Evaluation Terms */
 
