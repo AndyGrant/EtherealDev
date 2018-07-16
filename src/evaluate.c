@@ -747,7 +747,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     // Pawn advances by a single square which threaten an enemy piece.
     // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
-    uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
+    uint64_t pushThreat  = pawnAdvance(pawns & ~ei->attackedBy[THEM][PAWN], occupied, US);
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
