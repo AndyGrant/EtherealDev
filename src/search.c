@@ -529,6 +529,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             &&  movePicker.stage > STAGE_GOOD_NOISY
+            && (isQuiet || thread->moveStack[height-1] != NULL_MOVE)
             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
             continue;
 
