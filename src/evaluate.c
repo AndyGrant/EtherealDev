@@ -621,10 +621,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        // Safe target squares are defended or are weak and attacked by two.
-        // We exclude squares containing pieces which we cannot capture.
-        uint64_t safe =  ~board->colours[THEM]
-                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
+        // Squares with more attackers, few defenders, and no pawn support
+        uint64_t safe = ~board->colours[THEM]
+                      & (  (ei->attacked[THEM] & ~ei->attacked[US])
+                         | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]));
 
         // Find square and piece combinations which would check our King
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
