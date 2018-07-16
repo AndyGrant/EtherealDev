@@ -64,7 +64,7 @@
 #define TuneThreatByPawnPush           (0)
 
 // Size of each allocated chunk
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
 
 struct TexelTuple {
     int index;
@@ -81,7 +81,6 @@ struct TexelEntry {
 
 void runTexelTuning(Thread* thread);
 void initTexelEntries(TexelEntry* tes, Thread* thread);
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]);
 
 void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(double cparams[NTERMS][PHASE_NB]);

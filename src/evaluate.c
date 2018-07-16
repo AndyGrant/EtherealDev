@@ -136,15 +136,16 @@ const int KingDefenders[12] = {
 };
 
 const int KingShelter[2][FILE_NB/2][RANK_NB] = {
-  {{S(   2,  19), S(  -4,  -8), S( -56,  -4), S( -42,  -4), S( -56, -37), S( -27, -15), S(   9,   0), S( -19,   3)},
-   {S(   9,   7), S(  12,  -7), S(  -4,   0), S(  -8, -15), S(  -5, -22), S(  26, -38), S(   1,  -6), S( -17,   4)},
-   {S(  11,   9), S(  -2,  -4), S( -36,  -3), S( -15, -10), S( -33, -26), S( -72,   1), S( -45,  65), S( -22,   6)},
-   {S(  -5,  10), S(   4,  -6), S( -12,   6), S(   8,  -5), S(   4, -11), S( -16,   0), S(-109,  53), S( -10,   9)}},
-  {{S(   0,   0), S(   0,  -9), S(  17, -10), S(  -2,  -3), S(  -4, -22), S( -39,  19), S(-251,-112), S(  -7,   5)},
-   {S(   0,   0), S(  11,  -1), S( -11,   0), S( -35,  -8), S( -14, -34), S(  -2,   6), S( -29,   0), S( -39,   6)},
-   {S(   0,   0), S(   5,   7), S( -17,   6), S( -14, -11), S(  -3, -26), S(  -3,   4), S(-128, -98), S( -35,  11)},
-   {S(   0,   0), S(   2, -16), S(   2, -10), S(  -4,  -2), S( -20, -16), S( -19, -38), S(-252,-128), S( -33,   9)}},
+  {{S( -12,   6), S( -21, -13), S( -19,   5), S( -25,   3), S( -49, -31), S( -24, -13), S(   8,   0), S( -28,   8)},
+   {S(   7,   0), S(   3, -16), S( -15,  -3), S( -11, -14), S(  -7, -22), S(  25, -37), S(   0,  -5), S( -19,   5)},
+   {S(  10,   6), S(  11,  -1), S( -29,   4), S( -13,  -9), S( -27, -23), S( -70,   1), S( -44,  65), S( -18,  13)},
+   {S(  -4,  11), S(   0,  -2), S( -16,   6), S(  10,  -4), S(   7, -11), S( -16,   0), S(-109,  53), S(  -8,   8)}},
+  {{S(   0,   0), S( -12, -23), S(  20, -15), S(  -6,  -4), S(  -4, -21), S( -39,  19), S(-251,-111), S(  -9,   8)},
+   {S(   0,   0), S(  13,  -6), S(  -1,   2), S( -29,  -4), S( -15, -33), S(  -1,   6), S( -28,   0), S( -37,  16)},
+   {S(   0,   0), S(  -6,   3), S( -22,   5), S( -14, -10), S(  -3, -25), S(  -3,   4), S(-127, -97), S( -31,  13)},
+   {S(   0,   0), S(  -9, -11), S(  -5,  -8), S(   6,  -1), S( -13, -15), S( -19, -37), S(-251,-127), S( -19,   6)}},
 };
+
 
 /* King Safety Evaluation Terms */
 
@@ -666,8 +667,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                      :  US == WHITE ? rankOf(getlsb(filePawns)) - kingRank
                                     : kingRank - rankOf(getmsb(filePawns));
 
-        pkeval += KingShelter[file == kingFile][mirroredFileOf(kingSq)][distance];
-        if (TRACE) T.KingShelter[file == kingFile][mirroredFileOf(kingSq)][distance][US]++;
+        pkeval += KingShelter[file == kingFile][mirroredFileOf(file)][distance];
+        if (TRACE) T.KingShelter[file == kingFile][mirroredFileOf(file)][distance][US]++;
     }
 
     ei->pkeval[US] += pkeval;
