@@ -787,7 +787,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     eval += count * ThreatByPawnPush;
     if (TRACE) T.ThreatByPawnPush[colour] += count;
 
-    count = popcount((pawns | knights | bishops | rooks | queens) & poorlyDefended);
+    count = popcount((knights | bishops | rooks | queens) & poorlyDefended);
     eval += count * ThreatPoorlyDefended;
 
     return eval;
