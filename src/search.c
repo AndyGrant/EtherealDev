@@ -527,7 +527,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (    !RootNode
             &&  !inCheck
             &&   best > MATED_IN_MAX
-            && (!isQuiet || cmhist < 8192)
+            && (!isQuiet || cmhist < 4096)
             &&   depth <= SEEPruningDepth
             &&   movePicker.stage > STAGE_GOOD_NOISY
             &&  !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
