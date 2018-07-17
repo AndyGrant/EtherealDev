@@ -403,7 +403,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
-        R -= eval - 32 <= beta;
+        R -= eval - 64 <= beta;
 
         applyNullMove(board, undo);
 
