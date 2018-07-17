@@ -156,7 +156,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
+const int KSAttackWeight[]  = { 0, 16, 6, 10, 4, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
@@ -573,7 +573,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         attacks = attacks & ei->kingAreas[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
+            ei->kingAttackersCount[US] += 2;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
         }
     }
@@ -609,7 +609,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    if (ei->kingAttackersCount[THEM] > 1) {
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
