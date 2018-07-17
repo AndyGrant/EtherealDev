@@ -403,7 +403,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
-        R += thread->moveStack[height-2] == NULL_MOVE;
+        R -= thread->moveStack[height-2] == NULL_MOVE;
 
         applyNullMove(board, undo);
 
