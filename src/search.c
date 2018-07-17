@@ -374,6 +374,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
     int jamesIsGod = thread->evalStack[height-0] > thread->evalStack[height-2]
+                  && thread->evalStack[height-1] < thread->evalStack[height-3]
                   && thread->evalStack[height-2] > thread->evalStack[height-4];
 
     // Step 7. Razoring. If a Quiescence Search for the current position
