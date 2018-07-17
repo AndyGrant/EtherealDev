@@ -185,6 +185,7 @@ const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -23);
 const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatPoorlyDefended       = S(   8,   4);
 
 /* General Evaluation Terms */
 
@@ -785,6 +786,9 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(pushThreat);
     eval += count * ThreatByPawnPush;
     if (TRACE) T.ThreatByPawnPush[colour] += count;
+
+    count = popcount((pawns | knights | bishops | rooks | queens) & poorlyDefended);
+    eval += count * ThreatPoorlyDefended;
 
     return eval;
 }
