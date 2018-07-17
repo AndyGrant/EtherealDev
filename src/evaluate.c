@@ -742,7 +742,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
-                        & ei->attacked[  US] & ~ei->attackedBy2[  US]
+                        & ei->attacked[  US]
                         & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
 
     // Pawn advances by a single square which threaten an enemy piece.
