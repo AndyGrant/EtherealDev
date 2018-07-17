@@ -584,7 +584,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   &&  inCheck
                   && !extension
-                  &&  movePicker.stage > STAGE_BAD_NOISY;
+                  &&  movePicker.stage < STAGE_BAD_NOISY;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
