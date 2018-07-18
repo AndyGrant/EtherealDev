@@ -156,7 +156,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
+const int KSAttackWeight[]  = { 0, 8, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
@@ -405,7 +405,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         attacks = attacks & ei->kingAreas[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
+            ei->kingAttackersCount[US] += 2;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
         }
     }
