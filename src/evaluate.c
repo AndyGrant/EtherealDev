@@ -570,7 +570,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
+        attacks = attacks & ei->kingAreas[THEM] & ~ei->attackedBy[THEM][PAWN];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
