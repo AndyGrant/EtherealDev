@@ -307,10 +307,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (ttDepth >= depth && (depth == 0 || !PvNode)){
 
             if (ttValue >= beta && (ttBound & BOUND_LOWER))
-                return beta;
+                return PvNode ? beta : ttValue;
 
             if (ttValue <= alpha && (ttBound & BOUND_UPPER))
-                return alpha;
+                return PvNode ? alpha : ttValue;
 
             if (ttBound == BOUND_EXACT){
                 assert(alpha < ttValue && ttValue < beta);
