@@ -468,8 +468,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  ttMove == NONE_MOVE
         &&  depth >= IIDDepth[PvNode]){
 
+        R = 1 + depth / 4; // Laser formula for PvNodes
+
         // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        value = search(thread, &lpv, alpha, beta, depth-R, height);
 
         // Probe for a new table move, and adjust any mate scores
         ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
