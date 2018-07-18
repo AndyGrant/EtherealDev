@@ -495,12 +495,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 6000 || !improving)
             &&  futilityMargin <= alpha
-            &&  depth <= FutilityPruningDepth){
+            &&  depth <= FutilityPruningDepth)
             skipQuiets = 1;
-            continue;
-         }
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
