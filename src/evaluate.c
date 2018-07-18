@@ -160,12 +160,12 @@ const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -266;
+const int KSNoEnemyQueens   = -286;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -28;
+const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
