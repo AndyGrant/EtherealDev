@@ -823,7 +823,8 @@ int evaluateScaleFactor(Board *board) {
         return SCALE_OCB_GENERAL;
     }
 
-    if (!(bishops | knights | queens)) {
+    if (  !(bishops | knights | queens)
+        && abs(popcount(white & pawns) - popcount(black & pawns)) <= 1) {
 
         if (   onlyOne(white & rooks)
             && onlyOne(black & rooks))
