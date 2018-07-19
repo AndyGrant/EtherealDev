@@ -184,7 +184,7 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -23);
-const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatByPawnPush           = S(  17,  17);
 
 /* General Evaluation Terms */
 
@@ -748,6 +748,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     // Pawn advances by a single square which threaten an enemy piece.
     // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
     uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
+    pushThreat |= pawnAdvance(pushThreat & ~attacksByPawns, occupied, US);
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
