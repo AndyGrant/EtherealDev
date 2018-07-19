@@ -183,7 +183,7 @@ const int ThreatMinorAttackedByPawn  = S( -73, -54);
 const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
-const int ThreatOverloadedPieces     = S(  -7, -23);
+const int ThreatOverloadedPieces     = S( -15, -23);
 const int ThreatByPawnPush           = S(  12,  15);
 
 /* General Evaluation Terms */
