@@ -374,13 +374,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Compute and save off a static evaluation
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
+
+    // Compute margin for futility pruning
+    futilityMargin = eval + FutilityMargin[improving] * depth;
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -504,7 +506,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            && (hist < 6000 || !improving)
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth){
             skipQuiets = 1;
