@@ -652,6 +652,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * !!rookChecks
                + KSSafeBishopCheck * !!bishopChecks
                + KSSafeKnightCheck * !!knightChecks
+               + 30 * (ei->kingAttackersCount[THEM] - 1)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
