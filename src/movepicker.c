@@ -280,6 +280,10 @@ void evaluateNoisyMoves(MovePicker* mp){
         // Later we will flag moves which were passed over in the STAGE_GOOD_NOISY
         // phase due to failing an SEE(0), by setting the value to -1
         assert(mp->values[i] >= 0);
+
+        if (    MoveType(mp->moves[i]) == PROMOTION_MOVE
+            &&  MovePromoPiece(mp->moves[i]) != QUEEN)
+            mp->values[i] = -1;
     }
 }
 
