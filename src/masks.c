@@ -81,8 +81,8 @@ void initMasks() {
         for (int r = rankOf(s); r < RANK_NB; r++)
             PassedPawnMasks[BLACK][s] &= ~Ranks[r];
 
-        OutpostSquareMasks[WHITE][s] = PassedPawnMasks[WHITE][s] & ~Files[fileOf(s)];
-        OutpostSquareMasks[BLACK][s] = PassedPawnMasks[BLACK][s] & ~Files[fileOf(s)];
+        OutpostSquareMasks[WHITE][s] = PassedPawnMasks[WHITE][s];
+        OutpostSquareMasks[BLACK][s] = PassedPawnMasks[BLACK][s];
     }
 
     // Initalize relative outpost ranks
