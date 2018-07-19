@@ -439,7 +439,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
-        initializeMovePicker(&movePicker, thread, NONE_MOVE, height);
+        initializeMovePicker(&movePicker, thread, ttMove, height);
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
