@@ -575,6 +575,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.killer2
               || move == movePicker.counter;
 
+            R -= cmhist >  4000 && fuhist >  4000;
             R += cmhist < -4000 && fuhist < -4000;
 
             // Adjust based on history
