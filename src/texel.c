@@ -59,19 +59,19 @@ extern const int PawnIsolated;
 extern const int PawnStacked;
 extern const int PawnBackwards[2];
 extern const int PawnConnected32[32];
-extern const int KnightOutpost[2];
+extern const int KnightOutpost[2][4];
 extern const int KnightMobility[9];
 extern const int BishopPair;
 extern const int BishopRammedPawns;
-extern const int BishopOutpost[2];
+extern const int BishopOutpost[2][4];
 extern const int BishopMobility[14];
 extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
-extern const int PassedPawn[2][2][RANK_NB];
+extern const int KingShelter[2][8][8];
+extern const int PassedPawn[2][2][8];
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -84,7 +84,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = 100.0;
     double rates[NTERMS][PHASE_NB] = {{0}, {0}};
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
@@ -317,11 +317,11 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TunePawnStacked                 ) INIT_COEFF_0(PawnStacked)                 ;
     if (TunePawnBackwards               ) INIT_COEFF_1(PawnBackwards, 2)            ;
     if (TunePawnConnected32             ) INIT_COEFF_1(PawnConnected32, 32)         ;
-    if (TuneKnightOutpost               ) INIT_COEFF_1(KnightOutpost, 2)            ;
+    if (TuneKnightOutpost               ) INIT_COEFF_2(KnightOutpost, 2, 4)         ;
     if (TuneKnightMobility              ) INIT_COEFF_1(KnightMobility, 9)           ;
     if (TuneBishopPair                  ) INIT_COEFF_0(BishopPair)                  ;
     if (TuneBishopRammedPawns           ) INIT_COEFF_0(BishopRammedPawns)           ;
-    if (TuneBishopOutpost               ) INIT_COEFF_1(BishopOutpost, 2)            ;
+    if (TuneBishopOutpost               ) INIT_COEFF_2(BishopOutpost, 2, 4)         ;
     if (TuneBishopMobility              ) INIT_COEFF_1(BishopMobility, 14)          ;
     if (TuneRookFile                    ) INIT_COEFF_1(RookFile, 2)                 ;
     if (TuneRookOnSeventh               ) INIT_COEFF_0(RookOnSeventh)               ;
@@ -364,11 +364,11 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TunePawnStacked                 ) INIT_PARAM_0(PawnStacked)                 ;
     if (TunePawnBackwards               ) INIT_PARAM_1(PawnBackwards, 2)            ;
     if (TunePawnConnected32             ) INIT_PARAM_1(PawnConnected32, 32)         ;
-    if (TuneKnightOutpost               ) INIT_PARAM_1(KnightOutpost, 2)            ;
+    if (TuneKnightOutpost               ) INIT_PARAM_2(KnightOutpost, 2, 4)         ;
     if (TuneKnightMobility              ) INIT_PARAM_1(KnightMobility, 9)           ;
     if (TuneBishopPair                  ) INIT_PARAM_0(BishopPair)                  ;
     if (TuneBishopRammedPawns           ) INIT_PARAM_0(BishopRammedPawns)           ;
-    if (TuneBishopOutpost               ) INIT_PARAM_1(BishopOutpost, 2)            ;
+    if (TuneBishopOutpost               ) INIT_PARAM_2(BishopOutpost, 2, 4)         ;
     if (TuneBishopMobility              ) INIT_PARAM_1(BishopMobility, 14)          ;
     if (TuneRookFile                    ) INIT_PARAM_1(RookFile, 2)                 ;
     if (TuneRookOnSeventh               ) INIT_PARAM_0(RookOnSeventh)               ;
@@ -419,11 +419,11 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TunePawnStacked                 ) PRINT_PARAM_0(PawnStacked)                ;
     if (TunePawnBackwards               ) PRINT_PARAM_1(PawnBackwards, 2)           ;
     if (TunePawnConnected32             ) PRINT_PARAM_1(PawnConnected32, 32)        ;
-    if (TuneKnightOutpost               ) PRINT_PARAM_1(KnightOutpost, 2)           ;
+    if (TuneKnightOutpost               ) PRINT_PARAM_2(KnightOutpost, 2, 4)        ;
     if (TuneKnightMobility              ) PRINT_PARAM_1(KnightMobility, 9)          ;
     if (TuneBishopPair                  ) PRINT_PARAM_0(BishopPair)                 ;
     if (TuneBishopRammedPawns           ) PRINT_PARAM_0(BishopRammedPawns)          ;
-    if (TuneBishopOutpost               ) PRINT_PARAM_1(BishopOutpost, 2)           ;
+    if (TuneBishopOutpost               ) PRINT_PARAM_2(BishopOutpost, 2, 4)        ;
     if (TuneBishopMobility              ) PRINT_PARAM_1(BishopMobility, 14)         ;
     if (TuneRookFile                    ) PRINT_PARAM_1(RookFile, 2)                ;
     if (TuneRookOnSeventh               ) PRINT_PARAM_0(RookOnSeventh)              ;
@@ -543,10 +543,21 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
+
+        printf("    {");
+
+        for (int b = 0; b < B; b++, i++) {
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("%s", b == B - 1 ? "" : ", ");
+        }
+
+        printf("},\n");
+    }
+
+    printf("};\n");
 
 }
 
@@ -567,7 +578,6 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
             printf("%s", b == B - 1 ? "}},\n" : "},\n");
         }
-
     }
 
     printf("};\n");

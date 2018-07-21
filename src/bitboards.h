@@ -57,6 +57,7 @@ extern const uint64_t Ranks[RANK_NB];
 int fileOf(int s);
 int rankOf(int s);
 int relativeRankOf(int c, int s);
+int mirroredFileOf(int s);
 int square(int r, int f);
 
 int popcount(uint64_t b);
