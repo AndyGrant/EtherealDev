@@ -79,7 +79,10 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
+const int KnightOutpost[2][FILE_NB/2] = {
+   {S(  21,  -2), S(  21,  -5), S(  19, -11), S(  20, -18)},
+   {S(  39,   4), S(  38,  10), S(  34,   5), S(  41,  13)},
+};
 
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
@@ -93,7 +96,10 @@ const int BishopPair = S(  38,  69);
 
 const int BishopRammedPawns = S( -11,  -8);
 
-const int BishopOutpost[2] = { S(  26,   0), S(  40,   0) };
+const int BishopOutpost[2][FILE_NB/2] = {
+   {S(  24,  -6), S(  26,  -2), S(  27,  -3), S(  20, -13)},
+   {S(  38,   0), S(  43,   9), S(  44,   5), S(  47,   7)},
+};
 
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
@@ -392,8 +398,8 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[defended];
-            if (TRACE) T.KnightOutpost[defended][US]++;
+            eval += KnightOutpost[defended][mirroredFileOf(sq)];
+            if (TRACE) T.KnightOutpost[defended][mirroredFileOf(sq)][US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the knight
@@ -456,8 +462,8 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += BishopOutpost[defended];
-            if (TRACE) T.BishopOutpost[defended][US]++;
+            eval += BishopOutpost[defended][mirroredFileOf(sq)];
+            if (TRACE) T.BishopOutpost[defended][mirroredFileOf(sq)][US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the bishop

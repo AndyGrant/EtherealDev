@@ -42,6 +42,12 @@ int relativeRankOf(int c, int s) {
     return c == WHITE ? rankOf(s) : 7 - rankOf(s);
 }
 
+int mirroredFileOf(int s) {
+    static const int Mirror[] = {0, 1, 2, 3, 3, 2, 1 ,0};
+    assert(0 <= s && s < SQUARE_NB);
+    return Mirror[fileOf(s)];
+}
+
 int square(int r, int f) {
     assert(0 <= r && r < RANK_NB);
     assert(0 <= f && f < FILE_NB);
