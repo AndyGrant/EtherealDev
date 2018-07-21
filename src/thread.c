@@ -20,12 +20,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "transposition.h"
+#include "board.h"
+#include "evaluate.h"
 #include "history.h"
 #include "search.h"
-#include "board.h"
 #include "thread.h"
+#include "transposition.h"
 #include "types.h"
+
+int Contempt; // Set by UCI Options
 
 Thread* createThreadPool(int nthreads){
 
@@ -82,6 +85,11 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
 
         // Make our own copy of the original position
         memcpy(&threads[i].board, board, sizeof(Board));
+
+        // Build contempt score for the side to move using UCI settings
+        threads[i].contempt = board->turn == WHITE
+                            ? MakeScore( Contempt,  Contempt / 2)
+                            : MakeScore(-Contempt, -Contempt / 2);
 
         // Zero out our depth and stat tracking
         threads[i].depth  = 0;

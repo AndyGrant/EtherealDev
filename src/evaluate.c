@@ -23,13 +23,14 @@
 #include <string.h>
 
 #include "attacks.h"
-#include "board.h"
 #include "bitboards.h"
+#include "board.h"
 #include "castle.h"
 #include "evaluate.h"
 #include "masks.h"
 #include "movegen.h"
 #include "psqt.h"
+#include "thread.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -192,7 +193,8 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
 
-int evaluateBoard(Board* board, PawnKingTable* pktable){
+
+int evaluate(Thread *thread, Board *board){
 
     EvalInfo ei;
     int phase, factor, eval, pkeval;
@@ -201,10 +203,10 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     if (evaluateDraws(board)) return 0;
 
     // Setup and perform all evaluations
-    initializeEvalInfo(&ei, board, pktable);
+    initializeEvalInfo(&ei, board, &thread->pktable);
     eval   = evaluatePieces(&ei, board);
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-    eval  += pkeval + board->psqtmat + Tempo[board->turn];
+    eval  += pkeval + board->psqtmat + Tempo[board->turn] + thread->contempt;
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
@@ -222,7 +224,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL)
-        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+        storePawnKingEntry(&thread->pktable, board->pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;

@@ -33,6 +33,8 @@ struct Thread {
     Board board;
     PVariation pv;
 
+    int contempt;
+
     int value;
     int depth;
     int seldepth;

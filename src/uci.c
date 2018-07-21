@@ -41,6 +41,7 @@
 #include "uci.h"
 #include "zobrist.h"
 
+extern int Contempt; // Defined by Thread.c
 
 extern int MoveOverhead; // Defined by Time.c
 
@@ -96,6 +97,7 @@ int main(int argc, char **argv) {
             printf("id author Andrew Grant\n");
             printf("option name Hash type spin default 16 min 1 max 65536\n");
             printf("option name Threads type spin default 1 min 1 max 2048\n");
+            printf("option name Contempt type spin default 0 min -100 max 100\n");
             printf("option name MoveOverhead type spin default 100 min 0 max 10000\n");
             printf("option name SyzygyPath type string default <empty>\n");
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
@@ -123,6 +125,11 @@ int main(int argc, char **argv) {
                 nthreads = atoi(str + strlen("setoption name Threads value "));
                 threads = createThreadPool(nthreads);
                 printf("info string set Threads to %d\n", nthreads);
+            }
+
+            if (stringStartsWith(str, "setoption name Contempt value ")){
+                Contempt = atoi(str + strlen("setoption name Contempt value "));
+                printf("info string set Contempt to %d\n", Contempt);
             }
 
             if (stringStartsWith(str, "setoption name MoveOverhead value ")){

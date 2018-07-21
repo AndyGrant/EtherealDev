@@ -296,7 +296,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
-            return evaluateBoard(board, &thread->pktable);
+            return evaluate(thread, board);
 
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in
@@ -376,7 +376,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Compute and save off a static evaluation. Also, compute our futilityMargin
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
-                                     : evaluateBoard(board, &thread->pktable);
+                                     : evaluate(thread, board);
     futilityMargin = eval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
@@ -729,12 +729,12 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 2. Max Draft Cutoff. If we are at the maximum search draft,
     // then end the search here with a static eval of the current board
     if (height >= MAX_PLY)
-        return evaluateBoard(board, &thread->pktable);
+        return evaluate(thread, board);
 
     // Step 3. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &thread->pktable);
+    best = value = eval = evaluate(thread, board);
     alpha = MAX(alpha, value);
     if (alpha >= beta) return value;
 
