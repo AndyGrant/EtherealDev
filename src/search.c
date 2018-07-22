@@ -525,21 +525,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
 
-        // Step 15. Counter Move Pruning. Moves with poor counter
-        // move history are pruned at near leaf nodes of the search.
+        // Step 15. Continuation Move Pruning. Moves with poor counter
+        // move history and follow up move history are pruned at near
+        // leaf nodes of the search.
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            &&  depth <= CounterMovePruningDepth
-            &&  cmhist < CounterMoveHistoryLimit[improving])
-            continue;
-
-        // Step 16. Follw Up Move Pruning. Moves with poor counter
-        // move history are pruned at near leaf nodes of the search.
-        if (   !RootNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            &&  depth <= FollowUpMovePruningDepth
+            &&  depth <= ContinuationMovePruningDepth
+            &&  cmhist < CounterMoveHistoryLimit[improving]
             &&  fuhist < FollowUpMoveHistoryLimit[improving])
             continue;
 
