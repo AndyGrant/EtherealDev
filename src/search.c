@@ -584,10 +584,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.killer2
               || move == movePicker.counter;
 
-            // Adjust based on history. Don't allow an increase
+            // Adjust based on history. Don't allow a decrease
             // in LMR when our opponent made a null move
             if (thread->moveStack[height-1] == NULL_MOVE)
-                R -= MAX( 0, MIN(2, hist / 5000));
+                R -= MAX(-2, MIN(0, hist / 5000));
             else
                 R -= MAX(-2, MIN(2, hist / 5000));
 
