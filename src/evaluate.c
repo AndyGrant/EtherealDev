@@ -195,7 +195,7 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     EvalInfo ei;
-    int phase, factor, eval, pkeval;
+    int phase, eval, pkeval;
 
     // Check for guaranteed material draws
     if (evaluateDraws(board)) return 0;
@@ -213,12 +213,9 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
                              |board->pieces[BISHOP]);
     phase = (phase * 256 + 12) / 24;
 
-    // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
-
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
-         +  ScoreEG(eval) * phase * factor / SCALE_NORMAL) / 256;
+         +  ScoreEG(eval) * phase) / 256;
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL)
@@ -787,43 +784,6 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatByPawnPush[colour] += count;
 
     return eval;
-}
-
-int evaluateScaleFactor(Board *board) {
-
-    uint64_t white   = board->colours[WHITE];
-    uint64_t black   = board->colours[BLACK];
-    uint64_t knights = board->pieces[KNIGHT];
-    uint64_t bishops = board->pieces[BISHOP];
-    uint64_t rooks   = board->pieces[ROOK  ];
-    uint64_t queens  = board->pieces[QUEEN ];
-
-    if (    onlyOne(white & bishops)
-        &&  onlyOne(black & bishops)
-        &&  onlyOne(bishops & WHITE_SQUARES)) {
-
-        if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
-
-        if (   !(rooks | queens)
-            &&  onlyOne(white & knights)
-            &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
-
-        if (   !(knights | queens)
-            && onlyOne(white & rooks)
-            && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
-
-        if (   !(knights | queens)
-            && several(white & rooks)
-            && several(black & rooks))
-            return SCALE_OCB_TWO_ROOKS;
-
-        return SCALE_OCB_GENERAL;
-    }
-
-    return SCALE_NORMAL;
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
