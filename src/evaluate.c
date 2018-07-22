@@ -214,7 +214,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
+    factor = evaluateScaleFactor(&ei, board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -789,7 +789,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board) {
+int evaluateScaleFactor(EvalInfo* ei, Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -802,23 +802,27 @@ int evaluateScaleFactor(Board *board) {
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
-        if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+        if (abs(popcount(white & ei->passedPawns)
+              - popcount(black & ei->passedPawns)) <= 1) {
 
-        if (   !(rooks | queens)
-            &&  onlyOne(white & knights)
-            &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
+            if (!(knights | rooks | queens))
+                return SCALE_OCB_BISHOPS_ONLY;
 
-        if (   !(knights | queens)
-            && onlyOne(white & rooks)
-            && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
+            if (   !(rooks | queens)
+                &&  onlyOne(white & knights)
+                &&  onlyOne(black & knights))
+                return SCALE_OCB_ONE_KNIGHT;
 
-        if (   !(knights | queens)
-            && several(white & rooks)
-            && several(black & rooks))
-            return SCALE_OCB_TWO_ROOKS;
+            if (   !(knights | queens)
+                && onlyOne(white & rooks)
+                && onlyOne(black & rooks))
+                return SCALE_OCB_ONE_ROOK;
+
+            if (   !(knights | queens)
+                && several(white & rooks)
+                && several(black & rooks))
+                return SCALE_OCB_TWO_ROOKS;
+        }
 
         return SCALE_OCB_GENERAL;
     }
