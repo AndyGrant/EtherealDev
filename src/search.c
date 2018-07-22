@@ -534,13 +534,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  cmhist < CounterMoveHistoryLimit[improving])
             continue;
 
-        // Step 16. Follw Up Move Pruning. Moves with poor counter
+        // Step 16. Follw Up Move Pruning. Moves with poor follow up
         // move history are pruned at near leaf nodes of the search.
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= FollowUpMovePruningDepth
-            &&  fuhist < FollowUpMoveHistoryLimit[improving])
+            &&  fuhist < FollowUpMoveHistoryLimit)
             continue;
 
         // Step 17. Static Exchange Evaluation Pruning. Prune moves which fail
