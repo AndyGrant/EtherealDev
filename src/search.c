@@ -508,7 +508,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth
-            &&  FutilityPruningHistoryLimit[improving]){
+            &&  hist < FutilityPruningHistoryLimit[improving]){
             skipQuiets = 1;
             continue;
          }
