@@ -55,6 +55,7 @@ struct Thread {
     Thread* threads;
 
     KillerTable killers;
+    NullKillerTable nkillers;
     HistoryTable history;
     CMHistoryTable cmhistory;
     FUHistoryTable fuhistory;

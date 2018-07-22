@@ -658,6 +658,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 thread->killers[height][0] = move;
             }
 
+            if (isQuiet && thread->moveStack[height-1] == NULL_MOVE)
+                thread->nkillers[height] = move;
+
             if (isQuiet)
                 updateCounterMove(thread, height, move);
 

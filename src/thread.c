@@ -61,6 +61,7 @@ void resetThreadPool(Thread* threads){
 
     for (int i = 0; i < threads[0].nthreads; i++){
         memset(&threads[i].killers,   0, sizeof(KillerTable     ));
+        memset(&threads[i].nkillers,  0, sizeof(NullKillerTable ));
         memset(&threads[i].history,   0, sizeof(HistoryTable    ));
         memset(&threads[i].cmhistory, 0, sizeof(CMHistoryTable  ));
         memset(&threads[i].fuhistory, 0, sizeof(FUHistoryTable  ));
