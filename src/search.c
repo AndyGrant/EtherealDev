@@ -315,8 +315,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // when in a PvNode, unless we would otherwise hit a qsearch
         if (ttDepth >= depth && (depth == 0 || !PvNode)){
 
-            if (ttValue >= beta && (ttBound & BOUND_LOWER))
+            if (ttValue >= beta && (ttBound & BOUND_LOWER)) {
+
+                if (moveIsPsuedoLegal(board, ttMove)){
+                    updateHistory(thread, ttMove, depth*depth);
+                    updateCMHistory(thread, height, ttMove, depth*depth);
+                    updateFUHistory(thread, height, ttMove, depth*depth);
+                }
+
                 return beta;
+            }
 
             if (ttValue <= alpha && (ttBound & BOUND_UPPER))
                 return alpha;
