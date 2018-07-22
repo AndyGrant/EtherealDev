@@ -543,6 +543,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  fuhist < FollowUpMoveHistoryLimit[improving])
             continue;
 
+        if (   !RootNode
+            &&  isQuiet
+            &&  best > MATED_IN_MAX
+            &&  depth <= 2
+            &&  fuhist < 0
+            &&  cmhist < 0)
+            continue;
+
         // Step 17. Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
