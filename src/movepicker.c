@@ -43,7 +43,8 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->tableMove = ttMove;
     mp->killer1 = thread->killers[height][0];
     mp->killer2 = thread->killers[height][1];
-    mp->nkiller = thread->nkillers[height];
+    mp->nkiller = thread->moveStack[height-1] == NULL_MOVE
+                ? thread->nkillers[height] : NONE_MOVE;
     mp->counter = getCounterMove(thread, height);
 
     // Reference to the board and move statistics
