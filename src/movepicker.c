@@ -129,7 +129,18 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             return selectNextMove(mp, board, skipQuiets);
         }
 
+        mp->stage = STAGE_NULL_KILLER;
+
+        /* fallthrough */
+
+    case STAGE_NULL_KILLER:
+
+        // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_KILLER_1;
+        if (   !skipQuiets
+            &&  mp->nkiller != mp->tableMove
+            &&  moveIsPsuedoLegal(board, mp->nkiller))
+            return mp->nkiller;
 
         /* fallthrough */
 
@@ -139,6 +150,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         mp->stage = STAGE_KILLER_2;
         if (   !skipQuiets
             &&  mp->killer1 != mp->tableMove
+            &&  mp->killer1 != mp->nkiller
             &&  moveIsPsuedoLegal(board, mp->killer1))
             return mp->killer1;
 
@@ -147,24 +159,12 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_KILLER_2:
 
         // Play killer move if not yet played, and psuedo legal
-        mp->stage = STAGE_NULL_KILLER;
-        if (   !skipQuiets
-            &&  mp->killer2 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer2))
-            return mp->killer2;
-
-        /* fallthrough */
-
-    case STAGE_NULL_KILLER:
-
-        // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
         if (   !skipQuiets
-            &&  mp->nkiller != mp->tableMove
-            &&  mp->nkiller != mp->killer1
-            &&  mp->nkiller != mp->killer2
-            &&  moveIsPsuedoLegal(board, mp->nkiller))
-            return mp->nkiller;
+            &&  mp->killer2 != mp->tableMove
+            &&  mp->killer2 != mp->nkiller
+            &&  moveIsPsuedoLegal(board, mp->killer2))
+            return mp->killer2;
 
         /* fallthrough */
 
