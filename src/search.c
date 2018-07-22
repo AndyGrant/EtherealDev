@@ -56,7 +56,7 @@ void initSearch(){
     // Init Late Move Reductions Table
     for (int d = 1; d < 64; d++)
         for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = 0.75 + log(0.85 * d) * log(p) / 2.00;
+            LMRTable[d][p] = 0.50 + log(0.85 * d) * log(p) / 2.00;
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
