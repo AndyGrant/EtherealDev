@@ -22,7 +22,7 @@
 #include "types.h"
 
 enum {
-    SCALE_OCB_BISHOPS_ONLY =  56,
+    SCALE_OCB_BISHOPS_ONLY =  72,
     SCALE_OCB_ONE_KNIGHT   = 106,
     SCALE_OCB_ONE_ROOK     =  96,
     SCALE_OCB_TWO_ROOKS    = 108,
