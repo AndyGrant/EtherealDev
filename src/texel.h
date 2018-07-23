@@ -24,7 +24,7 @@
 #define LEARN_RATE (  150.0) // Learning rate step size
 #define NTHREADS   (      4) // # of Partitions to use
 #define NTERMS     (     24) // # of Terms to tune
-#define NPOSITIONS (1470000) // # of FENs in book
+#define NPOSITIONS (7000000) // # of FENs in book
 
 // Each Eval Term (Total = 488)
 #define TunePawnValue                  (0)
