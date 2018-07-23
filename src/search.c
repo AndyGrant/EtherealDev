@@ -508,10 +508,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth
-            &&  hist < FutilityPruningHistoryLimit[improving]){
+            &&  hist < FutilityPruningHistoryLimit[improving])
             skipQuiets = 1;
-            continue;
-         }
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
         // tried many quiets in this position already, and we don't expect
