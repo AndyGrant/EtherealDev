@@ -596,7 +596,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // come from in check positions, so long as no other extensions occur
         extension  = !RootNode
                   &&  inCheck
-                  && (!isQuiet || hist > 5000);
+                  && (!isQuiet || hist > -5000);
 
         // Step 19A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
