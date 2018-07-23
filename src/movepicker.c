@@ -280,6 +280,10 @@ void evaluateNoisyMoves(MovePicker* mp){
         // Later we will flag moves which were passed over in the STAGE_GOOD_NOISY
         // phase due to failing an SEE(0), by setting the value to -1
         assert(mp->values[i] >= 0);
+
+        // big bug fix?
+        if (mp->moves[i] == mp->tableMove)
+            mp->values[i] = -1;
     }
 }
 
