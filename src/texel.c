@@ -70,8 +70,8 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
-extern const int PassedPawn[2][2][RANK_NB];
+extern const int KingShelter[2][8][8];
+extern const int PassedPawn[3][8];
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -84,8 +84,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double rates[NTERMS][PHASE_NB] = {{0}, {0}};
+    double K, thisError, bestError = 1e6;
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -106,9 +105,6 @@ void runTexelTuning(Thread *thread) {
 
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
     K = computeOptimalK(tes);
@@ -165,8 +161,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * rates[i][MG] * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * LEARN_RATE * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * LEARN_RATE * gradients[i][EG];
         }
     }
 }
@@ -266,37 +262,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     fclose(fin);
 }
 
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
-
-    int index, coeff;
-    double avgByPhase[PHASE_NB] = {0};
-    double occurances[NTERMS][PHASE_NB] = {{0}, {0}};
-
-    for (int i = 0; i < NPOSITIONS; i++) {
-        for (int j = 0; j < tes[i].ntuples; j++) {
-
-            index = tes[i].tuples[j].index;
-            coeff = tes[i].tuples[j].coeff;
-
-            occurances[index][MG] += abs(coeff) * tes[i].factors[MG];
-            occurances[index][EG] += abs(coeff) * tes[i].factors[EG];
-
-            avgByPhase[MG] += abs(coeff) * tes[i].factors[MG];
-            avgByPhase[EG] += abs(coeff) * tes[i].factors[EG];
-        }
-    }
-
-    avgByPhase[MG] /= NTERMS;
-    avgByPhase[EG] /= NTERMS;
-
-    for (int i = 0; i < NTERMS; i++){
-        if (occurances[i][MG] >= 1.0)
-            rates[i][MG] = avgByPhase[MG] / occurances[i][MG];
-        if (occurances[i][EG] >= 1.0)
-            rates[i][EG] = avgByPhase[EG] / occurances[i][EG];
-    }
-}
-
 void initCoefficients(int coeffs[NTERMS]) {
 
     int i = 0; // INIT_COEFF_N will update i accordingly
@@ -329,7 +294,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneQueenMobility               ) INIT_COEFF_1(QueenMobility, 28)           ;
     if (TuneKingDefenders               ) INIT_COEFF_1(KingDefenders, 12)           ;
     if (TuneKingShelter                 ) INIT_COEFF_3(KingShelter, 2, 8, 8)        ;
-    if (TunePassedPawn                  ) INIT_COEFF_3(PassedPawn, 2, 2, 8)         ;
+    if (TunePassedPawn                  ) INIT_COEFF_2(PassedPawn, 3, 8)            ;
     if (TuneThreatWeakPawn              ) INIT_COEFF_0(ThreatWeakPawn)              ;
     if (TuneThreatMinorAttackedByPawn   ) INIT_COEFF_0(ThreatMinorAttackedByPawn)   ;
     if (TuneThreatMinorAttackedByMajor  ) INIT_COEFF_0(ThreatMinorAttackedByMajor)  ;
@@ -376,7 +341,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneQueenMobility               ) INIT_PARAM_1(QueenMobility, 28)           ;
     if (TuneKingDefenders               ) INIT_PARAM_1(KingDefenders, 12)           ;
     if (TuneKingShelter                 ) INIT_PARAM_3(KingShelter, 2, 8, 8)        ;
-    if (TunePassedPawn                  ) INIT_PARAM_3(PassedPawn, 2, 2, 8)         ;
+    if (TunePassedPawn                  ) INIT_PARAM_2(PassedPawn, 3, 8)            ;
     if (TuneThreatWeakPawn              ) INIT_PARAM_0(ThreatWeakPawn)              ;
     if (TuneThreatMinorAttackedByPawn   ) INIT_PARAM_0(ThreatMinorAttackedByPawn)   ;
     if (TuneThreatMinorAttackedByMajor  ) INIT_PARAM_0(ThreatMinorAttackedByMajor)  ;
@@ -431,7 +396,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneQueenMobility               ) PRINT_PARAM_1(QueenMobility, 28)          ;
     if (TuneKingDefenders               ) PRINT_PARAM_1(KingDefenders, 12)          ;
     if (TuneKingShelter                 ) PRINT_PARAM_3(KingShelter, 2, 8, 8)       ;
-    if (TunePassedPawn                  ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)        ;
+    if (TunePassedPawn                  ) PRINT_PARAM_2(PassedPawn, 3, 8)           ;
     if (TuneThreatWeakPawn              ) PRINT_PARAM_0(ThreatWeakPawn)             ;
     if (TuneThreatMinorAttackedByPawn   ) PRINT_PARAM_0(ThreatMinorAttackedByPawn)  ;
     if (TuneThreatMinorAttackedByMajor  ) PRINT_PARAM_0(ThreatMinorAttackedByMajor) ;
@@ -543,10 +508,21 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
+
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++) {
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("%s", b == B - 1 ? "" : ", ");
+        }
+
+        printf("},\n");
+    }
+
+    printf("};\n");
 
 }
 

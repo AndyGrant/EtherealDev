@@ -169,11 +169,10 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -31, -27), S( -25,   7), S( -16,  -3), S(  20,   0), S(  59,  -4), S( 147,  33), S(   0,   0)},
-   {S(   0,   0), S(  -1,   2), S( -19,  24), S( -12,  37), S(   6,  46), S(  66,  63), S( 191, 133), S(   0,   0)}},
-  {{S(   0,   0), S(  -7,  15), S( -13,   9), S(  -6,  28), S(  29,  34), S(  78,  66), S( 234, 152), S(   0,   0)},
-   {S(   0,   0), S(  -9,   9), S( -12,  18), S( -18,  54), S(  -5, 113), S(  41, 213), S( 126, 378), S(   0,   0)}},
+const int PassedPawn[3][8] = {
+   {S(   0,   0), S(  -8,  -2), S(  -6,   0), S(  -8,  10), S(  17,  14), S(  42,  54), S( 111, 106), S(   0,   0)},
+   {S(   0,   0), S(  -1,   5), S( -11,  14), S(  -1,  29), S(  24,  45), S(  66,  86), S( 172, 177), S(   0,   0)},
+   {S(   0,   0), S( -13,   7), S(  -7,  12), S(  -2,  45), S(  18, 100), S(  83, 210), S( 182, 328), S(   0,   0)},
 };
 
 /* Threat Evaluation Terms */
@@ -685,32 +684,27 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
-    int sq, rank, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, advance, eval = 0;
     uint64_t destination;
 
     uint64_t tempPawns = board->colours[colour] & ei->passedPawns;
-    uint64_t notEmpty  = board->colours[WHITE ] | board->colours[BLACK];
+    uint64_t occupied  = board->colours[WHITE ] | board->colours[BLACK];
 
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
 
         // Pop off the next passed Pawn
         sq = poplsb(&tempPawns);
+        rank = relativeRankOf(colour, sq);
+        destination = pawnAdvance(1ull << sq, 0ull, colour);
 
-        // Determine the releative rank
-        rank = (colour == BLACK) ? (7 - rankOf(sq)) : rankOf(sq);
+        // Score the passer based on ability to move to
+        // the next square, and to do it safely
+        advance = !(destination & occupied)
+                + !(destination & ei->attacked[!colour]);
 
-        // Determine where the pawn would advance to
-        destination = (colour == BLACK) ? ((1ull << sq) >> 8): ((1ull << sq) << 8);
-
-        // Destination does not have any pieces on it
-        canAdvance = !(destination & notEmpty);
-
-        // Destination is not attacked by the opponent
-        safeAdvance = !(destination & ei->attacked[!colour]);
-
-        eval += PassedPawn[canAdvance][safeAdvance][rank];
-        if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][colour]++;
+        eval += PassedPawn[advance][rank];
+        if (TRACE) T.PassedPawn[advance][rank][colour]++;
     }
 
     return eval;
