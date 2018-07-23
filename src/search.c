@@ -56,7 +56,7 @@ void initSearch(){
     // Init Late Move Reductions Table
     for (int d = 1; d < 64; d++)
         for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = 0.75 + log(d) * log(p) / 2.25;
+            LMRTable[d][p] = 2.25 + log(d) * log(p) / 2.25;
 }
 
 uint16_t getBestMove(Thread* threads, Board* board, Limits* limits){
@@ -576,8 +576,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non PV nodes
             R += !PvNode;
 
-            // Increase for non improving nodes
-            R += !improving;
+            // Decrease for improving nodes
+            R -= improving;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
