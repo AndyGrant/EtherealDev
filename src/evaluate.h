@@ -26,7 +26,7 @@ enum {
     SCALE_OCB_ONE_KNIGHT   = 106,
     SCALE_OCB_ONE_ROOK     =  96,
     SCALE_OCB_TWO_ROOKS    = 108,
-    SCALE_OCB_GENERAL      = 112,
+    SCALE_OCB_GENERAL      = 128,
     SCALE_NORMAL           = 128,
 };
 
