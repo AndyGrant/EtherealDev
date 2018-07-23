@@ -500,6 +500,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist   = getHistoryScore(thread, move) + cmhist + fuhist;
         }
 
+        if (hasNonPawnMaterial(board, board->turn)) {
+
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
         // one, and also skip all other quiet moves from this position
@@ -553,6 +555,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
             continue;
+        }
 
         // Apply the move, and verify legality
         applyMove(board, move, undo);
