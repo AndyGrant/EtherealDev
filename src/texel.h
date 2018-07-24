@@ -22,7 +22,7 @@
 #include "types.h"
 
 #define NTHREADS   (      4) // # of Threads to use
-#define NTERMS     (      0) // # of Terms to tune
+#define NTERMS     (    290) // # of Terms to tune
 #define NPOSITIONS (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 488)
@@ -38,30 +38,30 @@
 #define TuneRookPSQT32                 (0)
 #define TuneQueenPSQT32                (0)
 #define TuneKingPSQT32                 (0)
-#define TunePawnIsolated               (0)
-#define TunePawnStacked                (0)
-#define TunePawnBackwards              (0)
-#define TunePawnConnected32            (0)
-#define TuneKnightOutpost              (0)
-#define TuneKnightMobility             (0)
-#define TuneBishopPair                 (0)
-#define TuneBishopRammedPawns          (0)
-#define TuneBishopOutpost              (0)
-#define TuneBishopMobility             (0)
-#define TuneRookFile                   (0)
-#define TuneRookOnSeventh              (0)
-#define TuneRookMobility               (0)
-#define TuneQueenMobility              (0)
-#define TuneKingDefenders              (0)
-#define TuneKingShelter                (0)
-#define TunePassedPawn                 (0)
-#define TuneThreatWeakPawn             (0)
-#define TuneThreatMinorAttackedByPawn  (0)
-#define TuneThreatMinorAttackedByMajor (0)
-#define TuneThreatRookAttackedByLesser (0)
-#define TuneThreatQueenAttackedByOne   (0)
-#define TuneThreatOverloadedPieces     (0)
-#define TuneThreatByPawnPush           (0)
+#define TunePawnIsolated               (1)
+#define TunePawnStacked                (1)
+#define TunePawnBackwards              (1)
+#define TunePawnConnected32            (1)
+#define TuneKnightOutpost              (1)
+#define TuneKnightMobility             (1)
+#define TuneBishopPair                 (1)
+#define TuneBishopRammedPawns          (1)
+#define TuneBishopOutpost              (1)
+#define TuneBishopMobility             (1)
+#define TuneRookFile                   (1)
+#define TuneRookOnSeventh              (1)
+#define TuneRookMobility               (1)
+#define TuneQueenMobility              (1)
+#define TuneKingDefenders              (1)
+#define TuneKingShelter                (1)
+#define TunePassedPawn                 (1)
+#define TuneThreatWeakPawn             (1)
+#define TuneThreatMinorAttackedByPawn  (1)
+#define TuneThreatMinorAttackedByMajor (1)
+#define TuneThreatRookAttackedByLesser (1)
+#define TuneThreatQueenAttackedByOne   (1)
+#define TuneThreatOverloadedPieces     (1)
+#define TuneThreatByPawnPush           (1)
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
@@ -81,7 +81,6 @@ struct TexelEntry {
 
 void runTexelTuning(Thread* thread);
 void initTexelEntries(TexelEntry* tes, Thread* thread);
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]);
 
 void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(double cparams[NTERMS][PHASE_NB]);
