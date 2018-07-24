@@ -81,7 +81,7 @@ const int PawnConnected32[32] = {
 
 const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
 
-const int KnightPresence = S(   0,   0);
+const int KnightPresence = S(   0,   8);
 
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
@@ -399,7 +399,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // JJoshua PogChamp athFA
-        count = popcount(knightTwoMoveMasks(sq) & board->colours[THEM]);
+        count = popcount(knightTwoMoveMasks(sq) & board->colours[THEM] & ~ei->attackedBy[THEM][PAWN]) - 1;
         eval += count * KnightPresence;
         if (TRACE) T.KnightPresence[US] += count;
 
