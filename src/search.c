@@ -317,8 +317,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
-                || (ttBound == BOUND_LOWER && value >= beta)
-                || (ttBound == BOUND_UPPER && value <= alpha)){
+                || (ttBound == BOUND_LOWER && ttValue >= beta)
+                || (ttBound == BOUND_UPPER && ttValue <= alpha)){
                 return ttValue;
             }
         }
