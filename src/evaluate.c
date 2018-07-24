@@ -135,7 +135,11 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
-const int KingMobility[9];
+const int KingMobility[9] = {
+    S(  29,  17), S(  33,  11), S(  21,   4), S(  11,   6),
+    S(   0,   3), S(  -7,  -2), S(   3,  -1), S(  -9,  -5),
+    S( -14, -14),
+};
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2), S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
