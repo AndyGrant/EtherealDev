@@ -179,16 +179,15 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     char line[128];
 
     // Initialize limits for the search
-    limits.limitedByNone  = 0;
+    limits.limitedByNone  = 1;
     limits.limitedByTime  = 0;
-    limits.limitedByDepth = 1;
+    limits.limitedByDepth = 0;
     limits.limitedBySelf  = 0;
     limits.timeLimit      = 0;
-    limits.depthLimit     = 1;
+    limits.depthLimit     = 0;
 
     // Initialize the thread for the search
     thread->limits = &limits;
-    thread->depth  = 1;
 
     FILE * fin = fopen("FENS", "r");
 
