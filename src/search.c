@@ -432,7 +432,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // likely going to be good at a full depth. To save some work we will prune
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
-        && !inCheck
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
@@ -457,12 +456,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             thread->moveStack[height] = move;
             thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
-            // Verify the move is good with a depth zero search (qsearch, unless in check)
-            // and then with a slightly reduced search. If both searches still exceed rBeta,
-            // we will prune this node's subtree with resonable assurance that we made no error
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1);
-            if (value >= rBeta)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
             revertMove(board, move, undo);
