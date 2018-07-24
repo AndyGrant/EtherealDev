@@ -60,6 +60,7 @@ extern const int PawnStacked;
 extern const int PawnBackwards[2];
 extern const int PawnConnected32[32];
 extern const int KnightOutpost[2];
+extern const int KnightConnected;
 extern const int KnightMobility[9];
 extern const int BishopPair;
 extern const int BishopRammedPawns;
@@ -318,6 +319,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TunePawnBackwards               ) INIT_COEFF_1(PawnBackwards, 2)            ;
     if (TunePawnConnected32             ) INIT_COEFF_1(PawnConnected32, 32)         ;
     if (TuneKnightOutpost               ) INIT_COEFF_1(KnightOutpost, 2)            ;
+    if (TuneKnightConnected             ) INIT_COEFF_0(KnightConnected)             ;
     if (TuneKnightMobility              ) INIT_COEFF_1(KnightMobility, 9)           ;
     if (TuneBishopPair                  ) INIT_COEFF_0(BishopPair)                  ;
     if (TuneBishopRammedPawns           ) INIT_COEFF_0(BishopRammedPawns)           ;
@@ -365,6 +367,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TunePawnBackwards               ) INIT_PARAM_1(PawnBackwards, 2)            ;
     if (TunePawnConnected32             ) INIT_PARAM_1(PawnConnected32, 32)         ;
     if (TuneKnightOutpost               ) INIT_PARAM_1(KnightOutpost, 2)            ;
+    if (TuneKnightConnected             ) INIT_PARAM_0(KnightConnected)             ;
     if (TuneKnightMobility              ) INIT_PARAM_1(KnightMobility, 9)           ;
     if (TuneBishopPair                  ) INIT_PARAM_0(BishopPair)                  ;
     if (TuneBishopRammedPawns           ) INIT_PARAM_0(BishopRammedPawns)           ;
@@ -420,6 +423,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TunePawnBackwards               ) PRINT_PARAM_1(PawnBackwards, 2)           ;
     if (TunePawnConnected32             ) PRINT_PARAM_1(PawnConnected32, 32)        ;
     if (TuneKnightOutpost               ) PRINT_PARAM_1(KnightOutpost, 2)           ;
+    if (TuneKnightConnected             ) PRINT_PARAM_0(KnightConnected)            ;
     if (TuneKnightMobility              ) PRINT_PARAM_1(KnightMobility, 9)          ;
     if (TuneBishopPair                  ) PRINT_PARAM_0(BishopPair)                 ;
     if (TuneBishopRammedPawns           ) PRINT_PARAM_0(BishopRammedPawns)          ;

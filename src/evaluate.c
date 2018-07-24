@@ -81,6 +81,8 @@ const int PawnConnected32[32] = {
 
 const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
 
+const int KnightConnected = S(   5,   9);
+
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
     S(   3, -16), S(   8,   0), S(  18,  -3), S(  33,  -5),
@@ -365,10 +367,15 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
+    const uint64_t EnemyCamp = THEM == WHITE
+                             ? RANK_1 | RANK_2 | RANK_3 | RANK_4
+                             : RANK_8 | RANK_7 | RANK_6 | RANK_5;
+
     int sq, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
+    uint64_t myKnights   = board->pieces[KNIGHT] & board->colours[US  ];
     uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[US  ];
 
     ei->attackedBy[US][KNIGHT] = 0ull;
@@ -394,6 +401,12 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
+        }
+
+        //
+        if (testBit(EnemyCamp, sq) && (attacks & myKnights)) {
+            eval += KnightConnected;
+            if (TRACE) T.KnightConnected[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the knight

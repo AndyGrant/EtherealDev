@@ -48,6 +48,7 @@ struct EvalTrace {
     int PawnBackwards[2][COLOUR_NB];
     int PawnConnected32[32][COLOUR_NB];
     int KnightOutpost[2][COLOUR_NB];
+    int KnightConnected[COLOUR_NB];
     int KnightMobility[9][COLOUR_NB];
     int BishopPair[COLOUR_NB];
     int BishopRammedPawns[COLOUR_NB];
