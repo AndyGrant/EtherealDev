@@ -73,6 +73,7 @@ extern const int KingDefenders[12];
 extern const int KingShelter[2][FILE_NB][RANK_NB];
 extern const int PassedPawn[2][2][RANK_NB];
 extern const int ThreatWeakPawn;
+extern const int ThreatWeakPasser;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
 extern const int ThreatRookAttackedByLesser;
@@ -331,6 +332,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     if (TuneKingShelter                 ) INIT_COEFF_3(KingShelter, 2, 8, 8)        ;
     if (TunePassedPawn                  ) INIT_COEFF_3(PassedPawn, 2, 2, 8)         ;
     if (TuneThreatWeakPawn              ) INIT_COEFF_0(ThreatWeakPawn)              ;
+    if (TuneThreatWeakPasser            ) INIT_COEFF_0(ThreatWeakPasser)            ;
     if (TuneThreatMinorAttackedByPawn   ) INIT_COEFF_0(ThreatMinorAttackedByPawn)   ;
     if (TuneThreatMinorAttackedByMajor  ) INIT_COEFF_0(ThreatMinorAttackedByMajor)  ;
     if (TuneThreatRookAttackedByLesser  ) INIT_COEFF_0(ThreatRookAttackedByLesser)  ;
@@ -378,6 +380,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     if (TuneKingShelter                 ) INIT_PARAM_3(KingShelter, 2, 8, 8)        ;
     if (TunePassedPawn                  ) INIT_PARAM_3(PassedPawn, 2, 2, 8)         ;
     if (TuneThreatWeakPawn              ) INIT_PARAM_0(ThreatWeakPawn)              ;
+    if (TuneThreatWeakPasser            ) INIT_PARAM_0(ThreatWeakPasser)            ;
     if (TuneThreatMinorAttackedByPawn   ) INIT_PARAM_0(ThreatMinorAttackedByPawn)   ;
     if (TuneThreatMinorAttackedByMajor  ) INIT_PARAM_0(ThreatMinorAttackedByMajor)  ;
     if (TuneThreatRookAttackedByLesser  ) INIT_PARAM_0(ThreatRookAttackedByLesser)  ;
@@ -433,6 +436,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     if (TuneKingShelter                 ) PRINT_PARAM_3(KingShelter, 2, 8, 8)       ;
     if (TunePassedPawn                  ) PRINT_PARAM_3(PassedPawn, 2, 2, 8)        ;
     if (TuneThreatWeakPawn              ) PRINT_PARAM_0(ThreatWeakPawn)             ;
+    if (TuneThreatWeakPasser            ) PRINT_PARAM_0(ThreatWeakPasser)           ;
     if (TuneThreatMinorAttackedByPawn   ) PRINT_PARAM_0(ThreatMinorAttackedByPawn)  ;
     if (TuneThreatMinorAttackedByMajor  ) PRINT_PARAM_0(ThreatMinorAttackedByMajor) ;
     if (TuneThreatRookAttackedByLesser  ) PRINT_PARAM_0(ThreatRookAttackedByLesser) ;
