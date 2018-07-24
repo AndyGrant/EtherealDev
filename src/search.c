@@ -406,8 +406,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
@@ -457,12 +457,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             thread->moveStack[height] = move;
             thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
-            // Verify the move is good with a depth zero search (qsearch, unless in check)
-            // and then with a slightly reduced search. If both searches still exceed rBeta,
-            // we will prune this node's subtree with resonable assurance that we made no error
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 0, height+1);
-            if (value >= rBeta)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            // Use a reduced search to verify the probcut
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
             revertMove(board, move, undo);
