@@ -184,7 +184,6 @@ const int ThreatMinorAttackedByMajor = S( -43, -41);
 const int ThreatRookAttackedByLesser = S( -40, -20);
 const int ThreatQueenAttackedByOne   = S( -84,   3);
 const int ThreatOverloadedPieces     = S(  -7, -23);
-const int ThreatByPawnPush           = S(  12,  15);
 
 /* General Evaluation Terms */
 
@@ -724,7 +723,6 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
-    uint64_t occupied = friendly | enemy;
 
     uint64_t pawns   = friendly & board->pieces[PAWN  ];
     uint64_t knights = friendly & board->pieces[KNIGHT];
@@ -744,13 +742,6 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t overloaded = (knights | bishops | rooks | queens)
                         & ei->attacked[  US] & ~ei->attackedBy2[  US]
                         & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
-
-    // Pawn advances by a single square which threaten an enemy piece.
-    // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
-    uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
-    pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
-    pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
-
     // Penalty for each of our poorly supported pawns
     count = popcount(pawns & ~attacksByPawns & poorlyDefended);
     eval += count * ThreatWeakPawn;
@@ -780,11 +771,6 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(overloaded);
     eval += count * ThreatOverloadedPieces;
     if (TRACE) T.ThreatOverloadedPieces[US] += count;
-
-    // Bonus for giving threats by safe pawn pushes
-    count = popcount(pushThreat);
-    eval += count * ThreatByPawnPush;
-    if (TRACE) T.ThreatByPawnPush[colour] += count;
 
     return eval;
 }
