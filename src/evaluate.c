@@ -135,6 +135,8 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
+const int KingMobility[9];
+
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2), S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
    {S(   4,   6), S(  16,  -8), S(  12, -10), S(  -2, -13), S( -27,   0), S( -66,  79), S( 101,  94), S( -30,   1)},
@@ -606,6 +608,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     count = popcount(myDefenders & ei->kingAreas[US]);
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
+
+    count = popcount(ei->attackedBy[US][KING] & ~ei->attacked[THEM]);
+    eval += KingMobility[count];
+    if (TRACE) T.KingMobility[count][US]++;
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
