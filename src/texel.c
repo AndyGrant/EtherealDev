@@ -84,14 +84,16 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double rates[NTERMS][PHASE_NB] = {{0}, {0}};
+    double K, thisError, bestError = 1e6;
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
     printf("\nTuner Will Be Tuning %d Terms...", NTERMS);
+
+    printf("\n\nSetting Table Size to 1MB for speed...");
+    initTT(1);
 
     printf("\n\nAllocating Memory for Texel Entries [%dMB]...",
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
@@ -101,14 +103,11 @@ void runTexelTuning(Thread *thread) {
            (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)), 0, NPOSITIONS);
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
-    printf("\n\nReading and Initializing Texel Entries from FENS...");
+    printf("\n\nInitializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
     K = computeOptimalK(tes);
@@ -165,8 +164,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * rates[i][MG] * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][EG];
         }
     }
 }
@@ -195,10 +194,10 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
     for (i = 0; i < NPOSITIONS; i++) {
 
-        if ((i + 1) % 100000 == 0 || i == NPOSITIONS - 1)
-            printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
-
         fgets(line, 128, fin);
+
+        if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
+            printf("\rInitializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
         // Determine the result of the game
         if      (strstr(line, "1-0")) tes[i].result = 1.0;
@@ -206,18 +205,11 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         else if (strstr(line, "1/2")) tes[i].result = 0.5;
         else    {printf("Unable to Parse Result: %s\n", line); exit(0);}
 
+        // Reset TT, History, Killers, Counter Moves, ...
+        resetThreadPool(thread);
+
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
-
-        // Resolve FEN to a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
-
-        // Prepare coefficients and get a WHITE POV eval
-        T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, &thread->pktable);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -232,7 +224,19 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Finish with the usual phase for the evaluation
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
 
+        // Use a deep search to determine a strong evaluation
+        for (int depth = 1; depth <= NDEPTHS; depth++)
+            tes[i].eval = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+
+        // Resolve FEN to a quiet position
+        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        for (j = 0; j < thread->pv.length; j++)
+            applyMove(&thread->board, thread->pv.line[j], undo);
+
         // Vectorize the evaluation coefficients into coeffs
+        T = EmptyTrace;
+        evaluateBoard(&thread->board, &thread->pktable);
         initCoefficients(coeffs);
 
         // Determine how many TexelTuples will be needed
@@ -264,37 +268,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     }
 
     fclose(fin);
-}
-
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
-
-    int index, coeff;
-    double avgByPhase[PHASE_NB] = {0};
-    double occurances[NTERMS][PHASE_NB] = {{0}, {0}};
-
-    for (int i = 0; i < NPOSITIONS; i++) {
-        for (int j = 0; j < tes[i].ntuples; j++) {
-
-            index = tes[i].tuples[j].index;
-            coeff = tes[i].tuples[j].coeff;
-
-            occurances[index][MG] += abs(coeff) * tes[i].factors[MG];
-            occurances[index][EG] += abs(coeff) * tes[i].factors[EG];
-
-            avgByPhase[MG] += abs(coeff) * tes[i].factors[MG];
-            avgByPhase[EG] += abs(coeff) * tes[i].factors[EG];
-        }
-    }
-
-    avgByPhase[MG] /= NTERMS;
-    avgByPhase[EG] /= NTERMS;
-
-    for (int i = 0; i < NTERMS; i++){
-        if (occurances[i][MG] >= 1.0)
-            rates[i][MG] = avgByPhase[MG] / occurances[i][MG];
-        if (occurances[i][EG] >= 1.0)
-            rates[i][EG] = avgByPhase[EG] / occurances[i][EG];
-    }
 }
 
 void initCoefficients(int coeffs[NTERMS]) {
@@ -394,13 +367,12 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
 void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHASE_NB]) {
 
     int i = 0; // PRINT_PARAM_N will update i accordingly
-    int tparams[NTERMS][PHASE_NB];
-    int pvalue = ScoreMG(PawnValue) + (TunePawnValue ? params[0][MG] : 0);
 
-    // Combine original and updated, scale so PawnValue[MG] = 100
+    // Combine original and updated
+    int tparams[NTERMS][PHASE_NB];
     for (int j = 0; j < NTERMS; j++) {
-        tparams[j][MG] = (int)((100.0 / pvalue) * (params[j][MG] + cparams[j][MG]));
-        tparams[j][EG] = (int)((100.0 / pvalue) * (params[j][EG] + cparams[j][EG]));
+        tparams[j][MG] = params[j][MG] + cparams[j][MG];
+        tparams[j][EG] = params[j][EG] + cparams[j][EG];
     }
 
     if (TunePawnValue                   ) PRINT_PARAM_0(PawnValue)                  ;
