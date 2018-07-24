@@ -494,7 +494,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
-            quietsTried[quiets++] = move;
             cmhist = getCMHistoryScore(thread, height, move);
             fuhist = getFUHistoryScore(thread, height, move);
             hist   = getHistoryScore(thread, move) + cmhist + fuhist;
@@ -520,7 +519,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth]){
+            &&  quiets >= LateMovePruningCounts[improving][depth]){
             skipQuiets = 1;
             continue;
         }
@@ -566,6 +565,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Update counter of moves actually played
         played += 1;
+        if (isQuiet) quietsTried[quiets++] = move;
 
         // Step 18. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
@@ -673,16 +673,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
 
     // Step 23. Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove)){
+    if (best > oldAlpha && !moveIsTactical(board, bestMove)){
 
         updateHistory(thread, bestMove, depth*depth);
         updateCMHistory(thread, height, bestMove, depth*depth);
         updateFUHistory(thread, height, bestMove, depth*depth);
 
         for (i = 0; i < quiets - 1; i++) {
-            updateHistory(thread, quietsTried[i], -depth*depth);
-            updateCMHistory(thread, height, quietsTried[i], -depth*depth);
-            updateFUHistory(thread, height, quietsTried[i], -depth*depth);
+            if (bestMove != quietsTried[i]){
+                updateHistory(thread, quietsTried[i], -depth*depth);
+                updateCMHistory(thread, height, quietsTried[i], -depth*depth);
+                updateFUHistory(thread, height, quietsTried[i], -depth*depth);
+            }
         }
     }
 
