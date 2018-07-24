@@ -136,9 +136,9 @@ const int KingDefenders[12] = {
 };
 
 const int KingMobility[9] = {
-    S(  29,  17), S(  33,  11), S(  21,   4), S(  11,   6),
-    S(   0,   3), S(  -7,  -2), S(   3,  -1), S(  -9,  -5),
-    S( -14, -14),
+    S( -31, -38), S(  19,  27), S(  -9, -15), S( -18, -27),
+    S(  -5,  -5), S(   8,   6), S(   0,   6), S(  -1,   4),
+    S(   6,  11),
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
