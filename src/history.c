@@ -52,7 +52,7 @@ void updateHistory(Thread *thread, uint16_t move, int delta) {
     delta = MAX(-400, MIN(400, delta));
 
     entry = thread->history[colour][from][to];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 16 * delta - entry * abs(delta) / 1024;
     thread->history[colour][from][to] = entry;
 }
 
@@ -102,7 +102,7 @@ void updateCMHistory(Thread *thread, int height, uint16_t move, int delta) {
     delta = MAX(-400, MIN(400, delta));
 
     entry = thread->cmhistory[piece1][to1][piece2][to2];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 16 * delta - entry * abs(delta) / 1024;
     thread->cmhistory[piece1][to1][piece2][to2] = entry;
 }
 
@@ -152,7 +152,7 @@ void updateFUHistory(Thread *thread, int height, uint16_t move, int delta) {
     delta = MAX(-400, MIN(400, delta));
 
     entry = thread->fuhistory[piece1][to1][piece2][to2];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += 16 * delta - entry * abs(delta) / 1024;
     thread->fuhistory[piece1][to1][piece2][to2] = entry;
 }
 
