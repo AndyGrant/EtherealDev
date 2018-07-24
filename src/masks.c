@@ -33,6 +33,7 @@ uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostRanks[COLOUR_NB];
+uint64_t KnightTwoMoveMasks[SQUARE_NB];
 
 void initMasks() {
 
@@ -94,6 +95,14 @@ void initMasks() {
         PawnConnectedMasks[WHITE][s] = pawnAttacks(BLACK, s) | pawnAttacks(BLACK, s + 8);
         PawnConnectedMasks[BLACK][s] = pawnAttacks(WHITE, s) | pawnAttacks(WHITE, s - 8);
     }
+
+    // Initalize knight attacks given two moves
+    for (int s = 0; s < SQUARE_NB; s++) {
+        uint64_t attacks = knightAttacks(s);
+
+        while (attacks)
+            KnightTwoMoveMasks[s] |= knightAttacks(poplsb(&attacks));
+    }
 }
 
 uint64_t bitsBetweenMasks(int s1, int s2) {
@@ -134,4 +143,9 @@ uint64_t outpostSquareMasks(int c, int s) {
 uint64_t outpostRanks(int c) {
     assert(0 <= c && c < COLOUR_NB);
     return OutpostRanks[c];
+}
+
+uint64_t knightTwoMoveMasks(int s) {
+    assert(0 <= s && s < SQUARE_NB);
+    return KnightTwoMoveMasks[s];
 }

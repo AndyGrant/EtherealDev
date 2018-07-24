@@ -81,6 +81,8 @@ const int PawnConnected32[32] = {
 
 const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
 
+const int KnightPresence = S(   0,   0);
+
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
     S(   3, -16), S(   8,   0), S(  18,  -3), S(  33,  -5),
@@ -395,6 +397,11 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
         }
+
+        // JJoshua PogChamp athFA
+        count = popcount(knightTwoMoveMasks(sq) & board->colours[THEM]);
+        eval += count * KnightPresence;
+        if (TRACE) T.KnightPresence[US] += count;
 
         // Apply a bonus (or penalty) based on the mobility of the knight
         count = popcount(ei->mobilityAreas[US] & attacks);
