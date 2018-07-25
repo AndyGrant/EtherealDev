@@ -503,7 +503,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth
-            &&  hist < FutilityPruningHistoryLimit[improving]){
+            &&  hist < FutilityPruningHistoryLimit[improving || PvNode]){
             skipQuiets = 1;
             continue;
          }
@@ -515,7 +515,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth]){
+            &&  quiets > LateMovePruningCounts[improving || PvNode][depth]){
             skipQuiets = 1;
             continue;
         }
@@ -526,7 +526,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= CounterMovePruningDepth
-            &&  cmhist < CounterMoveHistoryLimit[improving])
+            &&  cmhist < CounterMoveHistoryLimit[improving || PvNode])
             continue;
 
         // Step 16. Follw Up Move Pruning. Moves with poor counter
@@ -535,7 +535,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= FollowUpMovePruningDepth
-            &&  fuhist < FollowUpMoveHistoryLimit[improving])
+            &&  fuhist < FollowUpMoveHistoryLimit[improving || PvNode])
             continue;
 
         // Step 17. Static Exchange Evaluation Pruning. Prune moves which fail
