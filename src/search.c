@@ -452,10 +452,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
             // Verify the move has promise using a depth 1 search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 1, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
 
             // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 5)
+            if (value >= rBeta && depth > 6)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
