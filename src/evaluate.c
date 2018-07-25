@@ -308,7 +308,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
     // Update attacker counts for King Safety computation
     attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
-    ei->kingAttacksCount[US] += popcount(attacks);
+    ei->kingAttacksCount[US] += 2 * popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
     if (ei->pkentry != NULL) return eval;
