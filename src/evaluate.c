@@ -299,7 +299,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     const int Forward = (colour == WHITE) ? 8 : -8;
 
     int sq, semi, eval = 0, pkeval = 0;
-    uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
+
+    uint64_t pawns = board->pieces[PAWN];
+    uint64_t myPawns = pawns & board->colours[US];
+    uint64_t tempPawns = pawns & board->colours[US];
+    uint64_t enemyPawns = pawns & board->colours[THEM];
 
     // Store off pawn attacks for king safety and threat computations
     ei->attackedBy2[US]      = ei->pawnAttacks[US] & ei->attacked[US];
@@ -307,15 +311,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     ei->attackedBy[US][PAWN] = ei->pawnAttacks[US];
 
     // Update attacker counts for King Safety computation
-    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
-    ei->kingAttacksCount[US] += popcount(attacks);
+    ei->kingAttacksCount[US] += popcount( pawnLeftAttacks(pawns, ei->kingAreas[THEM], US))
+                             +  popcount(pawnRightAttacks(pawns, ei->kingAreas[THEM], US));
 
     // Pawn hash holds the rest of the pawn evaluation
     if (ei->pkentry != NULL) return eval;
-
-    pawns = board->pieces[PAWN];
-    myPawns = tempPawns = pawns & board->colours[US];
-    enemyPawns = pawns & board->colours[THEM];
 
     // Evaluate each pawn (but not for being passed)
     while (tempPawns) {
