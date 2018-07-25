@@ -292,7 +292,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Check for the fifty move rule and for draw by repetition
         if (boardIsDrawn(board, height))
-            return 0;
+            return thread->evalStack[height-1] ? 0 : -12;
 
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
