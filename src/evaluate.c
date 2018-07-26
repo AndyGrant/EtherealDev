@@ -185,6 +185,7 @@ const int ThreatRookAttackedByLesser = S( -55, -25);
 const int ThreatQueenAttackedByOne   = S( -97,   1);
 const int ThreatOverloadedPieces     = S( -10, -26);
 const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatBySafePawnPush       = S(  17,  17);
 
 /* General Evaluation Terms */
 
@@ -751,6 +752,12 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
+    // Pawn advances by a single square which threaten an enemy piece.
+    // Exclude pawn moves to squares which are weak, or attacked by enemy pawns
+    uint64_t safePushThreat  = pawnAdvance(pawns, occupied, US);
+    safePushThreat &= ~attacksByPawns & ei->attackedBy[US][PAWN];
+    safePushThreat  = pawnAttackSpan(safePushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
+
     // Penalty for each of our poorly supported pawns
     count = popcount(pawns & ~attacksByPawns & poorlyDefended);
     eval += count * ThreatWeakPawn;
@@ -781,10 +788,15 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     eval += count * ThreatOverloadedPieces;
     if (TRACE) T.ThreatOverloadedPieces[US] += count;
 
-    // Bonus for giving threats by safe pawn pushes
+    // Bonus for giving threats by pawn pushes
     count = popcount(pushThreat);
     eval += count * ThreatByPawnPush;
     if (TRACE) T.ThreatByPawnPush[colour] += count;
+
+    // Bonus for giving threats by safe pawn pushes
+    count = popcount(safePushThreat);
+    eval += count * ThreatBySafePawnPush;
+    //if (TRACE) T.ThreatByPawnPush[colour] += count;
 
     return eval;
 }
