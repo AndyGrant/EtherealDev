@@ -106,7 +106,7 @@ const int BishopMobility[14] = {
 
 const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 
-const int RookOnSeventh = S(   0,  25);
+const int RookOnSeventh = { S(   0,  25), S(   0,  38) };
 
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
@@ -517,8 +517,9 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         // colour so long as the enemy king is on the last two ranks of the board
         if (   relativeRankOf(US, sq) == 6
             && relativeRankOf(US, getlsb(enemyKings)) >= 6) {
-            eval += RookOnSeventh;
-            if (TRACE) T.RookOnSeventh[US]++;
+            int supported = !!(attacks & board->colours[US] & (board->pieces[ROOK] | board->pieces[QUEEN]));
+            eval += RookOnSeventh[supported];
+            // if (TRACE) T.RookOnSeventh[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
