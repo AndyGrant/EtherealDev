@@ -427,7 +427,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     static const int MultiCutDepth  =  8;
     static const int MultiCutCount  =  4;
-    static const int MultiCutMargin = 32;
+    static const int MultiCutMargin = 64;
 
     if (   !PvNode
         && !inCheck
