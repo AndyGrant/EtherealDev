@@ -104,7 +104,9 @@ const int BishopMobility[14] = {
 
 /* Rook Evaluation Terms */
 
-const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
+const int RookFile[2] = { S(  14,   0), S(  38,   0) };
+
+const int RookTarrasch = S(  10,  10);
 
 const int RookOnSeventh = S(   0,  25);
 
@@ -512,6 +514,10 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             eval += RookFile[open];
             if (TRACE) T.RookFile[open][US]++;
         }
+
+        if (   (attacks & Files[fileOf(sq)] & myPawns & ei->passedPawns)
+            && (ranksAtOrAboveMasks(colour, sq) & myPawns & ei->passedPawns))
+            eval += RookTarrasch;
 
         // Rook gains a bonus for being located on seventh rank relative to its
         // colour so long as the enemy king is on the last two ranks of the board
