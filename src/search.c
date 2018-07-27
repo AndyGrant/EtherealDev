@@ -424,6 +424,45 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
+
+    static const int MultiCutDepth  =  8;
+    static const int MultiCutCount  =  4;
+    static const int MultiCutMargin = 32;
+
+    if (   !PvNode
+        && !inCheck
+        &&  eval > beta
+        &&  abs(beta) < MATE_IN_MAX
+        &&  depth >= MultiCutDepth) {
+
+        int count = 0;
+
+        rBeta = MIN(beta + MultiCutMargin, MATE - MAX_PLY - 1);
+
+        initializeMovePicker(&movePicker, thread, ttMove, height);
+
+        while ((move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE) {
+
+            applyMove(board, move, undo);
+            if (!isNotInCheck(board, !board->turn)){
+                revertMove(board, move, undo);
+                continue;
+            }
+
+            thread->moveStack[height] = move;
+            thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
+
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-6, height+1);
+
+            revertMove(board, move, undo);
+
+            count += value >= rBeta;
+
+            if (count >= MultiCutCount) return value;
+        }
+    }
+
+
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
