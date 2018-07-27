@@ -772,7 +772,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
 
     // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[THEM]);
+    count = popcount(queens & (attacksByPawns | attacksByMinors
+    | ei->attackedBy[THEM][ROOK] | (ei->attacked[THEM] & ~ei->attackedBy[US][PAWN] & ~ei->attackedBy[US][KING])));
     eval += count * ThreatQueenAttackedByOne;
     if (TRACE) T.ThreatQueenAttackedByOne[US] += count;
 
