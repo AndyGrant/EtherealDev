@@ -426,11 +426,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
 
     static const int MultiCutDepth  =  6;
-    static const int MultiCutCount  =  5;
-    static const int MultiCutMargin = 32;
+    static const int MultiCutCount  =  3;
+    static const int MultiCutMargin = 30;
 
     if (   !PvNode
         && !inCheck
+        &&  improving
         &&  eval > beta
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= MultiCutDepth) {
@@ -443,7 +444,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         initializeMovePicker(&movePicker, thread, ttMove, height);
 
-        while (    tried <= 16
+        while (    tried <= 12
                && (move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE) {
 
             applyMove(board, move, undo);
