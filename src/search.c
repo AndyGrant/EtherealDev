@@ -545,7 +545,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
 
         else if (depth > 2 && skipQuiets)
-            R = MIN(depth - 1, 1 + LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            R = MIN(depth - 1, 1 + LMRTable[MIN(depth, 63)][MIN(played, 63)] / 2);
 
         else
             R = 1;
