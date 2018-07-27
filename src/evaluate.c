@@ -793,37 +793,42 @@ int evaluateScaleFactor(Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
+
+    int factor = SCALE_NORMAL;
+    int pawndiff = abs(popcount(white & pawns) - popcount(black & pawns));
 
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
         if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+            factor = SCALE_OCB_BISHOPS_ONLY;
 
-        if (   !(rooks | queens)
+        else if (   !(rooks | queens)
             &&  onlyOne(white & knights)
             &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
+            factor =  SCALE_OCB_ONE_KNIGHT;
 
-        if (   !(knights | queens)
+        else if (   !(knights | queens)
             && onlyOne(white & rooks)
             && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
+            factor =  SCALE_OCB_ONE_ROOK;
 
-        if (   !(knights | queens)
+        else if (   !(knights | queens)
             && several(white & rooks)
             && several(black & rooks))
-            return SCALE_OCB_TWO_ROOKS;
+            factor =  SCALE_OCB_TWO_ROOKS;
 
-        return SCALE_OCB_GENERAL;
+        else
+            factor = SCALE_OCB_GENERAL;
     }
 
-    return SCALE_NORMAL;
+    return MIN(SCALE_NORMAL, factor + SCALE_EXTRA_PAWN * pawndiff);
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
