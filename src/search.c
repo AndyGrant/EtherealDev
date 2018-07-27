@@ -542,7 +542,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
 
-        } else R = 1;
+        }
+
+        else if (depth > 2 && skipQuiets)
+            R = 2;
+
+        else
+            R = 1;
+
 
         // Step 19A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
