@@ -595,6 +595,14 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                           | (board->pieces[KNIGHT] & board->colours[US])
                           | (board->pieces[BISHOP] & board->colours[US]);
 
+    uint64_t weak =   ei->attacked[THEM]
+                  &  ~ei->attackedBy2[US]
+                  & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
+
+    uint64_t weak2 =   ei->attackedBy2[THEM]
+                   &  ~ei->attackedBy2[US]
+                   & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
+
     int kingSq = getlsb(myKings);
     int kingFile = fileOf(kingSq);
     int kingRank = rankOf(kingSq);
@@ -603,19 +611,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
 
     // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[US]);
+    count = popcount(myDefenders & ei->kingAreas[US] & ~weak2);
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
-
-        // Weak squares are attacked by the enemy, defended no more
-        // than once and only defended by our Queens or our King
-        uint64_t weak =   ei->attacked[THEM]
-                      &  ~ei->attackedBy2[US]
-                      & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
         // Usually the King Area is 9 squares. Scale are attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
