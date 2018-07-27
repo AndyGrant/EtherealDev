@@ -631,7 +631,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         updateCMHistory(thread, height, bestMove, depth*depth);
         updateFUHistory(thread, height, bestMove, depth*depth);
 
-        if (ttMove && bestMove != ttMove) {
+        if (ttMove && moveIsTactical(board, ttMove)) {
             updateHistory(thread, bestMove, depth*depth);
             updateCMHistory(thread, height, bestMove, depth*depth);
             updateFUHistory(thread, height, bestMove, depth*depth);
