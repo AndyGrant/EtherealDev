@@ -106,7 +106,7 @@ const int BishopMobility[14] = {
 
 const int RookFile[2] = { S(  14,   0), S(  38,   0) };
 
-const int RookTarrasch = S(  10,  10);
+const int RookTarrasch = S(  15,  25);
 
 const int RookOnSeventh = S(   0,  25);
 
