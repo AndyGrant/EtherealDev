@@ -425,9 +425,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
 
 
-    static const int MultiCutDepth  =  8;
-    static const int MultiCutCount  =  4;
-    static const int MultiCutMargin = 64;
+    static const int MultiCutDepth  =  6;
+    static const int MultiCutCount  =  3;
+    static const int MultiCutMargin = 32;
 
     if (   !PvNode
         && !inCheck
@@ -437,11 +437,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         int count = 0;
 
+        int tried = 0;
+
         rBeta = MIN(beta + MultiCutMargin, MATE - MAX_PLY - 1);
 
         initializeMovePicker(&movePicker, thread, ttMove, height);
 
-        while ((move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE) {
+        while (    tried <= 10
+               && (move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE) {
 
             applyMove(board, move, undo);
             if (!isNotInCheck(board, !board->turn)){
@@ -449,10 +452,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
             }
 
+            tried ++;
+
             thread->moveStack[height] = move;
             thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-6, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-3, height+1);
 
             revertMove(board, move, undo);
 
