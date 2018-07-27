@@ -515,8 +515,8 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.RookFile[open][US]++;
         }
 
-        if (   (attacks & Files[fileOf(sq)] & myPawns & ei->passedPawns)
-            && (ranksAtOrAboveMasks(colour, sq) & myPawns & ei->passedPawns))
+        if (   (attacks & Files[fileOf(sq)] & ei->passedPawns)
+            && (ranksAtOrAboveMasks(colour, sq) & ei->passedPawns))
             eval += RookTarrasch;
 
         // Rook gains a bonus for being located on seventh rank relative to its
