@@ -631,6 +631,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         updateCMHistory(thread, height, bestMove, depth*depth);
         updateFUHistory(thread, height, bestMove, depth*depth);
 
+        if (ttMove && bestMove != ttMove) {
+            updateHistory(thread, bestMove, depth*depth);
+            updateCMHistory(thread, height, bestMove, depth*depth);
+            updateFUHistory(thread, height, bestMove, depth*depth);
+
+        }
+
         for (i = 0; i < quiets - 1; i++) {
             updateHistory(thread, quietsTried[i], -depth*depth);
             updateCMHistory(thread, height, quietsTried[i], -depth*depth);
