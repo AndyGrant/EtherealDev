@@ -28,7 +28,7 @@ enum {
     SCALE_OCB_TWO_ROOKS    = 100,
     SCALE_OCB_GENERAL      = 112,
     SCALE_NORMAL           = 120,
-    SCALE_EXTRA_PAWN       =  12,
+    SCALE_EXTRA_PAWN       =  20,
 };
 
 struct EvalTrace {
