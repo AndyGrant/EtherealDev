@@ -402,7 +402,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the knight is behind a pawn
-        if (testBit(pawnAdvance(myPawns, 0ull, THEM), sq))
+        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq))
             eval += KnightBehindPawn;
 
         // Apply a bonus (or penalty) based on the mobility of the knight
@@ -471,7 +471,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the bishop is behind a pawn
-        if (testBit(pawnAdvance(myPawns, 0ull, THEM), sq))
+        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq))
             eval += BishopBehindPawn;
 
         // Apply a bonus (or penalty) based on the mobility of the bishop
