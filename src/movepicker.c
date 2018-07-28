@@ -44,6 +44,7 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->killer1 = thread->killers[height][0];
     mp->killer2 = thread->killers[height][1];
     mp->counter = getCounterMove(thread, height);
+    mp->follow  = getFollowUpMove(thread, height);
 
     // Reference to the board and move statistics
     mp->height = height;
@@ -108,6 +109,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
                     if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
                     if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
                     if (bestMove == mp->counter) mp->counter = NONE_MOVE;
+                    if (bestMove == mp->follow ) mp->follow  = NONE_MOVE;
 
                     return bestMove;
                 }
@@ -155,13 +157,27 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_COUNTER_MOVE:
 
         // Play counter move if not yet played, and psuedo legal
-        mp->stage = STAGE_GENERATE_QUIET;
+        mp->stage = STAGE_FOLLOW_MOVE;
         if (   !skipQuiets
             &&  mp->counter != mp->tableMove
             &&  mp->counter != mp->killer1
             &&  mp->counter != mp->killer2
             &&  moveIsPsuedoLegal(board, mp->counter))
             return mp->counter;
+
+        /* fallthrough */
+
+    case STAGE_FOLLOW_MOVE:
+
+        // Play follow up move if not yet played, and psuedo legal
+        mp->stage = STAGE_GENERATE_QUIET;
+        if (   !skipQuiets
+            &&  mp->follow != mp->tableMove
+            &&  mp->follow != mp->killer1
+            &&  mp->follow != mp->killer2
+            &&  mp->follow != mp->counter
+            &&  moveIsPsuedoLegal(board, mp->follow))
+            return mp->follow;
 
         /* fallthrough */
 
@@ -197,7 +213,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             if (   bestMove == mp->tableMove
                 || bestMove == mp->killer1
                 || bestMove == mp->killer2
-                || bestMove == mp->counter)
+                || bestMove == mp->counter
+                || bestMove == mp->follow)
                 return selectNextMove(mp, board, skipQuiets);
 
             return bestMove;
@@ -225,7 +242,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             if (   bestMove == mp->tableMove
                 || bestMove == mp->killer1
                 || bestMove == mp->killer2
-                || bestMove == mp->counter)
+                || bestMove == mp->counter
+                || bestMove == mp->follow)
                 return selectNextMove(mp, board, skipQuiets);
 
             return bestMove;

@@ -33,3 +33,6 @@ void updateFUHistory(Thread *thread, int height, uint16_t move, int delta);
 
 uint16_t getCounterMove(Thread *thread, int height);
 void updateCounterMove(Thread *thread, int height, uint16_t move);
+
+uint16_t getFollowUpMove(Thread *thread, int height);
+void updateFollowUpMove(Thread *thread, int height, uint16_t move);

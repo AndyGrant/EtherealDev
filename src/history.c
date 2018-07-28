@@ -195,3 +195,43 @@ void updateCounterMove(Thread *thread, int height, uint16_t move) {
 
     thread->cmtable[colour][piece][to] = move;
 }
+
+uint16_t getFollowUpMove(Thread* thread, int height) {
+
+    int colour, to, piece;
+    const uint16_t follow = thread->moveStack[height-2];
+
+    // Check for root position or null moves
+    if (follow == NULL_MOVE || follow == NONE_MOVE)
+        return NONE_MOVE;
+
+    colour = thread->board.turn;
+    to     = MoveTo(follow);
+    piece  = thread->pieceStack[height-2];
+
+    assert(0 <= colour && colour < COLOUR_NB);
+    assert(0 <= piece && piece < PIECE_NB);
+    assert(0 <= to && to < SQUARE_NB);
+
+    return thread->futable[colour][piece][to];
+}
+
+void updateFollowUpMove(Thread *thread, int height, uint16_t move) {
+
+    int colour, to, piece;
+    const uint16_t follow = thread->moveStack[height-2];
+
+    // Check for root position or null moves
+    if (follow == NULL_MOVE || follow == NONE_MOVE)
+        return;
+
+    colour = thread->board.turn;
+    to     = MoveTo(follow);
+    piece  = thread->pieceStack[height-2];
+
+    assert(0 <= colour && colour < COLOUR_NB);
+    assert(0 <= piece && piece < PIECE_NB);
+    assert(0 <= to && to < SQUARE_NB);
+
+    thread->futable[colour][piece][to] = move;
+}

@@ -602,19 +602,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             }
         }
 
-        // Search failed high. Update move tables and break.
-        if (alpha >= beta){
-
-            if (isQuiet && thread->killers[height][0] != move){
-                thread->killers[height][1] = thread->killers[height][0];
-                thread->killers[height][0] = move;
-            }
-
-            if (isQuiet)
-                updateCounterMove(thread, height, move);
-
+        // Search failed high
+        if (alpha >= beta)
             break;
-        }
     }
 
     // Step 22. Stalemate and Checkmate detection. If no moves were found to
@@ -627,10 +617,22 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 23. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)){
 
+        // Save as a Killer Move if not already in the table
+        if (bestMove != thread->killers[height][0]){
+            thread->killers[height][1] = thread->killers[height][0];
+            thread->killers[height][0] = bestMove;
+        }
+
+        // Save as a possible continuation moves
+        updateCounterMove(thread, height, bestMove);
+        updateFollowUpMove(thread, height, bestMove);
+
+        // Update each history for the best move
         updateHistory(thread, bestMove, depth*depth);
         updateCMHistory(thread, height, bestMove, depth*depth);
         updateFUHistory(thread, height, bestMove, depth*depth);
 
+        // Update each history for all other quiets tried
         for (i = 0; i < quiets - 1; i++) {
             updateHistory(thread, quietsTried[i], -depth*depth);
             updateCMHistory(thread, height, quietsTried[i], -depth*depth);
