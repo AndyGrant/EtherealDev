@@ -178,13 +178,14 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -37, -39);
-const int ThreatMinorAttackedByPawn  = S( -68, -54);
-const int ThreatMinorAttackedByMajor = S( -47, -44);
-const int ThreatRookAttackedByLesser = S( -55, -25);
-const int ThreatQueenAttackedByOne   = S( -97,   1);
-const int ThreatOverloadedPieces     = S( -10, -26);
-const int ThreatByPawnPush           = S(  12,  15);
+const int ThreatWeakPawn              = S( -37, -39);
+const int ThreatMinorAttackedByPawn   = S( -68, -54);
+const int ThreatMinorAttackedByMajor  = S( -47, -44);
+const int ThreatRookAttackedByLesser  = S( -55, -25);
+const int ThreatQueenAttackedByPawn   = S( -94,   0);
+const int ThreatQueenAttackedByLesser = S( -77,   0);
+const int ThreatOverloadedPieces      = S( -10, -26);
+const int ThreatByPawnPush            = S(  12,  15);
 
 /* General Evaluation Terms */
 
@@ -771,10 +772,15 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     eval += count * ThreatRookAttackedByLesser;
     if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
 
-    // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[THEM]);
-    eval += count * ThreatQueenAttackedByOne;
-    if (TRACE) T.ThreatQueenAttackedByOne[US] += count;
+    // Penalty for any pawn threat against our queen
+    count = popcount(queens & attacksByPawns);
+    eval += count * ThreatQueenAttackedByPawn;
+    if (TRACE) T.ThreatQueenAttackedByPawn[US] += count;
+
+    // Penalty for any minor or rook against our queen
+    count = popcount(queens & (attacksByMinors | ei->attackedBy[THEM][ROOK]));
+    eval += count * ThreatQueenAttackedByLesser;
+    if (TRACE) T.ThreatQueenAttackedByLesser[US] += count;
 
     // Penalty for any overloaded minors or majors
     count = popcount(overloaded);
