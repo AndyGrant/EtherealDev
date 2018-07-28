@@ -364,12 +364,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth >= NullMovePruningDepth
-        &&  eval >= beta
+        &&  eval >= beta + faltering * 64
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) - faltering;
+        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
         applyNullMove(board, undo);
 
