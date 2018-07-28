@@ -369,7 +369,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  thread->moveStack[height-1] != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + faltering;
+        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) - faltering;
 
         applyNullMove(board, undo);
 
