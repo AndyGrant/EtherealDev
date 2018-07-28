@@ -443,14 +443,24 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
 
+        int special = 0;
+
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
+
             quietsTried[quiets++] = move;
+
             cmhist = getCMHistoryScore(thread, height, move);
             fuhist = getFUHistoryScore(thread, height, move);
             hist   = getHistoryScore(thread, move) + cmhist + fuhist;
+
+            special = move == movePicker.killer1
+                   || move == movePicker.killer2
+                   || move == movePicker.counter;
         }
+
+
 
         // Step 13. Futility Pruning. If our score is far below alpha,
         // and we don't expect anything from this move, we can skip this
@@ -462,7 +472,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= FutilityPruningDepth
             &&  hist < FutilityPruningHistoryLimit[improving]){
             skipQuiets = 1;
-            continue;
+            if (!special) continue;
          }
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
@@ -474,7 +484,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[improving][depth]){
             skipQuiets = 1;
-            continue;
+            if (!special) continue;
         }
 
         // Step 15. Counter Move Pruning. Moves with poor counter
@@ -531,10 +541,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
+            // Reduce for Killers and Counter moves
+            R -= special;
 
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
