@@ -81,7 +81,7 @@ const int PawnConnected32[32] = {
 
 const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
 
-const int KnightBehindPawn = S(   3,  17);
+const int KnightBehindPawn = S(  -3,  16);
 
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
@@ -97,7 +97,7 @@ const int BishopRammedPawns = S( -11,  -8);
 
 const int BishopOutpost[2] = { S(  26,   0), S(  40,   0) };
 
-const int BishopBehindPawn = S(   3,  11);
+const int BishopBehindPawn = S(  -5,  15);
 
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
@@ -372,7 +372,6 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
     int sq, defended, count, eval = 0;
     uint64_t attacks;
 
-    uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[US  ];
 
@@ -402,7 +401,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the knight is behind a pawn
-        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
+        if (testBit(pawnAdvance(enemyPawns, 0ull, THEM), sq)) {
             eval += KnightBehindPawn;
             if (TRACE) T.KnightBehindPawn[US]++;
         }
@@ -431,7 +430,6 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
     int sq, defended, count, eval = 0;
     uint64_t attacks;
 
-    uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempBishops = board->pieces[BISHOP] & board->colours[US  ];
 
@@ -473,7 +471,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the bishop is behind a pawn
-        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
+        if (testBit(pawnAdvance(enemyPawns, 0ull, THEM), sq)) {
             eval += BishopBehindPawn;
             if (TRACE) T.BishopBehindPawn[US]++;
         }
