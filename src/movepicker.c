@@ -32,7 +32,7 @@
 #include "types.h"
 #include "thread.h"
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height){
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int type){
 
     // Picker starts with the table move. Zero out move list sizes
     mp->stage = STAGE_TABLE;
@@ -41,9 +41,9 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     // Special move stages. selectNextMove() takes care of checking
     // for duplicate or unplayable moves found in special stages
     mp->tableMove = ttMove;
-    mp->killer1 = thread->killers[height][0];
-    mp->killer2 = thread->killers[height][1];
-    mp->counter = getCounterMove(thread, height);
+    mp->killer1 = type == PICK_SEARCH ? thread->killers[height][0]     : NONE_MOVE;
+    mp->killer2 = type == PICK_SEARCH ? thread->killers[height][1]     : NONE_MOVE;
+    mp->counter = type == PICK_SEARCH ? getCounterMove(thread, height) : NONE_MOVE;
 
     // Reference to the board and move statistics
     mp->height = height;
@@ -134,8 +134,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_KILLER_2;
-        if (   !skipQuiets
-            &&  mp->killer1 != mp->tableMove
+        if (    mp->killer1 != mp->tableMove
             &&  moveIsPsuedoLegal(board, mp->killer1))
             return mp->killer1;
 
@@ -145,8 +144,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
-        if (   !skipQuiets
-            &&  mp->killer2 != mp->tableMove
+        if (    mp->killer2 != mp->tableMove
             &&  moveIsPsuedoLegal(board, mp->killer2))
             return mp->killer2;
 
@@ -156,8 +154,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play counter move if not yet played, and psuedo legal
         mp->stage = STAGE_GENERATE_QUIET;
-        if (   !skipQuiets
-            &&  mp->counter != mp->tableMove
+        if (    mp->counter != mp->tableMove
             &&  mp->counter != mp->killer1
             &&  mp->counter != mp->killer2
             &&  moveIsPsuedoLegal(board, mp->counter))

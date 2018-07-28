@@ -30,6 +30,10 @@ enum {
     STAGE_DONE,
 };
 
+enum {
+    PICK_SEARCH, PICK_QSEARCH,
+};
+
 struct MovePicker {
     int stage, split, noisySize, quietSize, height;
     uint16_t tableMove, killer1, killer2, counter;
@@ -38,7 +42,7 @@ struct MovePicker {
     Thread *thread;
 };
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height);
+void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height, int type);
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets);
 int getBestMoveIndex(MovePicker *mp, int start, int end);
 void evaluateNoisyMoves(MovePicker* mp);
