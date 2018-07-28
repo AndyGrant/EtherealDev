@@ -216,7 +216,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, staticEval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
     Undo undo[1];
@@ -327,10 +327,27 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
-    eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
-                                     : evaluateBoard(board, &thread->pktable);
-    futilityMargin = eval + FutilityMargin * depth;
+    // Check the table entry for a board evaluation
+    if (ttHit) {
+
+        // Use the table evaluation if there is one
+        if ((eval = staticEval = ttEval) == VALUE_NONE)
+            eval = staticEval = evaluateBoard(board, &thread->pktable);
+
+        // Table value provids a better value for the table bound
+        if (    ttValue != VALUE_NONE
+            && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
+            eval = ttValue;
+    }
+
+    else
+        eval = staticEval = evaluateBoard(board, &thread->pktable);
+
+    // Save off a history of the eval
+    thread->evalStack[height] = eval;
+
+    // One time compute for our futility margin using the static eval
+    futilityMargin = staticEval + FutilityMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
@@ -362,8 +379,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
-        &&  thread->moveStack[height-1] != NULL_MOVE
-        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
+        &&  thread->moveStack[height-1] != NULL_MOVE){
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
