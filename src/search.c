@@ -364,7 +364,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth >= NullMovePruningDepth
-        &&  eval >= beta + faltering * 64
+        &&  eval >= beta + faltering * 32
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
