@@ -336,7 +336,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
     // Faltering if our evals keep have dropped over the couple moves
-    faltering = thread->evalStack[height-0] < thread->evalStack[height-2]
+    int faltering = thread->evalStack[height-0] < thread->evalStack[height-2]
              && thread->evalStack[height-2] < thread->evalStack[height-4];
 
     // Step 7. Razoring. If a Quiescence Search for the current position
