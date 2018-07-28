@@ -443,6 +443,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initializeMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
 
+        int special = 0;
+
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
@@ -450,6 +452,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             cmhist = getCMHistoryScore(thread, height, move);
             fuhist = getFUHistoryScore(thread, height, move);
             hist   = getHistoryScore(thread, move) + cmhist + fuhist;
+
+            special  = move == movePicker.killer1
+                    || move == movePicker.killer2
+                    || move == movePicker.counter;
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha,
@@ -482,6 +488,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
+            && !special
             &&  depth <= CounterMovePruningDepth
             &&  cmhist < CounterMoveHistoryLimit[improving])
             continue;
@@ -490,6 +497,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // move history are pruned at near leaf nodes of the search.
         if (   !RootNode
             &&  isQuiet
+            && !special
             &&  best > MATED_IN_MAX
             &&  depth <= FollowUpMovePruningDepth
             &&  fuhist < FollowUpMoveHistoryLimit[improving])
@@ -532,9 +540,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
+            R -= special;
 
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
