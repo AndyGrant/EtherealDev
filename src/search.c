@@ -353,7 +353,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
+        &&  eval - BetaMargin[faltering] * depth > beta)
         return eval;
 
     // Step 9. Null Move Pruning. If our position is so good that giving
