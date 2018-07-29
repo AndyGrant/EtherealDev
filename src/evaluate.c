@@ -47,14 +47,14 @@
 /* Material Value Evaluation Terms */
 
 const int PawnValue   = S( 100, 123);
-const int KnightValue = S( 463, 392);
-const int BishopValue = S( 473, 417);
+const int KnightValue = S( 466, 389);
+const int BishopValue = S( 475, 412);
 const int RookValue   = S( 639, 717);
 const int QueenValue  = S(1313,1348);
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
+    { 100, 123}, { 466, 389}, { 475, 412}, { 639, 717},
     {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
@@ -79,9 +79,9 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  24,   0), S(  36,   0) };
+const int KnightOutpost[2] = { S(  16, -11), S(  40,   2) };
 
-const int KnightBehindPawn = S(   5,   9);
+const int KnightBehindPawn = S(   5,  13);
 
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
@@ -95,9 +95,9 @@ const int BishopPair = S(  38,  69);
 
 const int BishopRammedPawns = S( -11,  -8);
 
-const int BishopOutpost[2] = { S(  26,   0), S(  40,   0) };
+const int BishopOutpost[2] = { S(  15,  -7), S(  42,   1) };
 
-const int BishopBehindPawn = S(   4,   8);
+const int BishopBehindPawn = S(   3,  10);
 
 const int BishopMobility[14] = {
     S( -59,-128), S( -48, -67), S( -18, -46), S(  -5, -21),
