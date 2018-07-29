@@ -112,9 +112,9 @@ const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 
 const int RookOnSeventh = S(   0,  25);
 
-const int RookOnOurPasser = S(   5,  30);
+const int RookOnOurPasser = S(  20,   9);
 
-const int RookOnTheirPasser = S(   5,  20);
+const int RookOnTheirPasser = S(   3,   6);
 
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
