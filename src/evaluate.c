@@ -112,6 +112,10 @@ const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 
 const int RookOnSeventh = S(   0,  25);
 
+const int RookOnOurPasser = S(   0,   0);
+
+const int RookOnTheirPasser = S(   0,   0);
+
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
     S(  -8,  -3), S(  -7,  14), S(  -8,  25), S(  -3,  32),
@@ -537,6 +541,20 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             && relativeRankOf(US, getlsb(enemyKings)) >= 6) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[US]++;
+        }
+
+        // Rook gains a bonus for being located behind our passed pawns
+        if (   (Files[fileOf(sq)] & myPawns & ei->passedPawns)
+            && (ranksAtOrAboveMasks(US, rankOf(sq)) & myPawns & ei->passedPawns)) {
+            eval += RookOnOurPasser;
+            if (TRACE) T.RookOnOurPasser[US]++;
+        }
+
+        // Rook gains a bonus for being located behind enemy passed pawns
+        if (   (Files[fileOf(sq)] & enemyPawns & ei->passedPawns)
+            && (ranksAtOrAboveMasks(THEM, rankOf(sq)) & enemyPawns & ei->passedPawns)) {
+            eval += RookOnTheirPasser;
+            if (TRACE) T.RookOnTheirPasser[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
