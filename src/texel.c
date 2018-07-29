@@ -87,7 +87,6 @@ void runTexelTuning(Thread *thread) {
     TexelEntry *tes;
     int i, j, iteration = -1;
     double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double rates[NTERMS][PHASE_NB] = {{0}, {0}};
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -108,9 +107,6 @@ void runTexelTuning(Thread *thread) {
 
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initCurrentParameters(cparams);
-
-    printf("\n\nScaling Params For Phases and Occurance Rates...");
-    initLearningRates(tes, rates);
 
     printf("\n\nComputing Optimal K Value...\n");
     K = computeOptimalK(tes);
@@ -136,7 +132,7 @@ void runTexelTuning(Thread *thread) {
         #pragma omp parallel shared(gradients)
         {
             double localgradients[NTERMS][PHASE_NB] = {{0}, {0}};
-            #pragma omp for schedule(static, NPOSITIONS / NTHREADS)
+            #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS)
             for (i = 0; i < NPOSITIONS; i++) {
 
                 thisError = singleLinearError(tes[i], params, K);
@@ -167,8 +163,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * rates[i][MG] * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * rates[i][EG] * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][EG];
         }
     }
 }
@@ -182,44 +178,42 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     char line[128];
 
     // Initialize limits for the search
-    limits.limitedByNone  = 0;
+    limits.limitedByNone  = 1;
     limits.limitedByTime  = 0;
-    limits.limitedByDepth = 1;
+    limits.limitedByDepth = 0;
     limits.limitedBySelf  = 0;
     limits.timeLimit      = 0;
-    limits.depthLimit     = 1;
+    limits.depthLimit     = 0;
 
     // Initialize the thread for the search
     thread->limits = &limits;
-    thread->depth  = 1;
+    thread->depth  = 0;
 
     FILE * fin = fopen("FENS", "r");
 
     for (i = 0; i < NPOSITIONS; i++) {
 
-        if ((i + 1) % 100000 == 0 || i == NPOSITIONS - 1)
-            printf("\rReading and Initializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
+        // Read next position from the FEN file
+        if (fgets(line, 128, fin) == NULL) {
+            printf("Unable to read line #%d\n", i);
+            exit(EXIT_FAILURE);
+        }
 
-        fgets(line, 128, fin);
+        // Occasional reporting for total completion
+        if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
+            printf("\rInitializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
         // Determine the result of the game
         if      (strstr(line, "1-0")) tes[i].result = 1.0;
         else if (strstr(line, "0-1")) tes[i].result = 0.0;
         else if (strstr(line, "1/2")) tes[i].result = 0.5;
-        else    {printf("Unable to Parse Result: %s\n", line); exit(0);}
+        else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
+
+        // Clear out all of the hash and history tables
+        resetThreadPool(thread);
 
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
-
-        // Resolve FEN to a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
-
-        // Prepare coefficients and get a WHITE POV eval
-        T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, &thread->pktable);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -231,13 +225,25 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         tes[i].factors[MG] = 1 - tes[i].phase / 24.0;
         tes[i].factors[EG] = 0 + tes[i].phase / 24.0;
 
-        // Finish with the usual phase for the evaluation
+        // Finish the phase calculation for the evaluation
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
 
-        // Vectorize the evaluation coefficients into coeffs
+        // Use a iterative deepening to get a predictive evaluation
+        for (int depth = 0; depth <= NDEPTHS; depth++)
+            tes[i].eval = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+
+        // Resolve FEN to a quiet position
+        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        for (j = 0; j < thread->pv.length; j++)
+            applyMove(&thread->board, thread->pv.line[j], undo);
+
+        // Vectorize the evaluation coefficients
+        T = EmptyTrace;
+        evaluateBoard(&thread->board, NULL);
         initCoefficients(coeffs);
 
-        // Determine how many TexelTuples will be needed
+        // Count up the non zero evaluation terms
         for (k = 0, j = 0; j < NTERMS; j++)
             k += coeffs[j] != 0;
 
@@ -245,7 +251,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         if (k > TupleStackSize) {
             TupleStackSize = STACKSIZE;
             TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
-
             printf("\rAllocating Memory for Texel Tuple Stack [%dMB]...\n\n",
                     (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
         }
@@ -266,37 +271,6 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     }
 
     fclose(fin);
-}
-
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]) {
-
-    int index, coeff;
-    double avgByPhase[PHASE_NB] = {0};
-    double occurances[NTERMS][PHASE_NB] = {{0}, {0}};
-
-    for (int i = 0; i < NPOSITIONS; i++) {
-        for (int j = 0; j < tes[i].ntuples; j++) {
-
-            index = tes[i].tuples[j].index;
-            coeff = tes[i].tuples[j].coeff;
-
-            occurances[index][MG] += abs(coeff) * tes[i].factors[MG];
-            occurances[index][EG] += abs(coeff) * tes[i].factors[EG];
-
-            avgByPhase[MG] += abs(coeff) * tes[i].factors[MG];
-            avgByPhase[EG] += abs(coeff) * tes[i].factors[EG];
-        }
-    }
-
-    avgByPhase[MG] /= NTERMS;
-    avgByPhase[EG] /= NTERMS;
-
-    for (int i = 0; i < NTERMS; i++){
-        if (occurances[i][MG] >= 1.0)
-            rates[i][MG] = avgByPhase[MG] / occurances[i][MG];
-        if (occurances[i][EG] >= 1.0)
-            rates[i][EG] = avgByPhase[EG] / occurances[i][EG];
-    }
 }
 
 void initCoefficients(int coeffs[NTERMS]) {
@@ -490,7 +464,7 @@ double completeEvaluationError(TexelEntry* tes, double K) {
 
     #pragma omp parallel shared(total)
     {
-        #pragma omp for schedule(static, NPOSITIONS / NTHREADS) reduction(+:total)
+        #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
             total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
     }
@@ -504,7 +478,7 @@ double completeLinearError(TexelEntry* tes, double params[NTERMS][PHASE_NB], dou
 
     #pragma omp parallel shared(total)
     {
-        #pragma omp for schedule(static, NPOSITIONS / NTHREADS) reduction(+:total)
+        #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
             total += pow(tes[i].result - sigmoid(K, linearEvaluation(tes[i], params)), 2);
     }

@@ -225,7 +225,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
          +  ScoreEG(eval) * phase * factor / SCALE_NORMAL) / 256;
 
     // Store a new Pawn King Entry if we did not have one
-    if (ei.pkentry == NULL)
+    if (ei.pkentry == NULL && pktable != NULL)
         storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
@@ -888,7 +888,7 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAttackersCount[WHITE]  = ei->kingAttackersCount[BLACK]  = 0;
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
-    ei->pkentry       = TRACE ? NULL : getPawnKingEntry(pktable, board->pkhash);
+    ei->pkentry       = pktable == NULL ? NULL : getPawnKingEntry(pktable, board->pkhash);
     ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
     ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;

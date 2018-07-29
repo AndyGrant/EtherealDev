@@ -21,20 +21,21 @@
 
 #include "types.h"
 
-#define NTHREADS   (     32) // # of Threads to use
-#define NTERMS     (      0) // # of Terms to tune
-#define NPOSITIONS (1491000) // # of FENs in book
+#define NDEPTHS     (      6) // # of search iterations
+#define NTERMS      (     73) // # of terms to tune
+#define NPOSITIONS  (1491000) // # of FENs in book
+#define NPARTITIONS (      1) // # of partitions to use
 
 // Each Eval Term (Total = 490)
 #define TunePawnValue                  (0)
-#define TuneKnightValue                (0)
-#define TuneBishopValue                (0)
+#define TuneKnightValue                (1)
+#define TuneBishopValue                (1)
 #define TuneRookValue                  (0)
 #define TuneQueenValue                 (0)
 #define TuneKingValue                  (0)
 #define TunePawnPSQT32                 (0)
-#define TuneKnightPSQT32               (0)
-#define TuneBishopPSQT32               (0)
+#define TuneKnightPSQT32               (1)
+#define TuneBishopPSQT32               (1)
 #define TuneRookPSQT32                 (0)
 #define TuneQueenPSQT32                (0)
 #define TuneKingPSQT32                 (0)
@@ -42,13 +43,13 @@
 #define TunePawnStacked                (0)
 #define TunePawnBackwards              (0)
 #define TunePawnConnected32            (0)
-#define TuneKnightOutpost              (0)
-#define TuneKnightBehindPawn           (0)
+#define TuneKnightOutpost              (1)
+#define TuneKnightBehindPawn           (1)
 #define TuneKnightMobility             (0)
 #define TuneBishopPair                 (0)
-#define TuneBishopRammedPawns          (0)
-#define TuneBishopOutpost              (0)
-#define TuneBishopBehindPawn           (0)
+#define TuneBishopRammedPawns          (1)
+#define TuneBishopOutpost              (1)
+#define TuneBishopBehindPawn           (1)
 #define TuneBishopMobility             (0)
 #define TuneRookFile                   (0)
 #define TuneRookOnSeventh              (0)
@@ -83,7 +84,6 @@ struct TexelEntry {
 
 void runTexelTuning(Thread* thread);
 void initTexelEntries(TexelEntry* tes, Thread* thread);
-void initLearningRates(TexelEntry* tes, double rates[NTERMS][PHASE_NB]);
 
 void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(double cparams[NTERMS][PHASE_NB]);
