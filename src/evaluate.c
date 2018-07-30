@@ -173,13 +173,13 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawnRank[8] = {
-    S(   0,   0), S(  -9,   5), S( -14,  13), S(  -8,  39),
-    S(  20,  71), S(  51, 147), S( 108, 216), S(   0,   0),
+const int PassedPawnRank[RANK_NB] = {
+    S(   0,   0), S( -13,  -1), S( -17,   8), S( -10,  35),
+    S(  20,  68), S(  47, 148), S( 120, 244), S(   0,   0),
 };
 
-const int PassedPawnFile[4] = {
-    S(   6,   9), S(   0,  10), S(  -5,   0), S(   0,  -7),
+const int PassedPawnFile[FILE_NB/2] = {
+    S(   7,  12), S(  -3,  16), S(  -6,   3), S(   1,  -6),
 };
 
 /* Threat Evaluation Terms */
