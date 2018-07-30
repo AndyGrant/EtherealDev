@@ -55,6 +55,7 @@ extern const uint64_t Files[FILE_NB];
 extern const uint64_t Ranks[RANK_NB];
 
 int fileOf(int s);
+int mirrorFile(int f);
 int rankOf(int s);
 int relativeRankOf(int c, int s);
 int square(int r, int f);

@@ -23,8 +23,8 @@
 #include "types.h"
 
 #define CLEARING    (      0) // Clear hashes between runs
-#define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NDEPTHS     (      4) // # of search iterations
+#define NTERMS      (     64) // # of terms to tune
 #define NPARTITIONS (     64) // # of partitions to use
 #define NPOSITIONS  (1491000) // # of FENs in book
 
@@ -58,7 +58,7 @@
 #define TuneRookMobility               (0)
 #define TuneQueenMobility              (0)
 #define TuneKingDefenders              (0)
-#define TuneKingShelter                (0)
+#define TuneKingShelter                (1)
 #define TunePassedPawn                 (0)
 #define TuneThreatWeakPawn             (0)
 #define TuneThreatMinorAttackedByPawn  (0)
