@@ -532,7 +532,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Reduce for Killers and Counters
-            R -= (inCheck ? 2 : 1)
+            R -= (inCheck ? 0 : 1)
                 * (   move == movePicker.killer1
                    || move == movePicker.killer2
                    || move == movePicker.counter);
