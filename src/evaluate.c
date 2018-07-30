@@ -139,17 +139,6 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
-const int KingShelter[2][FILE_NB/2][RANK_NB] = {
-  {{S(  -9,  -1), S(  -4,  -8), S(   4,  -2), S(   3,   1), S( -10,   3), S(   3,   2), S(   0,   0), S(  -5,   4)},
-   {S(  13,   2), S(   4,  -4), S(  -8,   1), S(  -8,  -2), S(  -6,  -1), S(   0,   0), S(   0,   0), S(   1,   0)},
-   {S(  12,   6), S(  15,  -3), S( -10,   6), S(  -5,  -2), S(  -1,  -2), S(  -2,  -1), S(   0,   0), S(  -3,   2)},
-   {S(  -2,  11), S(   0,   7), S(  -5,   3), S(   4,   0), S(   5,  -4), S(  -2,  -1), S(   0,   0), S(   0,   1)}},
-  {{S(   0,   0), S(   2, -14), S(  14,  -4), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   1,   3)},
-   {S(   0,   0), S(  13,  -6), S(   1,   1), S( -13,   1), S( -14,  -1), S(   0,   0), S(   0,   0), S(  -7,   3)},
-   {S(   0,   0), S(   0,   6), S( -13,   4), S(  -2,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(  -5,   0)},
-   {S(   0,   0), S(   3,   4), S(   6,   1), S(  10,   2), S(   1,   0), S(   0,   0), S(   0,   0), S(   0,   0)}},
-};
-
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
@@ -606,8 +595,6 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                           | (board->pieces[BISHOP] & board->colours[US]);
 
     int kingSq = getlsb(myKings);
-    int kingFile = fileOf(kingSq);
-    int kingRank = rankOf(kingSq);
 
     if (TRACE) T.KingValue[US]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
@@ -671,22 +658,6 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // Shelter eval is already stored in the Pawn King Table. evaluatePawns()
     // returns the associated score, so we only need to return the usual eval
     if (ei->pkentry != NULL) return eval;
-
-    // Evaluate King Shelter. Look at our king's file, as well as the possible two adjacent
-    // files. We evaluate based on distance between our king's rang and the nearest friendly
-    // pawn that is placed ahead or on rank with our king. Use a distance of 7 to denote
-    // configurations which have no such pawn. 7 is not a legal distance normally.
-    for (int file = MAX(0, kingFile - 1); file <= MIN(FILE_NB - 1, kingFile + 1); file++) {
-
-        uint64_t filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
-
-        int distance = !filePawns   ? 7
-                     :  US == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                    : kingRank - rankOf(getmsb(filePawns));
-
-        pkeval += KingShelter[file == kingFile][mirrorFile(file)][distance];
-        if (TRACE) T.KingShelter[file == kingFile][mirrorFile(file)][distance][US]++;
-    }
 
     ei->pkeval[US] += pkeval;
 
