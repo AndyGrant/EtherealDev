@@ -270,7 +270,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
         // Only cut with a greater depth search
-        if (ttDepth >= depth) {
+        if (ttDepth >= depth && !RootNode) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
