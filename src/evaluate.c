@@ -178,6 +178,10 @@ const int PassedPawnRank[8] = {
     S(  20,  71), S(  51, 147), S( 108, 216), S(   0,   0),
 };
 
+const int PassedPawnFile[4] = {
+    S(   6,   9), S(   0,  10), S(  -5,   0), S(   0,  -7),
+};
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
@@ -706,7 +710,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     int sq, rank, eval = 0;
 
     uint64_t tempPawns = board->pieces[PAWN]
-                       & board->colours[colour]
+                       & board->colours[US]
                        & ei->passedPawns;
 
     // Evaluate each passed pawn
@@ -716,8 +720,13 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         sq = poplsb(&tempPawns);
         rank = relativeRankOf(US, sq);
 
+        // Evaluate based on rank
         eval += PassedPawnRank[rank];
-        if (TRACE) T.PassedPawnRank[rank][colour]++;
+        if (TRACE) T.PassedPawnRank[rank][US]++;
+
+        // Evaluate based on file
+        eval += PassedPawnFile[mirrorFile(fileOf(sq))];
+        if (TRACE) T.PassedPawnFile[mirrorFile(fileOf(sq))][US]++;
     }
 
     return eval;
