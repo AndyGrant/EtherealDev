@@ -286,8 +286,8 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
     eval += evaluateKings(ei, board, WHITE)
           - evaluateKings(ei, board, BLACK);
 
-    // eval += evaluatePassedPawns(ei, board, WHITE)
-    //       - evaluatePassedPawns(ei, board, BLACK);
+    eval += evaluatePassedPawns(ei, board, WHITE)
+          - evaluatePassedPawns(ei, board, BLACK);
 
     eval += evaluateThreats(ei, board, WHITE)
           - evaluateThreats(ei, board, BLACK);
