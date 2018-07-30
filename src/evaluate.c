@@ -49,7 +49,7 @@
 const int PawnValue   = S( 100, 123);
 const int KnightValue = S( 463, 392);
 const int BishopValue = S( 473, 417);
-const int RookValue   = S( 639, 717);
+const int RookValue   = S( 689, 737);
 const int QueenValue  = S(1313,1348);
 const int KingValue   = S(   0,   0);
 
