@@ -71,19 +71,19 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
 
 
 static const int RazorDepth = 1;
-static const int RazorMargin = 350;
+static const int RazorMargin = 375;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 85;
+static const int BetaMargin = 95;
 
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 110;
 
 static const int IIDDepth = 3;
 
-static const int FutilityMargin = 100;
+static const int FutilityMargin = 110;
 static const int FutilityPruningDepth = 8;
 static const int FutilityPruningHistoryLimit[] = { 12000, 6000 };
 
@@ -100,12 +100,12 @@ static const int LateMovePruningCounts[2][9] = {
 };
 
 static const int SEEPruningDepth = 8;
-static const int SEEMargin = -20;
+static const int SEEMargin = -22;
 
 static const int QFutilityMargin = 100;
 
 static const int SEEPieceValues[] = {
-     100,  450,  450,  675,
+     110,  475,  475,  675,
     1300,    0,    0,    0,
 };
 
