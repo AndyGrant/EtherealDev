@@ -174,13 +174,15 @@ const int KSAdjustment      =  -18;
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawnRank[RANK_NB] = {
-    S(   0,   0), S( -13,  -1), S( -17,   8), S( -10,  35),
-    S(  20,  68), S(  47, 148), S( 120, 244), S(   0,   0),
+    S(   0,   0), S( -15,  -5), S( -18,   5), S( -10,  32),
+    S(  20,  66), S(  46, 147), S( 122, 248), S(   0,   0),
 };
 
 const int PassedPawnFile[FILE_NB/2] = {
-    S(   7,  12), S(  -3,  16), S(  -6,   3), S(   1,  -6),
+    S(   6,  10), S(  -4,  14), S(  -6,   1), S(   2,  -7),
 };
+
+const int PassedCanAdvance[2] = { S(  -4, -16), S(   2,   9) };
 
 /* Threat Evaluation Terms */
 
@@ -707,11 +709,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, eval = 0;
+    int sq, rank, flag, eval = 0;
+    uint64_t destination;
 
-    uint64_t tempPawns = board->pieces[PAWN]
-                       & board->colours[US]
-                       & ei->passedPawns;
+    uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
+    uint64_t tempPawns = board->pieces[PAWN] & board->colours[US] & ei->passedPawns;
 
     // Evaluate each passed pawn
     while (tempPawns != 0ull){
@@ -719,6 +721,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Pop off the next passed Pawn
         sq = poplsb(&tempPawns);
         rank = relativeRankOf(US, sq);
+        destination = pawnAdvance(1ull << sq, 0ull, US);
 
         // Evaluate based on rank
         eval += PassedPawnRank[rank];
@@ -727,6 +730,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Evaluate based on file
         eval += PassedPawnFile[mirrorFile(fileOf(sq))];
         if (TRACE) T.PassedPawnFile[mirrorFile(fileOf(sq))][US]++;
+
+        // Evaluate based on ability to advance
+        flag = !!(destination & ~occupied);
+        eval += PassedCanAdvance[flag];
+        if (TRACE) T.PassedCanAdvance[flag][US]++;
     }
 
     return eval;

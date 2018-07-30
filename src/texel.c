@@ -75,6 +75,7 @@ extern const int KingDefenders[12];
 extern const int KingShelter[2][8][8];
 extern const int PassedPawnRank[8];
 extern const int PassedPawnFile[4];
+extern const int PassedCanAdvance[2];
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -315,6 +316,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)        ;
     ENABLE_1(INIT_COEFF, PassedPawnRank, 8)           ;
     ENABLE_1(INIT_COEFF, PassedPawnFile, 4)           ;
+    ENABLE_1(INIT_COEFF, PassedCanAdvance, 2)         ;
     ENABLE_0(INIT_COEFF, ThreatWeakPawn)              ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByMajor)  ;
@@ -365,6 +367,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)        ;
     ENABLE_1(INIT_PARAM, PassedPawnRank, 8)           ;
     ENABLE_1(INIT_PARAM, PassedPawnFile, 4)           ;
+    ENABLE_1(INIT_PARAM, PassedCanAdvance, 2)         ;
     ENABLE_0(INIT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByMajor)  ;
@@ -422,6 +425,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)        ;
     ENABLE_1(PRINT_PARAM, PassedPawnRank, 8)           ;
     ENABLE_1(PRINT_PARAM, PassedPawnFile, 4)           ;
+    ENABLE_1(PRINT_PARAM, PassedCanAdvance, 2)         ;
     ENABLE_0(PRINT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByMajor)  ;
