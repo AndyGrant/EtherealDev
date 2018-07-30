@@ -72,8 +72,8 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][FILE_NB][RANK_NB];
-extern const int PassedPawn[2][2][RANK_NB];
+extern const int KingShelter[2][8][8];
+extern const int PassedPawnRank[8];
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -86,7 +86,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6;
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -166,8 +166,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * LEARNRATE * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * LEARNRATE * gradients[i][EG];
         }
     }
 }
@@ -239,9 +239,9 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
 
         // Resolve FEN to a quiet position
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
+        // qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        // for (j = 0; j < thread->pv.length; j++)
+        //     applyMove(&thread->board, thread->pv.line[j], undo);
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
@@ -312,7 +312,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, QueenMobility, 28)           ;
     ENABLE_1(INIT_COEFF, KingDefenders, 12)           ;
     ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)        ;
-    ENABLE_3(INIT_COEFF, PassedPawn, 2, 2, 8)         ;
+    ENABLE_1(INIT_COEFF, PassedPawnRank, 8)           ;
     ENABLE_0(INIT_COEFF, ThreatWeakPawn)              ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByMajor)  ;
@@ -361,7 +361,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, QueenMobility, 28)           ;
     ENABLE_1(INIT_PARAM, KingDefenders, 12)           ;
     ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)        ;
-    ENABLE_3(INIT_PARAM, PassedPawn, 2, 2, 8)         ;
+    ENABLE_1(INIT_PARAM, PassedPawnRank, 8  )         ;
     ENABLE_0(INIT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByMajor)  ;
@@ -417,7 +417,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, QueenMobility, 28)           ;
     ENABLE_1(PRINT_PARAM, KingDefenders, 12)           ;
     ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)        ;
-    ENABLE_3(PRINT_PARAM, PassedPawn, 2, 2, 8)         ;
+    ENABLE_1(PRINT_PARAM, PassedPawnRank, 8)           ;
     ENABLE_0(PRINT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByMajor)  ;
