@@ -22,12 +22,12 @@
 
 #include "types.h"
 
-#define LEARNRATE   (   35.0) // Step size for learning
+#define LEARNRATE   (    5.0) // Step size for learning
 #define CLEARING    (      0) // Clear hashes between runs
 #define NDEPTHS     (      0) // # of search iterations
 #define NTERMS      (      8) // # of terms to tune
 #define NPARTITIONS (     64) // # of partitions to use
-#define NPOSITIONS  (1491000) // # of FENs in book
+#define NPOSITIONS  (7000000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
 #define TunePawnValue                  (0)

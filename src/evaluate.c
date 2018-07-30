@@ -174,8 +174,8 @@ const int KSAdjustment      =  -18;
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawnRank[8] = {
-    S(   0,   0), S(  -9,   5), S( -14,  13), S(  -8,  39),
-    S(  20,  71), S(  51, 147), S( 108, 216), S(   0,   0),
+    S(   0,   0), S(   2,  16), S(  -4,  19), S(  -1,  38),
+    S(  34,  61), S(  58, 118), S( 112, 197), S(   0,   0),
 };
 
 /* Threat Evaluation Terms */
