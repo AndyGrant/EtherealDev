@@ -26,7 +26,7 @@
 #define CLEARING    (      0) // Clear hashes between runs
 #define NDEPTHS     (      0) // # of search iterations
 #define NTERMS      (     16) // # of terms to tune
-#define NPARTITIONS (     64) // # of partitions to use
+#define NPARTITIONS (      1) // # of partitions to use
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
