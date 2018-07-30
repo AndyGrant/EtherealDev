@@ -192,7 +192,7 @@ const int ThreatByPawnPush           = S(  12,  15);
 
 /* General Evaluation Terms */
 
-const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
+const int Tempo = S(  25,  20);
 
 #undef S
 
@@ -206,9 +206,10 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     // Setup and perform all evaluations
     initializeEvalInfo(&ei, board, pktable);
-    eval   = evaluatePieces(&ei, board);
+    eval   = board->turn == WHITE ? Tempo : -Tempo;
+    eval  += evaluatePieces(&ei, board) + board->psqtmat;
+    eval  += ei.pkeval[WHITE] - ei.pkeval[BLACK];
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-    eval  += pkeval + board->psqtmat + Tempo[board->turn];
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
