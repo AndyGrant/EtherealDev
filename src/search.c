@@ -56,7 +56,7 @@ void initSearch(){
     // Init Late Move Reductions Table
     for (int d = 1; d < 64; d++) {
         for (int p = 1; p < 64; p++) {
-            LMRTable[0][d][p] = 1.50 + log(d) * log(p) / 2.25;
+            LMRTable[0][d][p] = 2.00 + log(d) * log(p) / 2.25;
             LMRTable[1][d][p] = 0.75 + log(d) * log(p) / 2.25;
         }
     }
