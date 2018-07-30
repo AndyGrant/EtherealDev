@@ -174,15 +174,18 @@ const int KSAdjustment      =  -18;
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawnRank[RANK_NB] = {
-    S(   0,   0), S( -15,  -5), S( -18,   5), S( -10,  32),
-    S(  20,  66), S(  46, 147), S( 122, 248), S(   0,   0),
+    S(   0,   0), S( -15,  -9), S( -18,   2), S( -10,  30),
+    S(  19,  65), S(  46, 147), S( 124, 252), S(   0,   0),
 };
 
-const int PassedPawnFile[FILE_NB/2] = {
-    S(   6,  10), S(  -4,  14), S(  -6,   1), S(   2,  -7),
+const int PassedPawnFile[FILE_NB] = {
+    S(   7,   6), S(  -4,  12), S(  -6,   1), S(   2,  -6),
 };
 
-const int PassedCanAdvance[2] = { S(  -4, -16), S(   2,   9) };
+const int PassedCanAdvance[2] = { S(  -3, -24), S(   2,  12) };
+
+const int PassedSafeAdvance[2] = { S(   4, -17), S(  -2,  13) };
+
 
 /* Threat Evaluation Terms */
 
@@ -735,6 +738,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !!(destination & ~occupied);
         eval += PassedCanAdvance[flag];
         if (TRACE) T.PassedCanAdvance[flag][US]++;
+
+        // Evaluate based on safeness of block square
+        flag = !!(destination & ~ei->attacked[THEM]);
+        eval += PassedSafeAdvance[flag];
+        if (TRACE) T.PassedSafeAdvance[flag][US]++;
     }
 
     return eval;

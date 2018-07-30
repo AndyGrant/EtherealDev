@@ -64,6 +64,7 @@ struct EvalTrace {
     int PassedPawnRank[8][COLOUR_NB];
     int PassedPawnFile[4][COLOUR_NB];
     int PassedCanAdvance[2][COLOUR_NB];
+    int PassedSafeAdvance[2][COLOUR_NB];
     int ThreatWeakPawn[COLOUR_NB];
     int ThreatMinorAttackedByPawn[COLOUR_NB];
     int ThreatMinorAttackedByMajor[COLOUR_NB];
