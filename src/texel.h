@@ -22,8 +22,8 @@
 
 #include "types.h"
 
-#define CLEARING    (      0) // Clear hashes between runs
-#define NDEPTHS     (      4) // # of search iterations
+#define CLEARING    (      1) // Clear hashes between runs
+#define NDEPTHS     (     10) // # of search iterations
 #define NTERMS      (     64) // # of terms to tune
 #define NPARTITIONS (     64) // # of partitions to use
 #define NPOSITIONS  (1491000) // # of FENs in book
