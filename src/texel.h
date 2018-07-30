@@ -23,18 +23,18 @@
 #include "types.h"
 
 #define CLEARING    (      0) // Clear hashes between runs
-#define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NDEPTHS     (      4) // # of search iterations
+#define NTERMS      (     60) // # of terms to tune
 #define NPARTITIONS (     64) // # of partitions to use
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
-#define TunePawnValue                  (0)
-#define TuneKnightValue                (0)
-#define TuneBishopValue                (0)
-#define TuneRookValue                  (0)
-#define TuneQueenValue                 (0)
-#define TuneKingValue                  (0)
+#define TunePawnValue                  (1)
+#define TuneKnightValue                (1)
+#define TuneBishopValue                (1)
+#define TuneRookValue                  (1)
+#define TuneQueenValue                 (1)
+#define TuneKingValue                  (1)
 #define TunePawnPSQT32                 (0)
 #define TuneKnightPSQT32               (0)
 #define TuneBishopPSQT32               (0)
@@ -47,16 +47,16 @@
 #define TunePawnConnected32            (0)
 #define TuneKnightOutpost              (0)
 #define TuneKnightBehindPawn           (0)
-#define TuneKnightMobility             (0)
+#define TuneKnightMobility             (1)
 #define TuneBishopPair                 (0)
 #define TuneBishopRammedPawns          (0)
-#define TuneBishopOutpost              (0)
+#define TuneBishopOutpost              (1)
 #define TuneBishopBehindPawn           (0)
 #define TuneBishopMobility             (0)
 #define TuneRookFile                   (0)
 #define TuneRookOnSeventh              (0)
-#define TuneRookMobility               (0)
-#define TuneQueenMobility              (0)
+#define TuneRookMobility               (1)
+#define TuneQueenMobility              (1)
 #define TuneKingDefenders              (0)
 #define TuneKingShelter                (0)
 #define TunePassedPawn                 (0)
