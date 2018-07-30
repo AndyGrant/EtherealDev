@@ -385,6 +385,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // likely going to be good at a full depth. To save some work we will prune
     // captures that won't exceed rbeta or captures that fail at a low depth
     if (   !PvNode
+        && !ttHit
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
