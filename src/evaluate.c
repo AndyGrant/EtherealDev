@@ -188,7 +188,7 @@ const int PassedFriendlyDistance = S(   2,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
 
-const int PassedSafeQueenWalk = S(  20,  40);
+const int PassedClearQueenWalk = S(   5,  10);
 
 /* Threat Evaluation Terms */
 
@@ -712,8 +712,8 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PassedEnemyDistance[US] += dist;
 
         bitboard = ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)];
-        flag = !(bitboard & ei->attacked[THEM]);
-        eval += flag * PassedSafeQueenWalk;
+        flag = !(bitboard & (occupied ^ (1ull << sq)));
+        eval += flag * PassedClearQueenWalk;
     }
 
     return eval;
