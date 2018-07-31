@@ -41,7 +41,6 @@
 
 const char *PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
 
-// Benchmark positions were chosen randomly, giving a representative sample of real games.
 static const char *Benchmarks[] = {
     #include "bench.csv"
     ""
