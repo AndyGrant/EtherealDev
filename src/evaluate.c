@@ -173,28 +173,32 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawnRank[8] = {
-    S(   0,   0), S( -13,  -5), S( -17,   6), S( -10,  32),
-    S(  19,  62), S(  46, 141), S( 125, 252), S(   0,   0),
+const int PassedPawnRank[RANK_NB] = {
+    S(   0,   0), S( -16, -10), S( -20,   2), S( -12,  30),
+    S(  17,  60), S(  46, 138), S( 126, 253), S(   0,   0),
 };
 
-const int PassedPawnFile[4] = {
-    S(   8,   7), S(  -3,  12), S(  -5,   1), S(   3,  -6),
+const int PassedPawnFile[FILE_NB/2] = {
+    S(   5,   4), S(  -5,   9), S(  -7,  -2), S(   1,  -9),
 };
 
-const int PassedCanAdvance[2][8] = {
-   {S(   0,   0), S(   3, -16), S(   2, -12), S(   0, -15),
-    S(  -5, -30), S( -10, -42), S( -11, -38), S(   0,   0)},
-   {S(   0,   0), S(  -2,   7), S(  -2,   4), S(   0,   6),
-    S(   4,  15), S(   9,  25), S(  11,  26), S(   0,   0)},
+const int PassedCanAdvance[2][RANK_NB] = {
+   {S(   0,   0), S(   3, -15), S(   1, -10), S(  -1, -13),
+    S(  -5, -31), S( -11, -48), S( -14, -44), S(   0,   0)},
+   {S(   0,   0), S(  -6,   0), S(  -5,  -1), S(  -1,   2),
+    S(   3,  15), S(  11,  29), S(  16,  33), S(   0,   0)},
 };
 
-const int PassedSafeAdvance[2][8] = {
-   {S(   0,   0), S(   8,  -6), S(   5,  -6), S(   3, -11),
-    S(   4, -25), S(  -1, -41), S(   2, -26), S(   0,   0)},
-   {S(   0,   0), S(  -5,   6), S(  -2,   7), S(  -1,  10),
-    S(  -2,  19), S(   3,  31), S(   0,  22), S(   0,   0)},
+const int PassedSafeAdvance[2][RANK_NB] = {
+   {S(   0,   0), S(   7,  -4), S(   3,  -3), S(   1,  -9),
+    S(   4, -26), S(  -1, -49), S(   1, -30), S(   0,   0)},
+   {S(   0,   0), S(  -8,  -1), S(  -3,   1), S(  -2,   6),
+    S(  -3,  19), S(   4,  37), S(   1,  27), S(   0,   0)},
 };
+
+const int PassedFriendlyDistance = S(   1,  -7);
+
+const int PassedEnemyDistance = S(   0,   9);
 
 /* Threat Evaluation Terms */
 
@@ -717,12 +721,19 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
+int distanceBetween(int sq1, int sq2) {
+    return MAX(abs(fileOf(sq1)-fileOf(sq2)), abs(rankOf(sq1)-rankOf(sq2)));
+}
+
 int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, flag, eval = 0;
+    int sq, rank, flag, dist, eval = 0;
     uint64_t destination;
+
+    int ourKing   = getlsb(board->colours[US  ] & board->pieces[KING]);
+    int theirKing = getlsb(board->colours[THEM] & board->pieces[KING]);
 
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
     uint64_t tempPawns = board->pieces[PAWN] & board->colours[US] & ei->passedPawns;
@@ -752,6 +763,16 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !!(destination & ~ei->attacked[THEM]);
         eval += PassedSafeAdvance[flag][rank];
         if (TRACE) T.PassedSafeAdvance[flag][rank][US]++;
+
+        // Evaluate based on distance from our king
+        dist = distanceBetween(sq, ourKing);
+        eval += dist * PassedFriendlyDistance;
+        if (TRACE) T.PassedFriendlyDistance[US] += dist;
+
+        // Evaluate based on distance from our king
+        dist = distanceBetween(sq, theirKing);
+        eval += dist * PassedEnemyDistance;
+        if (TRACE) T.PassedEnemyDistance[US] += dist;
     }
 
     return eval;

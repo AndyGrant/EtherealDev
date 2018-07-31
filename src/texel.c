@@ -77,6 +77,8 @@ extern const int PassedPawnRank[8];
 extern const int PassedPawnFile[4];
 extern const int PassedCanAdvance[2][8];
 extern const int PassedSafeAdvance[2][8];
+extern const int PassedFriendlyDistance;
+extern const int PassedEnemyDistance;
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -319,6 +321,8 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, PassedPawnFile, 4)           ;
     ENABLE_2(INIT_COEFF, PassedCanAdvance, 2, 8)      ;
     ENABLE_2(INIT_COEFF, PassedSafeAdvance, 2, 8)     ;
+    ENABLE_0(INIT_COEFF, PassedFriendlyDistance)      ;
+    ENABLE_0(INIT_COEFF, PassedEnemyDistance)         ;
     ENABLE_0(INIT_COEFF, ThreatWeakPawn)              ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByMajor)  ;
@@ -371,6 +375,8 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, PassedPawnFile, 4)           ;
     ENABLE_2(INIT_PARAM, PassedCanAdvance, 2, 8)      ;
     ENABLE_2(INIT_PARAM, PassedSafeAdvance, 2, 8)     ;
+    ENABLE_0(INIT_PARAM, PassedFriendlyDistance)      ;
+    ENABLE_0(INIT_PARAM, PassedEnemyDistance)         ;
     ENABLE_0(INIT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByMajor)  ;
@@ -430,6 +436,8 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, PassedPawnFile, 4)           ;
     ENABLE_2(PRINT_PARAM, PassedCanAdvance, 2, 8)      ;
     ENABLE_2(PRINT_PARAM, PassedSafeAdvance, 2, 8)     ;
+    ENABLE_0(PRINT_PARAM, PassedFriendlyDistance)      ;
+    ENABLE_0(PRINT_PARAM, PassedEnemyDistance)         ;
     ENABLE_0(PRINT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByMajor)  ;
