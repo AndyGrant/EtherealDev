@@ -41,7 +41,7 @@ void initMasks() {
     // Initalize distance between two squares table
     for (int s1 = 0; s1 < SQUARE_NB; s1++)
         for (int s2 = 0; s2 < SQUARE_NB; s2++)
-            DistanceBetween[s1][s2] = MAX(abs(fileOf(s1)-fileOf(s2)), abs(rankOf(s1)-rankOf(s2)));
+            DistanceBetween[s1][s2] = MAX(abs(fileOf(s1)-fileOf(s2)), abs(rankOf(s1)-rankOf(s2))) - 1;
 
     for (int s1 = 0; s1 < SQUARE_NB; s1++) {
         for (int s2 = 0; s2 < SQUARE_NB; s2++) {

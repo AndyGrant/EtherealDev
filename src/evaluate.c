@@ -184,9 +184,9 @@ const int PassedPawn[2][2][RANK_NB] = {
     S(  -3, 112), S(  43, 219), S( 126, 380), S(   0,   0)}},
 };
 
-const int PassedFriendlyDistance = S(   2,  -6);
+const int PassedFriendlyDistance = S(   0,  -8);
 
-const int PassedEnemyDistance = S(  -1,   8);
+const int PassedEnemyDistance = S(   0,  10);
 
 /* Threat Evaluation Terms */
 
