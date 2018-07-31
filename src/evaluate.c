@@ -188,6 +188,8 @@ const int PassedFriendlyDistance = S(   2,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
 
+const int PassedTarrasch = S(   3,   6);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
@@ -676,13 +678,14 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     int ourKing   = getlsb(board->colours[US  ] & board->pieces[KING]);
     int theirKing = getlsb(board->colours[THEM] & board->pieces[KING]);
 
-    uint64_t blocksq;
+    uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myRooks   = board->colours[US] & board->pieces[ROOK];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -691,11 +694,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Pop off the next passed Pawn
         sq = poplsb(&tempPawns);
         rank = relativeRankOf(US, sq);
-        blocksq = pawnAdvance(1ull << sq, 0ull, US);
+        bitboard = pawnAdvance(1ull << sq, 0ull, US);
 
         // Evaluate based on rank, ability to advance, and safety
-        canAdvance = !(blocksq & occupied);
-        safeAdvance = !(blocksq & ei->attacked[THEM]);
+        canAdvance = !(bitboard & occupied);
+        safeAdvance = !(bitboard & ei->attacked[THEM]);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
@@ -708,6 +711,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         dist = distanceBetween(sq, theirKing);
         eval += dist * PassedEnemyDistance;
         if (TRACE) T.PassedEnemyDistance[US] += dist;
+
+        bitboard = ranksAtOrAboveMasks(THEM, rankOf(sq)) & Files[fileOf(sq)];
+        flag = !!(bitboard & rookAttacks(sq, occupied) & myRooks);
+        eval += flag * PassedTarrasch;
+
     }
 
     return eval;
