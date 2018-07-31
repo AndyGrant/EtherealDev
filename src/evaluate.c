@@ -188,7 +188,7 @@ const int PassedFriendlyDistance = S(   2,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
 
-const int PassedTarrasch = S(   6,  12);
+const int PassedTarrasch = S(  12,  24);
 
 /* Threat Evaluation Terms */
 
