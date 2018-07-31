@@ -188,7 +188,7 @@ const int PassedFriendlyDistance = S(   2,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
 
-const int PassedClearQueenWalk = S(  10,  20);
+const int PassedClearQueenWalk = S(  20,  40);
 
 /* Threat Evaluation Terms */
 
