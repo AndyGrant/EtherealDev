@@ -188,6 +188,8 @@ const int PassedFriendlyDistance = S(   2,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
 
+const int PassedConnectedPassers = S(   5,  10);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
@@ -682,7 +684,8 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     int theirKing = getlsb(board->colours[THEM] & board->pieces[KING]);
 
     uint64_t blocksq;
-    uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t tempPawns = board->colours[US] & board->pieces[PAWN] & ei->passedPawns;
+    uint64_t myPassers = board->colours[US] & board->pieces[PAWN] & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -708,6 +711,9 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         dist = distanceBetween(sq, theirKing);
         eval += dist * PassedEnemyDistance;
         if (TRACE) T.PassedEnemyDistance[US] += dist;
+
+        if (pawnConnectedMasks(US, sq) & myPassers)
+            eval += PassedConnectedPassers;
     }
 
     return eval;
