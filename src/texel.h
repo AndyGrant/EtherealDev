@@ -23,8 +23,8 @@
 #include "types.h"
 
 #define LEARNRATE   (   15.0) // Step size for learning
-#define CLEARING    (      0) // Clear hashes between runs
-#define NDEPTHS     (      0) // # of search iterations
+#define CLEARING    (      1) // Clear hashes between runs
+#define NDEPTHS     (      4) // # of search iterations
 #define NTERMS      (     44) // # of terms to tune
 #define NPARTITIONS (     64) // # of partitions to use
 #define NPOSITIONS  (1491000) // # of FENs in book

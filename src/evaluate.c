@@ -173,27 +173,27 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawnRank[8] = {
-    S(   0,   0), S( -13,  -5), S( -17,   6), S( -10,  32),
-    S(  19,  62), S(  46, 141), S( 125, 252), S(   0,   0),
+const int PassedPawnRank[RANK_NB] = {
+    S(   0,   0), S(  -6,   2), S( -13,  14), S(  -6,  41),
+    S(  32,  66), S(  55, 137), S( 128, 252), S(   0,   0),
 };
 
-const int PassedPawnFile[4] = {
-    S(   8,   7), S(  -3,  12), S(  -5,   1), S(   3,  -6),
+const int PassedPawnFile[FILE_NB/2] = {
+    S(  17,  16), S(   5,  19), S(   6,   8), S(  13,  -2),
 };
 
-const int PassedCanAdvance[2][8] = {
-   {S(   0,   0), S(   3, -16), S(   2, -12), S(   0, -15),
-    S(  -5, -30), S( -10, -42), S( -11, -38), S(   0,   0)},
-   {S(   0,   0), S(  -2,   7), S(  -2,   4), S(   0,   6),
-    S(   4,  15), S(   9,  25), S(  11,  26), S(   0,   0)},
+const int PassedCanAdvance[2][RANK_NB] = {
+   {S(   0,   0), S(   4, -14), S(   3,  -9), S(   2, -11),
+    S(  -1, -27), S(  -6, -41), S( -10, -38), S(   0,   0)},
+   {S(   0,   0), S(   3,  13), S(   0,   9), S(   1,  11),
+    S(  13,  17), S(  15,  21), S(  14,  27), S(   0,   0)},
 };
 
-const int PassedSafeAdvance[2][8] = {
-   {S(   0,   0), S(   8,  -6), S(   5,  -6), S(   3, -11),
-    S(   4, -25), S(  -1, -41), S(   2, -26), S(   0,   0)},
-   {S(   0,   0), S(  -5,   6), S(  -2,   7), S(  -1,  10),
-    S(  -2,  19), S(   3,  31), S(   0,  22), S(   0,   0)},
+const int PassedSafeAdvance[2][RANK_NB] = {
+   {S(   0,   0), S(   8,  -4), S(   3,  -5), S(   0, -12),
+    S(  12, -26), S(   6, -42), S(   5, -26), S(   0,   0)},
+   {S(   0,   0), S(   1,  12), S(   3,  15), S(   5,  20),
+    S(   3,  25), S(   4,  28), S(   0,  22), S(   0,   0)},
 };
 
 /* Threat Evaluation Terms */
