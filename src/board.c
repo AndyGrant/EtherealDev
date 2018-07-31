@@ -305,14 +305,25 @@ void runBenchmark(Thread *threads, int depth) {
 
 int boardIsDrawn(Board *board, int height) {
 
-    int reps = 0;
+    // Drawn if any of the three possible cases
+    return drawnByFiftyMoveRule(board)
+        || drawnByRepetition(board, height)
+        || drawnByInsufficientMaterial(board);
+}
+
+int drawnByFiftyMoveRule(Board *board) {
 
     // Fifty move rule triggered (BUG: We do not account for the case
     // when the fifty move rule occurs as checkmate is delivered, which
     // should not be considered a drawn position, but a checkmated one.
-    if (board->fiftyMoveRule > 99)
-        return 0;
+    return board->fiftyMoveRule > 99;
+}
 
+int drawnByRepetition(Board *board, int height) {
+
+    int reps = 0;
+
+    // Look through hash histories for our moves
     for (int i = board->numMoves - 2; i >= 0; i -= 2) {
 
         // No draw can occur before a zeroing move
@@ -323,6 +334,41 @@ int boardIsDrawn(Board *board, int height) {
         // or a three fold which occurs in part before the root move
         if (    board->history[i] == board->hash
             && (i > board->numMoves - height || ++reps == 2))
+            return 1;
+    }
+
+    return 0;
+}
+
+int drawnByInsufficientMaterial(Board *board) {
+
+    // No draw by insufficient material with pawns, rooks, or queens
+    if (board->pieces[PAWN] | board->pieces[ROOK] | board->pieces[QUEEN])
+        return 0;
+
+    // Check for KvK
+    if (board->pieces[KING] == (board->colours[WHITE] | board->colours[BLACK]))
+        return 1;
+
+    if ((board->colours[WHITE] & board->pieces[KING]) == board->colours[WHITE]){
+
+        // Check for K v KN or K v KB
+        if (!several(board->pieces[KNIGHT] | board->pieces[BISHOP]))
+            return 1;
+
+        // Check for K v KNN
+        if (!board->pieces[BISHOP] && popcount(board->pieces[KNIGHT]) <= 2)
+            return 1;
+    }
+
+    if ((board->colours[BLACK] & board->pieces[KING]) == board->colours[BLACK]){
+
+        // Check for K v KN or K v KB
+        if (!several(board->pieces[KNIGHT] | board->pieces[BISHOP]))
+            return 1;
+
+        // Check for K v KNN
+        if (!board->pieces[BISHOP] && popcount(board->pieces[KNIGHT]) <= 2)
             return 1;
     }
 
