@@ -25,7 +25,7 @@
 #define LEARNRATE   (   15.0) // Step size for learning
 #define CLEARING    (      0) // Clear hashes between runs
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (     16) // # of terms to tune
+#define NTERMS      (     44) // # of terms to tune
 #define NPARTITIONS (     64) // # of partitions to use
 #define NPOSITIONS  (1491000) // # of FENs in book
 
@@ -168,7 +168,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     if (Tune##term) fname##_1(term, length1);                       \
 } while (0)
 
-#define ENABLE_2(fname, term, length1, legnth2) do {                \
+#define ENABLE_2(fname, term, length1, length2) do {                \
     if (Tune##term) fname##_2(term, length1, length2);              \
 } while (0)
 

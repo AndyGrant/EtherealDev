@@ -75,8 +75,8 @@ extern const int KingDefenders[12];
 extern const int KingShelter[2][8][8];
 extern const int PassedPawnRank[8];
 extern const int PassedPawnFile[4];
-extern const int PassedCanAdvance[2];
-extern const int PassedSafeAdvance[2];
+extern const int PassedCanAdvance[2][8];
+extern const int PassedSafeAdvance[2][8];
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMajor;
@@ -317,8 +317,8 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)        ;
     ENABLE_1(INIT_COEFF, PassedPawnRank, 8)           ;
     ENABLE_1(INIT_COEFF, PassedPawnFile, 4)           ;
-    ENABLE_1(INIT_COEFF, PassedCanAdvance, 2)         ;
-    ENABLE_1(INIT_COEFF, PassedSafeAdvance, 2)        ;
+    ENABLE_2(INIT_COEFF, PassedCanAdvance, 2, 8)      ;
+    ENABLE_2(INIT_COEFF, PassedSafeAdvance, 2, 8)     ;
     ENABLE_0(INIT_COEFF, ThreatWeakPawn)              ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_COEFF, ThreatMinorAttackedByMajor)  ;
@@ -369,8 +369,8 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)        ;
     ENABLE_1(INIT_PARAM, PassedPawnRank, 8)           ;
     ENABLE_1(INIT_PARAM, PassedPawnFile, 4)           ;
-    ENABLE_1(INIT_PARAM, PassedCanAdvance, 2)         ;
-    ENABLE_1(INIT_PARAM, PassedSafeAdvance, 2)        ;
+    ENABLE_2(INIT_PARAM, PassedCanAdvance, 2, 8)      ;
+    ENABLE_2(INIT_PARAM, PassedSafeAdvance, 2, 8)     ;
     ENABLE_0(INIT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(INIT_PARAM, ThreatMinorAttackedByMajor)  ;
@@ -428,8 +428,8 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)        ;
     ENABLE_1(PRINT_PARAM, PassedPawnRank, 8)           ;
     ENABLE_1(PRINT_PARAM, PassedPawnFile, 4)           ;
-    ENABLE_1(PRINT_PARAM, PassedCanAdvance, 2)         ;
-    ENABLE_1(PRINT_PARAM, PassedSafeAdvance, 2)        ;
+    ENABLE_2(PRINT_PARAM, PassedCanAdvance, 2, 8)      ;
+    ENABLE_2(PRINT_PARAM, PassedSafeAdvance, 2, 8)     ;
     ENABLE_0(PRINT_PARAM, ThreatWeakPawn)              ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByPawn)   ;
     ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByMajor)  ;
@@ -541,10 +541,19 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
+
+        for (int b = 0; b < B; b++, i++) {
+            if (b % 4 == 0) printf("\n   ");
+            printf("%s", b == 0 ? "{" : " ");
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("%s", b == B - 1 ? "}," : ",");
+        }
+    }
+
+    printf("\n};\n");
 
 }
 

@@ -173,19 +173,28 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawnRank[RANK_NB] = {
-    S(   0,   0), S( -15,  -9), S( -18,   2), S( -10,  30),
-    S(  19,  65), S(  46, 147), S( 124, 252), S(   0,   0),
+const int PassedPawnRank[8] = {
+    S(   0,   0), S( -13,  -5), S( -17,   6), S( -10,  32),
+    S(  19,  62), S(  46, 141), S( 125, 252), S(   0,   0),
 };
 
-const int PassedPawnFile[FILE_NB] = {
-    S(   7,   6), S(  -4,  12), S(  -6,   1), S(   2,  -6),
+const int PassedPawnFile[4] = {
+    S(   8,   7), S(  -3,  12), S(  -5,   1), S(   3,  -6),
 };
 
-const int PassedCanAdvance[2] = { S(  -3, -24), S(   2,  12) };
+const int PassedCanAdvance[2][8] = {
+   {S(   0,   0), S(   3, -16), S(   2, -12), S(   0, -15),
+    S(  -5, -30), S( -10, -42), S( -11, -38), S(   0,   0)},
+   {S(   0,   0), S(  -2,   7), S(  -2,   4), S(   0,   6),
+    S(   4,  15), S(   9,  25), S(  11,  26), S(   0,   0)},
+};
 
-const int PassedSafeAdvance[2] = { S(   4, -17), S(  -2,  13) };
-
+const int PassedSafeAdvance[2][8] = {
+   {S(   0,   0), S(   8,  -6), S(   5,  -6), S(   3, -11),
+    S(   4, -25), S(  -1, -41), S(   2, -26), S(   0,   0)},
+   {S(   0,   0), S(  -5,   6), S(  -2,   7), S(  -1,  10),
+    S(  -2,  19), S(   3,  31), S(   0,  22), S(   0,   0)},
+};
 
 /* Threat Evaluation Terms */
 
@@ -736,13 +745,13 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
         // Evaluate based on ability to advance
         flag = !!(destination & ~occupied);
-        eval += PassedCanAdvance[flag];
-        if (TRACE) T.PassedCanAdvance[flag][US]++;
+        eval += PassedCanAdvance[flag][rank];
+        if (TRACE) T.PassedCanAdvance[flag][rank][US]++;
 
         // Evaluate based on safeness of block square
         flag = !!(destination & ~ei->attacked[THEM]);
-        eval += PassedSafeAdvance[flag];
-        if (TRACE) T.PassedSafeAdvance[flag][US]++;
+        eval += PassedSafeAdvance[flag][rank];
+        if (TRACE) T.PassedSafeAdvance[flag][rank][US]++;
     }
 
     return eval;
