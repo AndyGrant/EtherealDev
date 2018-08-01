@@ -173,22 +173,26 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][8] = {
-  {{S(   0,   0), S( -28, -25), S( -23,   5), S( -15,   0),
-    S(  18,   1), S(  57,   0), S( 143,  32), S(   0,   0)},
-   {S(   0,   0), S(  -4,  -6), S( -23,  13), S( -14,  29),
-    S(   5,  43), S(  65,  66), S( 191, 135), S(   0,   0)}},
-  {{S(   0,   0), S( -11,   6), S( -18,   5), S(  -9,  25),
-    S(  30,  42), S(  79,  78), S( 238, 160), S(   0,   0)},
-   {S(   0,   0), S( -23, -10), S( -19,  -1), S( -18,  36),
-    S(   0, 103), S(  45, 225), S( 127, 384), S(   0,   0)}},
+const int PassedPawn[2][2][RANK_NB] = {
+  {{S(   0,   0), S( -27, -24), S( -23,   5), S( -14,   1),
+    S(  18,   2), S(  57,   1), S( 141,  32), S(   0,   0)},
+   {S(   0,   0), S(  -5,  -9), S( -24,   9), S( -14,  26),
+    S(   5,  41), S(  64,  66), S( 190, 136), S(   0,   0)}},
+  {{S(   0,   0), S( -13,   3), S( -20,   4), S(  -9,  26),
+    S(  30,  44), S(  79,  81), S( 240, 163), S(   0,   0)},
+   {S(   0,   0), S( -26, -14), S( -20,  -4), S( -16,  32),
+    S(   1,  99), S(  45, 225), S( 127, 385), S(   0,   0)}},
+};
+
+const int PassedPawnFile[FILE_NB/2] = {
+    S(   3,   0), S(  -2,   3), S(  -7,  -4), S(  -1,  -6)
 };
 
 const int PassedFriendlyDistance = S(   2,  -7);
 
-const int PassedEnemyDistance = S(   0,   8);
+const int PassedEnemyDistance = S(   0,   9);
 
-const int PassedSafePromotionPath = S(   2,  25);
+const int PassedSafePromotionPath = S(   0,  29);
 
 /* Threat Evaluation Terms */
 
@@ -678,7 +682,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, file, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     int ourKing   = getlsb(board->colours[US  ] & board->pieces[KING]);
     int theirKing = getlsb(board->colours[THEM] & board->pieces[KING]);
@@ -693,6 +697,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Pop off the next passed Pawn
         sq = poplsb(&tempPawns);
         rank = relativeRankOf(US, sq);
+        file = fileOf(sq);
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
 
         // Evaluate based on rank, ability to advance, and safety
@@ -700,6 +705,10 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         safeAdvance = !(bitboard & ei->attacked[THEM]);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
+
+        // Evaluate based on mirrored file
+        eval += PassedPawnFile[mirrorFile(file)];
+        if (TRACE) T.PassedPawnFile[mirrorFile(file)][US]++;
 
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ourKing);

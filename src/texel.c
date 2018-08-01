@@ -74,6 +74,7 @@ extern const int QueenMobility[28];
 extern const int KingDefenders[12];
 extern const int KingShelter[2][8][8];
 extern const int PassedPawn[2][2][8];
+extern const int PassedPawnFile[4];
 extern const int PassedFriendlyDistance;
 extern const int PassedEnemyDistance;
 extern const int PassedSafePromotionPath;
@@ -318,6 +319,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, KingDefenders, 12)             ;
     ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)          ;
     ENABLE_3(INIT_COEFF, PassedPawn, 2, 2, 8)           ;
+    ENABLE_1(INIT_COEFF, PassedPawnFile, 4)             ;
     ENABLE_0(INIT_COEFF, PassedFriendlyDistance)        ;
     ENABLE_0(INIT_COEFF, PassedEnemyDistance)           ;
     ENABLE_0(INIT_COEFF, PassedSafePromotionPath)       ;
@@ -370,6 +372,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, KingDefenders, 12)             ;
     ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)          ;
     ENABLE_3(INIT_PARAM, PassedPawn, 2, 2, 8)           ;
+    ENABLE_1(INIT_PARAM, PassedPawnFile, 4)             ;
     ENABLE_0(INIT_PARAM, PassedFriendlyDistance)        ;
     ENABLE_0(INIT_PARAM, PassedEnemyDistance)           ;
     ENABLE_0(INIT_PARAM, PassedSafePromotionPath)       ;
@@ -429,6 +432,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, KingDefenders, 12)            ;
     ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)         ;
     ENABLE_3(PRINT_PARAM, PassedPawn, 2, 2, 8)          ;
+    ENABLE_1(PRINT_PARAM, PassedPawnFile, 4)            ;
     ENABLE_0(PRINT_PARAM, PassedFriendlyDistance)       ;
     ENABLE_0(PRINT_PARAM, PassedEnemyDistance)          ;
     ENABLE_0(PRINT_PARAM, PassedSafePromotionPath)      ;
