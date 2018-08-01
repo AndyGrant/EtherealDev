@@ -532,6 +532,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            R -= thread->pieceStack[height] == PAWN
+              && relativeRankOf(!board->turn, MoveTo(move)) > 4;
+
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
