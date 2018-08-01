@@ -105,7 +105,7 @@ static const int SEEMargin = -20;
 static const int QFutilityMargin = 100;
 
 static const int SEEPieceValues[] = {
-     125,  450,  450,  675,
+     150,  450,  450,  675,
     1300,    0,    0,    0,
 };
 
