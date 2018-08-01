@@ -530,7 +530,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !PvNode;
 
             // Increase for non improving nodes
-            R += !improving && (cmhist < 0 || fuhist < 0);
+            R += !improving && (cmhist < 4000 || fuhist < 4000);
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
