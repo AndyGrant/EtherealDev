@@ -68,12 +68,12 @@ const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  21),
-    S(   6,   0), S(  20,   3), S(  14,   7), S(  16,  17),
-    S(   6,  11), S(  20,  20), S(  19,  24), S(  37,  24),
-    S(  23,  55), S(  24,  65), S(  66,  63), S(  50,  75),
-    S( 106, -14), S( 199,  17), S( 227,  22), S( 250,  76),
+    S(   0, -18), S(   7,   1), S(   4,  -7), S(   4,  19),
+    S(   8,  -1), S(  24,  -2), S(  15,   6), S(  17,  18),
+    S(   7,  -1), S(  19,   2), S(  13,   3), S(  16,  15),
+    S(   6,   9), S(  19,  19), S(  21,  22), S(  35,  19),
+    S(  21,  53), S(  23,  64), S(  64,  61), S(  48,  72),
+    S( 105, -14), S( 198,  16), S( 226,  21), S( 250,  75),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
@@ -187,6 +187,11 @@ const int PassedPawn[2][2][RANK_NB] = {
 const int PassedFriendlyDistance = S(   2,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
+
+const int PassedConnected[8] = {
+    S(   0,   0), S(  -4,  -5), S(  -5,  -6), S(   2,   1),
+    S(   6,  13), S(  25,  37), S(  49,  84), S(   0,   0),
+};
 
 /* Threat Evaluation Terms */
 
@@ -682,7 +687,8 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     int theirKing = getlsb(board->colours[THEM] & board->pieces[KING]);
 
     uint64_t blocksq;
-    uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myPawns   = board->colours[US] & board->pieces[PAWN];
+    uint64_t tempPawns = myPawns & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -708,6 +714,12 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         dist = distanceBetween(sq, theirKing);
         eval += dist * PassedEnemyDistance;
         if (TRACE) T.PassedEnemyDistance[US] += dist;
+
+        // Bonus for being a connected passed pawn
+        if (pawnConnectedMasks(US, sq) & myPawns){
+            eval += PassedConnected[rank];
+            if (TRACE) T.PassedConnected[rank][US]++;
+        }
     }
 
     return eval;
