@@ -501,6 +501,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // is a speedup, which assumes that good noisy moves have a positive SEE
         if (   !RootNode
             && !inCheck
+            &&  move != movePicker.killer1
+            &&  move != movePicker.killer2
+            &&  move != movePicker.counter
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             &&  movePicker.stage > STAGE_GOOD_NOISY
