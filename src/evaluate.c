@@ -160,7 +160,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
+const int KSAttackWeight[]  = { 2, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
@@ -286,6 +286,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     // Update attacker counts for King Safety computation
     attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
     ei->kingAttacksCount[US] += popcount(attacks);
+    if (attacks) ei->kingAttackersWeight[US] += KSAttackWeight[PAWN];
 
     // Pawn hash holds the rest of the pawn evaluation
     if (ei->pkentry != NULL) return eval;
