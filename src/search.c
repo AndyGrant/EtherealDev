@@ -463,6 +463,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= FutilityPruningDepth
             &&  hist < FutilityPruningHistoryLimit[improving]){
             skipQuiets = 1;
+            quiets--;
             continue;
          }
 
@@ -475,6 +476,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= LateMovePruningDepth
             &&  quiets > LateMovePruningCounts[improving][depth]){
             skipQuiets = 1;
+            quiets--;
             continue;
         }
 
@@ -484,8 +486,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= CounterMovePruningDepth
-            &&  cmhist < CounterMoveHistoryLimit[improving])
+            &&  cmhist < CounterMoveHistoryLimit[improving]){
+            quiets--;
             continue;
+        }
 
         // Step 16. Follw Up Move Pruning. Moves with poor counter
         // move history are pruned at near leaf nodes of the search.
@@ -493,8 +497,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  isQuiet
             &&  best > MATED_IN_MAX
             &&  depth <= FollowUpMovePruningDepth
-            &&  fuhist < FollowUpMoveHistoryLimit[improving])
+            &&  fuhist < FollowUpMoveHistoryLimit[improving]){
+            quiets--;
             continue;
+        }
 
         // Step 17. Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
