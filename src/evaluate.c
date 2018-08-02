@@ -806,7 +806,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
         int wpassers = popcount(white & ei->passedPawns);
         int bpassers = popcount(black & ei->passedPawns);
 
-        if (abs(wpassers - bpassers) >= 2)
+        if (wpassers - bpassers)
             return SCALE_NORMAL;
 
         if (!(knights | rooks | queens))
