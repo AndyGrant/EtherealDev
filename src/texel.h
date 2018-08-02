@@ -26,8 +26,8 @@
 #define RESOLVE     (      0) // Resolve with qsearch
 #define NPARTITIONS (     64) // # of partitions to use
 
-#define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NDEPTHS     (      2) // # of search iterations
+#define NTERMS      (      1) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
@@ -57,6 +57,7 @@
 #define TuneBishopMobility              (0)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
+#define TuneRookOnPawns                 (1)
 #define TuneRookMobility                (0)
 #define TuneQueenMobility               (0)
 #define TuneKingDefenders               (0)

@@ -69,6 +69,7 @@ extern const int BishopBehindPawn;
 extern const int BishopMobility[14];
 extern const int RookFile[2];
 extern const int RookOnSeventh;
+extern const int RookOnPawns;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
@@ -313,6 +314,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, BishopMobility, 14)            ;
     ENABLE_1(INIT_COEFF, RookFile, 2)                   ;
     ENABLE_0(INIT_COEFF, RookOnSeventh)                 ;
+    ENABLE_0(INIT_COEFF, RookOnPawns)                   ;
     ENABLE_1(INIT_COEFF, RookMobility, 15)              ;
     ENABLE_1(INIT_COEFF, QueenMobility, 28)             ;
     ENABLE_1(INIT_COEFF, KingDefenders, 12)             ;
@@ -365,6 +367,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, BishopMobility, 14)            ;
     ENABLE_1(INIT_PARAM, RookFile, 2)                   ;
     ENABLE_0(INIT_PARAM, RookOnSeventh)                 ;
+    ENABLE_0(INIT_PARAM, RookOnPawns)                   ;
     ENABLE_1(INIT_PARAM, RookMobility, 15)              ;
     ENABLE_1(INIT_PARAM, QueenMobility, 28)             ;
     ENABLE_1(INIT_PARAM, KingDefenders, 12)             ;
@@ -424,6 +427,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, BishopMobility, 14)           ;
     ENABLE_1(PRINT_PARAM, RookFile, 2)                  ;
     ENABLE_0(PRINT_PARAM, RookOnSeventh)                ;
+    ENABLE_0(PRINT_PARAM, RookOnPawns)                  ;
     ENABLE_1(PRINT_PARAM, RookMobility, 15)             ;
     ENABLE_1(PRINT_PARAM, QueenMobility, 28)            ;
     ENABLE_1(PRINT_PARAM, KingDefenders, 12)            ;

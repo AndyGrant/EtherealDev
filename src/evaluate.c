@@ -112,6 +112,8 @@ const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
 
 const int RookOnSeventh = S(   0,  25);
 
+const int RookOnPawns = S(   7,   9);
+
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
     S(  -8,  -3), S(  -7,  14), S(  -8,  25), S(  -3,  32),
@@ -509,6 +511,13 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             && relativeRankOf(US, ei->kingSquare[THEM]) >= 6) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[US]++;
+        }
+
+        // Bonus for playing on the rank or file of enemy pawns
+        if (relativeRankOf(US, sq) >= 4) {
+            count = popcount(enemyPawns & rookAttacks(sq, 0ull));
+            eval += count * RookOnPawns;
+            if (TRACE) T.RookOnPawns[US] += count;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
