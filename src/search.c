@@ -483,6 +483,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
+            &&  move != movePicker.counter
             &&  depth <= CounterMovePruningDepth
             &&  cmhist < CounterMoveHistoryLimit[improving])
             continue;
@@ -492,6 +493,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
+            &&  move != movePicker.counter
             &&  depth <= FollowUpMovePruningDepth
             &&  fuhist < FollowUpMoveHistoryLimit[improving])
             continue;
