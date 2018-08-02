@@ -190,6 +190,8 @@ const int PassedEnemyDistance = S(   0,   8);
 
 const int PassedSafePromotionPath = S(   2,  25);
 
+const int PassedCorrectBishop = S(   0,   7);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
@@ -680,6 +682,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myBishops = board->colours[US] & board->pieces[BISHOP];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -711,6 +714,14 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus for bishops matching the promotion square colour
+        bitboard = bitboard & PROMOTION_RANKS;
+        if (myBishops & (bitboard & WHITE_SQUARES ? WHITE_SQUARES : ~WHITE_SQUARES)) {
+            eval += PassedCorrectBishop;
+            if (TRACE) T.PassedCorrectBishop[US]++;
+        }
+
     }
 
     return eval;
