@@ -375,7 +375,8 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the knight is behind a pawn
-        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
+        if (   relativeRankOf(US, sq) >= 4
+            && testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
             eval += KnightBehindPawn;
             if (TRACE) T.KnightBehindPawn[US]++;
         }
@@ -446,7 +447,8 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the bishop is behind a pawn
-        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
+        if (   relativeRankOf(US, sq) >= 4
+            && testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
             eval += BishopBehindPawn;
             if (TRACE) T.BishopBehindPawn[US]++;
         }
