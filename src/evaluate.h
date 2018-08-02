@@ -28,6 +28,8 @@ enum {
     SCALE_OCB_TWO_ROOKS    = 108,
     SCALE_OCB_GENERAL      = 120,
     SCALE_NORMAL           = 128,
+    SCALE_ONE_ROOK_SIMPLE  =  96,
+    SCALE_TWO_ROOK_SIMPLE  = 108,
 };
 
 struct EvalTrace {
@@ -104,7 +106,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassedPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
-int evaluateScaleFactor(Board *board);
+int evaluateScaleFactor(EvalInfo *ei, Board *board);
 void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable);
 
 #define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))

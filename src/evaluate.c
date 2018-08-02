@@ -225,7 +225,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
+    factor = evaluateScaleFactor(&ei, board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -789,7 +789,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -822,6 +822,17 @@ int evaluateScaleFactor(Board *board) {
 
         return SCALE_OCB_GENERAL;
     }
+
+    if (knights | bishops | queens | ei->passedPawns)
+        return SCALE_NORMAL;
+
+    if (    onlyOne(white & rooks)
+        &&  onlyOne(black & rooks))
+        return SCALE_ONE_ROOK_SIMPLE;
+
+    if (   several(white & rooks)
+        && several(black & rooks))
+        return SCALE_TWO_ROOK_SIMPLE;
 
     return SCALE_NORMAL;
 }
