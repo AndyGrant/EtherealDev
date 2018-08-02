@@ -830,6 +830,10 @@ int evaluateScaleFactor(Board *board) {
         return SCALE_OCB_GENERAL;
     }
 
+    // Look only at bishop endgames
+    if (knights | rooks | queens)
+        return SCALE_NORMAL;
+
     // Determine pawn imbalance
     wpawns = popcount(white & pawns);
     bpawns = popcount(black & pawns);
