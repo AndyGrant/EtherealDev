@@ -514,7 +514,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Bonus for playing on the rank or file of enemy pawns
-        count = popcount(enemyPawns & rookAttacks(sq, 0ull));
+        count = popcount(enemyPawns & Ranks[rankOf(sq)] & rookAttacks(sq, 0ull));
         eval += count * RookOnPawns;
         if (TRACE) T.RookOnPawns[US] += count;
 
