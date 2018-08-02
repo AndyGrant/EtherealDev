@@ -115,7 +115,7 @@ void runTexelTuning(Thread *thread) {
     initCurrentParameters(cparams);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 1.118467; //computeOptimalK(tes);
 
     while (1) {
 
