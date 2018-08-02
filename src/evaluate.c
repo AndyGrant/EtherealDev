@@ -791,37 +791,54 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateScaleFactor(Board *board) {
 
+    int wpawns, bpawns, pdiff;
+
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
 
-    if (    onlyOne(white & bishops)
-        &&  onlyOne(black & bishops)
-        &&  onlyOne(bishops & WHITE_SQUARES)) {
+    // We only scale single bishop endgames
+    if (   !onlyOne(white & bishops)
+        || !onlyOne(black & bishops))
+        return SCALE_NORMAL;
 
+    // Opposite coloured bishop endgame
+    if (onlyOne(bishops & WHITE_SQUARES)) {
+
+        // Only bishops remain
         if (!(knights | rooks | queens))
             return SCALE_OCB_BISHOPS_ONLY;
 
+        // KBN v KBN plus pawns
         if (   !(rooks | queens)
             &&  onlyOne(white & knights)
             &&  onlyOne(black & knights))
             return SCALE_OCB_ONE_KNIGHT;
 
+        // KBR v KBR plus pawns
         if (   !(knights | queens)
             && onlyOne(white & rooks)
             && onlyOne(black & rooks))
             return SCALE_OCB_ONE_ROOK;
 
-        if (   !(knights | queens)
-            && several(white & rooks)
-            && several(black & rooks))
-            return SCALE_OCB_TWO_ROOKS;
-
+        // Slight scale drop for any OCB
         return SCALE_OCB_GENERAL;
     }
+
+    // Determine pawn imbalance
+    wpawns = popcount(white & pawns);
+    bpawns = popcount(black & pawns);
+    pdiff  = abs(wpawns - bpawns);
+
+    // More drawish when near equal pawns
+    if (pdiff == 0) return SCALE_BISHOP_ZERO;
+    if (pdiff == 1) return SCALE_BISHOP_ONE;
+    if (pdiff == 2) return SCALE_BISHOP_TWO;
 
     return SCALE_NORMAL;
 }
