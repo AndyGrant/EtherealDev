@@ -446,7 +446,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the bishop is behind a pawn
-        if (testBit(pawnAdvance(enemyPawns, 0ull, THEM), sq)) {
+        if (testBit(pawnAdvance(myPawns, 0ull, THEM), sq)) {
             eval += BishopBehindPawn;
             if (TRACE) T.BishopBehindPawn[US]++;
         }
