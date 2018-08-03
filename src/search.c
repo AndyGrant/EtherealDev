@@ -472,8 +472,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (   !RootNode
             &&  isQuiet
             &&  best > MATED_IN_MAX
-            &&  depth <= LateMovePruningDepth
-            &&  quiets > LateMovePruningCounts[improving][depth]){
+            &&  depth + PvNode <= LateMovePruningDepth
+            &&  quiets > LateMovePruningCounts[improving][depth + PvNode]){
             skipQuiets = 1;
             continue;
         }
