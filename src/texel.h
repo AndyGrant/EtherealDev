@@ -27,7 +27,7 @@
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (     64) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
@@ -38,8 +38,8 @@
 #define TuneQueenValue                  (0)
 #define TuneKingValue                   (0)
 #define TunePawnPSQT32                  (0)
-#define TuneKnightPSQT32                (0)
-#define TuneBishopPSQT32                (0)
+#define TuneKnightPSQT32                (1)
+#define TuneBishopPSQT32                (1)
 #define TuneRookPSQT32                  (0)
 #define TuneQueenPSQT32                 (0)
 #define TuneKingPSQT32                  (0)
