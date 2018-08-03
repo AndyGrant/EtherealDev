@@ -160,11 +160,11 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
+const int KSAttackWeight[]  = { 0, 16, 6, 10, 6, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
-const int KSQueenSynergy    =   40;
+const int KSQueenSynergy    =   10;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
