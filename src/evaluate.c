@@ -164,6 +164,7 @@ const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
+const int KSQueenSynergy    =   10;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
@@ -391,6 +392,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
+            ei->kingAttackerSquares[US] |= 1ull << sq;
         }
     }
 
@@ -462,6 +464,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
+            ei->kingAttackerSquares[US] |= 1ull << sq;
         }
     }
 
@@ -522,6 +525,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[ROOK];
+            ei->kingAttackerSquares[US] |= 1ull << sq;
         }
     }
 
@@ -565,6 +569,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
+            ei->kingAttackerSquares[US] |= 1ull << sq;
         }
     }
 
@@ -631,11 +636,15 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
                                                      & ~ei->attackedBy[  US][QUEEN ];
 
+        int queenSynergy =  several(ei->kingAttackerSquares[THEM])
+                         && enemyQueens & ei->kingAttackerSquares[THEM];
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+               + KSQueenSynergy    * queenSynergy
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * !!queenChecks
                + KSSafeRookCheck   * !!rookChecks
@@ -869,6 +878,7 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAttacksCount[WHITE]    = ei->kingAttacksCount[BLACK]    = 0;
     ei->kingAttackersCount[WHITE]  = ei->kingAttackersCount[BLACK]  = 0;
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
+    ei->kingAttackerSquares[WHITE] = ei->kingAttackerSquares[BLACK] = 0;
 
     ei->pkentry       =     pktable == NULL ? NULL : getPawnKingEntry(pktable, board->pkhash);
     ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
