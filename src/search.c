@@ -533,7 +533,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Decrease for strong checking moves
-            R -= hist > 0 && board->kingAttackers;
+            R -= hist > 5000 && board->kingAttackers;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
@@ -563,7 +563,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension +=  !RootNode
                   &&  !extension
                   &&   inCheck
-                  && (!isQuiet || hist > 0);
+                  && (!isQuiet || hist > 5000);
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
