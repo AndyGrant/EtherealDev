@@ -771,10 +771,11 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
                ? pieceType(board->squares[from])
                : ptype;
 
-    // Balance is the value of the move minus threshold. Function
-    // call takes care for Enpass and Promotion moves. Castling is
-    // handled as a result of a King's value being zero, by trichotomy
-    // either the best case or the worst case condition will be hit
+    // Move value function takes care of Enpass and Promotion moves.
+    // In the event of a castling move (or general King move), since
+    // we have a very high value for Kings in SEE, true will be returned
+    // if and only if the initial move beats the threshold and does not
+    // place our king into check, which acts as a legaity check speed up
     balance = thisTacticalMoveValue(board, move) - threshold;
 
     // Best case is we lose nothing for the move
@@ -806,6 +807,12 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         myAttackers = attackers & board->colours[colour];
         if (myAttackers == 0ull) break;
 
+        // If we are capturing the King we win
+        if (nextVictim == KING) {
+            colour = !colour;
+            break;
+        }
+
         // Find our weakest piece to attack with
         for (nextVictim = PAWN; nextVictim <= QUEEN; nextVictim++)
             if (myAttackers & board->pieces[nextVictim])
@@ -820,7 +827,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
 
         // A vertical or horizontal move may reveal rook or queen attackers
         if (nextVictim == ROOK || nextVictim == QUEEN)
-            attackers |=   rookAttacks(to, occupied) & rooks;
+            attackers |=  rookAttacks(to, occupied) & rooks;
 
         // Make sure we did not add any already used attacks
         attackers &= occupied;
@@ -831,12 +838,12 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         // Negamax the balance and add the value of the next victim
         balance = -balance - 1 - SEEPieceValues[nextVictim];
 
-        // If the balance is non negative after giving away our piece then we win
+        // Positive balance after assuming the opponent can capture our
+        // most recently moved piece for free implies that we have won
         if (balance >= 0){
 
-            // As a slide speed up for move legality checking, if our last attacking
-            // piece is a king, and our opponent still has attackers, then we've
-            // lost as the move we followed would be illegal
+            // If we win while placing our King into check, then we
+            // have actually lost since this move would be illegal
             if (nextVictim == KING && (attackers & board->colours[colour]))
                 colour = !colour;
 
