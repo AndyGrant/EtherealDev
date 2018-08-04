@@ -335,8 +335,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Improving if our static eval increased in the last move
     improving = !PvNode ? height >= 2 && eval > thread->evalStack[height-2]
-                        :    height < 2
-                          || eval > thread->evalStack[height-2]
+                        :    eval > thread->evalStack[height-2]
                           || eval > thread->evalStack[height-4];
 
     // Step 7. Razoring. If a Quiescence Search for the current position
