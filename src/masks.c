@@ -93,8 +93,8 @@ void initMasks() {
     }
 
     // Initalize relative outpost ranks
-    OutpostRanks[WHITE] = RANK_4 | RANK_5 | RANK_6;
-    OutpostRanks[BLACK] = RANK_3 | RANK_4 | RANK_5;
+    OutpostRanks[WHITE] = 0x0000FF7E3C000000;
+    OutpostRanks[BLACK] = 0x0000003C7EFF0000;
 
     // Initalize pawn connected masks
     for (int s = 8 ; s < 56; s++) {
