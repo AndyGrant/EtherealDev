@@ -28,7 +28,7 @@
 
 #define NDEPTHS     (      0) // # of search iterations
 #define NTERMS      (      6) // # of terms to tune
-#define NPOSITIONS  (1491000) // # of FENs in book
+#define NPOSITIONS  (7000000) // # of FENs in book
 
 // Each Evaluation Term
 #define TunePawnValue                   (0)
