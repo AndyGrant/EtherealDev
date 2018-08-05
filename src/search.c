@@ -372,7 +372,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         thread->moveStack[height] = NULL_MOVE;
 
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+        value = -qsearch(thread, &lpv, -beta, -beta+1, height+1);
+        if (value >= beta)
+            value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
 
         thread->moveStack[height] = NONE_MOVE;
 
