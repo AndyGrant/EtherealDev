@@ -53,11 +53,6 @@ const int RookValue   = S( 639, 717);
 const int QueenValue  = S(1313,1348);
 const int KingValue   = S(   0,   0);
 
-const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
-    {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
-};
-
 /* Pawn Evaluation Terms */
 
 const int PawnIsolated = S(  -3,  -1);

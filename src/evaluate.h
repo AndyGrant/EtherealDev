@@ -112,6 +112,7 @@ void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable);
 #define ScoreMG(s) ((int16_t)((uint16_t)((unsigned)((s)))))
 #define ScoreEG(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16)))
 
-extern const int PieceValues[8][PHASE_NB];
+extern const int PawnValue, KnightValue, BishopValue,
+                 RookValue, QueenValue, KingValue;
 
 #endif

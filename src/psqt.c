@@ -103,22 +103,23 @@ int relativeSquare32(int s, int c) {
 
 void initializePSQT() {
 
-    for (int s = 0; s < SQUARE_NB; s++) {
-        const int w32 = relativeSquare32(s, WHITE);
-        const int b32 = relativeSquare32(s, BLACK);
+    for (int sq = 0; sq < SQUARE_NB; sq++) {
 
-        PSQT[WHITE_PAWN  ][s] = +MakeScore(PieceValues[PAWN  ][MG], PieceValues[PAWN  ][EG]) +   PawnPSQT32[w32];
-        PSQT[WHITE_KNIGHT][s] = +MakeScore(PieceValues[KNIGHT][MG], PieceValues[KNIGHT][EG]) + KnightPSQT32[w32];
-        PSQT[WHITE_BISHOP][s] = +MakeScore(PieceValues[BISHOP][MG], PieceValues[BISHOP][EG]) + BishopPSQT32[w32];
-        PSQT[WHITE_ROOK  ][s] = +MakeScore(PieceValues[ROOK  ][MG], PieceValues[ROOK  ][EG]) +   RookPSQT32[w32];
-        PSQT[WHITE_QUEEN ][s] = +MakeScore(PieceValues[QUEEN ][MG], PieceValues[QUEEN ][EG]) +  QueenPSQT32[w32];
-        PSQT[WHITE_KING  ][s] = +MakeScore(PieceValues[KING  ][MG], PieceValues[KING  ][EG]) +   KingPSQT32[w32];
+        const int w32 = relativeSquare32(sq, WHITE);
+        const int b32 = relativeSquare32(sq, BLACK);
 
-        PSQT[BLACK_PAWN  ][s] = -MakeScore(PieceValues[PAWN  ][MG], PieceValues[PAWN  ][EG]) -   PawnPSQT32[b32];
-        PSQT[BLACK_KNIGHT][s] = -MakeScore(PieceValues[KNIGHT][MG], PieceValues[KNIGHT][EG]) - KnightPSQT32[b32];
-        PSQT[BLACK_BISHOP][s] = -MakeScore(PieceValues[BISHOP][MG], PieceValues[BISHOP][EG]) - BishopPSQT32[b32];
-        PSQT[BLACK_ROOK  ][s] = -MakeScore(PieceValues[ROOK  ][MG], PieceValues[ROOK  ][EG]) -   RookPSQT32[b32];
-        PSQT[BLACK_QUEEN ][s] = -MakeScore(PieceValues[QUEEN ][MG], PieceValues[QUEEN ][EG]) -  QueenPSQT32[b32];
-        PSQT[BLACK_KING  ][s] = -MakeScore(PieceValues[KING  ][MG], PieceValues[KING  ][EG]) -   KingPSQT32[b32];
+        PSQT[WHITE_PAWN  ][sq] = + PawnValue   +   PawnPSQT32[w32];
+        PSQT[WHITE_KNIGHT][sq] = + KnightValue + KnightPSQT32[w32];
+        PSQT[WHITE_BISHOP][sq] = + BishopValue + BishopPSQT32[w32];
+        PSQT[WHITE_ROOK  ][sq] = + RookValue   +   RookPSQT32[w32];
+        PSQT[WHITE_QUEEN ][sq] = + QueenValue  +  QueenPSQT32[w32];
+        PSQT[WHITE_KING  ][sq] = + KingValue   +   KingPSQT32[w32];
+
+        PSQT[BLACK_PAWN  ][sq] = - PawnValue   -   PawnPSQT32[b32];
+        PSQT[BLACK_KNIGHT][sq] = - KnightValue - KnightPSQT32[b32];
+        PSQT[BLACK_BISHOP][sq] = - BishopValue - BishopPSQT32[b32];
+        PSQT[BLACK_ROOK  ][sq] = - RookValue   -   RookPSQT32[b32];
+        PSQT[BLACK_QUEEN ][sq] = - QueenValue  -  QueenPSQT32[b32];
+        PSQT[BLACK_KING  ][sq] = - KingValue   -   KingPSQT32[b32];
     }
 }

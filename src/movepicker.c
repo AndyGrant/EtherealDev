@@ -258,6 +258,11 @@ int getBestMoveIndex(MovePicker *mp, int start, int end) {
 
 void evaluateNoisyMoves(MovePicker* mp){
 
+    const int PieceValues[] =  {
+        100, 300, 300, 500,
+        900,   0,   0,   0
+    };
+
     int fromType, toType;
 
     // Use modified MVV-LVA to evaluate moves
@@ -267,15 +272,15 @@ void evaluateNoisyMoves(MovePicker* mp){
         toType   = pieceType(mp->thread->board.squares[MoveTo(mp->moves[i])]);
 
         // Use the standard MVV-LVA
-        mp->values[i] = PieceValues[toType][EG] - fromType;
+        mp->values[i] = PieceValues[toType] - fromType;
 
         // A bonus is in order for queen promotions
         if ((mp->moves[i] & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
-            mp->values[i] += PieceValues[QUEEN][EG];
+            mp->values[i] += PieceValues[QUEEN];
 
         // Enpass is a special case of MVV-LVA
         else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
-            mp->values[i] = PieceValues[PAWN][EG] - PAWN;
+            mp->values[i] = PieceValues[PAWN] - PAWN;
 
         // Later we will flag moves which were passed over in the STAGE_GOOD_NOISY
         // phase due to failing an SEE(0), by setting the value to -1
