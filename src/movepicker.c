@@ -32,7 +32,7 @@
 #include "types.h"
 #include "thread.h"
 
-void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height){
+void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height){
 
     // Picker starts with the table move. Zero out move list sizes
     mp->stage = STAGE_TABLE;
@@ -46,8 +46,22 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     mp->counter = getCounterMove(thread, height);
 
     // Reference to the board and move statistics
-    mp->height = height;
     mp->thread = thread;
+    mp->height = height;
+}
+
+void initNoisyMovePicker(MovePicker* mp, Thread* thread){
+
+    // Picker starts with the table move. Zero out move list sizes
+    mp->stage = STAGE_GENERATE_NOISY;
+    mp->noisySize = mp->quietSize = 0;
+
+    // We skip all special stages by setting to NONE_MOVE
+    mp->tableMove = mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+
+    // Reference to the board
+    mp->thread = thread;
+    mp->height = 0;
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
