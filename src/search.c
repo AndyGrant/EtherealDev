@@ -396,6 +396,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
+            // Exhausted all SEE() passing moves
+            if (rBeta - eval >= 0 && movePicker.stage == STAGE_BAD_NOISY)
+                break;
+
             // Move should pass an SEE() to be worth at least rBeta
             if (!staticExchangeEvaluation(board, move, rBeta - eval))
                 continue;
