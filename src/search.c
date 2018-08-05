@@ -414,8 +414,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
 
             // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 5)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-3, height+1);
+            if (value >= rBeta && depth > 7)
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-5, height+1);
 
             // Revert the board state
             revertMove(board, move, undo);
