@@ -48,6 +48,25 @@ void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int h
     // Reference to the board and move statistics
     mp->height = height;
     mp->thread = thread;
+
+    // SEE threshold for determining bad noisy moves
+    mp->threshold = 0;
+}
+
+void initializeProbCutMovePicker(MovePicker* mp, Thread* thread, int threshold) {
+
+    // Probcut picker only looks at good noisy moves
+    mp->stage = STAGE_GENERATE_NOISY;
+    mp->noisySize = 0;
+
+    // Zero out special moves after the table stage
+    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+
+    // Reference to the board
+    mp->thread = thread;
+
+    // SEE threshold for determining bad noisy moves
+    mp->threshold = threshold;
 }
 
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
@@ -90,7 +109,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             // Values below zero are flagged as failing an SEE (bad noisy)
             if (mp->values[best] >= 0) {
 
-                if (staticExchangeEvaluation(board, mp->moves[best], 0)) {
+                if (staticExchangeEvaluation(board, mp->moves[best], mp->threshold)) {
 
                     // Save best move before overwritting it
                     bestMove = mp->moves[best];
@@ -209,6 +228,12 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         /* fallthrough */
 
     case STAGE_BAD_NOISY:
+
+        // Skip all bad noisy moves when picking for ProbCut
+        if (mp->threshold != 0) {
+            mp->stage = STAGE_DONE;
+            return NONE_MOVE;
+        }
 
         // Check to see if there are still more noisy moves
         if (mp->noisySize != 0){

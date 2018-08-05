@@ -31,6 +31,7 @@ enum {
 };
 
 struct MovePicker {
+    int threshold;
     int stage, split, noisySize, quietSize, height;
     uint16_t tableMove, killer1, killer2, counter;
     uint16_t moves[MAX_MOVES];
@@ -39,6 +40,7 @@ struct MovePicker {
 };
 
 void initializeMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height);
+void initializeProbCutMovePicker(MovePicker* mp, Thread* thread, int threshold);
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets);
 int getBestMoveIndex(MovePicker *mp, int start, int end);
 void evaluateNoisyMoves(MovePicker* mp);
