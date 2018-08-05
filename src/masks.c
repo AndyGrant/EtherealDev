@@ -34,7 +34,7 @@ uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
-uint64_t OutpostRanks[COLOUR_NB];
+uint64_t EnemyCamp[COLOUR_NB];
 
 void initMasks() {
 
@@ -93,8 +93,8 @@ void initMasks() {
     }
 
     // Initalize relative outpost ranks
-    OutpostRanks[WHITE] = RANK_4 | RANK_5 | RANK_6;
-    OutpostRanks[BLACK] = RANK_3 | RANK_4 | RANK_5;
+    EnemyCamp[WHITE] = RANK_5 | RANK_6 | RANK_7 | RANK_8;
+    EnemyCamp[BLACK] = RANK_1 | RANK_2 | RANK_3 | RANK_4;
 
     // Initalize pawn connected masks
     for (int s = 8 ; s < 56; s++) {
@@ -144,7 +144,7 @@ uint64_t outpostSquareMasks(int c, int s) {
     return OutpostSquareMasks[c][s];
 }
 
-uint64_t outpostRanks(int c) {
+uint64_t enemyCamp(int c) {
     assert(0 <= c && c < COLOUR_NB);
-    return OutpostRanks[c];
+    return EnemyCamp[c];
 }

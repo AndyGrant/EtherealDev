@@ -31,4 +31,4 @@ uint64_t isolatedPawnMasks(int s);
 uint64_t passedPawnMasks(int c, int s);
 uint64_t pawnConnectedMasks(int c, int s);
 uint64_t outpostSquareMasks(int c, int s);
-uint64_t outpostRanks(int c);
+uint64_t enemyCamp(int c);

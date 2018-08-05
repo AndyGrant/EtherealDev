@@ -79,7 +79,9 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
+const int KnightOutpost[2] = { S(  22, -5), S(  28,   0) };
+
+const int KnightUnsupported = S( -22, -5);
 
 const int KnightBehindPawn = S(   5,  13);
 
@@ -95,7 +97,9 @@ const int BishopPair = S(  38,  69);
 
 const int BishopRammedPawns = S( -11,  -8);
 
-const int BishopOutpost[2] = { S(  27,  -1), S(  39,   0) };
+const int BishopOutpost[2] = { S(  18, -4), S(  37,   0) };
+
+const int BishopUnsupported = S( -13,  -6);
 
 const int BishopBehindPawn = S(   4,  11);
 
@@ -365,13 +369,21 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][KNIGHT] |= attacks;
 
-        // Apply a bonus if the knight is on an outpost square, and cannot be attacked
-        // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
-        if (     testBit(outpostRanks(US), sq)
+        // Apply a bonus for a knight inside the enemy's camp, so
+        // long as this knight may be not pushed back by a pawn
+        if (     testBit(enemyCamp(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
+        }
+
+        // Apply a penalty for being in our opponent's camp
+        // when we do not have support from a friendly pawn
+        if (    testBit(enemyCamp(US), sq)
+            && !testBit(ei->pawnAttacks[US], sq)) {
+            eval += KnightUnsupported;
+            if (TRACE) T.KnightUnsupported[US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -436,13 +448,21 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         eval += count * BishopRammedPawns;
         if (TRACE) T.BishopRammedPawns[US] += count;
 
-        // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
-        // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
-        if (     testBit(outpostRanks(US), sq)
+        // Apply a bonus for a bishop inside the enemy's camp, so
+        // long as this bishop may be not pushed back by a pawn
+        if (     testBit(enemyCamp(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
+        }
+
+        // Apply a penalty for being in our opponent's camp
+        // when we do not have support from a friendly pawn
+        if (    testBit(enemyCamp(US), sq)
+            && !testBit(ei->pawnAttacks[US], sq)) {
+            eval += BishopUnsupported;
+            if (TRACE) T.BishopUnsupported[US]++;
         }
 
         // Apply a bonus if the bishop is behind a pawn
