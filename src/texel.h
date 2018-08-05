@@ -26,7 +26,7 @@
 #define RESOLVE     (      0) // Resolve with qsearch
 #define NPARTITIONS (     64) // # of partitions to use
 
-#define NDEPTHS     (      0) // # of search iterations
+#define NDEPTHS     (      4) // # of search iterations
 #define NTERMS      (      6) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
