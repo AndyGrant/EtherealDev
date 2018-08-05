@@ -67,7 +67,7 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
 
 int bestTacticalMoveValue(Board* board);
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height);
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttDepth, int ttValue, Undo* undo, int depth, int height);
 
 
 static const int RazorDepth = 1;
