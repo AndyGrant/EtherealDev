@@ -916,7 +916,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttDepth, int ttValue, Un
     Board* const board = &thread->board;
 
     int value = -MATE;
-    int rBeta = MAX(ttValue - 2 * depth + MIN(depth, ttDepth), -MATE);
+    int rBeta = MAX(ttValue - 3 * depth + MIN(2 * depth, ttDepth), -MATE);
 
     uint16_t move;
     MovePicker movePicker;
