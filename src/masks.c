@@ -81,11 +81,11 @@ void initMasks() {
         const uint64_t files = IsolatedPawnMasks[s] | Files[fileOf(s)];
 
         PassedPawnMasks[WHITE][s] = files;
-        for (int r = rankOf(s); r >= 0; r--)
+        for (int r = rankOf(s) - 1; r >= 0; r--)
             PassedPawnMasks[WHITE][s] &= ~Ranks[r];
 
         PassedPawnMasks[BLACK][s] = files;
-        for (int r = rankOf(s); r < RANK_NB; r++)
+        for (int r = rankOf(s) + 1; r < RANK_NB; r++)
             PassedPawnMasks[BLACK][s] &= ~Ranks[r];
 
         OutpostSquareMasks[WHITE][s] = PassedPawnMasks[WHITE][s] & ~Files[fileOf(s)];
