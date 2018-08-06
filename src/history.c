@@ -63,7 +63,7 @@ int getCMHistoryScore(Thread *thread, int height, uint16_t move) {
 
     // Check for root position or null moves
     if (previous == NULL_MOVE || previous == NONE_MOVE)
-        return 0;
+        return getHistoryScore(thread, move);
 
     to1    = MoveTo(previous);
     piece1 = pieceType(thread->board.squares[to1]);
@@ -113,7 +113,7 @@ int getFUHistoryScore(Thread *thread, int height, uint16_t move) {
 
     // Check for root position or null moves
     if (following == NULL_MOVE || following == NONE_MOVE)
-        return 0;
+        return getHistoryScore(thread, move);
 
     to1    = MoveTo(following);
     piece1 = thread->pieceStack[height-2];
