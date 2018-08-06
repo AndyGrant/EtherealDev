@@ -341,7 +341,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // the Quiescence search was sufficient.
     if (   !PvNode
         && !inCheck
-        &&  depth <= RazorDepth
+        &&  depth <= RazorDepth + !improving
         &&  eval + RazorMargin < alpha)
         return qsearch(thread, pv, alpha, beta, height);
 
