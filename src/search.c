@@ -342,7 +342,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth + !improving
-        &&  eval + RazorMargin < alpha)
+        &&  eval + RazorMargin * (1 + (depth > RazorDepth)) < alpha)
         return qsearch(thread, pv, alpha, beta, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
