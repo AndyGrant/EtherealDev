@@ -302,8 +302,10 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
 
-        // Save passed pawn information for later evaluation
-        if (!(passedPawnMasks(US, sq) & enemyPawns))
+        // Save passed pawn information for later evaluation.
+        // Only count the forward most passer on any given file
+        if (   !(passedPawnMasks(US, sq) & enemyPawns)
+            && !(ranksAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)] & myPawns))
             setBit(&ei->passedPawns, sq);
 
         // Apply a penalty if the pawn is isolated
