@@ -121,7 +121,7 @@ void runTexelTuning(Thread *thread) {
 
         iteration++;
 
-        if (iteration % 25 == 0) {
+        if (iteration % 100 == 0) {
 
             // Check for a regression in the tuning process
             thisError = completeLinearError(tes, params, K);
