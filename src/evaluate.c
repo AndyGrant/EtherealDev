@@ -676,11 +676,10 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, dist, flag, blocked, safe, eval = 0;
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
-    uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
     while (tempPawns){
@@ -691,10 +690,10 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
 
         // Evaluate based on rank, ability to advance, and safety
-        canAdvance = !(bitboard & occupied);
-        safeAdvance = !(bitboard & ei->attacked[THEM]);
-        eval += PassedPawn[canAdvance][safeAdvance][rank];
-        if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
+        blocked = !(bitboard & board->colours[THEM]);
+        safe = !(bitboard & ei->attacked[THEM]);
+        eval += PassedPawn[blocked][safe][rank];
+        if (TRACE) T.PassedPawn[blocked][safe][rank][US]++;
 
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ei->kingSquare[US]);
