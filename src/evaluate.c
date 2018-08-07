@@ -692,7 +692,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
         // Evaluate based on rank, ability to advance, and safety
         canAdvance = !(bitboard & occupied);
-        safeAdvance = !(bitboard & ei->attacked[THEM]);
+        safeAdvance = !(bitboard & ei->attacked[THEM] & ~ei->attackedBy[US][PAWN]);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
