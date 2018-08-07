@@ -190,6 +190,8 @@ const int PassedEnemyDistance = S(   0,   8);
 
 const int PassedSafePromotionPath = S(   2,  25);
 
+const int PassedSupporters = S(   0,  10);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
@@ -676,10 +678,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, count, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myPawns   = board->colours[US] & board->pieces[PAWN];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -697,20 +700,25 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
         // Evaluate based on distance from our king
-        dist = distanceBetween(sq, ei->kingSquare[US]);
-        eval += dist * PassedFriendlyDistance;
-        if (TRACE) T.PassedFriendlyDistance[US] += dist;
+        count = distanceBetween(sq, ei->kingSquare[US]);
+        eval += count * PassedFriendlyDistance;
+        if (TRACE) T.PassedFriendlyDistance[US] += count;
 
         // Evaluate based on distance from their king
-        dist = distanceBetween(sq, ei->kingSquare[THEM]);
-        eval += dist * PassedEnemyDistance;
-        if (TRACE) T.PassedEnemyDistance[US] += dist;
+        count = distanceBetween(sq, ei->kingSquare[THEM]);
+        eval += count * PassedEnemyDistance;
+        if (TRACE) T.PassedEnemyDistance[US] += count;
 
         // Apply a bonus when the path to promoting is uncontested
         bitboard = ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)];
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus for being supported by our pawns
+        count = popcount(pawnAttacks(THEM, sq) & myPawns);
+        eval += count * PassedSupporters;
+        if (TRACE) T.PassedSupporters[US] += count;
     }
 
     return eval;
