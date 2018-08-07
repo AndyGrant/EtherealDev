@@ -125,8 +125,8 @@ void runTexelTuning(Thread *thread) {
 
             // Check for a regression in the tuning process
             thisError = completeLinearError(tes, params, K);
-            if (thisError >= bestError)
-                break;
+            // if (thisError >= bestError)
+            //     break;
 
             // Update our best and record the current parameters
             bestError = thisError;
