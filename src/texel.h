@@ -27,7 +27,7 @@
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (      1) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
@@ -71,7 +71,7 @@
 #define TuneThreatRookAttackedByLesser  (0)
 #define TuneThreatQueenAttackedByOne    (0)
 #define TuneThreatOverloadedPieces      (0)
-#define TuneThreatByPawnPush            (0)
+#define TuneThreatByPawnPush            (1)
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
