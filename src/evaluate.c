@@ -91,7 +91,7 @@ const int KnightMobility[9] = {
 
 /* Bishop Evaluation Terms */
 
-const int BishopPair = S(  38,  69);
+const int BishopPair = S(  39,  61);
 
 const int BishopRammedPawns = S( -11,  -8);
 
@@ -108,9 +108,9 @@ const int BishopMobility[14] = {
 
 /* Rook Evaluation Terms */
 
-const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
+const int RookFile[2] = { S(  15,   0), S(  38,  -7) };
 
-const int RookOnSeventh = S(   0,  25);
+const int RookOnSeventh = S(  -8,  25);
 
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
