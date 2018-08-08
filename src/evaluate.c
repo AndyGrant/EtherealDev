@@ -198,7 +198,7 @@ const int ThreatMinorAttackedByMajor = S( -47, -44);
 const int ThreatRookAttackedByLesser = S( -55, -25);
 const int ThreatQueenAttackedByOne   = S( -97,   1);
 const int ThreatOverloadedPieces     = S( -10, -26);
-const int ThreatByPawnPush           = S(  20,  16);
+const int ThreatByPawnPush           = S(  22,  16);
 
 /* General Evaluation Terms */
 
@@ -752,7 +752,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t pushThreat  = pawnAdvance(pawns, occupied, US);
     pushThreat |= pawnAdvance(pushThreat & ~attacksByPawns & Rank3Rel, occupied, US);
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
-    pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
+    pushThreat  = pawnAttackSpan(pushThreat, enemy, US);
 
     // Penalty for each of our poorly supported pawns
     count = popcount(pawns & ~attacksByPawns & poorlyDefended);
