@@ -59,12 +59,12 @@ extern const int PawnIsolated;
 extern const int PawnStacked;
 extern const int PawnBackwards[2];
 extern const int PawnConnected32[32];
-extern const int KnightOutpost[2];
+extern const int KnightOutpost[2][4];
 extern const int KnightBehindPawn;
 extern const int KnightMobility[9];
 extern const int BishopPair;
 extern const int BishopRammedPawns;
-extern const int BishopOutpost[2];
+extern const int BishopOutpost[2][4];
 extern const int BishopBehindPawn;
 extern const int BishopMobility[14];
 extern const int RookFile[2];
@@ -303,12 +303,12 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_0(INIT_COEFF, PawnStacked)                   ;
     ENABLE_1(INIT_COEFF, PawnBackwards, 2)              ;
     ENABLE_1(INIT_COEFF, PawnConnected32, 32)           ;
-    ENABLE_1(INIT_COEFF, KnightOutpost, 2)              ;
+    ENABLE_2(INIT_COEFF, KnightOutpost, 2, 4)           ;
     ENABLE_0(INIT_COEFF, KnightBehindPawn)              ;
     ENABLE_1(INIT_COEFF, KnightMobility, 9)             ;
     ENABLE_0(INIT_COEFF, BishopPair)                    ;
     ENABLE_0(INIT_COEFF, BishopRammedPawns)             ;
-    ENABLE_1(INIT_COEFF, BishopOutpost, 2)              ;
+    ENABLE_2(INIT_COEFF, BishopOutpost, 2, 4)           ;
     ENABLE_0(INIT_COEFF, BishopBehindPawn)              ;
     ENABLE_1(INIT_COEFF, BishopMobility, 14)            ;
     ENABLE_1(INIT_COEFF, RookFile, 2)                   ;
@@ -355,12 +355,12 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_0(INIT_PARAM, PawnStacked)                   ;
     ENABLE_1(INIT_PARAM, PawnBackwards, 2)              ;
     ENABLE_1(INIT_PARAM, PawnConnected32, 32)           ;
-    ENABLE_1(INIT_PARAM, KnightOutpost, 2)              ;
+    ENABLE_2(INIT_PARAM, KnightOutpost, 2, 4)           ;
     ENABLE_0(INIT_PARAM, KnightBehindPawn)              ;
     ENABLE_1(INIT_PARAM, KnightMobility, 9)             ;
     ENABLE_0(INIT_PARAM, BishopPair)                    ;
     ENABLE_0(INIT_PARAM, BishopRammedPawns)             ;
-    ENABLE_1(INIT_PARAM, BishopOutpost, 2)              ;
+    ENABLE_2(INIT_PARAM, BishopOutpost, 2, 4)           ;
     ENABLE_0(INIT_PARAM, BishopBehindPawn)              ;
     ENABLE_1(INIT_PARAM, BishopMobility, 14)            ;
     ENABLE_1(INIT_PARAM, RookFile, 2)                   ;
@@ -414,12 +414,12 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_0(PRINT_PARAM, PawnStacked)                  ;
     ENABLE_1(PRINT_PARAM, PawnBackwards, 2)             ;
     ENABLE_1(PRINT_PARAM, PawnConnected32, 32)          ;
-    ENABLE_1(PRINT_PARAM, KnightOutpost, 2)             ;
+    ENABLE_2(PRINT_PARAM, KnightOutpost, 2, 4)          ;
     ENABLE_0(PRINT_PARAM, KnightBehindPawn)             ;
     ENABLE_1(PRINT_PARAM, KnightMobility, 9)            ;
     ENABLE_0(PRINT_PARAM, BishopPair)                   ;
     ENABLE_0(PRINT_PARAM, BishopRammedPawns)            ;
-    ENABLE_1(PRINT_PARAM, BishopOutpost, 2)             ;
+    ENABLE_2(PRINT_PARAM, BishopOutpost, 2, 4)          ;
     ENABLE_0(PRINT_PARAM, BishopBehindPawn)             ;
     ENABLE_1(PRINT_PARAM, BishopMobility, 14)           ;
     ENABLE_1(PRINT_PARAM, RookFile, 2)                  ;
@@ -543,11 +543,19 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
 
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++)
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+
+        printf("},\n");
+    }
+
+    printf("};\n");
 }
 
 void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C) {

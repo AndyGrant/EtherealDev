@@ -79,7 +79,10 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
+const int KnightOutpost[2][FILE_NB/2] = {
+   {S(  13,  -9), S(  12, -10), S(   9, -21), S(  11, -27)},
+   {S(  37,   2), S(  29,   5), S(  26,   2), S(  34,  10)},
+};
 
 const int KnightBehindPawn = S(   5,  13);
 
@@ -95,7 +98,10 @@ const int BishopPair = S(  38,  69);
 
 const int BishopRammedPawns = S( -11,  -8);
 
-const int BishopOutpost[2] = { S(  27,  -1), S(  39,   0) };
+const int BishopOutpost[2][FILE_NB/2] = {
+   {S(  14, -11), S(  14,  -9), S(  17, -12), S(  13, -17)},
+   {S(  35,  -1), S(  39,   5), S(  40,   2), S(  44,   4)},
+};
 
 const int BishopBehindPawn = S(   4,  11);
 
@@ -370,8 +376,8 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[defended];
-            if (TRACE) T.KnightOutpost[defended][US]++;
+            eval += KnightOutpost[defended][mirrorFile(fileOf(sq))];
+            if (TRACE) T.KnightOutpost[defended][mirrorFile(fileOf(sq))][US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -441,8 +447,8 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += BishopOutpost[defended];
-            if (TRACE) T.BishopOutpost[defended][US]++;
+            eval += BishopOutpost[defended][mirrorFile(fileOf(sq))];
+            if (TRACE) T.BishopOutpost[defended][mirrorFile(fileOf(sq))][US]++;
         }
 
         // Apply a bonus if the bishop is behind a pawn

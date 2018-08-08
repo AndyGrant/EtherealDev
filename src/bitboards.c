@@ -31,6 +31,12 @@ int fileOf(int s) {
     return s % FILE_NB;
 }
 
+int mirrorFile(int f) {
+    static const int Mirror[] = {0, 1, 2, 3, 3, 2, 1, 0};
+    assert(0 <= f && f < FILE_NB);
+    return Mirror[f];
+}
+
 int rankOf(int s) {
     assert(0 <= s && s < SQUARE_NB);
     return s / FILE_NB;
