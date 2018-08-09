@@ -296,7 +296,7 @@ int getBestMoveIndex(MovePicker *mp, int start, int end) {
 
 void evaluateNoisyMoves(MovePicker* mp){
 
-    static const int MVVLVA[] = { 100, 400, 400, 760, 1350, 0, 0, 0 };
+    static const int MVVLVA[] = { 100, 400, 401, 760, 1350, 0, 0, 0 };
 
     int fromType, toType;
 
