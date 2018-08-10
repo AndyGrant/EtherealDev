@@ -189,6 +189,9 @@ int aspirationWindow(Thread* thread, int depth){
         if (mainThread && elapsedTime(thread->info) >= 5000)
             uciReport(thread->threads, alpha, beta, value);
 
+        // Expand the search window
+        delta = delta + delta / 2;
+
         // Search failed low
         if (value <= alpha) {
             beta  = (alpha + beta) / 2;
@@ -198,9 +201,6 @@ int aspirationWindow(Thread* thread, int depth){
         // Search failed high
         if (value >= beta)
             beta = MIN(MATE, beta + delta);
-
-        // Expand the search window
-        delta = delta + delta / 2;
     }
 }
 
