@@ -190,7 +190,7 @@ int aspirationWindow(Thread* thread, int depth){
             uciReport(thread->threads, alpha, beta, value);
 
         // Expand the search window
-        delta = delta + delta / 2;
+        delta = delta + delta / 3;
 
         // Search failed low
         if (value <= alpha) {
