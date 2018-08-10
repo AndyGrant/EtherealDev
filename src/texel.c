@@ -71,7 +71,7 @@ extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
-extern const int KingDefenders[12];
+extern const int KingDefenders[3];
 extern const int KingShelter[2][8][8];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance;
@@ -315,7 +315,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_0(INIT_COEFF, RookOnSeventh)                 ;
     ENABLE_1(INIT_COEFF, RookMobility, 15)              ;
     ENABLE_1(INIT_COEFF, QueenMobility, 28)             ;
-    ENABLE_1(INIT_COEFF, KingDefenders, 12)             ;
+    ENABLE_1(INIT_COEFF, KingDefenders, 3)              ;
     ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)          ;
     ENABLE_3(INIT_COEFF, PassedPawn, 2, 2, 8)           ;
     ENABLE_0(INIT_COEFF, PassedFriendlyDistance)        ;
@@ -367,7 +367,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_0(INIT_PARAM, RookOnSeventh)                 ;
     ENABLE_1(INIT_PARAM, RookMobility, 15)              ;
     ENABLE_1(INIT_PARAM, QueenMobility, 28)             ;
-    ENABLE_1(INIT_PARAM, KingDefenders, 12)             ;
+    ENABLE_1(INIT_PARAM, KingDefenders, 3)              ;
     ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)          ;
     ENABLE_3(INIT_PARAM, PassedPawn, 2, 2, 8)           ;
     ENABLE_0(INIT_PARAM, PassedFriendlyDistance)        ;
@@ -426,7 +426,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_0(PRINT_PARAM, RookOnSeventh)                ;
     ENABLE_1(PRINT_PARAM, RookMobility, 15)             ;
     ENABLE_1(PRINT_PARAM, QueenMobility, 28)            ;
-    ENABLE_1(PRINT_PARAM, KingDefenders, 12)            ;
+    ENABLE_1(PRINT_PARAM, KingDefenders, 3)             ;
     ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)         ;
     ENABLE_3(PRINT_PARAM, PassedPawn, 2, 2, 8)          ;
     ENABLE_0(PRINT_PARAM, PassedFriendlyDistance)       ;

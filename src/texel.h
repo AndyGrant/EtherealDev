@@ -27,7 +27,7 @@
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (      3) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
@@ -59,7 +59,7 @@
 #define TuneRookOnSeventh               (0)
 #define TuneRookMobility                (0)
 #define TuneQueenMobility               (0)
-#define TuneKingDefenders               (0)
+#define TuneKingDefenders               (1)
 #define TuneKingShelter                 (0)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
