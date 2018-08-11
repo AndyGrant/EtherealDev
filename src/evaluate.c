@@ -190,6 +190,8 @@ const int PassedEnemyDistance = S(   0,   8);
 
 const int PassedSafePromotionPath = S(   2,  25);
 
+const int PassedDuplicates = S(  -10,  -10);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
@@ -680,6 +682,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myPawns   = board->colours[US] & board->pieces[PAWN];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -711,6 +714,10 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Penalty for being behind one of our own passers on this file
+        flag = several(Files[fileOf(sq)] & ranksAtOrAboveMasks(US, rankOf(sq)) & myPawns);
+        eval += flag * PassedDuplicates;
     }
 
     return eval;
