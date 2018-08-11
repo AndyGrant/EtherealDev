@@ -173,22 +173,20 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -28, -25), S( -23,   5), S( -15,   0),
-    S(  18,   1), S(  57,   0), S( 143,  32), S(   0,   0)},
-   {S(   0,   0), S(  -4,  -6), S( -23,  13), S( -14,  29),
-    S(   5,  43), S(  65,  66), S( 191, 135), S(   0,   0)}},
-  {{S(   0,   0), S( -11,   6), S( -18,   5), S(  -9,  25),
-    S(  30,  42), S(  79,  78), S( 238, 160), S(   0,   0)},
-   {S(   0,   0), S( -23, -10), S( -19,  -1), S( -18,  36),
-    S(   0, 103), S(  45, 225), S( 127, 384), S(   0,   0)}},
+const int PassedSwarm[9] = {
+    S(  13,   0), S(   2,  16), S(  -3,  10), S(  -7, -14),
+    S(  -3, -10), S(  -1,  -3), S(   0,   0), S(   0,   0),
+    S(   0,   0),
 };
-
-const int PassedFriendlyDistance = S(   2,  -7);
-
-const int PassedEnemyDistance = S(   0,   8);
-
-const int PassedSafePromotionPath = S(   2,  25);
+const int PassedPawn[2][2][8] = {
+  {{S(   0,   0), S( -27, -24), S( -24,   3), S( -19,   0), S(  16,   3), S(  55,   3), S( 138,  32), S(   0,   0)},
+   {S(   0,   0), S(  -9, -16), S( -27,   1), S( -16,  20), S(   3,  35), S(  61,  65), S( 189, 137), S(   0,   0)}},
+  {{S(   0,   0), S( -16,  -2), S( -25,   1), S( -13,  22), S(  27,  41), S(  76,  83), S( 244, 170), S(   0,   0)},
+   {S(   0,   0), S( -31, -18), S( -22,  -9), S( -15,  25), S(   5,  90), S(  44, 222), S( 128, 388), S(   0,   0)}},
+};
+const int PassedFriendlyDistance = S(   2,  -8);
+const int PassedEnemyDistance = S(   1,  10);
+const int PassedSafePromotionPath = S(  -5,  36);
 
 /* Threat Evaluation Terms */
 
@@ -676,11 +674,16 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, count, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
+
+    //
+    count = popcount(tempPawns);
+    eval += PassedSwarm[count];
+    if (TRACE) T.PassedSwarm[count][US]++;
 
     // Evaluate each passed pawn
     while (tempPawns){
@@ -697,14 +700,14 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
         // Evaluate based on distance from our king
-        dist = distanceBetween(sq, ei->kingSquare[US]);
-        eval += dist * PassedFriendlyDistance;
-        if (TRACE) T.PassedFriendlyDistance[US] += dist;
+        count = distanceBetween(sq, ei->kingSquare[US]);
+        eval += count * PassedFriendlyDistance;
+        if (TRACE) T.PassedFriendlyDistance[US] += count;
 
         // Evaluate based on distance from their king
-        dist = distanceBetween(sq, ei->kingSquare[THEM]);
-        eval += dist * PassedEnemyDistance;
-        if (TRACE) T.PassedEnemyDistance[US] += dist;
+        count = distanceBetween(sq, ei->kingSquare[THEM]);
+        eval += count * PassedEnemyDistance;
+        if (TRACE) T.PassedEnemyDistance[US] += count;
 
         // Apply a bonus when the path to promoting is uncontested
         bitboard = ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)];

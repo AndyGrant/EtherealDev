@@ -73,6 +73,7 @@ extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
 extern const int KingShelter[2][8][8];
+extern const int PassedSwarm[9];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance;
 extern const int PassedEnemyDistance;
@@ -89,7 +90,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = 100.0;
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -317,6 +318,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, QueenMobility, 28)             ;
     ENABLE_1(INIT_COEFF, KingDefenders, 12)             ;
     ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)          ;
+    ENABLE_1(INIT_COEFF, PassedSwarm, 9)                ;
     ENABLE_3(INIT_COEFF, PassedPawn, 2, 2, 8)           ;
     ENABLE_0(INIT_COEFF, PassedFriendlyDistance)        ;
     ENABLE_0(INIT_COEFF, PassedEnemyDistance)           ;
@@ -369,6 +371,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, QueenMobility, 28)             ;
     ENABLE_1(INIT_PARAM, KingDefenders, 12)             ;
     ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)          ;
+    ENABLE_1(INIT_PARAM, PassedSwarm, 9)                ;
     ENABLE_3(INIT_PARAM, PassedPawn, 2, 2, 8)           ;
     ENABLE_0(INIT_PARAM, PassedFriendlyDistance)        ;
     ENABLE_0(INIT_PARAM, PassedEnemyDistance)           ;
@@ -428,6 +431,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, QueenMobility, 28)            ;
     ENABLE_1(PRINT_PARAM, KingDefenders, 12)            ;
     ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)         ;
+    ENABLE_1(PRINT_PARAM, PassedSwarm, 9)               ;
     ENABLE_3(PRINT_PARAM, PassedPawn, 2, 2, 8)          ;
     ENABLE_0(PRINT_PARAM, PassedFriendlyDistance)       ;
     ENABLE_0(PRINT_PARAM, PassedEnemyDistance)          ;
