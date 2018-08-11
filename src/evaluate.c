@@ -548,8 +548,8 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenPSQT32[relativeSquare32(sq, US)][US]++;
 
         // Compute possible attacks and store off information for king safety
-        attacks = rookAttacks(sq, ei->occupiedMinusRooks[US])
-                | bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+        attacks =   rookAttacks(sq, ei->occupiedMinusRooks[US] & ei->occupiedMinusBishops[US])
+                | bishopAttacks(sq, ei->occupiedMinusRooks[US] & ei->occupiedMinusBishops[US]);
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
