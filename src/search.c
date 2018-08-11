@@ -117,7 +117,7 @@ void* iterativeDeepening(void* vthread){
                 count += thread != &thread->threads[i]
                       && thread->threads[i].depth >= depth;
 
-            if (count >= thread->nthreads / 3){
+            if (depth <= info->depth || count >= thread->nthreads / 2){
                 thread->depth = depth + 1;
                 pthread_mutex_unlock(&LOCK);
                 continue;
