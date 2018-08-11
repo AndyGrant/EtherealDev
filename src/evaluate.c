@@ -431,8 +431,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy[US][BISHOP] |= attacks;
 
         // Apply a penalty for the bishop based on number of rammed pawns
-        // of our own colour, which reside on the same shade of square as the bishop
-        count = popcount(ei->rammedPawns[US] & (testBit(WHITE_SQUARES, sq) ? WHITE_SQUARES : BLACK_SQUARES));
+        count = popcount(ei->rammedPawns[US]);
         eval += count * BishopRammedPawns;
         if (TRACE) T.BishopRammedPawns[US] += count;
 
