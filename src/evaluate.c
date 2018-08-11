@@ -188,7 +188,7 @@ const int PassedFriendlyDistance = S(   2,  -7);
 
 const int PassedEnemyDistance = S(   0,   8);
 
-const int PassedSafePromotionPath = S(   2,  25);
+const int PassedSafePromotionPath = S(   5,  35);
 
 /* Threat Evaluation Terms */
 
