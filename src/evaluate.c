@@ -707,7 +707,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PassedEnemyDistance[US] += dist;
 
         // Apply a bonus when the path to promoting is uncontested
-        if (relativeRankOf(US, sq) >= 4) {
+        if (relativeRankOf(US, sq) >= 5) {
             bitboard = ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)];
             flag = !(bitboard & ei->attacked[THEM]);
             eval += flag * PassedSafePromotionPath;
