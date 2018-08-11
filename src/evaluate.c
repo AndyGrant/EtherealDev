@@ -190,7 +190,7 @@ const int PassedEnemyDistance = S(   0,   8);
 
 const int PassedSafePromotionPath = S(   2,  25);
 
-const int PassedDuplicates = S(  -10,  -10);
+const int PassedDuplicates = S(  -20,  -20);
 
 /* Threat Evaluation Terms */
 
