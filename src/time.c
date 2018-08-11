@@ -99,17 +99,12 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (abs(info->values[depth-1] - value) >= 10)
+    if (abs(info->values[depth-1] - value) >= 16)
         info->idealUsage *= 1.050;
 
     // Increase our time if the score suddenly dropped
-    if (abs(info->values[depth-1] - value) >= 20)
+    if (abs(info->values[depth-1] - value) >= 32)
         info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (abs(info->values[depth-1] - value) >= 30)
-        info->idealUsage *= 1.050;
-
 
     if (info->bestMoves[depth] == info->bestMoves[depth-1]){
 
