@@ -94,37 +94,25 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
-    if (!limits->limitedBySelf || depth < 4)
+    if (!limits->limitedBySelf || depth < 8)
         return;
 
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 10)
-        info->scoreAdjustments += 2;
+    // Adjust time when the score is very stable
+    if (abs(info->values[depth-1] - value) < 4)
+        info->scoreAdjustments = MAX(0, info->scoreAdjustments - 1);
 
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 20)
-        info->scoreAdjustments += 2;
+    // Adjust time when the score is jumping around
+    if (abs(info->values[depth-1] - value) > 12) info->scoreAdjustments += 2;
+    if (abs(info->values[depth-1] - value) > 24) info->scoreAdjustments += 2;
+    if (abs(info->values[depth-1] - value) > 36) info->scoreAdjustments += 2;
 
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 40)
-        info->scoreAdjustments += 2;
-
-    // Increase our time if the score suddenly jumps
-    if (info->values[depth-1] + 15 < value)
-        info->scoreAdjustments += 1;
-
-    // Increase our time if the score suddenly jumps
-    if (info->values[depth-1] + 30 < value)
-        info->scoreAdjustments += 2;
-
+    // Adjust time when the best move holds
     if (info->bestMoves[depth] == info->bestMoves[depth-1])
         info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
 
+    // Adjust time when the best move changes
     else
         info->pvAdjustments = PVAdjustCount;
-
-    // Cap our ideal usage using our maximum allocation
-    info->idealUsage = MIN(info->idealUsage, info->maxAlloc);
 }
 
 int terminateTimeManagment(SearchInfo* info) {
