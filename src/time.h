@@ -25,5 +25,11 @@ double getRealTime();
 double elapsedTime(SearchInfo* info);
 void initTimeManagment(SearchInfo* info, Limits* limits);
 void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value);
+int terminateTimeManagment(SearchInfo* info);
+
+static const double ScoreAdjustWeight = 0.025;
+
+static const double PVAdjustCount = 6;
+static const double PVAdjustWeight = 0.080;
 
 #endif
