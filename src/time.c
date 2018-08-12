@@ -97,6 +97,8 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     if (!limits->limitedBySelf || depth < 4)
         return;
 
+    info->scoreAdjustments = MAX(0, info->scoreAdjustments-1);
+
     // Increase our time if the score suddenly dropped
     if (info->values[depth-1] > value + 10)
         info->scoreAdjustments += 2;
@@ -111,7 +113,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly jumps
     if (info->values[depth-1] + 15 < value)
-        info->scoreAdjustments += 1;
+        info->scoreAdjustments += 2;
 
     // Increase our time if the score suddenly jumps
     if (info->values[depth-1] + 30 < value)
