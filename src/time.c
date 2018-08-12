@@ -102,9 +102,9 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         info->scoreAdjustments = MAX(0, info->scoreAdjustments - 1);
 
     // Adjust time when the score is jumping around
-    if (abs(info->values[depth-1] - value) > 12) info->scoreAdjustments += 2;
-    if (abs(info->values[depth-1] - value) > 24) info->scoreAdjustments += 2;
-    if (abs(info->values[depth-1] - value) > 36) info->scoreAdjustments += 2;
+    if (abs(info->values[depth-1] - value) > 15) info->scoreAdjustments += 2;
+    if (abs(info->values[depth-1] - value) > 30) info->scoreAdjustments += 3;
+    if (abs(info->values[depth-1] - value) > 60) info->scoreAdjustments += 4;
 
     // Adjust time when the best move holds
     if (info->bestMoves[depth] == info->bestMoves[depth-1])
