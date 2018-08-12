@@ -132,10 +132,10 @@ int terminateTimeManagment(SearchInfo* info) {
     double cutoff = info->idealUsage;
 
     // Adjust cutoff based on score fluctuations
-    cutoff += info->idealUsage * info->scoreAdjustments * ScoreAdjustWeight;
+    cutoff *= 1.00 + info->scoreAdjustments * ScoreAdjustWeight;
 
     // Adjust cutoff based on bestmove fluctuations
-    cutoff += info->idealUsage * info->pvAdjustments * PVAdjustWeight;
+    cutoff *= 1.00 + info->pvAdjustments * PVAdjustWeight;
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > cutoff;
