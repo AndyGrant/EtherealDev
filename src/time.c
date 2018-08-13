@@ -101,7 +101,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly dropped
     if (lastValue > value)
-        info->scoreAdjustments += MIN(3, (lastValue - value) / 10);
+        info->scoreAdjustments += MIN(3, (lastValue - value) / 15);
 
     // Increase our time if the score suddenly jumps
     if (value > lastValue)
