@@ -100,12 +100,15 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value)
-        info->scoreAdjustments += MIN(3, (lastValue - value) / 15);
+    if (lastValue > value + 10)
+        info->scoreAdjustments += MIN(10, (lastValue - value) / 3);
 
     // Increase our time if the score suddenly jumps
-    if (value > lastValue)
-        info->scoreAdjustments += MIN(3, (value - lastValue) / 15);
+    if (value > lastValue + 10)
+        info->scoreAdjustments += MIN(10, (value - lastValue) / 5);
+
+    // Always slightly move back torwards no time extensions
+    info->scoreAdjustments -= MIN(info->scoreAdjustments, 1);
 
     if (info->bestMoves[depth] == info->bestMoves[depth-1])
         info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
