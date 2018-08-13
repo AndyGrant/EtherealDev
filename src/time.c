@@ -122,9 +122,6 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     else
         info->pvAdjustments = PVAdjustCount;
-
-    // Cap our ideal usage using our maximum allocation
-    info->idealUsage = MIN(info->idealUsage, info->maxAlloc);
 }
 
 int terminateTimeManagment(SearchInfo* info) {
@@ -138,5 +135,5 @@ int terminateTimeManagment(SearchInfo* info) {
     cutoff *= 1.00 + info->pvAdjustments * PVAdjustWeight;
 
     // Terminate search if cutoff is reached
-    return elapsedTime(info) > cutoff;
+    return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
 }
