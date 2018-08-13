@@ -79,10 +79,7 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[3] = {
-    S(   6, -23), S(  22,   0), S(  30,   0),
-};
-
+const int KnightOutpost[3] = { S(   6, -24), S(  21,   0), S(  30,   0) };
 
 const int KnightBehindPawn = S(   5,  13);
 
@@ -98,10 +95,7 @@ const int BishopPair = S(  38,  69);
 
 const int BishopRammedPawns = S( -11,  -8);
 
-const int BishopOutpost[3] = {
-    S(   9, -15), S(  33,  -2), S(  39,   0),
-};
-
+const int BishopOutpost[3] = { S(   9, -13), S(  33,   0), S(  39,   0) };
 
 const int BishopBehindPawn = S(   4,  11);
 

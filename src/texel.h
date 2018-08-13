@@ -27,12 +27,12 @@
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      6) // # of terms to tune
+#define NTERMS      (      8) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
 #define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
 #define TuneRookValue                   (0)
 #define TuneQueenValue                  (0)
 #define TuneKingValue                   (0)
