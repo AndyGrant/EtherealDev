@@ -92,30 +92,20 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
 void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
 
+    const int lastValue = info->values[depth-1];
+
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
     if (!limits->limitedBySelf || depth < 4)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 10)
-        info->scoreAdjustments += 2;
-
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 20)
-        info->scoreAdjustments += 2;
-
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 40)
-        info->scoreAdjustments += 2;
+    if (lastValue > value)
+        info->scoreAdjustments += MIN(6, (lastValue - value) / 10);
 
     // Increase our time if the score suddenly jumps
-    if (info->values[depth-1] + 15 < value)
-        info->scoreAdjustments += 1;
-
-    // Increase our time if the score suddenly jumps
-    if (info->values[depth-1] + 30 < value)
-        info->scoreAdjustments += 2;
+    if (value > lastValue)
+        info->scoreAdjustments += MIN(3, (value - lastValue) / 15);
 
     if (info->bestMoves[depth] == info->bestMoves[depth-1])
         info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
