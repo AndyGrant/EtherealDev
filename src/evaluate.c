@@ -79,7 +79,10 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
+const int KnightOutpost[3] = {
+    S(   6, -23), S(  22,   0), S(  30,   0),
+};
+
 
 const int KnightBehindPawn = S(   5,  13);
 
@@ -95,7 +98,10 @@ const int BishopPair = S(  38,  69);
 
 const int BishopRammedPawns = S( -11,  -8);
 
-const int BishopOutpost[2] = { S(  27,  -1), S(  39,   0) };
+const int BishopOutpost[3] = {
+    S(   9, -15), S(  33,  -2), S(  39,   0),
+};
+
 
 const int BishopBehindPawn = S(   4,  11);
 
@@ -342,7 +348,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, count, eval = 0;
     uint64_t attacks;
 
     uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
@@ -369,9 +375,9 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
         if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[defended];
-            if (TRACE) T.KnightOutpost[defended][US]++;
+            count = popcount(pawnAttacks(THEM, sq) & myPawns);
+            eval += KnightOutpost[count];
+            if (TRACE) T.KnightOutpost[count][US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -401,7 +407,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, count, eval = 0;
     uint64_t attacks;
 
     uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
@@ -440,9 +446,9 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            defended = testBit(ei->pawnAttacks[US], sq);
-            eval += BishopOutpost[defended];
-            if (TRACE) T.BishopOutpost[defended][US]++;
+            count = popcount(pawnAttacks(THEM, sq) & myPawns);
+            eval += BishopOutpost[count];
+            if (TRACE) T.BishopOutpost[count][US]++;
         }
 
         // Apply a bonus if the bishop is behind a pawn
