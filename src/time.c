@@ -71,9 +71,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
         // Playing using X + Y or X time controls
         else {
-            info->idealUsage =  0.52 * (limits->time + 23 * limits->inc) / 25;
-            info->maxAlloc   =  4.00 * (limits->time + 23 * limits->inc) / 25;
-            info->maxUsage   = 10.00 * (limits->time + 23 * limits->inc) / 25;
+            info->idealUsage =  0.50 * (limits->time + 15 * limits->inc) / 25;
+            info->maxAlloc   =  4.00 * (limits->time + 15 * limits->inc) / 25;
+            info->maxUsage   = 10.00 * (limits->time + 15 * limits->inc) / 25;
         }
 
         // Cap all time allocations using the move time buffer
@@ -99,32 +99,25 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly dropped
     if (info->values[depth-1] > value + 10)
-        info->scoreAdjustments += 2;
+        info->scoreAdjustments++;
 
     // Increase our time if the score suddenly dropped
     if (info->values[depth-1] > value + 20)
-        info->scoreAdjustments += 2;
+        info->scoreAdjustments++;
 
     // Increase our time if the score suddenly dropped
     if (info->values[depth-1] > value + 40)
-        info->scoreAdjustments += 2;
-
-    // Increase our time if the score suddenly jumps
-    if (info->values[depth-1] + 15 < value)
-        info->scoreAdjustments += 1;
+        info->scoreAdjustments++;
 
     // Increase our time if the score suddenly jumps
     if (info->values[depth-1] + 30 < value)
-        info->scoreAdjustments += 2;
+        info->scoreAdjustments++;
 
     if (info->bestMoves[depth] == info->bestMoves[depth-1])
         info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
 
     else
         info->pvAdjustments = PVAdjustCount;
-
-    // Cap our ideal usage using our maximum allocation
-    info->idealUsage = MIN(info->idealUsage, info->maxAlloc);
 }
 
 int terminateTimeManagment(SearchInfo* info) {
@@ -138,5 +131,5 @@ int terminateTimeManagment(SearchInfo* info) {
     cutoff *= 1.00 + info->pvAdjustments * PVAdjustWeight;
 
     // Terminate search if cutoff is reached
-    return elapsedTime(info) > cutoff;
+    return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
 }
