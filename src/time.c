@@ -107,7 +107,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly jumped
     if (value > lastValue + 15)
-        info->scoreAdjustments += 4 * MIN(2, (lastValue - value) / 15);
+        info->scoreAdjustments += 4 * MIN(3, (value - lastValue) / 15);
 
     // Always scale back the score time factor
     info->scoreAdjustments = MAX(0, info->scoreAdjustments - 1);
