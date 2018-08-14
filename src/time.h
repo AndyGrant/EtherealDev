@@ -30,6 +30,6 @@ int terminateTimeManagment(SearchInfo* info);
 static const double ScoreAdjustWeight = 0.050;
 
 static const double PVAdjustCount = 5;
-static const double PVAdjustWeight = 0.100;
+static const double PVAdjustWeight = 0.150;
 
 #endif
