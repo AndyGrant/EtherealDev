@@ -102,8 +102,8 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->scoreAdjustments += MIN(3, (lastValue - value) / 10);
+    if (lastValue > value)
+        info->scoreAdjustments += MIN(3, (lastValue - value) / 15);
 
     // Increase time if the PV changed moves
     if (thisMove != lastMove)
