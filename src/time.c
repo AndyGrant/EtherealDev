@@ -92,28 +92,25 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
 void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
 
+    const uint16_t thisMove = info->bestMoves[depth];
+    const uint16_t lastMove = info->bestMoves[depth-1];
+    const int lastValue     = info->values[depth-1];
+
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
     if (!limits->limitedBySelf || depth < 4)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 10)
-        info->scoreAdjustments += 1;
+    if (lastValue > value + 10)
+        info->scoreAdjustments += MIN(3, (lastValue - value) / 10);
 
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 20)
-        info->scoreAdjustments += 2;
-
-    // Increase our time if the score suddenly dropped
-    if (info->values[depth-1] > value + 40)
-        info->scoreAdjustments += 3;
-
-    if (info->bestMoves[depth] == info->bestMoves[depth-1])
-        info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
-
-    else
+    // Increase time if the PV changed moves
+    if (thisMove != lastMove)
         info->pvAdjustments = PVAdjustCount;
+
+    // Always scale back the PV time factor
+    info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
 }
 
 int terminateTimeManagment(SearchInfo* info) {
