@@ -106,7 +106,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     if (info->scoreAdjustments < 0) info->scoreAdjustments++;
 
     // Adjust time base on score changes
-    info->scoreAdjustments += MAX(-3, MIN(3, (lastValue - value) / 10));
+    info->scoreAdjustments += MAX(-6, MIN(6, (lastValue - value) / 5));
 
     // Always scale back the PV time factor
     info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
