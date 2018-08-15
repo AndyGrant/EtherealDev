@@ -101,16 +101,12 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     if (!limits->limitedBySelf || depth < 4)
         return;
 
-    // Always scale back the score time factor
-    info->scoreAdjustments = MAX(0, info->scoreAdjustments - 1);
+    // Always scale the score time factor towards zero
+    if (info->scoreAdjustments > 0) info->scoreAdjustments--;
+    if (info->scoreAdjustments < 0) info->scoreAdjustments++;
 
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value)
-        info->scoreAdjustments += MIN(4, (lastValue - value) / 10);
-
-    // Increase our time if the score suddenly jumped
-    if (value > lastValue)
-        info->scoreAdjustments += MIN(2, (value - lastValue) / 20);
+    // Adjust time base on score changes
+    info->scoreAdjustments += MAX(-3, MIN(3, (lastValue - value) / 10));
 
     // Always scale back the PV time factor
     info->pvAdjustments = MAX(0, info->pvAdjustments - 1);
@@ -125,10 +121,10 @@ int terminateTimeManagment(SearchInfo* info) {
     double cutoff = info->idealUsage;
 
     // Adjust cutoff based on score fluctuations
-    cutoff *= 1.00 + info->scoreAdjustments * ScoreAdjustWeight;
+    cutoff *= 1.00 + abs(info->scoreAdjustments * ScoreAdjustWeight);
 
     // Adjust cutoff based on bestmove fluctuations
-    cutoff *= 1.00 + info->pvAdjustments * PVAdjustWeight;
+    cutoff *= 1.00 + abs(info->pvAdjustments * PVAdjustWeight);
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
