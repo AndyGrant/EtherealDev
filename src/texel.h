@@ -22,13 +22,13 @@
 
 #include "types.h"
 
-#define CLEARING    (      0) // Clear hashes between runs
-#define RESOLVE     (      0) // Resolve with qsearch
+#define CLEARING    (      1) // Clear hashes between runs
+#define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
-#define NPOSITIONS  (1491000) // # of FENs in book
+#define NTERMS      (     28) // # of terms to tune
+#define NPOSITIONS  (1457626) // # of FENs in book
 
 // Each Eval Term (Total = 490)
 #define TunePawnValue                   (0)
@@ -58,7 +58,7 @@
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
 #define TuneRookMobility                (0)
-#define TuneQueenMobility               (0)
+#define TuneQueenMobility               (1)
 #define TuneKingDefenders               (0)
 #define TuneKingShelter                 (0)
 #define TunePassedPawn                  (0)

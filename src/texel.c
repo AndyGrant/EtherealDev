@@ -177,7 +177,7 @@ void runTexelTuning(Thread *thread) {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
-    int i, j, k;
+    int i, j, k, eval;
     Undo undo[1];
     Limits limits;
     int coeffs[NTERMS];
@@ -218,7 +218,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Clear out all of the hash and history tables. This is extemely slow!
         // for correctness this must be done, but you can likely get away without
         // doing it. For high depth this is less of an issue and should be cleared.
-        if (CLEARING) resetThreadPool(thread), clearTT();
+        if (CLEARING && NDEPTHS) resetThreadPool(thread), clearTT();
 
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
@@ -237,7 +237,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
 
         // Use a iterative deepening to get a predictive evaluation
-        for (int depth = 0; depth <= NDEPTHS; depth++)
+        for (int depth = 1; depth <= NDEPTHS; depth++)
             tes[i].eval = search(thread, &thread->pv, -MATE, MATE, depth, 0);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
 
@@ -250,8 +250,12 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL);
+        eval = evaluateBoard(&thread->board, NULL);
         initCoefficients(coeffs);
+
+        // When using NDEPTHS=0, use the proper evaluation
+        if (NDEPTHS == 0)
+            tes[i].eval = thread->board.turn == WHITE ? eval : -eval;
 
         // Count up the non zero evaluation terms
         for (k = 0, j = 0; j < NTERMS; j++)
