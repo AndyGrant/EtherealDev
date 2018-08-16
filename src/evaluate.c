@@ -84,9 +84,9 @@ const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
 const int KnightBehindPawn = S(   5,  13);
 
 const int KnightMobility[9] = {
-    S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
-    S(   3, -16), S(   8,   0), S(  18,  -3), S(  33,  -5),
-    S(  50, -44),
+    S( -90, -85), S( -32, -93), S( -15, -40), S(  -2, -15),
+    S(   6, -14), S(  10,   0), S(  21,  -7), S(  32, -13),
+    S(  45, -44),
 };
 
 /* Bishop Evaluation Terms */
