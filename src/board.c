@@ -331,8 +331,7 @@ int drawnByRepetition(Board *board, int height) {
 
         // Check for matching hash with a two fold after the root,
         // or a three fold which occurs in part before the root move
-        if (    board->history[i] == board->hash
-            && (i > board->numMoves - height || ++reps == 2))
+        if (board->history[i] == board->hash && ++reps == 2)
             return 1;
     }
 
