@@ -271,7 +271,7 @@ void* uciGo(void* vthreadsgo){
     }
 
     // Make sure this all gets reported
-    fflush(stdout);
+    printf("\n"); fflush(stdout);
 
     // Drop the ready lock, as we are prepared to handle a new search
     pthread_mutex_unlock(&READYLOCK);
