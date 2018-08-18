@@ -101,6 +101,7 @@ int main(int argc, char **argv) {
             printf("option name MoveOverhead type spin default 100 min 0 max 10000\n");
             printf("option name SyzygyPath type string default <empty>\n");
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
+            printf("option name Ponder type check default false\n");
             printf("uciok\n");
             fflush(stdout);
         }
