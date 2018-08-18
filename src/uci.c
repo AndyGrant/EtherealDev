@@ -166,6 +166,7 @@ int main(int argc, char **argv) {
 
         else if (stringEquals(str, "stop")){
             ABORT_SIGNAL = 1;
+            IS_PONDERING = 0;
             pthread_join(pthreadsgo, NULL);
         }
 
@@ -259,6 +260,9 @@ void* uciGo(void* vthreadsgo){
 
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);
+
+    // UCI spec does not want reports until out of pondering
+    while (IS_PONDERING);
 
     // Report best move (we should always have one)
     moveToString(bestMove, bestMoveStr);
