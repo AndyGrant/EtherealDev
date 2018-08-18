@@ -366,11 +366,6 @@ void revertNullMove(Board *board, Undo *undo) {
 
 void moveToString(uint16_t move, char *str) {
 
-    if (move == NONE_MOVE) {
-        str[0] = '\0';
-        return;
-    }
-
     squareToString(MoveFrom(move), &str[0]);
     squareToString(MoveTo(move), &str[2]);
 

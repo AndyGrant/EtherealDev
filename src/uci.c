@@ -260,10 +260,17 @@ void* uciGo(void* vthreadsgo){
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);
 
-    // Report best and ponder moves according to UCI
+    // Report best move (we should always have one)
     moveToString(bestMove, bestMoveStr);
-    moveToString(ponderMove, ponderMoveStr);
-    printf("bestmove %s ponder %s\n", bestMoveStr, ponderMoveStr);
+    printf("bestmove %s ", bestMoveStr);
+
+    // Report ponder move if we have one
+    if (ponderMove != NONE_MOVE) {
+        moveToString(ponderMove, ponderMoveStr);
+        printf("ponder %s", ponderMoveStr);
+    }
+
+    // Make sure this all gets reported
     fflush(stdout);
 
     // Drop the ready lock, as we are prepared to handle a new search
