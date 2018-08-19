@@ -30,12 +30,12 @@ int terminateTimeManagment(SearchInfo* info);
 static const double PVFactorCount  = 8;
 static const double PVFactorWeight = 0.07;
 
-static const double ScoreDropMax      = 3;
-static const double ScoreDropDivisor  = 10;
+static const double ScoreDropMax      = 4;
+static const double ScoreDropDivisor  = 16;
 
-static const double ScoreJumpMax      = 2;
-static const double ScoreJumpDivisor  = 15;
+static const double ScoreJumpMax      = 3;
+static const double ScoreJumpDivisor  = 24;
 
-static const double ScoreFactorWeight = 0.05;
+static const double ScoreFactorWeight = 0.04;
 
 #endif
