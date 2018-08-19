@@ -56,7 +56,7 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    info->pvFactor = info->scoreFactor = 0; // Clear time usage heuristics
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf){
@@ -94,31 +94,12 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     const uint16_t thisMove = info->bestMoves[depth];
     const uint16_t lastMove = info->bestMoves[depth-1];
     const int lastValue     = info->values[depth-1];
+    const int scoreDiff     = value - lastValue;
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
-    if (!limits->limitedBySelf || depth < 4)
+    if (!limits->limitedBySelf || depth < 10)
         return;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 15 < value)
-        info->idealUsage *= 1.025;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
@@ -126,6 +107,12 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     // Increase time if the PV changed moves
     if (thisMove != lastMove)
         info->pvFactor = PVFactorCount;
+
+    // Increase time when the score suddenly jumps
+    info->scoreFactor += MAX(0, MIN(ScoreJumpMax,  scoreDiff / ScoreJumpDivisor));
+
+    // Increase time when the score suddenly drops
+    info->scoreFactor += MAX(0, MIN(ScoreDropMax, -scoreDiff / ScoreDropDivisor));
 }
 
 int terminateTimeManagment(SearchInfo* info) {
@@ -134,6 +121,9 @@ int terminateTimeManagment(SearchInfo* info) {
 
     // Adjust cutoff based on bestmove fluctuations
     cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
+
+    // Adjust cutoff bassed on score fluctuations
+    cutoff *= 1.00 + info->scoreFactor * ScoreFactorWeight;
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);

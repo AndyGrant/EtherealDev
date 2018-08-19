@@ -33,6 +33,7 @@ struct SearchInfo {
     double maxAlloc;
     double maxUsage;
     int pvFactor;
+    int scoreFactor;
 };
 
 struct PVariation {
