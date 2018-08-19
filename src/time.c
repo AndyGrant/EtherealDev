@@ -102,7 +102,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         return;
 
     // Always scale back the PV time factor
-    info->pvFactor = MAX(-1, info->pvFactor - 1);
+    info->pvFactor = MAX(-2, info->pvFactor - 1);
 
     // Increase time if the PV changed moves
     if (thisMove != lastMove)
