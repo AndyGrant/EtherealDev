@@ -179,17 +179,19 @@ uint64_t knightAttacks(int s) {
 
 uint64_t bishopAttacks(int s, uint64_t occ) {
     assert(0 <= s && s < SQUARE_NB);
-    return BishopAttacksPtr[s][sliderIndex(occ, BishopMask[s], BishopMagic[s], BishopShift[s])];
+    int index = sliderIndex(occ, BishopMask[s], BishopMagic[s], BishopShift[s]);
+    return BishopAttacksPtr[s][index];
 }
 
 uint64_t rookAttacks(int s, uint64_t occ) {
     assert(0 <= s && s < SQUARE_NB);
-    return RookAttacksPtr[s][sliderIndex(occ, RookMask[s], RookMagic[s], RookShift[s])];
+    int index = sliderIndex(occ, RookMask[s], RookMagic[s], RookShift[s]);
+    return RookAttacksPtr[s][index];
 }
 
 uint64_t queenAttacks(int s, uint64_t occ) {
     assert(0 <= s && s < SQUARE_NB);
-    return rookAttacks(s, occ) | bishopAttacks(s, occ);
+    return bishopAttacks(s, occ) | rookAttacks(s, occ);
 }
 
 uint64_t kingAttacks(int s) {
