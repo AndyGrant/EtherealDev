@@ -81,6 +81,8 @@ const int PawnConnected32[32] = {
 
 const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
 
+const int KnightOutpostMakesPasser = S(  22,  -2);
+
 const int KnightBehindPawn = S(   5,  13);
 
 const int KnightMobility[9] = {
@@ -96,6 +98,8 @@ const int BishopPair = S(  38,  69);
 const int BishopRammedPawns = S( -11,  -8);
 
 const int BishopOutpost[2] = { S(  27,  -1), S(  39,   0) };
+
+const int BishopOutpostMakesPasser = S(  11,   8);
 
 const int BishopBehindPawn = S(   4,  11);
 
@@ -372,6 +376,13 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
+
+            // Apply another bonus if capturing into the outpost creates a passer
+            if (     several(pawnAttacks(THEM, sq) & myPawns)
+                && !(ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)] & enemyPawns)) {
+                eval += KnightOutpostMakesPasser;
+                if (TRACE) T.KnightOutpostMakesPasser[US]++;
+            }
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -443,6 +454,13 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
+
+            // Apply another bonus if capturing into the outpost creates a passer
+            if (     several(pawnAttacks(THEM, sq) & myPawns)
+                && !(ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)] & enemyPawns)) {
+                eval += BishopOutpostMakesPasser;
+                if (TRACE) T.BishopOutpostMakesPasser[US]++;
+            }
         }
 
         // Apply a bonus if the bishop is behind a pawn
