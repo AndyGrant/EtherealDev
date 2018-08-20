@@ -138,7 +138,7 @@ int terminateTimeManagment(SearchInfo* info) {
     cutoff += info->idealUsage * info->pvFactor * PVFactorWeight;
 
     // Adjust cutoff based on evaluation fluctuations
-    cutoff += info->idealUsage * info->evalFactor;
+    cutoff += info->idealUsage * (info->evalFactor - 1.00);
 
     // Cap cutoff with [idealUsage, maxAlloc]
     cutoff = MIN(MAX(cutoff, info->idealUsage), info->maxAlloc);
