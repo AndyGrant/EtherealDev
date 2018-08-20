@@ -766,15 +766,16 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     type  = MoveType(move);
     ptype = MovePromoPiece(move);
 
+    // Always assume Castling passes a simple SEE
+    if (type == CASTLE_MOVE)
+        return threshold <= 0;
+
     // Next victim is moved piece, or promotion type when promoting
     nextVictim = type != PROMOTION_MOVE
                ? pieceType(board->squares[from])
                : ptype;
 
-    // Balance is the value of the move minus threshold. Function
-    // call takes care for Enpass and Promotion moves. Castling is
-    // handled as a result of a King's value being zero, by trichotomy
-    // either the best case or the worst case condition will be hit
+    // Balance is the value of the move minus threshold
     balance = thisTacticalMoveValue(board, move) - threshold;
 
     // Best case is we lose nothing for the move
