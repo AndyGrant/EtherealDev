@@ -146,6 +146,9 @@ void boardFromFEN(Board *board, const char *fen) {
     // Move count: ignore and use zero, as we count since root
     board->numMoves = 0;
 
+    //
+    board->pliesFromNull = board->fiftyMoveRule;
+
     // Need king attackers for move generation
     board->kingAttackers = attackersToKingSquare(board);
 
@@ -327,6 +330,10 @@ int drawnByRepetition(Board *board, int height) {
 
         // No draw can occur before a zeroing move
         if (i < board->numMoves - board->fiftyMoveRule)
+            break;
+
+        // No draw can occur before a null move
+        if (i < board->numMoves - board->pliesFromNull)
             break;
 
         // Check for matching hash with a two fold after the root,

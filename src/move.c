@@ -45,6 +45,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->castleRights = board->castleRights;
     undo->epSquare = board->epSquare;
     undo->fiftyMoveRule = board->fiftyMoveRule;
+    undo->pliesFromNull = board->pliesFromNull;
     undo->psqtmat = board->psqtmat;
 
     // Store hash history for three-fold checking
@@ -52,6 +53,9 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
 
     // Always update fifty move, functions will reset
     board->fiftyMoveRule += 1;
+
+    //
+    board->pliesFromNull += 1;
 
     // Always update for turn and changes to enpass square
     board->hash ^= ZobristTurnKey;
@@ -259,9 +263,11 @@ void applyNullMove(Board *board, Undo *undo) {
     undo->hash = board->hash;
     undo->epSquare = board->epSquare;
     undo->fiftyMoveRule = board->fiftyMoveRule;
+    undo->pliesFromNull = board->pliesFromNull;
 
     board->turn = !board->turn;
     board->history[board->numMoves++] = board->hash;
+    board->pliesFromNull = 0;
 
     board->hash ^= ZobristTurnKey;
     if (board->epSquare != -1)
@@ -284,6 +290,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->castleRights = undo->castleRights;
     board->epSquare = undo->epSquare;
     board->fiftyMoveRule = undo->fiftyMoveRule;
+    board->pliesFromNull = undo->pliesFromNull;
     board->psqtmat = undo->psqtmat;
 
     if (MoveType(move) == NORMAL_MOVE){
@@ -361,6 +368,7 @@ void revertNullMove(Board *board, Undo *undo) {
     board->turn = !board->turn;
     board->epSquare = undo->epSquare;
     board->fiftyMoveRule = undo->fiftyMoveRule;
+    board->pliesFromNull = undo->pliesFromNull;
     board->numMoves--;
 }
 

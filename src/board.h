@@ -33,6 +33,7 @@ struct Board {
     int castleRights;
     int epSquare;
     int fiftyMoveRule;
+    int pliesFromNull;
     int psqtmat;
     int numMoves;
     uint64_t history[512];
@@ -45,6 +46,7 @@ struct Undo {
     int castleRights;
     int epSquare;
     int fiftyMoveRule;
+    int pliesFromNull;
     int psqtmat;
     int capturePiece;
 };
