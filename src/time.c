@@ -91,9 +91,13 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
 void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
 
-    const uint16_t thisMove = info->bestMoves[depth];
-    const uint16_t lastMove = info->bestMoves[depth-1];
-    const int lastValue     = info->values[depth-1];
+    const int lastValue = info->values[depth-1];
+
+    const uint16_t thisBestMove = info->bestMoves[depth];
+    const uint16_t lastBestMove = info->bestMoves[depth-1];
+
+    const uint16_t thisPonderMove = info->ponderMoves[depth];
+    const uint16_t lastPonderMove = info->ponderMoves[depth-1];
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
@@ -123,9 +127,13 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
 
-    // Increase time if the PV changed moves
-    if (thisMove != lastMove)
+    // Increase time if the best move has changed
+    if (thisBestMove != lastBestMove)
         info->pvFactor = PVFactorCount;
+
+    // Slightly increase time if our opponents response changed
+    else if (thisPonderMove != lastPonderMove)
+        info->pvFactor = PVFactorCount / 2;
 }
 
 int terminateTimeManagment(SearchInfo* info) {
