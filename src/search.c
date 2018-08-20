@@ -149,8 +149,8 @@ void* iterativeDeepening(void* vthread){
         // Send information about this search to the interface
         uciReport(thread->threads, -MATE, MATE, value);
 
-        // Update time allocation based on score and pv changes
-        updateTimeManagment(info, limits, depth, value);
+        // Update time allocation based on pv changes
+        updateTimeManagment(info, limits, depth);
 
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;

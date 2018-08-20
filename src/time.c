@@ -89,11 +89,10 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
     }
 }
 
-void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
+void updateTimeManagment(SearchInfo* info, Limits* limits, int depth){
 
     const uint16_t thisMove = info->bestMoves[depth];
     const uint16_t lastMove = info->bestMoves[depth-1];
-    const int lastValue     = info->values[depth-1];
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
