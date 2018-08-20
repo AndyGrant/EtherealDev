@@ -30,4 +30,15 @@ int terminateTimeManagment(SearchInfo* info);
 static const double PVFactorCount  = 8;
 static const double PVFactorWeight = 0.07;
 
+static const int EvalDropMax = 4;
+static const int EvalDropDivisor = 10;
+
+static const int EvalJumpMax = 3;
+static const int EvalJumpDivisor = 15;
+
+static const int EvalStableValue = 8;
+static const int EvalStableDivisor = 2;
+
+static const double EvalFactorWeight = 0.05;
+
 #endif

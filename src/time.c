@@ -94,38 +94,27 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     const uint16_t thisMove = info->bestMoves[depth];
     const uint16_t lastMove = info->bestMoves[depth-1];
     const int lastValue     = info->values[depth-1];
+    const int difference    = value - lastValue;
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
-    if (!limits->limitedBySelf || depth < 4)
+    if (!limits->limitedBySelf || depth < 8)
         return;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 15 < value)
-        info->idealUsage *= 1.025;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
 
     // Increase time if the PV changed moves
-    if (thisMove != lastMove)
-        info->pvFactor = PVFactorCount;
+    if (thisMove != lastMove) info->pvFactor = PVFactorCount;
+
+    // Increase time based on any drops in the evaluation
+    info->evalFactor += MAX(0, MIN(EvalDropMax, -difference / EvalDropDivisor));
+
+    // Increase time based on any jumps in the evaluation
+    info->evalFactor += MAX(0, MIN(EvalJumpMax,  difference / EvalJumpDivisor));
+
+    // When the score is stable, reduce our eval factor
+    if (abs(difference) < EvalStableValue) info->evalFactor /= EvalStableDivisor;
 }
 
 int terminateTimeManagment(SearchInfo* info) {
@@ -134,6 +123,9 @@ int terminateTimeManagment(SearchInfo* info) {
 
     // Adjust cutoff based on bestmove fluctuations
     cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
+
+    // Adjust cutoff based on evaluation fluctuations
+    cutoff *= 1.00 + info->evalFactor * EvalFactorWeight;
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
