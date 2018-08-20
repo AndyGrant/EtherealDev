@@ -121,7 +121,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Decrease our time if score remains stable
     else if (abs(value - lastValue) < 5)
-        info->idealUsage *= 0.990;
+        info->idealUsage *= 0.975;
 
     // Never let us drop below the initial ideal compuation
     info->idealUsage = MAX(info->idealUsage, info->baseTime);
