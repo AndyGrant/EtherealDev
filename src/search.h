@@ -30,6 +30,7 @@ struct SearchInfo {
     uint16_t ponderMoves[MAX_PLY];
     double timeUsage[MAX_PLY];
     double startTime;
+    double baseTime;
     double idealUsage;
     double maxAlloc;
     double maxUsage;

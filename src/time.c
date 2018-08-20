@@ -79,6 +79,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
         info->idealUsage = MIN(info->idealUsage, limits->time - MoveOverhead);
         info->maxAlloc   = MIN(info->maxAlloc,   limits->time - MoveOverhead);
         info->maxUsage   = MIN(info->maxUsage,   limits->time - MoveOverhead);
+
+        // Save starting estimation of time usage
+        info->baseTime = info->idealUsage;
     }
 
     // Interface told us to search for a predefined duration
@@ -97,28 +100,31 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
-    if (!limits->limitedBySelf || depth < 4)
+    if (!limits->limitedBySelf || depth < 10)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
     if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
+        info->idealUsage *= 1.100;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
+    else if (lastValue > value + 10)
         info->idealUsage *= 1.050;
 
     // Increase our time if the score suddenly jumps
-    if (lastValue + 15 < value)
+    else if (lastValue + 20 < value)
+        info->idealUsage *= 1.050;
+
+    // Increase our time if the score suddenly jumps
+    else if (lastValue + 10 < value)
         info->idealUsage *= 1.025;
 
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
+    // Decrease our time if score remains stable
+    else if (abs(value - lastValue) < 5)
+        info->idealUsage *= 0.990;
+
+    // Never let us drop below the initial ideal compuation
+    info->idealUsage = MAX(info->idealUsage, info->baseTime);
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
