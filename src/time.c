@@ -113,11 +113,11 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly jumps
     else if (lastValue + 20 < value)
-        info->idealUsage *= 1.150;
+        info->idealUsage *= 1.100;
 
     // Increase our time if the score suddenly jumps
     else if (lastValue + 10 < value)
-        info->idealUsage *= 1.075;
+        info->idealUsage *= 1.050;
 
     // Decrease our time if score remains stable
     else if (abs(value - lastValue) < 5)
