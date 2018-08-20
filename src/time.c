@@ -56,7 +56,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    info->pvFactor = 0; // Clear our pv stability heuristics
+
+    info->evalFactor = 1.00; // Clear our eval stability heuristics
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf){
@@ -102,26 +104,26 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly dropped
     if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
+        info->evalFactor *= 1.050;
 
     // Increase our time if the score suddenly dropped
     if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
+        info->evalFactor *= 1.050;
 
     // Increase our time if the score suddenly dropped
     if (lastValue > value + 40)
-        info->idealUsage *= 1.050;
+        info->evalFactor *= 1.050;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 15 < value)
-        info->idealUsage *= 1.025;
+        info->evalFactor *= 1.025;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
+        info->evalFactor *= 1.050;
 
     // Always scale back the PV time factor
-    info->pvFactor = MAX(0, info->pvFactor - 1);
+    info->pvFactor = MAX(-1, info->pvFactor - 1);
 
     // Increase time if the PV changed moves
     if (thisMove != lastMove)
@@ -133,8 +135,14 @@ int terminateTimeManagment(SearchInfo* info) {
     double cutoff = info->idealUsage;
 
     // Adjust cutoff based on bestmove fluctuations
-    cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
+    cutoff += cutoff * info->pvFactor * PVFactorWeight;
+
+    // Adjust cutoff based on evaluation fluctuations
+    cutoff *= info->evalFactor;
+
+    // Cap cutoff with [idealUsage, maxAlloc]
+    cutoff = MIN(MAX(cutoff, info->idealUsage), info->maxAlloc);
 
     // Terminate search if cutoff is reached
-    return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
+    return elapsedTime(info) > cutoff;
 }

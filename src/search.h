@@ -34,6 +34,7 @@ struct SearchInfo {
     double maxAlloc;
     double maxUsage;
     int pvFactor;
+    double evalFactor;
 };
 
 struct PVariation {
