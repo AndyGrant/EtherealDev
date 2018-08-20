@@ -733,6 +733,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t rooks   = friendly & board->pieces[ROOK  ];
     uint64_t queens  = friendly & board->pieces[QUEEN ];
 
+    uint64_t passers = pawns & friendly;
+
     uint64_t attacksByPawns  = ei->attackedBy[THEM][PAWN  ];
     uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT] | ei->attackedBy[THEM][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
@@ -742,7 +744,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
                             | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
-    uint64_t overloaded = (knights | bishops | rooks | queens)
+    uint64_t overloaded = (passers | knights | bishops | rooks | queens)
                         & ei->attacked[  US] & ~ei->attackedBy2[  US]
                         & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
 
