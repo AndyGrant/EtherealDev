@@ -259,7 +259,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Check for the fifty move rule, a draw by
         // repetition, or insufficient mating material
         if (boardIsDrawn(board, height))
-            return -5;
+            return height % 2 ? 5 : -5;
 
         // Check to see if we have exceeded the maxiumum search draft
         if (height >= MAX_PLY)
@@ -686,7 +686,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 2. Draw Detection. Check for the fifty move rule,
     // a draw by repetition, or insufficient mating material
     if (boardIsDrawn(board, height))
-        return -5;
+        return height % 2 ? 5 : -5;
 
     // Step 3. Max Draft Cutoff. If we are at the maximum search draft,
     // then end the search here with a static eval of the current board
