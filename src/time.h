@@ -29,7 +29,7 @@ int terminateTimeManagment(SearchInfo* info);
 
 static const int EvalFactorDivisor = 15;
 static const int EvalFactorSize    = 3;
-static const double EvalFactors[]  = {-0.01, 0.05, 0.12, 0.25 };
+static const double EvalFactors[]  = {-0.04, 0.08, 0.20, 0.35 };
 
 static const double PVFactorCount  = 8;
 static const double PVFactorWeight = 0.07;
