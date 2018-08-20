@@ -37,7 +37,7 @@ static const int EvalJumpMax = 3;
 static const int EvalJumpDivisor = 15;
 
 static const int EvalStableValue = 8;
-static const int EvalStableDivisor = 3;
+static const int EvalStableDivisor = 4;
 
 static const double EvalFactorWeight = 0.05;
 
