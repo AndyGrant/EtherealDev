@@ -117,6 +117,7 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     if (abs(difference) < EvalStableValue) info->evalFactor /= EvalStableDivisor;
 }
 
+
 int terminateTimeManagment(SearchInfo* info) {
 
     double cutoff = info->idealUsage;
