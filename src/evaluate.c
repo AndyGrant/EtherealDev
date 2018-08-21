@@ -600,19 +600,18 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
 
-        // Weak squares are attacked by the enemy, defended no more
-        // than once and only defended by our Queens or our King
+        // Squares attacked by our major pieces
+        uint64_t attacksByMajors = ei->attackedBy[US][ROOK ]
+                                 | ei->attackedBy[US][QUEEN];
+
+        // Squares attacked with no more than one defender, where the
+        // defending piece is either our own King or our major pieces
         uint64_t weak =   ei->attacked[THEM]
                       &  ~ei->attackedBy2[US]
-                      & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
+                      & (~ei->attacked[US] | attacksByMajors | ei->attackedBy[US][KING]);
 
-        // Usually the King Area is 9 squares. Scale are attack counts to account for
-        // when the king is in an open area and expects more attacks, or the opposite
-        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
-
-        // Safe target squares are defended or are weak and attacked by two.
-        // We exclude squares containing pieces which we cannot capture.
         uint64_t safe =  ~board->colours[THEM]
+                      &  ~attacksByMajors
                       & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
         // Find square and piece combinations which would check our King
@@ -623,13 +622,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
         // Identify if pieces can move to those checking squares safely.
-        // We check if our Queen can attack the square for safe Queen checks.
-        // No attacks of other pieces is implicit in our definition of weak.
         uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
         uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
         uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ];
+
+        // Scale the attack counts to expect a king area containing 9 squares
+        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
