@@ -27,8 +27,8 @@
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
-#define NPOSITIONS  (1491000) // # of FENs in book
+#define NTERMS      (      3) // # of terms to tune
+#define NPOSITIONS  (7000000) // # of FENs in book
 
 // Each Eval Term (Total = 490)
 #define TunePawnValue                   (0)
@@ -48,15 +48,16 @@
 #define TunePawnBackwards               (0)
 #define TunePawnConnected32             (0)
 #define TuneKnightOutpost               (0)
-#define TuneKnightBehindPawn            (0)
+#define TuneKnightBehindPawn            (1)
 #define TuneKnightMobility              (0)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
 #define TuneBishopOutpost               (0)
-#define TuneBishopBehindPawn            (0)
+#define TuneBishopBehindPawn            (1)
 #define TuneBishopMobility              (0)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
+#define TuneRookBehindPawn              (1)
 #define TuneRookMobility                (0)
 #define TuneQueenMobility               (0)
 #define TuneKingDefenders               (0)
