@@ -109,15 +109,13 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
 // Extern the paramaters of an N dimensional array
 
-#define EXTERN_PARAM_0(term) do {   \
-    extern const int PawnValue;     \
-while (0);
+#define EXTERN_PARAM_0(term) (extern const int ##term)
 
-#define EXTERN_PARAM_1(term, A) (extern const int term##[A][B])
+#define EXTERN_PARAM_1(term, A) ()//(extern const int term##[A][B])
 
-#define EXTERN_PARAM_2(term, A, B) (extern const int term##[A][B])
+#define EXTERN_PARAM_2(term, A, B) ()//(extern const int term##[A][B])
 
-#define EXTERN_PARAM_3(term, A, B, C) (extern const int term##[A][B][C])
+#define EXTERN_PARAM_3(term, A, B, C) ()//(extern const int term##[A][B][C])
 
 // Initalize Parameters of an N dimensional array
 
