@@ -43,8 +43,6 @@ int TupleStackSize = STACKSIZE;
 // Tap into evaluate()
 extern EvalTrace T, EmptyTrace;
 
-EXECUTE_ON_TERMS(EXTERN_PARAM);
-
 extern const int PawnValue;
 extern const int KnightValue;
 extern const int BishopValue;
