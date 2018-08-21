@@ -27,12 +27,11 @@
 #define NPARTITIONS (     64) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (      2) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
-// Each Eval Term (Total = 490)
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
 #define TuneBishopValue                 (0)
 #define TuneRookValue                   (0)
 #define TuneQueenValue                  (0)
@@ -108,7 +107,19 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A);
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B);
 void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C);
 
-// Initalize Parameters of an N dimensional Array
+// Extern the paramaters of an N dimensional array
+
+#define EXTERN_PARAM_0(term) do {   \
+    extern const int PawnValue;     \
+while (0);
+
+#define EXTERN_PARAM_1(term, A) (extern const int term##[A][B])
+
+#define EXTERN_PARAM_2(term, A, B) (extern const int term##[A][B])
+
+#define EXTERN_PARAM_3(term, A, B, C) (extern const int term##[A][B][C])
+
+// Initalize Parameters of an N dimensional array
 
 #define INIT_PARAM_0(term) do {                                     \
      cparams[i  ][MG] = ScoreMG(term);                              \
@@ -131,7 +142,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
         INIT_PARAM_2(term[_c], length2, length3);                   \
 } while (0)
 
-// Initalize Coefficients from an N dimensional Array
+// Initalize Coefficients from an N dimensional array
 
 #define INIT_COEFF_0(term) do {                                     \
     coeffs[i++] = T.term[WHITE] - T.term[BLACK];                    \
@@ -152,14 +163,17 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
         INIT_COEFF_2(term[_c], length2, length3);                   \
 } while (0)
 
-// Print Parameters of an N dimensional Array
+// Print Parameters of an N dimensional array
 
 #define PRINT_PARAM_0(term) (printParameters_0(#term, tparams, i), i+=1)
+
 #define PRINT_PARAM_1(term, A) (printParameters_1(#term, tparams, i, A), i+=A)
+
 #define PRINT_PARAM_2(term, A, B) (printParameters_2(#term, tparams, i, A, B), i+=A*B)
+
 #define PRINT_PARAM_3(term, A, B, C) (printParameters_3(#term, tparams, i, A, B, C), i+=A*B*C)
 
-// Wrap all of the above to check for the setting being turned on
+// Wrap all of the above to check for the term being enabled
 
 #define ENABLE_0(fname, term) do {                                  \
     if (Tune##term) fname##_0(term);                                \
@@ -175,6 +189,53 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
 #define ENABLE_3(fname, term, length1, length2, length3) do {       \
     if (Tune##term) fname##_3(term, length1, length2, length3);     \
+} while (0)
+
+// Configuration for each aspect of the evaluation terms
+
+#define EXECUTE_ON_TERMS(fname) do {                                \
+    ENABLE_0(fname, PawnValue);                                     \
+    ENABLE_0(fname, KnightValue);                                   \
+    ENABLE_0(fname, KnightValue);                                   \
+    ENABLE_0(fname, BishopValue);                                   \
+    ENABLE_0(fname, RookValue);                                     \
+    ENABLE_0(fname, QueenValue);                                    \
+    ENABLE_0(fname, KingValue);                                     \
+    ENABLE_1(fname, PawnPSQT32, 32);                                \
+    ENABLE_1(fname, KnightPSQT32, 32);                              \
+    ENABLE_1(fname, BishopPSQT32, 32);                              \
+    ENABLE_1(fname, RookPSQT32, 32);                                \
+    ENABLE_1(fname, QueenPSQT32, 32);                               \
+    ENABLE_1(fname, KingPSQT32, 32);                                \
+    ENABLE_0(fname, PawnIsolated);                                  \
+    ENABLE_0(fname, PawnStacked);                                   \
+    ENABLE_1(fname, PawnBackwards, 2);                              \
+    ENABLE_1(fname, PawnConnected32, 32);                           \
+    ENABLE_1(fname, KnightOutpost, 2);                              \
+    ENABLE_0(fname, KnightBehindPawn);                              \
+    ENABLE_1(fname, KnightMobility, 9);                             \
+    ENABLE_0(fname, BishopPair);                                    \
+    ENABLE_0(fname, BishopRammedPawns);                             \
+    ENABLE_1(fname, BishopOutpost, 2);                              \
+    ENABLE_0(fname, BishopBehindPawn);                              \
+    ENABLE_1(fname, BishopMobility, 14);                            \
+    ENABLE_1(fname, RookFile, 2);                                   \
+    ENABLE_0(fname, RookOnSeventh);                                 \
+    ENABLE_1(fname, RookMobility, 15);                              \
+    ENABLE_1(fname, QueenMobility, 28);                             \
+    ENABLE_1(fname, KingDefenders, 12);                             \
+    ENABLE_3(fname, KingShelter, 2, 8, 8);                          \
+    ENABLE_3(fname, PassedPawn, 2, 2, 8);                           \
+    ENABLE_0(fname, PassedFriendlyDistance);                        \
+    ENABLE_0(fname, PassedEnemyDistance);                           \
+    ENABLE_0(fname, PassedSafePromotionPath);                       \
+    ENABLE_0(fname, ThreatWeakPawn);                                \
+    ENABLE_0(fname, ThreatMinorAttackedByPawn);                     \
+    ENABLE_0(fname, ThreatMinorAttackedByMajor);                    \
+    ENABLE_0(fname, ThreatRookAttackedByLesser);                    \
+    ENABLE_0(fname, ThreatQueenAttackedByOne);                      \
+    ENABLE_0(fname, ThreatOverloadedPieces);                        \
+    ENABLE_0(fname, ThreatByPawnPush);                              \
 } while (0)
 
 #endif

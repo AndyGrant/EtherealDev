@@ -285,49 +285,9 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
 void initCoefficients(int coeffs[NTERMS]) {
 
-    int i = 0; // INIT_COEFF_N will update i accordingly
+    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
 
-    ENABLE_0(INIT_COEFF, PawnValue)                     ;
-    ENABLE_0(INIT_COEFF, KnightValue)                   ;
-    ENABLE_0(INIT_COEFF, BishopValue)                   ;
-    ENABLE_0(INIT_COEFF, RookValue)                     ;
-    ENABLE_0(INIT_COEFF, QueenValue)                    ;
-    ENABLE_0(INIT_COEFF, KingValue)                     ;
-    ENABLE_1(INIT_COEFF, PawnPSQT32, 32)                ;
-    ENABLE_1(INIT_COEFF, KnightPSQT32, 32)              ;
-    ENABLE_1(INIT_COEFF, BishopPSQT32, 32)              ;
-    ENABLE_1(INIT_COEFF, RookPSQT32, 32)                ;
-    ENABLE_1(INIT_COEFF, QueenPSQT32, 32)               ;
-    ENABLE_1(INIT_COEFF, KingPSQT32, 32)                ;
-    ENABLE_0(INIT_COEFF, PawnIsolated)                  ;
-    ENABLE_0(INIT_COEFF, PawnStacked)                   ;
-    ENABLE_1(INIT_COEFF, PawnBackwards, 2)              ;
-    ENABLE_1(INIT_COEFF, PawnConnected32, 32)           ;
-    ENABLE_1(INIT_COEFF, KnightOutpost, 2)              ;
-    ENABLE_0(INIT_COEFF, KnightBehindPawn)              ;
-    ENABLE_1(INIT_COEFF, KnightMobility, 9)             ;
-    ENABLE_0(INIT_COEFF, BishopPair)                    ;
-    ENABLE_0(INIT_COEFF, BishopRammedPawns)             ;
-    ENABLE_1(INIT_COEFF, BishopOutpost, 2)              ;
-    ENABLE_0(INIT_COEFF, BishopBehindPawn)              ;
-    ENABLE_1(INIT_COEFF, BishopMobility, 14)            ;
-    ENABLE_1(INIT_COEFF, RookFile, 2)                   ;
-    ENABLE_0(INIT_COEFF, RookOnSeventh)                 ;
-    ENABLE_1(INIT_COEFF, RookMobility, 15)              ;
-    ENABLE_1(INIT_COEFF, QueenMobility, 28)             ;
-    ENABLE_1(INIT_COEFF, KingDefenders, 12)             ;
-    ENABLE_3(INIT_COEFF, KingShelter, 2, 8, 8)          ;
-    ENABLE_3(INIT_COEFF, PassedPawn, 2, 2, 8)           ;
-    ENABLE_0(INIT_COEFF, PassedFriendlyDistance)        ;
-    ENABLE_0(INIT_COEFF, PassedEnemyDistance)           ;
-    ENABLE_0(INIT_COEFF, PassedSafePromotionPath)       ;
-    ENABLE_0(INIT_COEFF, ThreatWeakPawn)                ;
-    ENABLE_0(INIT_COEFF, ThreatMinorAttackedByPawn)     ;
-    ENABLE_0(INIT_COEFF, ThreatMinorAttackedByMajor)    ;
-    ENABLE_0(INIT_COEFF, ThreatRookAttackedByLesser)    ;
-    ENABLE_0(INIT_COEFF, ThreatQueenAttackedByOne)      ;
-    ENABLE_0(INIT_COEFF, ThreatOverloadedPieces)        ;
-    ENABLE_0(INIT_COEFF, ThreatByPawnPush)              ;
+    EXECUTE_ON_TERMS(INIT_COEFF);
 
     if (i != NTERMS){
         printf("Error in initCoefficients(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -337,49 +297,9 @@ void initCoefficients(int coeffs[NTERMS]) {
 
 void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
 
-    int i = 0; // INIT_PARAM_N will update i accordingly
+    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
 
-    ENABLE_0(INIT_PARAM, PawnValue)                     ;
-    ENABLE_0(INIT_PARAM, KnightValue)                   ;
-    ENABLE_0(INIT_PARAM, BishopValue)                   ;
-    ENABLE_0(INIT_PARAM, RookValue)                     ;
-    ENABLE_0(INIT_PARAM, QueenValue)                    ;
-    ENABLE_0(INIT_PARAM, KingValue)                     ;
-    ENABLE_1(INIT_PARAM, PawnPSQT32, 32)                ;
-    ENABLE_1(INIT_PARAM, KnightPSQT32, 32)              ;
-    ENABLE_1(INIT_PARAM, BishopPSQT32, 32)              ;
-    ENABLE_1(INIT_PARAM, RookPSQT32, 32)                ;
-    ENABLE_1(INIT_PARAM, QueenPSQT32, 32)               ;
-    ENABLE_1(INIT_PARAM, KingPSQT32, 32)                ;
-    ENABLE_0(INIT_PARAM, PawnIsolated)                  ;
-    ENABLE_0(INIT_PARAM, PawnStacked)                   ;
-    ENABLE_1(INIT_PARAM, PawnBackwards, 2)              ;
-    ENABLE_1(INIT_PARAM, PawnConnected32, 32)           ;
-    ENABLE_1(INIT_PARAM, KnightOutpost, 2)              ;
-    ENABLE_0(INIT_PARAM, KnightBehindPawn)              ;
-    ENABLE_1(INIT_PARAM, KnightMobility, 9)             ;
-    ENABLE_0(INIT_PARAM, BishopPair)                    ;
-    ENABLE_0(INIT_PARAM, BishopRammedPawns)             ;
-    ENABLE_1(INIT_PARAM, BishopOutpost, 2)              ;
-    ENABLE_0(INIT_PARAM, BishopBehindPawn)              ;
-    ENABLE_1(INIT_PARAM, BishopMobility, 14)            ;
-    ENABLE_1(INIT_PARAM, RookFile, 2)                   ;
-    ENABLE_0(INIT_PARAM, RookOnSeventh)                 ;
-    ENABLE_1(INIT_PARAM, RookMobility, 15)              ;
-    ENABLE_1(INIT_PARAM, QueenMobility, 28)             ;
-    ENABLE_1(INIT_PARAM, KingDefenders, 12)             ;
-    ENABLE_3(INIT_PARAM, KingShelter, 2, 8, 8)          ;
-    ENABLE_3(INIT_PARAM, PassedPawn, 2, 2, 8)           ;
-    ENABLE_0(INIT_PARAM, PassedFriendlyDistance)        ;
-    ENABLE_0(INIT_PARAM, PassedEnemyDistance)           ;
-    ENABLE_0(INIT_PARAM, PassedSafePromotionPath)       ;
-    ENABLE_0(INIT_PARAM, ThreatWeakPawn)                ;
-    ENABLE_0(INIT_PARAM, ThreatMinorAttackedByPawn)     ;
-    ENABLE_0(INIT_PARAM, ThreatMinorAttackedByMajor)    ;
-    ENABLE_0(INIT_PARAM, ThreatRookAttackedByLesser)    ;
-    ENABLE_0(INIT_PARAM, ThreatQueenAttackedByOne)      ;
-    ENABLE_0(INIT_PARAM, ThreatOverloadedPieces)        ;
-    ENABLE_0(INIT_PARAM, ThreatByPawnPush)              ;
+    EXECUTE_ON_TERMS(INIT_PARAM);
 
     if (i != NTERMS){
         printf("Error in initCurrentParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
@@ -389,56 +309,17 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
 
 void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHASE_NB]) {
 
-    int i = 0; // PRINT_PARAM_N will update i accordingly
     int tparams[NTERMS][PHASE_NB];
 
-    // Combine original and updated, scale so PawnValue[MG] = 100
+    // Combine updated and current parameters
     for (int j = 0; j < NTERMS; j++) {
         tparams[j][MG] = params[j][MG] + cparams[j][MG];
         tparams[j][EG] = params[j][EG] + cparams[j][EG];
     }
 
-    ENABLE_0(PRINT_PARAM, PawnValue)                    ;
-    ENABLE_0(PRINT_PARAM, KnightValue)                  ;
-    ENABLE_0(PRINT_PARAM, BishopValue)                  ;
-    ENABLE_0(PRINT_PARAM, RookValue)                    ;
-    ENABLE_0(PRINT_PARAM, QueenValue)                   ;
-    ENABLE_0(PRINT_PARAM, KingValue)                    ;
-    ENABLE_1(PRINT_PARAM, PawnPSQT32, 32)               ;
-    ENABLE_1(PRINT_PARAM, KnightPSQT32, 32)             ;
-    ENABLE_1(PRINT_PARAM, BishopPSQT32, 32)             ;
-    ENABLE_1(PRINT_PARAM, RookPSQT32, 32)               ;
-    ENABLE_1(PRINT_PARAM, QueenPSQT32, 32)              ;
-    ENABLE_1(PRINT_PARAM, KingPSQT32, 32)               ;
-    ENABLE_0(PRINT_PARAM, PawnIsolated)                 ;
-    ENABLE_0(PRINT_PARAM, PawnStacked)                  ;
-    ENABLE_1(PRINT_PARAM, PawnBackwards, 2)             ;
-    ENABLE_1(PRINT_PARAM, PawnConnected32, 32)          ;
-    ENABLE_1(PRINT_PARAM, KnightOutpost, 2)             ;
-    ENABLE_0(PRINT_PARAM, KnightBehindPawn)             ;
-    ENABLE_1(PRINT_PARAM, KnightMobility, 9)            ;
-    ENABLE_0(PRINT_PARAM, BishopPair)                   ;
-    ENABLE_0(PRINT_PARAM, BishopRammedPawns)            ;
-    ENABLE_1(PRINT_PARAM, BishopOutpost, 2)             ;
-    ENABLE_0(PRINT_PARAM, BishopBehindPawn)             ;
-    ENABLE_1(PRINT_PARAM, BishopMobility, 14)           ;
-    ENABLE_1(PRINT_PARAM, RookFile, 2)                  ;
-    ENABLE_0(PRINT_PARAM, RookOnSeventh)                ;
-    ENABLE_1(PRINT_PARAM, RookMobility, 15)             ;
-    ENABLE_1(PRINT_PARAM, QueenMobility, 28)            ;
-    ENABLE_1(PRINT_PARAM, KingDefenders, 12)            ;
-    ENABLE_3(PRINT_PARAM, KingShelter, 2, 8, 8)         ;
-    ENABLE_3(PRINT_PARAM, PassedPawn, 2, 2, 8)          ;
-    ENABLE_0(PRINT_PARAM, PassedFriendlyDistance)       ;
-    ENABLE_0(PRINT_PARAM, PassedEnemyDistance)          ;
-    ENABLE_0(PRINT_PARAM, PassedSafePromotionPath)      ;
-    ENABLE_0(PRINT_PARAM, ThreatWeakPawn)               ;
-    ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByPawn)    ;
-    ENABLE_0(PRINT_PARAM, ThreatMinorAttackedByMajor)   ;
-    ENABLE_0(PRINT_PARAM, ThreatRookAttackedByLesser)   ;
-    ENABLE_0(PRINT_PARAM, ThreatQueenAttackedByOne)     ;
-    ENABLE_0(PRINT_PARAM, ThreatOverloadedPieces)       ;
-    ENABLE_0(PRINT_PARAM, ThreatByPawnPush)             ;
+    int i = 0; // PRINT_PARAM_N will update i accordingly
+
+    EXECUTE_ON_TERMS(PRINT_PARAM);
 
     if (i != NTERMS){
         printf("Error in printParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
