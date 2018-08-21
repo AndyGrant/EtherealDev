@@ -55,7 +55,6 @@ extern const int BishopPSQT32[32];
 extern const int RookPSQT32[32];
 extern const int QueenPSQT32[32];
 extern const int KingPSQT32[32];
-extern const int PawnIsolated;
 extern const int PawnStacked;
 extern const int PawnBackwards[2];
 extern const int PawnConnected32[32];
@@ -299,7 +298,6 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, RookPSQT32, 32)                ;
     ENABLE_1(INIT_COEFF, QueenPSQT32, 32)               ;
     ENABLE_1(INIT_COEFF, KingPSQT32, 32)                ;
-    ENABLE_0(INIT_COEFF, PawnIsolated)                  ;
     ENABLE_0(INIT_COEFF, PawnStacked)                   ;
     ENABLE_1(INIT_COEFF, PawnBackwards, 2)              ;
     ENABLE_1(INIT_COEFF, PawnConnected32, 32)           ;
@@ -351,7 +349,6 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, RookPSQT32, 32)                ;
     ENABLE_1(INIT_PARAM, QueenPSQT32, 32)               ;
     ENABLE_1(INIT_PARAM, KingPSQT32, 32)                ;
-    ENABLE_0(INIT_PARAM, PawnIsolated)                  ;
     ENABLE_0(INIT_PARAM, PawnStacked)                   ;
     ENABLE_1(INIT_PARAM, PawnBackwards, 2)              ;
     ENABLE_1(INIT_PARAM, PawnConnected32, 32)           ;
@@ -410,7 +407,6 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, RookPSQT32, 32)               ;
     ENABLE_1(PRINT_PARAM, QueenPSQT32, 32)              ;
     ENABLE_1(PRINT_PARAM, KingPSQT32, 32)               ;
-    ENABLE_0(PRINT_PARAM, PawnIsolated)                 ;
     ENABLE_0(PRINT_PARAM, PawnStacked)                  ;
     ENABLE_1(PRINT_PARAM, PawnBackwards, 2)             ;
     ENABLE_1(PRINT_PARAM, PawnConnected32, 32)          ;

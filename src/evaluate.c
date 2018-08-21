@@ -60,20 +60,18 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
-const int PawnIsolated = S(  -3,  -1);
-
 const int PawnStacked = S( -10, -34);
 
 const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   0, -16), S(   7,   1), S(   3,  -3), S(   5,  20),
-    S(   7,   0), S(  21,   0), S(  15,   8), S(  17,  21),
-    S(   6,   0), S(  20,   3), S(  14,   7), S(  16,  17),
-    S(   6,  11), S(  20,  20), S(  19,  24), S(  37,  24),
-    S(  23,  55), S(  24,  65), S(  66,  63), S(  50,  75),
-    S( 106, -14), S( 199,  17), S( 227,  22), S( 250,  76),
+    S(   0, -16), S(   8,   0), S(   4,  -5), S(   4,  19),
+    S(   8,   0), S(  24,   0), S(  15,   8), S(  17,  20),
+    S(   6,   0), S(  19,   3), S(  11,   6), S(  15,  17),
+    S(   6,  11), S(  20,  21), S(  20,  24), S(  34,  23),
+    S(  22,  55), S(  24,  65), S(  65,  63), S(  50,  74),
+    S( 106, -13), S( 199,  17), S( 227,  22), S( 250,  76),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
@@ -305,12 +303,6 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Save passed pawn information for later evaluation
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
-
-        // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & myPawns)) {
-            pkeval += PawnIsolated;
-            if (TRACE) T.PawnIsolated[US]++;
-        }
 
         // Apply a penalty if the pawn is stacked
         if (Files[fileOf(sq)] & tempPawns) {

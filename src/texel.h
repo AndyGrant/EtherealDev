@@ -24,13 +24,12 @@
 
 #define CLEARING    (      0) // Clear hashes between runs
 #define RESOLVE     (      0) // Resolve with qsearch
-#define NPARTITIONS (     64) // # of partitions to use
+#define NPARTITIONS (      1) // # of partitions to use
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (     32) // # of terms to tune
 #define NPOSITIONS  (1491000) // # of FENs in book
 
-// Each Eval Term (Total = 490)
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
 #define TuneBishopValue                 (0)
@@ -43,10 +42,9 @@
 #define TuneRookPSQT32                  (0)
 #define TuneQueenPSQT32                 (0)
 #define TuneKingPSQT32                  (0)
-#define TunePawnIsolated                (0)
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
-#define TunePawnConnected32             (0)
+#define TunePawnConnected32             (1)
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
 #define TuneKnightMobility              (0)

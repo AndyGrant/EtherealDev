@@ -43,7 +43,6 @@ struct EvalTrace {
     int RookPSQT32[32][COLOUR_NB];
     int QueenPSQT32[32][COLOUR_NB];
     int KingPSQT32[32][COLOUR_NB];
-    int PawnIsolated[COLOUR_NB];
     int PawnStacked[COLOUR_NB];
     int PawnBackwards[2][COLOUR_NB];
     int PawnConnected32[32][COLOUR_NB];
