@@ -317,7 +317,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
         tparams[j][EG] = params[j][EG] + cparams[j][EG];
     }
 
-    int i = 0; // PRINT_PARAM_N will update i accordingly
+    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
 
     EXECUTE_ON_TERMS(PRINT_PARAM);
 
