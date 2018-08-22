@@ -62,7 +62,7 @@ const int PieceValues[8][PHASE_NB] = {
 
 const int PawnIsolated = S(  -3,  -1);
 
-const int PawnStacked = S( -10, -34);
+const int PawnStacked = S(  -4, -36);
 
 const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
