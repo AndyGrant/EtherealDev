@@ -472,7 +472,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  best > MATED_IN_MAX
             &&  futilityMargin <= alpha
             &&  depth <= FutilityPruningDepth
-            &&  hist < FutilityPruningHistoryLimit[improving])
+            &&  hist < FutilityPruningHistoryLimit)
             skipQuiets = 1;
 
         // Step 14. Late Move Pruning / Move Count Pruning. If we have
