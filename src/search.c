@@ -348,6 +348,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
+    thread->histStack[height] = 0; // Reset history score for node
+
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
     // the Quiescence search was sufficient.
@@ -464,6 +466,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             fuhist = getFUHistoryScore(thread, height, move);
             hist   = getHistoryScore(thread, move) + cmhist + fuhist;
         }
+
+        //
+        thread->histStack[height] = isQuiet ? hist : 0;
 
         // Step 13. Futility Pruning. If our score is far below alpha, and we
         // don't expect anything from this move, we can skip all other quiets

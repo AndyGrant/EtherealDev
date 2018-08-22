@@ -41,14 +41,17 @@ struct Thread {
     uint64_t nodes;
     uint64_t tbhits;
 
+    int *histStack;
+    int _histStack[MAX_PLY+4];
+
     int *evalStack;
     int _evalStack[MAX_PLY+4];
 
-    uint16_t *moveStack;
-    uint16_t _moveStack[MAX_PLY+4];
-
     int *pieceStack;
     int _pieceStack[MAX_PLY+4];
+
+    uint16_t *moveStack;
+    uint16_t _moveStack[MAX_PLY+4];
 
     jmp_buf jbuffer;
 

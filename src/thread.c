@@ -40,14 +40,16 @@ Thread* createThreadPool(int nthreads){
         threads[i].nthreads = nthreads;
 
         // Offset stacks so root position can look backwards
-        threads[i].evalStack = &(threads[i]._evalStack[4]);
-        threads[i].moveStack = &(threads[i]._moveStack[4]);
+        threads[i].histStack  = &(threads[i]._histStack[4]);
+        threads[i].evalStack  = &(threads[i]._evalStack[4]);
         threads[i].pieceStack = &(threads[i]._pieceStack[4]);
+        threads[i].moveStack  = &(threads[i]._moveStack[4]);
 
         // Zero out the stack, most importantly the first four slots
-        memset(&threads[i]._evalStack, 0, sizeof(int) * (MAX_PLY + 4));
-        memset(&threads[i]._moveStack, 0, sizeof(uint16_t) * (MAX_PLY + 4));
-        memset(&threads[i]._pieceStack, 0, sizeof(int) * (MAX_PLY + 4));
+        memset(&threads[i]._histStack,  0, sizeof(int     ) * (MAX_PLY + 4));
+        memset(&threads[i]._evalStack,  0, sizeof(int     ) * (MAX_PLY + 4));
+        memset(&threads[i]._pieceStack, 0, sizeof(int     ) * (MAX_PLY + 4));
+        memset(&threads[i]._moveStack,  0, sizeof(uint16_t) * (MAX_PLY + 4));
     }
 
     resetThreadPool(threads);
