@@ -606,6 +606,11 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                       &  ~ei->attackedBy2[US]
                       & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
+        uint64_t weak2 =   ei->attacked[THEM]
+                       &  ~ei->attackedBy2[US]
+                       & (~ei->attacked[US] | ei->attackedBy[US][QUEEN]
+                         | ei->attackedBy[US][ROOK] | ei->attackedBy[US][KING]);
+
         // Usually the King Area is 9 squares. Scale are attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
@@ -634,8 +639,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+               + KSWeakSquares     * popcount(weak2 & ei->kingAreas[US])
+               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak2)
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * !!queenChecks
                + KSSafeRookCheck   * !!rookChecks
