@@ -308,7 +308,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is isolated,
         if (  !(isolatedPawnMasks(sq) & myPawns)
-            && (isolatedPawnMasks(sq) & enemyPawns)) {
+            && (enemyPawns && Files[fileOf(sq)])) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
