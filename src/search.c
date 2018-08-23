@@ -544,6 +544,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.killer2
               || move == movePicker.counter;
 
+
+            R -= move == movePicker.counter
+              && (   move == movePicker.killer1
+                  || move == movePicker.killer2);
+
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
 
