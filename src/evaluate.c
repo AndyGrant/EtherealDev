@@ -64,6 +64,8 @@ const int PawnIsolated = S(  -3,  -1);
 
 const int PawnStacked = S( -10, -34);
 
+const int PawnTrapped = S(  10,  -8);
+
 const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
 const int PawnConnected32[32] = {
@@ -306,19 +308,28 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
 
-        // Apply a penalty if the pawn is isolated
+        // Penalty if the pawn is isolated
         if (!(isolatedPawnMasks(sq) & myPawns)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
 
-        // Apply a penalty if the pawn is stacked
+        // Penalty if the pawn is stacked or doubled
         if (Files[fileOf(sq)] & tempPawns) {
             pkeval += PawnStacked;
             if (TRACE) T.PawnStacked[US]++;
         }
 
-        // Apply a penalty if the pawn is backward
+        // Penalty for a rammed pawn on the starting squares.
+        // Only apply the penalty if we cannt capture the rammer.
+        if (    relativeRankOf(US, sq) == 1
+            &&  testBit(enemyPawns, sq + Forward)
+            && !testBit(ei->pawnAttacks[US], sq + Forward)) {
+            eval += PawnTrapped;
+            if (TRACE) T.PawnTrapped[US]++;
+        }
+
+        // Penalty if the pawn is backwards
         if (   !(passedPawnMasks(THEM, sq) & myPawns)
             &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
             semi = !(Files[fileOf(sq)] & enemyPawns);
@@ -326,7 +337,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
-        // Apply a bonus if the pawn is connected and not backward
+        // Bonus if the pawn is connected and not backwards
         else if (pawnConnectedMasks(US, sq) & myPawns) {
             pkeval += PawnConnected32[relativeSquare32(sq, US)];
             if (TRACE) T.PawnConnected32[relativeSquare32(sq, US)][US]++;
