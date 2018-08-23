@@ -456,6 +456,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     initMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
 
+        int special = move == movePicker.killer1
+                   || move == movePicker.killer2
+                   || move == movePicker.counter;
+
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
@@ -534,15 +538,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV nodes
-            R += !PvNode;
+            R += !PvNode && !special;
 
             // Increase for non improving nodes
             R += !improving;
 
             // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
+            R -= special;
 
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
