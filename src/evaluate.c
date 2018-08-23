@@ -64,7 +64,7 @@ const int PawnIsolated = S(  -3,  -1);
 
 const int PawnStacked = S( -10, -34);
 
-const int PawnThorn = S(  -4,  12);
+const int PawnThorn = S(  -3,  28);
 
 const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
@@ -321,6 +321,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         if (   !testBit(ei->pawnAttacks[THEM], sq)
+            &&  testBit(enemyPawns, sq + (US == WHITE ? 8 : -8))
             &&  relativeRankOf(US, sq) == 5
             &&  relativeRankOf(US, ei->kingSquare[THEM]) == 7
             &&  abs(fileOf(sq) - fileOf(ei->kingSquare[THEM])) <= 1) {
