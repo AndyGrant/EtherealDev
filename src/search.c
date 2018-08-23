@@ -112,6 +112,11 @@ void* iterativeDeepening(void* vthread){
     // Perform iterative deepening until exit conditions
     for (int depth = 1; depth < MAX_PLY; depth++){
 
+        // Need to know depth to make sure we don't exit out of
+        // a search due to time limitations when we have not yet
+        // completed a depth 1 search to get a legal best move
+        thread->depth = depth;
+
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
 
