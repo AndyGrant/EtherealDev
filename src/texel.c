@@ -90,7 +90,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 1000.0;
+    double K, thisError, bestError = 1e6, baseRate = 100.0;
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 

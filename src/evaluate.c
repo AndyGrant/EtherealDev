@@ -64,7 +64,7 @@ const int PawnIsolated = S(  -3,  -1);
 
 const int PawnStacked = S( -10, -34);
 
-const int PawnThorn = S(  10,  20);
+const int PawnThorn = S(  -4,  12);
 
 const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
