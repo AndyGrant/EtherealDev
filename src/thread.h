@@ -34,7 +34,6 @@ struct Thread {
     Board board;
     PVariation pv;
 
-    int value;
     int depth;
     int seldepth;
 

@@ -46,13 +46,13 @@
 #include "uci.h"
 #include "windows.h"
 
+
 int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
-pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER; // Global LOCK for threads
 
 void initSearch(){
 
@@ -101,46 +101,29 @@ void* iterativeDeepening(void* vthread){
     Thread* const thread   = (Thread*) vthread;
     SearchInfo* const info = thread->info;
     Limits* const limits   = thread->limits;
-    const int mainThread   = thread == &thread->threads[0];
+    const int mainThread   = thread->index == 0;
 
-    int i, count, value, depth;
+    // Zero out aspiration, compute thread cycle
+    int value = 0, cycle = thread->index % SMPCycles;
 
     // Bind to optimal group
     bindThisThread(thread->index);
 
-    for (depth = 1; depth < MAX_PLY; depth++){
-
-        // Always acquire the lock before setting thread->depth. thread->depth
-        // is needed by others to determine when to skip certain search iterations
-        pthread_mutex_lock(&LOCK);
-
-        thread->depth = depth;
-
-        // Helper threads are subject to skipping depths in order to better help
-        // the main thread, based on the number of threads already on some depths
-        if (!mainThread){
-
-            for (count = 0, i = 1; i < thread->nthreads; i++)
-                count += thread != &thread->threads[i] && thread->threads[i].depth >= depth;
-
-            if (depth > 1 && thread->nthreads > 1 && count >= thread->nthreads / 2){
-                thread->depth = depth + 1;
-                pthread_mutex_unlock(&LOCK);
-                continue;
-            }
-        }
-
-        // Drop the lock as we have finished depth scheduling
-        pthread_mutex_unlock(&LOCK);
+    // Perform iterative deepening until exit conditions
+    for (int depth = 1; depth < MAX_PLY; depth++){
 
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
 
         // Perform the actual search for the current depth. Store each
         // search into thread->value, to create aspiration windows
-        thread->value = value = aspirationWindow(thread, depth);
+        value = aspirationWindow(thread, depth, value);
 
-        // Helper threads need not worry about time and search info updates
+        // Occasionally skip depths for the helper threads
+        if (!mainThread && (depth + cycle) % SkipDepths[cycle] == 0)
+            depth += SkipSize[cycle];
+
+        // Helper threads continue searching
         if (!mainThread) continue;
 
         // Update the Search Info structure for the main thread
@@ -148,7 +131,6 @@ void* iterativeDeepening(void* vthread){
         info->values[depth]      = value;
         info->bestMoves[depth]   = thread->pv.line[0];
         info->ponderMoves[depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
-        info->timeUsage[depth]   = elapsedTime(info) - info->timeUsage[depth-1];
 
         // Send information about this search to the interface
         uciReport(thread->threads, -MATE, MATE, value);
@@ -167,14 +149,15 @@ void* iterativeDeepening(void* vthread){
             break;
     }
 
+    // Main thread should kill others when finishing
     if (mainThread) ABORT_SIGNAL = 1;
 
     return NULL;
 }
 
-int aspirationWindow(Thread* thread, int depth){
+int aspirationWindow(Thread* thread, int depth, int lastValue){
 
-    const int mainThread = thread == &thread->threads[0];
+    const int mainThread = thread->index == 0;
 
     int alpha, beta, value, delta = 14;
 
@@ -183,8 +166,8 @@ int aspirationWindow(Thread* thread, int depth){
         return search(thread, &thread->pv, -MATE, MATE, depth, 0);
 
     // Create the aspiration window
-    alpha = MAX(-MATE, thread->value - delta);
-    beta  = MIN( MATE, thread->value + delta);
+    alpha = MAX(-MATE, lastValue - delta);
+    beta  = MIN( MATE, lastValue + delta);
 
     // Keep trying larger windows until one works
     while (1) {
