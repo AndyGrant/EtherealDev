@@ -562,11 +562,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
-        // Step 19B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
+        // Step 19B. Check Extensions. We extend moves quiets that come from
+        // in check positions, so long as no other extensions have occured
         extension += !RootNode
                   &&  inCheck
-                  && !extension;
+                  && !extension
+                  && !skipQuiets;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
