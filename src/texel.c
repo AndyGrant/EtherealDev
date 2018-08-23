@@ -57,6 +57,7 @@ extern const int QueenPSQT32[32];
 extern const int KingPSQT32[32];
 extern const int PawnIsolated;
 extern const int PawnStacked;
+extern const int PawnThorn;
 extern const int PawnBackwards[2];
 extern const int PawnConnected32[32];
 extern const int KnightOutpost[2];
@@ -89,7 +90,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
+    double K, thisError, bestError = 1e6, baseRate = 1000.0;
     double params[NTERMS][PHASE_NB] = {{0}, {0}};
     double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
 
@@ -301,6 +302,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     ENABLE_1(INIT_COEFF, KingPSQT32, 32)                ;
     ENABLE_0(INIT_COEFF, PawnIsolated)                  ;
     ENABLE_0(INIT_COEFF, PawnStacked)                   ;
+    ENABLE_0(INIT_COEFF, PawnThorn)                     ;
     ENABLE_1(INIT_COEFF, PawnBackwards, 2)              ;
     ENABLE_1(INIT_COEFF, PawnConnected32, 32)           ;
     ENABLE_1(INIT_COEFF, KnightOutpost, 2)              ;
@@ -353,6 +355,7 @@ void initCurrentParameters(double cparams[NTERMS][PHASE_NB]) {
     ENABLE_1(INIT_PARAM, KingPSQT32, 32)                ;
     ENABLE_0(INIT_PARAM, PawnIsolated)                  ;
     ENABLE_0(INIT_PARAM, PawnStacked)                   ;
+    ENABLE_0(INIT_PARAM, PawnThorn)                     ;
     ENABLE_1(INIT_PARAM, PawnBackwards, 2)              ;
     ENABLE_1(INIT_PARAM, PawnConnected32, 32)           ;
     ENABLE_1(INIT_PARAM, KnightOutpost, 2)              ;
@@ -412,6 +415,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
     ENABLE_1(PRINT_PARAM, KingPSQT32, 32)               ;
     ENABLE_0(PRINT_PARAM, PawnIsolated)                 ;
     ENABLE_0(PRINT_PARAM, PawnStacked)                  ;
+    ENABLE_0(PRINT_PARAM, PawnThorn)                    ;
     ENABLE_1(PRINT_PARAM, PawnBackwards, 2)             ;
     ENABLE_1(PRINT_PARAM, PawnConnected32, 32)          ;
     ENABLE_1(PRINT_PARAM, KnightOutpost, 2)             ;

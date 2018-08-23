@@ -64,6 +64,8 @@ const int PawnIsolated = S(  -3,  -1);
 
 const int PawnStacked = S( -10, -34);
 
+const int PawnThorn = S(  10,  20);
+
 const int PawnBackwards[2] = { S(   7,  -2), S( -10, -13) };
 
 const int PawnConnected32[32] = {
@@ -316,6 +318,14 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (Files[fileOf(sq)] & tempPawns) {
             pkeval += PawnStacked;
             if (TRACE) T.PawnStacked[US]++;
+        }
+
+        if (   !testBit(ei->pawnAttacks[THEM], sq)
+            &&  relativeRankOf(US, sq) == 5
+            &&  relativeRankOf(US, ei->kingSquare[THEM]) == 7
+            &&  abs(fileOf(sq) - fileOf(ei->kingSquare[THEM])) <= 1) {
+            eval += PawnThorn;
+            if (TRACE) T.PawnThorn[US]++;
         }
 
         // Apply a penalty if the pawn is backward
