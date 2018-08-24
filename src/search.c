@@ -223,10 +223,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     Board* const board = &thread->board;
 
     unsigned tbresult;
-    int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0, singular = 0;
+    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0, skipQuiets = 0;
     int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, skipQuiets = 0;
+    int inCheck, isQuiet, improving, extension;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -529,7 +529,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 18. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1){
+        if (isQuiet && depth > 2 && played > 1 + singular){
 
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
@@ -561,6 +561,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  ttDepth >= depth - 3
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+
+        singular = extension;
 
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
