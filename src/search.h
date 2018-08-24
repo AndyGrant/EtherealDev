@@ -108,8 +108,8 @@ static const int QSEEMargin = 1;
 static const int QFutilityMargin = 100;
 
 static const int SEEPieceValues[] = {
-     100,  450,  450,  675,
-    1300,    0,    0,    0,
+     100,  400,  400,  600,
+    1200,    0,    0,    0,
 };
 
 #endif
