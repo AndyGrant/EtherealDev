@@ -536,8 +536,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non PV nodes
             R += !PvNode;
 
-            // Increase for non improving nodes
-            R += !improving;
+            // Increase for non improving nodes when not given a double move
+            R += !improving && thread->moveStack[height-1] != NULL_MOVE;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
