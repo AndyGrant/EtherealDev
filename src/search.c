@@ -176,7 +176,7 @@ int aspirationWindow(Thread* thread, int depth){
 
     const int mainThread = thread == &thread->threads[0];
 
-    int alpha, beta, value, delta = 17;
+    int alpha, beta, value, delta = 10;
 
     // Need a few searches to get a good window
     if (depth <= 4)
@@ -211,7 +211,7 @@ int aspirationWindow(Thread* thread, int depth){
             beta = MIN(MATE, beta + delta);
 
         // Expand the search window
-        delta = delta + delta / 3;
+        delta += 4 + delta / 2;
     }
 }
 
