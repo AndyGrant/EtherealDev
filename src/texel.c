@@ -89,9 +89,9 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
-    double K, thisError, bestError = 1e6, baseRate = 10.0;
-    double params[NTERMS][PHASE_NB] = {{0}, {0}};
-    double cparams[NTERMS][PHASE_NB] = {{0}, {0}};
+    double K, thisError, bestError = 1e6;
+    double params[NTERMS][PHASE_NB] = {0};
+    double cparams[NTERMS][PHASE_NB] = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -119,9 +119,7 @@ void runTexelTuning(Thread *thread) {
 
     while (1) {
 
-        iteration++;
-
-        if (iteration % 25 == 0) {
+        if (++iteration % REPORTING == 0) {
 
             // Check for a regression in the tuning process
             thisError = completeLinearError(tes, params, K);
@@ -130,14 +128,14 @@ void runTexelTuning(Thread *thread) {
 
             // Update our best and record the current parameters
             bestError = thisError;
-            printParameters(params, cparams);
             printf("\nIteration [%d] Error = %g \n", iteration, bestError);
+            printParameters(params, cparams);
         }
 
-        double gradients[NTERMS][PHASE_NB] = {{0}, {0}};
+        double gradients[NTERMS][PHASE_NB] = {0};
         #pragma omp parallel shared(gradients)
         {
-            double localgradients[NTERMS][PHASE_NB] = {{0}, {0}};
+            double localgradients[NTERMS][PHASE_NB] = {0};
             #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS)
             for (i = 0; i < NPOSITIONS; i++) {
 
@@ -169,15 +167,15 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * baseRate * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][EG];
         }
     }
 }
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
-    int i, j, k;
+    int i, j, k, eval;
     Undo undo[1];
     Limits limits;
     int coeffs[NTERMS];
@@ -216,9 +214,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
         // Clear out all of the hash and history tables. This is extemely slow!
-        // for correctness this must be done, but you can likely get away without
-        // doing it. For high depth this is less of an issue and should be cleared.
-        if (CLEARING) resetThreadPool(thread), clearTT();
+        // For correctness this must be done, but you can likely get away with it.
+        if (CLEARING && NDEPTHS) resetThreadPool(thread), clearTT();
 
         // Setup the board with the FEN from the FENS file
         boardFromFEN(&thread->board, line);
@@ -237,7 +234,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
 
         // Use a iterative deepening to get a predictive evaluation
-        for (int depth = 0; depth <= NDEPTHS; depth++)
+        for (int depth = 1; depth <= NDEPTHS; depth++)
             tes[i].eval = search(thread, &thread->pv, -MATE, MATE, depth, 0);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
 
@@ -250,8 +247,12 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL);
+        eval = evaluateBoard(&thread->board, NULL);
         initCoefficients(coeffs);
+
+        // When using NDEPTHS=0, use the proper evaluation
+        if (NDEPTHS == 0)
+            tes[i].eval = thread->board.turn == WHITE ? eval : -eval;
 
         // Count up the non zero evaluation terms
         for (k = 0, j = 0; j < NTERMS; j++)

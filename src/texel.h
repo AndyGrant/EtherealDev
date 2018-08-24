@@ -22,13 +22,15 @@
 
 #include "types.h"
 
-#define CLEARING    (      0) // Clear hashes between runs
-#define RESOLVE     (      0) // Resolve with qsearch
-#define NPARTITIONS (     64) // # of partitions to use
+#define CLEARING    (      1) // Clear hashes between runs
+#define RESOLVE     (      1) // Resolve with qsearch
+#define NPARTITIONS (     64) // Total thread partitions
+#define LEARNING    (    0.1) // Learning rate step size
+#define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
 #define NTERMS      (      2) // # of terms to tune
-#define NPOSITIONS  (1491000) // # of FENs in book
+#define NPOSITIONS  ( 177489) // # of FENs in book
 
 #define TunePawnValue                   (1)
 #define TuneKnightValue                 (1)
@@ -73,7 +75,7 @@
 #define TuneThreatByPawnPush            (0)
 
 // Size of each allocated chunk
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
 
 struct TexelTuple {
     int index;
@@ -183,7 +185,6 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
 #define EXECUTE_ON_TERMS(fname) do {                            \
     ENABLE_0(fname, PawnValue);                                 \
-    ENABLE_0(fname, KnightValue);                               \
     ENABLE_0(fname, KnightValue);                               \
     ENABLE_0(fname, BishopValue);                               \
     ENABLE_0(fname, RookValue);                                 \
