@@ -613,7 +613,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // Safe target squares are defended or are weak and attacked by two.
         // We exclude squares containing pieces which we cannot capture.
         uint64_t safe =  ~board->colours[THEM]
-                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
+                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]) | ei->attackedBy[THEM][PAWN]);
 
         // Find square and piece combinations which would check our King
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
