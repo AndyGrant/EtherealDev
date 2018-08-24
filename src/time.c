@@ -91,8 +91,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
 void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value){
 
-    const uint16_t thisMove = info->bestMoves[depth];
-    const uint16_t lastMove = info->bestMoves[depth-1];
+    const uint16_t best    = info->bestMoves[depth];
+    const uint16_t best_d1 = info->bestMoves[depth-1];
+    const uint16_t best_d2 = info->bestMoves[depth-2];
     const int lastValue     = info->values[depth-1];
 
     // Don't adjust time when we are at low depths, or if
@@ -123,8 +124,12 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
 
+    // Scale back faster if we jumped back to the PV move
+    if (best == best_d2)
+        info->pvFactor = MAX(0, info->pvFactor - 1);
+
     // Increase time if the PV changed moves
-    if (thisMove != lastMove)
+    if (best != best_d1)
         info->pvFactor = PVFactorCount;
 }
 
