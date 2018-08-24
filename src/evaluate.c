@@ -169,6 +169,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSPawnLessFiles   =   16;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -631,6 +632,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
                                                      & ~ei->attackedBy[  US][QUEEN ];
 
+        int pawnLessFiles = !(Files[kingFile] & myPawns)
+                          + !(Files[MAX(0, kingFile-1)] & myPawns)
+                          + !(Files[MIN(FILE_NB, kingFile+1)] & myPawns);
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
@@ -641,6 +646,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * !!rookChecks
                + KSSafeBishopCheck * !!bishopChecks
                + KSSafeKnightCheck * !!knightChecks
+               + KSPawnLessFiles   * pawnLessFiles
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
