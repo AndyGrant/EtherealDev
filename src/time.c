@@ -101,24 +101,20 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
+    if (lastValue > value + 15)
+        info->idealUsage *= 1.030;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
-        info->idealUsage *= 1.050;
+    if (lastValue > value + 30)
+        info->idealUsage *= 1.060;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 15 < value)
-        info->idealUsage *= 1.025;
+        info->idealUsage *= 1.030;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
+        info->idealUsage *= 1.060;
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
