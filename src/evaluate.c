@@ -164,6 +164,7 @@ const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
+const int KSEnemyPassers    =   22;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
@@ -578,6 +579,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     int count, eval = 0, pkeval = 0;
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
+    uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
@@ -636,6 +638,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+               + KSEnemyPassers    * popcount(enemyPawns & ei->passedPawns)
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * !!queenChecks
                + KSSafeRookCheck   * !!rookChecks
