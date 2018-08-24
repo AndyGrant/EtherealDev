@@ -540,8 +540,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            R += singular != NONE_MOVE && hist < 0;
-
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
@@ -572,7 +570,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
                   &&  inCheck
-                  && !extension;
+                  && !extension
+                  &&  singular == NONE_MOVE;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
