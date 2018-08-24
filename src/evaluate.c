@@ -190,7 +190,7 @@ const int PassedEnemyDistance = S(   0,   8);
 
 const int PassedSafePromotionPath = S(   2,  25);
 
-/* Threat Evaluation Terms */
+/* Threat Evaluation Terms  */
 
 const int ThreatWeakPawn             = S( -37, -39);
 const int ThreatMinorAttackedByPawn  = S( -68, -54);
