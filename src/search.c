@@ -558,7 +558,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension =  !RootNode
                   &&  depth >= 10
                   &&  move == ttMove
-                  &&  ttDepth >= depth - (PvNode ? 2 : 4)
+                  &&  ttDepth >= depth - (PvNode ? 4 : 2)
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
