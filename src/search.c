@@ -548,10 +548,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= MAX(-2, MIN(2, hist / 5000));
 
             // Adjust based on Counter Move history
-            R -= MAX(-1, MIN(1, cmhist / 7500));
+            R -= MAX(-1, MIN(1, cmhist / 5000));
 
             // Adjust based on Follow Up Move history
-            R -= MAX(-1, MIN(1, fuhist / 7500));
+            R -= MAX(-1, MIN(1, fuhist / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
