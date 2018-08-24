@@ -192,7 +192,8 @@ const int PassedSafePromotionPath = S(   2,  25);
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -37, -39);
+const int ThreatWeakPawnOutside      = S( -32, -35);
+const int ThreatWeakPawnInsidee      = S( -42, -42);
 const int ThreatMinorAttackedByPawn  = S( -68, -54);
 const int ThreatMinorAttackedByMajor = S( -47, -44);
 const int ThreatRookAttackedByLesser = S( -55, -25);
@@ -754,10 +755,15 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
-    // Penalty for each of our poorly supported pawns
-    count = popcount(pawns & ~attacksByPawns & poorlyDefended);
-    eval += count * ThreatWeakPawn;
-    if (TRACE) T.ThreatWeakPawn[US] += count;
+    // Penalty for each of our poorly supported pawns outside the king area
+    count = popcount(pawns & ~attacksByPawns & poorlyDefended & ~ei->kingAreas[US]);
+    eval += count * ThreatWeakPawnOutside;
+    // if (TRACE) T.ThreatWeakPawn[US] += count;
+
+    // Penalty for each of our poorly supported pawns inside the king area
+    count = popcount(pawns & ~attacksByPawns & poorlyDefended & ei->kingAreas[US]);
+    eval += count * ThreatWeakPawnInside;
+    // if (TRACE) T.ThreatWeakPawn[US] += count;
 
     // Penalty for pawn threats against our minors
     count = popcount((knights | bishops) & attacksByPawns);
