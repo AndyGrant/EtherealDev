@@ -135,8 +135,8 @@ const int QueenMobility[28] = {
 
 const int KingDefenders[12] = {
     S( -32,  -3), S( -15,   7), S(   0,   1), S(   9,  -1),
-    S(  23,  -6), S(  34,   3), S(  32,  12), S(  24,   0),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
+    S(  23,  -6), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
