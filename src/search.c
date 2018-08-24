@@ -228,7 +228,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
-    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
+    uint16_t move, quietsTried[MAX_MOVES];
+    uint16_t singular = NONE_MOVE, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
 
     Undo undo[1];
     MovePicker movePicker;
@@ -539,6 +540,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            R += singular != NONE_MOVE;
+
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
@@ -561,6 +564,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  ttDepth >= depth - 3
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+
+        // Save the fact that we had a singular move
+        if (extension) singular = ttMove;
 
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
