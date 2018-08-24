@@ -920,7 +920,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int ttBound, Un
     Board* const board = &thread->board;
 
     int value = -MATE;
-    int rBeta = ttBound == BOUND_EXACT ? MAX(ttValue - 1 * depth, -MATE);
+    int rBeta = ttBound == BOUND_EXACT ? MAX(ttValue - 1 * depth, -MATE)
                                        : MAX(ttValue - 2 * depth, -MATE);
 
     uint16_t move;
