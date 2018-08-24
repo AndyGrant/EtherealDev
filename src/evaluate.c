@@ -169,7 +169,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSPawnLessFiles   =   16;
+const int KSPawnLessFiles   =   10;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
