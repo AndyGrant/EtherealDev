@@ -560,7 +560,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  move == ttMove
                   &&  ttDepth >= depth - 3
                   && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+                  &&  moveIsSingular(thread, ttMove, ttValue, ttBound, undo, depth, height);
 
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
@@ -915,12 +915,13 @@ int bestTacticalMoveValue(Board* board){
     return value;
 }
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height){
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int ttBound, Undo* undo, int depth, int height){
 
     Board* const board = &thread->board;
 
     int value = -MATE;
-    int rBeta = MAX(ttValue - 2 * depth, -MATE);
+    int rBeta = ttBound == BOUND_EXACT ? MAX(ttValue - 1 * depth, -MATE);
+                                       : MAX(ttValue - 2 * depth, -MATE);
 
     uint16_t move;
     MovePicker movePicker;
