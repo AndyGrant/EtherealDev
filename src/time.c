@@ -124,13 +124,9 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
 
-    // Scale back faster if we jumped back to the PV move
-    if (best == best_d2)
-        info->pvFactor = MAX(0, info->pvFactor - 1);
-
     // Increase time if the PV changed moves
     if (best != best_d1)
-        info->pvFactor = PVFactorCount;
+        info->pvFactor = (best != best_d2) ? PVFactorCount : PVFactorCount / 2;
 }
 
 int terminateTimeManagment(SearchInfo* info) {
