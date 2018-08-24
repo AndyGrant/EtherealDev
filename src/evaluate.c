@@ -184,11 +184,11 @@ const int PassedPawn[2][2][RANK_NB] = {
     S(   0, 103), S(  45, 225), S( 127, 384), S(   0,   0)}},
 };
 
-const int PassedFriendlyDistance = S(   2,  -7);
+const int PassedFriendlyDistance = S(   0,  -9);
 
-const int PassedEnemyDistance = S(   0,   8);
+const int PassedEnemyDistance = S(   0,   9);
 
-const int PassedSafePromotionPath = S(   2,  25);
+const int PassedSafePromotionPath = S(   0,  32);
 
 /* Threat Evaluation Terms */
 
