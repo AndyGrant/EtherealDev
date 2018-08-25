@@ -29,11 +29,11 @@
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      2) // # of terms to tune
-#define NPOSITIONS  ( 177489) // # of FENs in book
+#define NTERMS      (      0) // # of terms to tune
+#define NPOSITIONS  (1491723) // # of FENs in book
 
-#define TunePawnValue                   (1)
-#define TuneKnightValue                 (1)
+#define TunePawnValue                   (0)
+#define TuneKnightValue                 (0)
 #define TuneBishopValue                 (0)
 #define TuneRookValue                   (0)
 #define TuneQueenValue                  (0)
