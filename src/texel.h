@@ -29,11 +29,11 @@
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      2) // # of terms to tune
-#define NPOSITIONS  ( 177489) // # of FENs in book
+#define NTERMS      (     66) // # of terms to tune
+#define NPOSITIONS  (1364312) // # of FENs in book
 
-#define TunePawnValue                   (1)
-#define TuneKnightValue                 (1)
+#define TunePawnValue                   (0)
+#define TuneKnightValue                 (0)
 #define TuneBishopValue                 (0)
 #define TuneRookValue                   (0)
 #define TuneQueenValue                  (0)
@@ -50,16 +50,16 @@
 #define TunePawnConnected32             (0)
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
-#define TuneKnightMobility              (0)
+#define TuneKnightMobility              (1)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
 #define TuneBishopOutpost               (0)
 #define TuneBishopBehindPawn            (0)
-#define TuneBishopMobility              (0)
+#define TuneBishopMobility              (1)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
-#define TuneRookMobility                (0)
-#define TuneQueenMobility               (0)
+#define TuneRookMobility                (1)
+#define TuneQueenMobility               (1)
 #define TuneKingDefenders               (0)
 #define TuneKingShelter                 (0)
 #define TunePassedPawn                  (0)
