@@ -29,6 +29,7 @@
 
 int DistanceBetween[SQUARE_NB][SQUARE_NB];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
+uint64_t RanksAboveMasks[COLOUR_NB][RANK_NB];
 uint64_t RanksAtOrAboveMasks[COLOUR_NB][RANK_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
@@ -56,6 +57,15 @@ void initMasks() {
     }
 
     // Initalize ranks above masks
+    for (int r = 0; r < RANK_NB; r++) {
+        for (int i = r + 1; i < RANK_NB; i++)
+            RanksAboveMasks[WHITE][r] |= Ranks[i];
+
+        for (int i = r - 1; i >= 0; i--)
+            RanksAboveMasks[BLACK][r] |= Ranks[i];
+    }
+
+    // Initalize ranks at or above masks
     for (int r = 0; r < RANK_NB; r++) {
         for (int i = r; i < RANK_NB; i++)
             RanksAtOrAboveMasks[WHITE][r] |= Ranks[i];
@@ -113,6 +123,12 @@ uint64_t bitsBetweenMasks(int s1, int s2) {
     assert(0 <= s1 && s1 < SQUARE_NB);
     assert(0 <= s2 && s2 < SQUARE_NB);
     return BitsBetweenMasks[s1][s2];
+}
+
+uint64_t ranksAboveMasks(int c, int r) {
+    assert(0 <= c && c < COLOUR_NB);
+    assert(0 <= r && r < RANK_NB);
+    return RanksAboveMasks[c][r];
 }
 
 uint64_t ranksAtOrAboveMasks(int c, int r) {

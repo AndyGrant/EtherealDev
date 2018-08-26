@@ -175,13 +175,13 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
 };
 
 const int KingStorm[2][FILE_NB/2][RANK_NB] = {
-  {{S(   2,   6), S(  33,  21), S(  -6,   9), S( -14,   4),
+  {{S(   0,   0), S(  33,  21), S(  -6,   9), S( -14,   4),
     S(  -2,  -1), S(  -6,  -2), S( -12,   3), S(  -3,   3)},
-   {S(   5,  25), S(  12,  19), S(  -7,   4), S(  -5,  -2),
+   {S(   0,   0), S(  12,  19), S(  -7,   4), S(  -5,  -2),
     S(   0,  -1), S(   4,  -7), S(   1,   4), S(  -5,   8)},
-   {S(   3,  17), S(   3,  20), S( -12,   4), S( -18,   0),
+   {S(   0,   0), S(   3,  20), S( -12,   4), S( -18,   0),
     S(   3,  -4), S(   2,  -3), S(   0,   0), S(   3,   3)},
-   {S(   5,  16), S(   6,  20), S(  -6,  -5), S( -20,  -7),
+   {S(   0,   0), S(   6,  20), S(  -6,  -5), S( -20,  -7),
     S(  -9,  -5), S(   3, -10), S(  -1,  -4), S( -14,   3)}},
   {{S(   0,   0), S(   0,   0), S(   7, -12), S(  21, -14),
     S(   6,  -1), S(  -2,  -6), S(  -7,  -1), S(   0,   1)},
@@ -695,8 +695,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t ours = myPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
         int ourDist = !ours ? 7 : abs(kingRank - rankOf(backmost(US, ours)));
 
-        // Find closest enemy pawn at or above our King on a given file
-        uint64_t theirs = enemyPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
+        // Find closest enemy pawn above our King on a given file
+        uint64_t theirs = enemyPawns & Files[file] & ranksAboveMasks(US, kingRank);
         int theirDist = !theirs ? 7 : abs(kingRank - rankOf(backmost(US, theirs)));
 
         // Evaluate King Shelter using pawn distance. Use seperate evaluation
