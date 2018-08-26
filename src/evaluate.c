@@ -122,13 +122,13 @@ const int RookMobility[15] = {
 /* Queen Evaluation Terms */
 
 const int QueenMobility[28] = {
-    S( -61,-263), S(-216,-389), S( -46,-204), S( -32,-189),
-    S( -23,-132), S( -18, -70), S( -14, -89), S( -11, -74),
-    S(  -6, -58), S(  -5, -48), S(  -3, -30), S(  -1, -24),
-    S(   1, -15), S(   2,  -7), S(   0,  -2), S(  -2,   5),
-    S(  -6,  12), S(  -8,  13), S(   3,  19), S(  -1,  20),
-    S(  -1,  18), S(  17,  21), S(   5,   0), S(  31,   4),
-    S(  34,  12), S(  58,  -6), S( -50, -18), S(   0,  -2),
+    S( -61,-263), S(-215,-388), S( -45,-204), S( -30,-188),
+    S( -22,-132), S( -16, -70), S( -14, -88), S( -11, -73),
+    S(  -7, -59), S(  -6, -46), S(  -3, -30), S(  -1, -24),
+    S(   2, -16), S(   3,  -6), S(   1,   0), S(  -1,   6),
+    S(  -3,  13), S(  -9,  14), S(   0,  18), S(  -1,  20),
+    S(   0,  18), S(  15,  20), S(   5,   0), S(  30,   3),
+    S(  33,  11), S(  57,  -6), S( -49, -17), S(   0,  -2),
 };
 
 /* King Evaluation Terms */
@@ -583,9 +583,9 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenValue[US]++;
         if (TRACE) T.QueenPSQT32[relativeSquare32(sq, US)][US]++;
 
-
-        attacks  = rookAttacks(sq, ei->occupiedMinusRooks[US]) & ~myPawns;
+        attacks  = rookAttacks(sq, ei->occupiedMinusRooks[US]);
         attacks |= bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+        attacks &= ~(myPawns & Files[fileOf(sq)]);
 
         // Store off information for king safety
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
