@@ -72,7 +72,7 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][8][8];
+extern const int KingShelter[2][8];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance;
 extern const int PassedEnemyDistance;
@@ -425,11 +425,19 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
 
-    (void)name, (void)params, (void)i, (void)A, (void)B;
+    printf("const int %s[%d][%d] = {\n", name, A, B);
 
-    printf("PRINT_PARAM_2 IS NOT ENABLED!\n");
-    exit(EXIT_FAILURE);
+    for (int a = 0; a < A; a++) {
 
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++)
+            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+
+        printf("},\n");
+    }
+
+    printf("};\n");
 }
 
 void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C) {
