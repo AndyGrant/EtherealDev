@@ -158,6 +158,17 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0), S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
+const int KingStorm[2][4][8] = {
+  {{S(   0,   0), S(  25,  16), S(  -5,   9), S(  -9,   4), S(  -6,  -2), S(  -7,  -4), S(  -9,   3), S( -15,  -2)},
+   {S(   3,  14), S(   8,  16), S( -10,   0), S(   3,   2), S(   7,   0), S(   2,   0), S(   0,   4), S(  -6,  -1)},
+   {S(   1,   8), S(   0,  11), S( -13,   1), S( -15,   2), S(  -4,   2), S(  -5,   2), S( -11,   0), S( -10,  -2)},
+   {S(   3,  11), S(   4,  18), S(  -8,  -3), S( -11,   6), S(  -2,   0), S(   3,  -6), S(  -1,  -7), S(  -9,  -1)}},
+  {{S(   0,   0), S(   0,   0), S(  -1, -10), S(  15, -13), S(  10,  -7), S(  -1,  -1), S(  -2,   1), S(   0,   1)},
+   {S(   0,   0), S(   0,   0), S(   2, -17), S(  30,  -8), S(   2,   3), S(  -4,  -1), S(   1,   2), S(  -2,  -1)},
+   {S(   0,   0), S(  -1,   0), S( -10, -21), S(  -2,  -5), S( -14,   3), S( -21,  -5), S(  -5,  -3), S(   0,   1)},
+   {S(   0,   0), S(   0,   0), S(  -7, -16), S(  -1,  -1), S(  -8,  -1), S(   0,  -8), S(  10,   1), S(   2,   2)}},
+};
+
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
@@ -578,6 +589,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     int count, eval = 0, pkeval = 0;
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
+    uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
@@ -657,14 +669,23 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // configurations which have no such pawn. 7 is not a legal distance normally.
     for (int file = MAX(0, kingFile - 1); file <= MIN(FILE_NB - 1, kingFile + 1); file++) {
 
-        uint64_t filePawns = myPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
+        uint64_t ours   =    myPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
+        uint64_t theirs = enemyPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
 
-        int distance = !filePawns   ? 7
-                     :  US == WHITE ? rankOf(getlsb(filePawns)) - kingRank
-                                    : kingRank - rankOf(getmsb(filePawns));
+        int ourDistance = !ours        ? 7
+                        :  US == WHITE ? rankOf(getlsb(ours)) - kingRank
+                                       : kingRank - rankOf(getmsb(ours));
 
-        pkeval += KingShelter[file == kingFile][file][distance];
-        if (TRACE) T.KingShelter[file == kingFile][file][distance][US]++;
+        int theirDistance = !theirs      ? 7
+                          :  US == WHITE ? rankOf(getlsb(theirs)) - kingRank
+                                         : kingRank - rankOf(getmsb(theirs));
+
+        pkeval += KingShelter[file == kingFile][file][ourDistance];
+        if (TRACE) T.KingShelter[file == kingFile][file][ourDistance][US]++;
+
+        int blocked = (ourDistance != 7 && (ourDistance == theirDistance - 1));
+        pkeval += KingStorm[blocked][mirrorFile(file)][theirDistance];
+        if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDistance][US]++;
     }
 
     ei->pkeval[US] += pkeval;
