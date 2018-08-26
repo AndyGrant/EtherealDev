@@ -25,12 +25,12 @@
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    0.1) // Learning rate step size
+#define LEARNING    (    5.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
-#define NPOSITIONS  (1491723) // # of FENs in book
+#define NTERMS      (     28) // # of terms to tune
+#define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
@@ -59,7 +59,7 @@
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
 #define TuneRookMobility                (0)
-#define TuneQueenMobility               (0)
+#define TuneQueenMobility               (1)
 #define TuneKingDefenders               (0)
 #define TuneKingShelter                 (0)
 #define TuneKingStorm                   (0)

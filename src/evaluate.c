@@ -122,13 +122,13 @@ const int RookMobility[15] = {
 /* Queen Evaluation Terms */
 
 const int QueenMobility[28] = {
-    S( -61,-263), S(-217,-390), S( -48,-205), S( -36,-190),
-    S( -12,-132), S( -26, -69), S( -14, -91), S( -19, -76),
-    S( -12, -61), S( -10, -52), S(  -6, -29), S(  -5, -27),
-    S(  -7, -16), S(   0,  -9), S(   0,  -4), S(  -3,   3),
-    S(   5,  16), S(   0,  14), S(  12,  22), S(  -1,  19),
-    S(   0,  19), S(  20,  23), S(   5,  -1), S(  32,   5),
-    S(  35,  13), S(  58,  -6), S( -51, -19), S(   0,  -2),
+    S( -61,-263), S(-216,-389), S( -46,-204), S( -32,-189),
+    S( -23,-132), S( -18, -70), S( -14, -89), S( -11, -74),
+    S(  -6, -58), S(  -5, -48), S(  -3, -30), S(  -1, -24),
+    S(   1, -15), S(   2,  -7), S(   0,  -2), S(  -2,   5),
+    S(  -6,  12), S(  -8,  13), S(   3,  19), S(  -1,  20),
+    S(  -1,  18), S(  17,  21), S(   5,   0), S(  31,   4),
+    S(  34,  12), S(  58,  -6), S( -50, -18), S(   0,  -2),
 };
 
 /* King Evaluation Terms */
@@ -568,9 +568,10 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
 
     int sq, count, eval = 0;
-    uint64_t tempQueens, attacks;
+    uint64_t attacks;
 
-    tempQueens = board->pieces[QUEEN] & board->colours[US];
+    uint64_t myPawns    = board->pieces[PAWN ] & board->colours[US];
+    uint64_t tempQueens = board->pieces[QUEEN] & board->colours[US];
 
     ei->attackedBy[US][QUEEN] = 0ull;
 
@@ -582,9 +583,11 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenValue[US]++;
         if (TRACE) T.QueenPSQT32[relativeSquare32(sq, US)][US]++;
 
-        // Compute possible attacks and store off information for king safety
-        attacks = rookAttacks(sq, ei->occupiedMinusRooks[US])
-                | bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+
+        attacks  = rookAttacks(sq, ei->occupiedMinusRooks[US]) & ~myPawns;
+        attacks |= bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+
+        // Store off information for king safety
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
