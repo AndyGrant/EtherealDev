@@ -76,6 +76,14 @@ bool onlyOne(uint64_t b) {
     return b && !several(b);
 }
 
+int frontmost(int c, uint64_t b) {
+    return c == WHITE ? getmsb(b) : getlsb(b);
+}
+
+int backmost(int c, uint64_t b) {
+    return c == WHITE ? getlsb(b) : getmsb(b);
+}
+
 void setBit(uint64_t *b, int i) {
     assert(!testBit(*b, i));
     *b ^= 1ull << i;

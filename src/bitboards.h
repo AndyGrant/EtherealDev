@@ -66,6 +66,9 @@ int poplsb(uint64_t *b);
 bool several(uint64_t b);
 bool onlyOne(uint64_t b);
 
+int frontmost(int c, uint64_t b);
+int backmost(int c, uint64_t b);
+
 void setBit(uint64_t *b, int i);
 void clearBit(uint64_t *b, int i);
 bool testBit(uint64_t b, int i);
