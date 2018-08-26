@@ -699,16 +699,18 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t theirs = enemyPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
         int theirDist = !theirs ? 7 : abs(kingRank - rankOf(backmost(US, theirs)));
 
-        // Evaluate King Shelter using pawn distance. Use seperate evaluation
-        // depending on the file, and if we are looking at the King's file
-        ei->pkeval[US] += KingShelter[file == kingFile][file][ourDist];
-        if (TRACE) T.KingShelter[file == kingFile][file][ourDist][US]++;
-
         // Evaluate King Storm using enemy pawn distance. Use a seperate evaluation
         // depending on the file, and if the opponent's pawn is blocked by our own
         int blocked = (ourDist != 7 && (ourDist == theirDist - 1));
         ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirDist];
         if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDist][US]++;
+
+        // Evaluate King Shelter using pawn distance. Use seperate evaluation
+        // depending on the file, and if we are looking at the King's file
+        ourDist = ourDist < theirDist ? ourDist : 7;
+        ei->pkeval[US] += KingShelter[file == kingFile][file][ourDist];
+        if (TRACE) T.KingShelter[file == kingFile][file][ourDist][US]++;
+
     }
 
     return eval;
