@@ -373,8 +373,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
@@ -382,11 +382,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
+        int ND = MAX(depth - R, 0);
+
+        if (ND == 0 && eval <= beta + 32)
+            ND ++;
+
         applyNullMove(board, undo);
 
         thread->moveStack[height] = NULL_MOVE;
 
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+        value = -search(thread, &lpv, -beta, -beta+1, ND, height+1);
 
         thread->moveStack[height] = NONE_MOVE;
 
