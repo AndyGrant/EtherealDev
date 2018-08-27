@@ -384,7 +384,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         int ND = MAX(depth - R, 0);
 
-        if (ND == 0 && eval <= beta + 32)
+        if (ND == 0 && eval <= beta + 16)
             ND ++;
 
         applyNullMove(board, undo);
