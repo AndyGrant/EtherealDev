@@ -228,7 +228,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin = -MATE;
+    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
     Undo undo[1];
@@ -341,10 +341,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
-    // Compute and save off a static evaluation. Also, compute our futilityMargin
+    // Save off static evaluation history. Reuse TT entry eval if possible
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
+
+    // Futility Pruning Margin
     futilityMargin = eval + FutilityMargin * depth;
+
+    // Static Exchange Evaluation Pruning Margins
+    seeMargin[0] = SEENoisyMargin * depth * depth;
+    seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
@@ -509,21 +515,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
         if (   !RootNode
-            &&  isQuiet
-            &&  best > MATED_IN_MAX
-            &&  depth <= SEEPruningDepth
-            && !staticExchangeEvaluation(board, move, SEEQuietMargin * depth))
-            continue;
-
-        // Step 17. Static Exchange Evaluation Pruning. Prune moves which fail
-        // to beat a depth dependent SEE threshold. The use of movePicker.stage
-        // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (   !RootNode
-            && !isQuiet
+            && !inCheck
             &&  best > MATED_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, SEENoisyMargin * depth * depth))
+            && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
         // Apply the move, and verify legality
