@@ -304,8 +304,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!board->kingAttackers)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        depth = 1;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
