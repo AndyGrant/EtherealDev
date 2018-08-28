@@ -709,14 +709,14 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
     initNoisyMovePicker(&movePicker, thread, QSEEMargin);
     while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE){
 
-        if (  (played || !InCheck)
-            && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
-
         int checkPruning =  InCheck
                         &&  best > MATED_IN_MAX
                         && (depth != 0 || played >= 2)
                         &&  moveIsTactical(board, move);
+
+        if (   (!InCheck || checkPruning)
+            &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+            continue;
 
         if (   (!InCheck || checkPruning)
             &&  movePicker.stage > STAGE_GOOD_NOISY
