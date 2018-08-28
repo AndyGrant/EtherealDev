@@ -295,17 +295,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 4. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
     if (depth <= 0){
-
-        // No king attackers indicates we are not checked. We reduce the
-        // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        thread->nodes--;
+        return qsearch(thread, pv, alpha, beta, height);
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -567,8 +559,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
-                  &&  inCheck
-                  && !extension;
+                  && !extension
+                  &&  board->kingAttackers;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
