@@ -295,17 +295,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 4. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
     if (depth <= 0){
-
-        // No king attackers indicates we are not checked. We reduce the
-        // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        thread->nodes--;
+        return qsearch(thread, pv, alpha, beta, 0, height);
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -356,7 +348,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargin < alpha)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
@@ -656,11 +648,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
 
     Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
-    int eval, value, best;
+    int played = 0, eval, value, best;
     uint16_t move;
 
     Undo undo[1];
@@ -702,38 +695,46 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 4. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    best = eval = evaluateBoard(board, &thread->pktable);
+    alpha = MAX(alpha, eval);
+    if (alpha >= beta) return eval;
 
     // Step 5. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fail
-    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+    if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
     // Step 6. Move Generation and Looping. Generate all tactical,
     // moves, return and try the ones which pass an SEE(QSEEMargin)
     initNoisyMovePicker(&movePicker, thread, QSEEMargin);
-    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
+    while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE){
 
-        // Step 7. Futility Pruning. Similar to Delta Pruning, if
-        // this capture in the best case would still fail to beat
-        // alpha minus some margin, we can safely skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (  (played || !InCheck)
+            && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
-        // Apply and validate move before searching
+        int checkPruning =  InCheck
+                        &&  best > MATED_IN_MAX
+                        && (depth != 0 || played >= 2)
+                        &&  moveIsTactical(board, move);
+
+        if (   (!InCheck || checkPruning)
+            &&  movePicker.stage > STAGE_GOOD_NOISY
+            && !staticExchangeEvaluation(board, move, 0))
+            continue;
+
         applyMove(board, move, undo);
         if (!isNotInCheck(board, !board->turn)){
             revertMove(board, move, undo);
             continue;
         }
 
+        played += 1;
         thread->moveStack[height] = move;
         thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
 
         // Revert move from board
         revertMove(board, move, undo);
@@ -758,7 +759,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             return best;
     }
 
-    return best;
+    // Check for a mate score when no moves were played. Unlike search(), played
+    // equally zero does not indicate a stalemated position, since we skip quiets
+    return played == 0 && InCheck ? -MATE + height : best;
 }
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
