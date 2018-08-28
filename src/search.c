@@ -296,8 +296,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
 
     if (depth <= 0){
-        thread->nodes--;
-        return qsearch(thread, pv, alpha, beta, 0, height);
+
+
+        if (!board->kingAttackers) {
+            thread->nodes--;
+            return qsearch(thread, pv, alpha, beta, 0, height);
+        }
+
+        depth = 1;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -709,11 +715,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int 
     initNoisyMovePicker(&movePicker, thread, QSEEMargin);
     while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE){
 
-        if (   (!InCheck || depth < -1 || played)
+        if (   (!InCheck || depth != 0|| played)
             &&  eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
-        if (   (!InCheck || depth < -1 || played)
+        if (   (!InCheck || depth != 0|| played)
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, 0))
             continue;
