@@ -304,8 +304,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!board->kingAttackers)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+
+        depth = 1;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -513,7 +513,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             &&  depth <= SEEPruningDepth
             &&  best > MATED_IN_MAX
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, SEEMargin * depth * depth))
+            && !staticExchangeEvaluation(board, move, SEEMargin * depth * (depth - 1)))
             continue;
 
         // Apply the move, and verify legality
