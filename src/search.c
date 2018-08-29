@@ -546,8 +546,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            // ??? Should not work
-            R += inCheck && hist < -5000;
+            // ??? REALLY Should not work
+            R += inCheck && (PvNode || improving) && hist < 0;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
