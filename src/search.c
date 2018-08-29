@@ -574,7 +574,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  board->kingAttackers
-                  && (inCheck || !isQuiet || hist > 0);
+                  && (inCheck || !isQuiet || hist > 5000);
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
