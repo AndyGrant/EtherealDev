@@ -572,8 +572,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
-                  &&  inCheck
-                  && !extension;
+                  && !extension
+                  &&  board->kingAttackers
+                  && (inCheck || !isQuiet || hist > -5000);
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
