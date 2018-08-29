@@ -574,7 +574,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  inCheck
-                  &&  played < 10;
+                  &&  played < 5;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
