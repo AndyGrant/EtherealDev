@@ -665,9 +665,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
 
     // Step 24. Store results of search into the table
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
+    if (!excluded) {
+        ttBound = best >= beta    ? BOUND_LOWER
+                : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+        storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
+    }
 
     return best;
 }
