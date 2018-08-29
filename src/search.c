@@ -515,6 +515,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
         if (   !RootNode
+            && (!inCheck || depth > 0)
             &&  best > MATED_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
