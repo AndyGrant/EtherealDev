@@ -50,7 +50,7 @@ void* iterativeDeepening(void* vthread);
 
 int aspirationWindow(Thread* thread, int depth);
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, uint16_t excluded);
 
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 
@@ -68,7 +68,7 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
 
 int bestTacticalMoveValue(Board* board);
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height);
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int height);
 
 
 static const int RazorDepth = 1;
