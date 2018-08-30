@@ -844,8 +844,8 @@ int evaluateScaleFactor(Board *board) {
     uint64_t queens  = board->pieces[QUEEN ];
 
     if (    onlyOne(white & bishops)
-        &&  onlyOne(black & bishops)
-        &&  onlyOne(bishops & WHITE_SQUARES)) {
+        &&  onlyOne(black & bishops)){
+     // &&  onlyOne(bishops & WHITE_SQUARES)) {
 
         if (!(knights | rooks | queens))
             return SCALE_OCB_BISHOPS_ONLY;
