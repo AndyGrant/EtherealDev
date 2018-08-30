@@ -260,7 +260,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
+    factor = evaluateScaleFactor(board, &ei);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -834,10 +834,11 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
@@ -847,14 +848,21 @@ int evaluateScaleFactor(Board *board) {
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
+        // Evaluate true OCB endgame
         if (!(knights | rooks | queens))
             return SCALE_OCB_BISHOPS_ONLY;
 
+        // Don't scale when there are Passers
+        if (ei->passedPawns)
+            return SCALE_NORMAL;
+
+        // Evalute OCB with one Knight each
         if (   !(rooks | queens)
             &&  onlyOne(white & knights)
             &&  onlyOne(black & knights))
             return SCALE_OCB_ONE_KNIGHT;
 
+        // Evaluate OCB with one Rook each
         if (   !(knights | queens)
             && onlyOne(white & rooks)
             && onlyOne(black & rooks))
