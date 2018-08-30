@@ -853,7 +853,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
             return SCALE_OCB_BISHOPS_ONLY;
 
         // Don't scale when there are Passers
-        if (ei->passedPawns)
+        if (popcount(ei->passedPawns & white) != popcount(ei->passedPawns & black))
             return SCALE_NORMAL;
 
         // Evalute OCB with one Knight each
