@@ -60,6 +60,8 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
+const int PawnThorn = S( -15,  30);
+
 const int PawnIsolated = S(  -3,  -1);
 
 const int PawnStacked = S( -10, -34);
@@ -340,6 +342,13 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Save passed pawn information for later evaluation
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
+
+        if (    mirrorFile(fileOf(sq)) == 0
+            &&  testBit(ei->rammedPawns[US], sq)
+            && (pawnAttacks(US, sq) & enemyPawns)) {
+            pkeval += PawnThorn;
+            if (TRACE) T.PawnThorn[US]++;
+        }
 
         // Apply a penalty if the pawn is isolated
         if (!(isolatedPawnMasks(sq) & myPawns)) {

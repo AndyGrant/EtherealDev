@@ -44,6 +44,7 @@
 #define TuneRookPSQT32                  (0)
 #define TuneQueenPSQT32                 (0)
 #define TuneKingPSQT32                  (0)
+#define TunePawnThorn                   (0)
 #define TunePawnIsolated                (0)
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
@@ -197,6 +198,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, RookPSQT32, 32);                            \
     ENABLE_1(fname, QueenPSQT32, 32);                           \
     ENABLE_1(fname, KingPSQT32, 32);                            \
+    ENABLE_0(fname, PawnThorn);                                 \
     ENABLE_0(fname, PawnIsolated);                              \
     ENABLE_0(fname, PawnStacked);                               \
     ENABLE_1(fname, PawnBackwards, 2);                          \
