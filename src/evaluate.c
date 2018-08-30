@@ -836,6 +836,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
+    int wpassers, bpassers;
+
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
 
@@ -852,8 +854,10 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
         if (!(knights | rooks | queens))
             return SCALE_OCB_BISHOPS_ONLY;
 
-        // Don't scale when there are Passers
-        if (popcount(ei->passedPawns & white) != popcount(ei->passedPawns & black))
+        // Don't scale when there is a Passer imbalance
+        wpassers = popcount(white & ei->passedPawns);
+        bpassers = popcount(black & ei->passedPawns);
+        if (abs(wpassers - bpassers) > 1)
             return SCALE_NORMAL;
 
         // Evalute OCB with one Knight each
