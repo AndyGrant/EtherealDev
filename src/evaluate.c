@@ -857,7 +857,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
         // Don't scale when there is a Passer imbalance
         wpassers = popcount(white & ei->passedPawns);
         bpassers = popcount(black & ei->passedPawns);
-        if (abs(wpassers - bpassers) > 1)
+        if (abs(wpassers - bpassers) > 2)
             return SCALE_NORMAL;
 
         // Evalute OCB with one Knight each
