@@ -244,13 +244,13 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     EvalInfo ei;
-    int phase, factor, eval, pkeval;
+    int phase, eval, pkeval;
 
     // Setup and perform all evaluations
     initializeEvalInfo(&ei, board, pktable);
     eval   = evaluatePieces(&ei, board);
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-    eval  += pkeval + board->psqtmat + Tempo[board->turn];
+    eval  += Tempo[board->turn];
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
@@ -259,12 +259,9 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
                              |board->pieces[BISHOP]);
     phase = (phase * 256 + 12) / 24;
 
-    // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
-
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
-         +  ScoreEG(eval) * phase * factor / SCALE_NORMAL) / 256;
+         +  ScoreEG(eval) * phase) / 256;
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
@@ -276,7 +273,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
 
 int evaluatePieces(EvalInfo *ei, Board *board) {
 
-    int eval = 0;
+    int factor, eval = board->psqtmat;
 
     eval += evaluatePawns(ei, board, WHITE)
           - evaluatePawns(ei, board, BLACK);
@@ -296,11 +293,17 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
     eval += evaluateKings(ei, board, WHITE)
           - evaluateKings(ei, board, BLACK);
 
-    eval += evaluatePassedPawns(ei, board, WHITE)
-          - evaluatePassedPawns(ei, board, BLACK);
-
     eval += evaluateThreats(ei, board, WHITE)
           - evaluateThreats(ei, board, BLACK);
+
+    eval += ei->pkeval[WHITE] - ei->pkeval[BLACK];
+
+    factor = evaluateScaleFactor(board);
+
+    eval = MakeScore(ScoreMG(eval), ScoreEG(eval) * factor / SCALE_NORMAL);
+
+    eval += evaluatePassedPawns(ei, board, WHITE)
+          - evaluatePassedPawns(ei, board, BLACK);
 
     return eval;
 }
