@@ -260,7 +260,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board, &ei);
+    factor = evaluateScaleFactor(&ei, board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
