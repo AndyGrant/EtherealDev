@@ -260,7 +260,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
+    factor = evaluateScaleFactor(&ei, board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -834,34 +834,43 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board) {
+
+    int factor = SCALE_NORMAL;
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
+
+    uint64_t rammed  = ei->rammedPawns[WHITE]
+                     | ei->rammedPawns[BLACK];
 
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
         if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+            factor = SCALE_OCB_BISHOPS_ONLY;
 
-        if (   !(rooks | queens)
+        else if (   !(rooks | queens)
             &&  onlyOne(white & knights)
             &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
+            factor = SCALE_OCB_ONE_KNIGHT;
 
-        if (   !(knights | queens)
+        else if (   !(knights | queens)
             && onlyOne(white & rooks)
             && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
+            factor = SCALE_OCB_ONE_ROOK;
     }
 
-    return SCALE_NORMAL;
+    factor = factor + popcount(pawns & ~rammed);
+
+    return MIN(SCALE_NORMAL, factor);
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){

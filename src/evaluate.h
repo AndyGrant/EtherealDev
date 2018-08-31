@@ -22,10 +22,10 @@
 #include "types.h"
 
 enum {
-    SCALE_OCB_BISHOPS_ONLY =  64,
-    SCALE_OCB_ONE_KNIGHT   = 106,
-    SCALE_OCB_ONE_ROOK     =  96,
-    SCALE_NORMAL           = 128,
+    SCALE_OCB_BISHOPS_ONLY = 16,
+    SCALE_OCB_ONE_KNIGHT   = 26,
+    SCALE_OCB_ONE_ROOK     = 24,
+    SCALE_NORMAL           = 32,
 };
 
 struct EvalTrace {
@@ -103,7 +103,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassedPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
-int evaluateScaleFactor(Board *board);
+int evaluateScaleFactor(EvalInfo *ei, Board *board);
 void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable);
 
 #define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
