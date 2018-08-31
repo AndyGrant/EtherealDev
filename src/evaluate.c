@@ -60,7 +60,7 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
-const int PawnThorn = S( -15,  30);
+const int PawnThorn = S(  -8,  10);
 
 const int PawnIsolated = S(  -3,  -1);
 
@@ -343,8 +343,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
 
-        if (    mirrorFile(fileOf(sq)) == 0
-            &&  relativeRankOf(US, sq) == 5
+        if (    relativeRankOf(US, sq) == 5
             &&  testBit(ei->rammedPawns[US], sq)
             && !(pawnAttacks(US, sq) & enemyPawns)) {
             pkeval += PawnThorn;
