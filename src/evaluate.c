@@ -868,7 +868,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
             factor = SCALE_OCB_ONE_ROOK;
     }
 
-    factor = factor + popcount(pawns & ~blocked);
+    factor = factor + 2 * popcount(pawns & ~blocked);
 
     return MIN(SCALE_NORMAL, factor);
 }
