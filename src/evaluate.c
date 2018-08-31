@@ -344,8 +344,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             setBit(&ei->passedPawns, sq);
 
         if (    mirrorFile(fileOf(sq)) == 0
+            &&  relativeRankOf(US, sq) == 5
             &&  testBit(ei->rammedPawns[US], sq)
-            && (pawnAttacks(US, sq) & enemyPawns)) {
+            && !(pawnAttacks(US, sq) & enemyPawns)) {
             pkeval += PawnThorn;
             if (TRACE) T.PawnThorn[US]++;
         }
