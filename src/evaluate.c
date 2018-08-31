@@ -847,8 +847,8 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
 
-    uint64_t rammed  = ei->rammedPawns[WHITE]
-                     | ei->rammedPawns[BLACK];
+    uint64_t blocked = ei->blockedPawns[WHITE]
+                     | ei->blockedPawns[BLACK];
 
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
@@ -868,7 +868,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
             factor = SCALE_OCB_ONE_ROOK;
     }
 
-    factor = factor + 2 * popcount(pawns & ~rammed);
+    factor = factor + popcount(pawns & ~blocked);
 
     return MIN(SCALE_NORMAL, factor);
 }
