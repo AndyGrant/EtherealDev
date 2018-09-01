@@ -79,9 +79,9 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
+const int KnightOutpost[2] = { S(   3, -20), S(  20,   5) };
 
-const int KnightBehindPawn = S(   5,  13);
+const int KnightBehindPawn = S(   1,  18);
 
 const int KnightMobility[9] = {
     S( -91, -86), S( -36, -94), S( -19, -43), S(  -5, -15),
@@ -91,11 +91,11 @@ const int KnightMobility[9] = {
 
 /* Bishop Evaluation Terms */
 
-const int BishopPair = S(  38,  69);
+const int BishopPair = S(  29,  76);
 
-const int BishopRammedPawns = S( -11,  -8);
+const int BishopRammedPawns = S(  -7, -19);
 
-const int BishopOutpost[2] = { S(  27,  -1), S(  39,   0) };
+const int BishopOutpost[2] = { S(  17, -13), S(  45,   9) };
 
 const int BishopBehindPawn = S(   4,  11);
 
@@ -108,9 +108,9 @@ const int BishopMobility[14] = {
 
 /* Rook Evaluation Terms */
 
-const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
+const int RookFile[2] = { S(  10, -14), S(  37,  -8) };
 
-const int RookOnSeventh = S(   0,  25);
+const int RookOnSeventh = S(   2,  29);
 
 const int RookMobility[15] = {
     S(-147,-107), S( -72,-120), S( -16, -68), S(  -9, -26),
