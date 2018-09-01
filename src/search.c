@@ -287,7 +287,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // when in a PvNode, unless we would otherwise hit a qsearch
         if (    ttDepth >= depth
             && (depth == 0 || !PvNode)
-            &&  ttFifty == board->fiftyMoveRule) {
+            && (ttFifty == board->fiftyMoveRule || ttValue != 0)) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
