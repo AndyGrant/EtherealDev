@@ -28,6 +28,10 @@
 
 TTable Table; // Global Transposition Table
 
+const int FiftyOffset[3] = { 0, 5, 10 };
+
+const uint16_t FiftyMask[3] = { 0x7FE0, 0x7C1F, 0x03FF };
+
 void initTT(uint64_t megabytes) {
 
     // Free up memory if we already allocated
@@ -55,7 +59,9 @@ void initTT(uint64_t megabytes) {
 }
 
 void updateTT() {
-    Table.generation += 4; // Pad lower bits for bounds
+    Table.age += 0x04u; // Lower two bits for bound type
+    Table.age %= 0x40u; // Upper two bits for fifty counter
+    assert(!(Table.age & 0xC3u)); // Ensure clear bits
 }
 
 void clearTT() {
@@ -69,31 +75,37 @@ int hashfullTT() {
     // Sample the first 3,000 slots of the table
     for (int i = 0; i < 1000; i++)
         for (int j = 0; j < 3; j++)
-            used += (Table.buckets[i].slots[j].generation & 0x0C) != 0x00
-                 && (Table.buckets[i].slots[j].generation & 0xFC) == Table.generation;
+            used += (Table.buckets[i].slots[j].data & 0x0C) != 0x00
+                 && (Table.buckets[i].slots[j].data & 0x3C) == Table.age;
 
     return used / 3;
 }
 
-int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
+int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound, int *fifty) {
 
+    uint8_t partial;
     const uint16_t hash16 = hash >> 48;
-    TTEntry *slots = &Table.buckets[hash & Table.hashMask].slots[0];
+    TTBucket *bucket = &Table.buckets[hash & Table.hashMask];
+    TTEntry *slots = &bucket->slots[0];
 
     // Search for a matching hash signature
     for (int i = 0; i < 3; i++) {
 
         if (slots[i].hash16 == hash16) {
 
-            // Update age, retain the bounds stored in the lower two bits
-            slots[i].generation = Table.generation | (slots[i].generation & 0x3);
+            // Update age, retain the bounds and fifty bits
+            slots[i].data = Table.age | (slots[i].data & 0xC3);
+
+            // Grab upper bits of fifty move rule before copying over
+            partial = ((bucket->fifty & ~FiftyMask[i]) >> FiftyOffset[i]) << 2;
 
             // Copy over the TTEntry and signal success
             *move  = slots[i].move;
             *value = slots[i].value;
             *eval  = slots[i].eval;
             *depth = slots[i].depth;
-            *bound = slots[i].generation & 0x3;
+            *bound = slots[i].data & 0x3;
+            *fifty = (slots[i].data >> 6) | partial;
             return 1;
         }
     }
@@ -101,34 +113,39 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     return 0; // No TTEntry found
 }
 
-void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {
+void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound, int fifty) {
 
     assert(abs(value) <= MATE);
     assert(abs(eval) <= MATE || eval == VALUE_NONE);
     assert(0 <= depth && depth < MAX_PLY);
     assert(bound == BOUND_LOWER || bound == BOUND_UPPER || bound == BOUND_EXACT);
+    assert(0 <= fifty && fifty <= 100);
 
+    int idx;
     const uint16_t hash16 = hash >> 48;
-    TTEntry *replace = NULL, *slots = &Table.buckets[hash & Table.hashMask].slots[0];
+    TTBucket *bucket = &Table.buckets[hash & Table.hashMask];
+    TTEntry *replace = NULL, *slots = &bucket->slots[0];
 
     for (int i = 0; i < 3; i++) {
 
         // Found a matching hash or an unused entry
-        if (slots[i].hash16 == hash16 || (slots[i].generation & 0x3) == 0u) {
+        if (slots[i].hash16 == hash16 || !(slots[i].data & 0x3)) {
             replace = &slots[i];
+            idx = i;
             break;
          }
 
         // Take the first entry as a starting point
         if (i == 0) {
             replace = &slots[i];
+            idx = i;
             continue;
         }
 
-        // Replace using MAX(x1, x2), where xN = depth - 8 * age difference
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & 0xFC) * 2
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & 0xFC) * 2)
-            replace = &slots[i];
+        // Replace using MAX(x1, x2), where xN = depth - 4 * age difference
+        if (   replace->depth - ((259 + (Table.age & 0x3F) - (replace->data & 0x3F)) & 0xFC)
+            >= slots[i].depth - ((259 + (Table.age & 0x3F) - (slots[i].data & 0x3F)) & 0xFC))
+            replace = &slots[i], idx = i;
     }
 
     // Don't overwrite an entry from the same position, unless we have
@@ -138,13 +155,19 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
         &&  depth < replace->depth - 3)
         return;
 
-    // Finally, copy the new data into the replaced slot
-    replace->depth      = (int8_t)depth;
-    replace->generation = (uint8_t)bound | Table.generation;
-    replace->value      = (int16_t)value;
-    replace->eval       = (int16_t)eval;
-    replace->move       = (uint16_t)move;
-    replace->hash16     = (uint16_t)hash16;
+    // Save new data into the replaced slot
+    replace->depth  = (int8_t)depth;
+    replace->data   = (uint8_t)bound | Table.age;
+    replace->value  = (int16_t)value;
+    replace->eval   = (int16_t)eval;
+    replace->move   = (uint16_t)move;
+    replace->hash16 = (uint16_t)hash16;
+
+    // Store the fifty move counter. We make use of the upper two bits
+    // from replace->data, as well as five bits from the bucket's fifty
+    replace->data |= ((uint8_t)fifty << 6) & 0xFF;
+    bucket->fifty &= FiftyMask[idx];
+    bucket->fifty |= ((uint8_t)fifty >> 2) << FiftyOffset[idx];
 }
 
 PawnKingEntry* getPawnKingEntry(PawnKingTable *pktable, uint64_t pkhash) {

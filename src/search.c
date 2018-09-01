@@ -225,7 +225,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0, ttFifty = 0;
     int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
@@ -279,13 +279,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
 
     // Step 3. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound, &ttFifty))){
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)){
+        if (    ttDepth >= depth
+            && (depth == 0 || !PvNode)
+            &&  ttFifty == board->fiftyMoveRule) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
@@ -331,7 +333,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             || (ttBound == BOUND_LOWER && value >= beta)
             || (ttBound == BOUND_UPPER && value <= alpha)){
 
-            storeTTEntry(board->hash, NONE_MOVE, value, VALUE_NONE, MAX_PLY-1, ttBound);
+            storeTTEntry(board->hash, NONE_MOVE, value, VALUE_NONE, MAX_PLY-1, ttBound, board->fiftyMoveRule);
             return value;
         }
     }
@@ -455,7 +457,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         value = search(thread, &lpv, alpha, beta, depth-2, height);
 
         // Probe for a new table move, and adjust any mate scores
-        ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
+        ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound, &ttFifty);
         if (ttHit) ttValue = valueFromTT(ttValue, height);
     }
 
@@ -656,7 +658,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 24. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
             : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
+    storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound, board->fiftyMoveRule);
 
     return best;
 }
