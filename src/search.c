@@ -381,7 +381,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
-        &&  hasNonPawnMaterial(board, board->turn)
+        &&  hasMajorMaterial(board, WHITE)
+        &&  hasMajorMaterial(board, BLACK)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
@@ -870,6 +871,13 @@ int hasNonPawnMaterial(Board* board, int turn){
     uint64_t kings = board->pieces[KING];
     uint64_t pawns = board->pieces[PAWN];
     return (friendly & (kings | pawns)) != friendly;
+}
+
+int hasMajorMaterial(Board *board, int colour){
+    uint64_t friendly = board->colours[colour];
+    uint64_t rooks = board->pieces[ROOK];
+    uint64_t queens = board->pieces[QUEEN];
+    return !!(friendly & (rooks | queens));
 }
 
 int valueFromTT(int value, int height){

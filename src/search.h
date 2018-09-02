@@ -60,6 +60,8 @@ int moveIsTactical(Board* board, uint16_t move);
 
 int hasNonPawnMaterial(Board* board, int turn);
 
+int hasMajorMaterial(Board *board, int colour);
+
 int valueFromTT(int value, int height);
 
 int valueToTT(int value, int height);
