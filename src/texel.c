@@ -116,7 +116,9 @@ void runTexelTuning(Thread *thread) {
     initCurrentParameters(cparams);
 
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 1.637153; //computeOptimalK(tes);
+    printf("Error %f\n", completeLinearError(tes, params, K));
+    exit(EXIT_SUCCESS);
 
     while (1) {
 
@@ -249,11 +251,13 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
         eval = evaluateBoard(&thread->board, NULL);
-        initCoefficients(coeffs);
+        // initCoefficients(coeffs);
 
         // When using NDEPTHS=0, use the proper evaluation
         if (NDEPTHS == 0)
             tes[i].eval = thread->board.turn == WHITE ? eval : -eval;
+
+        continue;
 
         // Count up the non zero evaluation terms
         for (k = 0, j = 0; j < NTERMS; j++)
