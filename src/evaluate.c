@@ -79,56 +79,56 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  22,  -7), S(  32,   0) };
+const int KnightOutpost[2] = { S(   9,  -8), S(  27,   8) };
 
-const int KnightBehindPawn = S(   5,  13);
+const int KnightBehindPawn = S(   2,  17);
 
 const int KnightMobility[9] = {
-    S( -89, -86), S( -43, -95), S( -31, -41), S( -18, -19),
-    S( -12,  -8), S(  -5,   0), S(   4,   3), S(  15,  -3),
-    S(  29, -16),
+    S( -88, -86), S( -52, -96), S( -42, -40), S( -29, -19),
+    S( -24,  -7), S( -17,   0), S(  -7,   4), S(   3,  -1),
+    S(  17, -12),
 };
 
 /* Bishop Evaluation Terms */
 
-const int BishopPair = S(  38,  69);
+const int BishopPair = S(  18,  75);
 
-const int BishopRammedPawns = S( -11,  -8);
+const int BishopRammedPawns = S(  -9, -16);
 
-const int BishopOutpost[2] = { S(  27,  -1), S(  39,   0) };
+const int BishopOutpost[2] = { S(  17,  -4), S(  43,   3) };
 
-const int BishopBehindPawn = S(   4,  11);
+const int BishopBehindPawn = S(   1,  15);
 
 const int BishopMobility[14] = {
-    S( -62,-128), S( -42, -73), S( -27, -54), S( -17, -32),
-    S(  -5, -21), S(   3,  -6), S(   6,   2), S(   5,   6),
-    S(   7,   8), S(  10,  11), S(  15,   0), S(  35, -11),
-    S(  44,  -4), S(  40, -33),
+    S( -65,-128), S( -44, -77), S( -27, -57), S( -17, -32),
+    S(  -6, -21), S(   2,  -5), S(   5,   3), S(   4,   8),
+    S(   5,  10), S(   6,  14), S(  11,   2), S(  30,  -8),
+    S(  43,  -4), S(  40, -32),
 };
 
 /* Rook Evaluation Terms */
 
-const int RookFile[2] = { S(  14,   0), S(  38,  -8) };
+const int RookFile[2] = { S(  12,  -5), S(  34,  -4) };
 
-const int RookOnSeventh = S(   0,  25);
+const int RookOnSeventh = S(  -5,  30);
 
 const int RookMobility[15] = {
-    S(-147,-107), S( -54,-118), S( -23, -66), S( -13, -25),
-    S( -13,  -7), S( -14,   5), S( -12,  19), S(  -5,  20),
-    S(  -1,  26), S(   4,  29), S(   4,  39), S(  12,  43),
-    S(  17,  47), S(  21,  44), S(  22,  47),
+    S(-147,-107), S( -51,-118), S( -26, -66), S( -17, -27),
+    S( -15,  -9), S( -17,   3), S( -15,  17), S(  -7,  18),
+    S(  -3,  24), S(   2,  27), S(   2,  36), S(  10,  40),
+    S(  15,  44), S(  18,  41), S(  21,  43),
 };
 
 /* Queen Evaluation Terms */
 
 const int QueenMobility[28] = {
-    S( -61,-263), S(-215,-388), S( -48,-205), S( -37,-188),
-    S( -29,-132), S( -22, -69), S( -14, -89), S( -14, -74),
-    S(  -8, -61), S(  -6, -49), S(  -4, -30), S(  -1, -24),
-    S(   1, -16), S(   4,  -8), S(   2,   0), S(   1,   5),
-    S(   0,  13), S(  -6,  14), S(   0,  18), S(   0,  22),
-    S(   1,  19), S(  15,  20), S(   5,   0), S(  30,   3),
-    S(  33,  11), S(  56,  -6), S( -49, -17), S(   0,  -2),
+    S( -61,-263), S(-214,-387), S( -48,-205), S( -37,-187),
+    S( -29,-132), S( -22, -69), S( -14, -88), S( -14, -73),
+    S(  -8, -61), S(  -6, -48), S(  -4, -31), S(  -1, -24),
+    S(   1, -17), S(   4,  -8), S(   2,   0), S(   2,   5),
+    S(   0,  13), S(  -6,  15), S(  -2,  17), S(   0,  23),
+    S(   2,  19), S(  13,  19), S(   5,   0), S(  29,   2),
+    S(  32,  10), S(  55,  -6), S( -48, -16), S(   0,  -2),
 };
 
 /* King Evaluation Terms */
