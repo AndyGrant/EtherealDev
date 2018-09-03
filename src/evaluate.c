@@ -864,7 +864,7 @@ int evaluateScaleFactor(Board *board) {
     }
 
     if (  (knights | bishops | queens)
-        || popcount(white & pawns) != popcount(black & pawns))
+        || abs(popcount(white & pawns) - popcount(black & pawns)) >= 2)
         return SCALE_NORMAL;
 
     if (   onlyOne(white & rooks)
