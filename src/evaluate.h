@@ -25,7 +25,7 @@ enum {
     SCALE_OCB_BISHOPS_ONLY =  64,
     SCALE_OCB_ONE_KNIGHT   = 106,
     SCALE_OCB_ONE_ROOK     =  96,
-    SCALE_ONLY_ONE_ROOK    = 110,
+    SCALE_ONLY_ONE_ROOK    =  80,
     SCALE_NORMAL           = 128,
 };
 
