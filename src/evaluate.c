@@ -862,9 +862,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
     if (     onlyOne(white & rooks)
         &&   onlyOne(black & rooks)
-        && !(knights | bishops | queens)
-        &&  !several(white & ei->passedPawns)
-        &&  !several(black & ei->passedPawns))
+        && !(ei->passedPawns | knights | bishops | queens))
         return SCALE_ONLY_ONE_ROOK;
 
     return SCALE_NORMAL;
