@@ -836,6 +836,8 @@ int evaluateScaleFactor(Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+
+    // uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
@@ -858,6 +860,11 @@ int evaluateScaleFactor(Board *board) {
             && onlyOne(black & rooks))
             return SCALE_OCB_ONE_ROOK;
     }
+
+    if (     onlyOne(white & rooks)
+        &&   onlyOne(black & rooks)
+        && !(knights | bishops | queens))
+        return SCALE_ONLY_ONE_ROOK;
 
     return SCALE_NORMAL;
 }
