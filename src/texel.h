@@ -25,12 +25,12 @@
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    0.1) // Learning rate step size
+#define LEARNING    (   10.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
-#define NPOSITIONS  (1491723) // # of FENs in book
+#define NTERMS      (      1) // # of terms to tune
+#define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
@@ -44,6 +44,7 @@
 #define TuneRookPSQT32                  (0)
 #define TuneQueenPSQT32                 (0)
 #define TuneKingPSQT32                  (0)
+#define TuneTempo                       (1)
 #define TunePawnIsolated                (0)
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
@@ -197,6 +198,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, RookPSQT32, 32);                            \
     ENABLE_1(fname, QueenPSQT32, 32);                           \
     ENABLE_1(fname, KingPSQT32, 32);                            \
+    ENABLE_0(fname, Tempo);                                     \
     ENABLE_0(fname, PawnIsolated);                              \
     ENABLE_0(fname, PawnStacked);                               \
     ENABLE_1(fname, PawnBackwards, 2);                          \
