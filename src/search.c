@@ -350,7 +350,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
+    seeMargin[1] = SEEQuietMargin * (depth + improving);
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
