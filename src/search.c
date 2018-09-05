@@ -345,15 +345,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
 
+    // Improving if our static eval increased in the last move
+    improving = height >= 2 && eval > thread->evalStack[height-2];
+
     // Futility Pruning Margin
     futilityMargin = eval + FutilityMargin * depth;
 
     // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
-
-    // Improving if our static eval increased in the last move
-    improving = height >= 2 && eval > thread->evalStack[height-2];
+    seeMargin[0] = SEENoisyMargin * (depth + inCheck) * depth;
+    seeMargin[1] = SEEQuietMargin * (depth + inCheck);
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
