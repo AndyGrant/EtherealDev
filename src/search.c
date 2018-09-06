@@ -149,7 +149,6 @@ void* iterativeDeepening(void* vthread){
         info->values[depth]      = value;
         info->bestMoves[depth]   = thread->pv.line[0];
         info->ponderMoves[depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
-        info->timeUsage[depth]   = elapsedTime(info) - info->timeUsage[depth-1];
 
         // Send information about this search to the interface
         uciReport(thread->threads, -MATE, MATE, value);
@@ -416,16 +415,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
+            // Exhausted all SEE() passing moves
+            if (rBeta - eval >= 0 && movePicker.stage == STAGE_BAD_NOISY)
+                break;
+
             // Move should pass an SEE() to be worth at least rBeta
             if (!staticExchangeEvaluation(board, move, rBeta - eval))
                 continue;
 
-            // Apply and validate move before searching
-            applyMove(board, move, undo);
-            if (!isNotInCheck(board, !board->turn)){
-                revertMove(board, move, undo);
+            // Apply and validate the move
+            if (!applyMove(board, move, undo))
                 continue;
-            }
 
             thread->moveStack[height] = move;
             thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
@@ -521,12 +521,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
-        // Apply the move, and verify legality
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
+        // Apply and validate the move
+        if (!applyMove(board, move, undo))
             continue;
-        }
 
         thread->moveStack[height] = move;
         thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
@@ -727,12 +724,9 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
-        // Apply and validate move before searching
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
+        // Apply and validate the move
+        if (!applyMove(board, move, undo))
             continue;
-        }
 
         thread->moveStack[height] = move;
         thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
@@ -943,12 +937,9 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
         // Skip the table move
         if (move == ttMove) continue;
 
-        // Verify legality before searching
-        applyMove(board, move, undo);
-        if (!isNotInCheck(board, !board->turn)){
-            revertMove(board, move, undo);
+        // Apply and validate the move
+        if (!applyMove(board, move, undo))
             continue;
-        }
 
         thread->moveStack[height] = move;
         thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);

@@ -28,7 +28,6 @@ struct SearchInfo {
     int values[MAX_PLY];
     uint16_t bestMoves[MAX_PLY];
     uint16_t ponderMoves[MAX_PLY];
-    double timeUsage[MAX_PLY];
     double startTime;
     double idealUsage;
     double maxAlloc;

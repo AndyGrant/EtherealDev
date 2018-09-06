@@ -32,7 +32,7 @@
 #include "types.h"
 #include "zobrist.h"
 
-void applyMove(Board *board, uint16_t move, Undo *undo) {
+int applyMove(Board *board, uint16_t move, Undo *undo) {
 
     static void (*table[4])(Board*, uint16_t, Undo*) = {
         applyNormalMove, applyCastleMove,
@@ -67,8 +67,17 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // No function updates this, so we do it here
     board->turn = !board->turn;
 
+    // Revert and signal illegal moves
+    if (!isNotInCheck(board, !board->turn)) {
+        revertMove(board, move, undo);
+        return 0;
+    }
+
     // Need king attackers to verify move legality
     board->kingAttackers = attackersToKingSquare(board);
+
+    // Signal valid move made
+    return 1;
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
