@@ -836,6 +836,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
+    int factor = SCALE_NORMAL;
+
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
 
@@ -851,18 +853,23 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
         && !several(black & ei->passedPawns)) {
 
         if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+            factor = SCALE_OCB_BISHOPS_ONLY;
 
-        if (   !(rooks | queens)
+        else if (   !(rooks | queens)
             &&  onlyOne(white & knights)
             &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
+            factor = SCALE_OCB_ONE_KNIGHT;
 
-        if (   !(knights | queens)
+        else if (   !(knights | queens)
             && onlyOne(white & rooks)
             && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
+            factor = SCALE_OCB_ONE_ROOK;
     }
+
+    // Halve any scaling reduction when many passers
+    if (   several(white & ei->passedPawns)
+        || several(black & ei->passedPawns))
+        factor = (factor + SCALE_NORMAL) / 2;
 
     return SCALE_NORMAL;
 }
