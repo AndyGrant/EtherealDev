@@ -547,7 +547,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
 
-            R -= thread->pieceStack[height] == PAWN;
+            R -=  thread->pieceStack[height] == PAWN
+              && (  pawnAttacks(!board->turn, MoveTo(move))
+                  & board->colours[board->turn]);
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
