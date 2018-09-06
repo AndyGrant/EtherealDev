@@ -812,7 +812,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatMinorAttackedByMajor[US] += count;
 
     // Penalty for pawn and minor threats against our rooks
-    count = popcount(rooks & (attacksByPawns | attacksByMinors));
+    count = popcount(rooks & (attacksByPawns | attacksByMinors) & ~ei->attackedBy[THEM][ROOK]);
     eval += count * ThreatRookAttackedByLesser;
     if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
 
