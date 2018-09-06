@@ -781,7 +781,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     // Squares with more attackers, few defenders, and no pawn support
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
-                            | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
+                            | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US]
+                             & ~ei->attackedBy[US][PAWN] & ~ei->attackedBy[US][KING]);
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
