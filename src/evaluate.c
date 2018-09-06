@@ -867,8 +867,8 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
     }
 
     // Halve any scaling reduction when many passers
-    if (   several(white & ei->passedPawns)
-        || several(black & ei->passedPawns))
+    if (   popcount(white & ei->passedPawns) >= 3
+        || popcount(black & ei->passedPawns) >= 3)
         factor = (factor + SCALE_NORMAL) / 2;
 
     return SCALE_NORMAL;
