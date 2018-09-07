@@ -836,8 +836,12 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateScaleFactor(Board *board) {
 
+    int factor = SCALE_NORMAL;
+
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
@@ -848,17 +852,19 @@ int evaluateScaleFactor(Board *board) {
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
         if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+            factor = SCALE_OCB_BISHOPS_ONLY;
 
-        if (   !(rooks | queens)
+        else if (!(rooks | queens)
             &&  onlyOne(white & knights)
             &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
+            factor = SCALE_OCB_ONE_KNIGHT;
 
-        if (   !(knights | queens)
+        else if (!(knights | queens)
             && onlyOne(white & rooks)
             && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
+            factor = SCALE_OCB_ONE_ROOK;
+
+        factor += 4 * popcount(pawns);
     }
 
     return SCALE_NORMAL;
