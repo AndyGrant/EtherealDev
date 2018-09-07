@@ -845,7 +845,7 @@ int evaluateScaleFactor(Board *board) {
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES))
-        return 64 + 4 * popcount(pawns)
+        return 64 + 4 * popcount(pawns);
 
     return 128;
 }
