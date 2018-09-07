@@ -381,7 +381,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  eval >= beta
         &&  depth >= NullMovePruningDepth
-        &&  hasAnUnblockedPawn(board)
+        &&  hasAnUnblockedPawn(board, board->turn)
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
@@ -866,18 +866,18 @@ int moveIsTactical(Board* board, uint16_t move){
         || MoveType(move) == ENPASS_MOVE;
 }
 
-int hasAnUnblockedPawn(Board *board) {
+int hasAnUnblockedPawn(Board *board, int colour) {
 
     uint64_t pawns = board->pieces[PAWN];
     uint64_t white = board->colours[WHITE];
     uint64_t black = board->colours[BLACK];
 
-    return pawnAdvance(white & pawns, white | black, WHITE)
-        || pawnAdvance(black & pawns, white | black, BLACK);
+    return colour == WHITE ? !!pawnAdvance(white & pawns, white | black, WHITE)
+                           : !!pawnAdvance(black & pawns, white | black, BLACK);
 }
 
-int hasNonPawnMaterial(Board* board, int turn){
-    uint64_t friendly = board->colours[turn];
+int hasNonPawnMaterial(Board* board, int colour){
+    uint64_t friendly = board->colours[colour];
     uint64_t kings = board->pieces[KING];
     uint64_t pawns = board->pieces[PAWN];
     return (friendly & (kings | pawns)) != friendly;

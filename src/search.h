@@ -58,9 +58,9 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold);
 
 int moveIsTactical(Board* board, uint16_t move);
 
-int hasAnUnblockedPawn(Board *board);
+int hasAnUnblockedPawn(Board *board, int colour);
 
-int hasNonPawnMaterial(Board* board, int turn);
+int hasNonPawnMaterial(Board* board, int colour);
 
 int valueFromTT(int value, int height);
 
