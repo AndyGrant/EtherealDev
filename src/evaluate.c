@@ -204,7 +204,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =    0;
+const int KSAdjustment      =   20;
 
 /* Passed Pawn Evaluation Terms */
 
