@@ -868,7 +868,7 @@ int moveIsTactical(Board* board, uint16_t move){
 
 int hasAnUnblockedPawn(Board *board) {
 
-    uint64_t pawns = board->pieces[PAWN]
+    uint64_t pawns = board->pieces[PAWN];
     uint64_t white = board->colours[WHITE];
     uint64_t black = board->colours[BLACK];
 
