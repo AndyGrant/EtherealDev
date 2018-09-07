@@ -867,7 +867,7 @@ int evaluateScaleFactor(Board *board) {
         factor += 4 * popcount(pawns);
     }
 
-    return SCALE_NORMAL;
+    return MIN(factor, SCALE_NORMAL);
 }
 
 void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
