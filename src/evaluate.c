@@ -853,7 +853,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board) {
         if (!(knights | rooks | queens)) {
 
 
-            int asym = popcount(ei->passedPawns | (ei->semiOpenFiles[WHITE] ^ ei->semiOpenFiles[BLACK]));
+            int asym = popcount(ei->semiOpenFiles[WHITE] ^ ei->semiOpenFiles[BLACK]);
 
             return MIN(SCALE_NORMAL, 48 + 8 * asym);
         }
