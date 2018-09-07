@@ -379,8 +379,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
+        &&  hasAnUnblockedPawn(board)
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
@@ -863,6 +864,16 @@ int moveIsTactical(Board* board, uint16_t move){
     return board->squares[MoveTo(move)] != EMPTY
         || MoveType(move) == PROMOTION_MOVE
         || MoveType(move) == ENPASS_MOVE;
+}
+
+int hasAnUnblockedPawn(Board *board) {
+
+    uint64_t pawns = board->pieces[PAWN]
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+
+    return pawnAdvance(white & pawns, white | black, WHITE)
+        || pawnAdvance(black & pawns, white | black, BLACK);
 }
 
 int hasNonPawnMaterial(Board* board, int turn){
