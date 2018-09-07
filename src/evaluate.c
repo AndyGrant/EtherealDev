@@ -241,7 +241,7 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
 
-int evaluateBoard(Board* board, PawnKingTable* pktable){
+int evaluateBoard(Board* board, PKTable* pktable){
 
     EvalInfo ei;
     int phase, factor, eval, pkeval;
@@ -260,15 +260,15 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board);
+    factor = evaluateScaleFactor(&ei, board);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
          +  ScoreEG(eval) * phase * factor / SCALE_NORMAL) / 256;
 
-    // Store a new Pawn King Entry if we did not have one
+    // Store a new PKEntry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
-        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+        storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval, ei.semiOpenFiles);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -336,6 +336,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         sq = poplsb(&tempPawns);
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
+
+        // Mark this Pawn's file as closed
+        ei->semiOpenFiles[US] ^= ~(1 << fileOf(sq));
 
         // Save passed pawn information for later evaluation
         if (!(passedPawnMasks(US, sq) & enemyPawns))
@@ -834,7 +837,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -847,8 +850,13 @@ int evaluateScaleFactor(Board *board) {
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
-        if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+        if (!(knights | rooks | queens)) {
+
+
+            int asym = popcount(ei->passedPawns | (ei->semiOpenFiles[WHITE] ^ ei->semiOpenFiles[BLACK]));
+
+            return MIN(SCALE_NORMAL, 32 + 8 * asym);
+        }
 
         if (   !(rooks | queens)
             &&  onlyOne(white & knights)
@@ -864,7 +872,7 @@ int evaluateScaleFactor(Board *board) {
     return SCALE_NORMAL;
 }
 
-void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
+void initializeEvalInfo(EvalInfo* ei, Board* board, PKTable* pktable){
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -908,8 +916,10 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAttackersCount[WHITE]  = ei->kingAttackersCount[BLACK]  = 0;
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
-    ei->pkentry       =     pktable == NULL ? NULL : getPawnKingEntry(pktable, board->pkhash);
-    ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
-    ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
-    ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
+    ei->pkentry              =     pktable == NULL ? NULL : getPKEntry(pktable, board->pkhash);
+    ei->passedPawns          = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
+    ei->pkeval[WHITE]        = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
+    ei->pkeval[BLACK]        = ei->pkentry == NULL ? 0    : 0;
+    ei->semiOpenFiles[WHITE] = ei->pkentry == NULL ? 0u   : ei->pkentry->semiOpenFiles[WHITE];
+    ei->semiOpenFiles[BLACK] = ei->pkentry == NULL ? 0u   : ei->pkentry->semiOpenFiles[BLACK];
 }

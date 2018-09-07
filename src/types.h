@@ -103,8 +103,8 @@ typedef struct Thread Thread;
 typedef struct TTEntry TTEntry;
 typedef struct TTBucket TTBucket;
 typedef struct TTable TTable;
-typedef struct PawnKingEntry PawnKingEntry;
-typedef struct PawnKingTable PawnKingTable;
+typedef struct PKEntry PKEntry;
+typedef struct PKTable PKTable;
 typedef struct Limits Limits;
 typedef struct ThreadsGo ThreadsGo;
 
