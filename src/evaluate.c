@@ -852,7 +852,7 @@ int evaluateScaleFactor(Board *board) {
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
         if (!(knights | rooks | queens))
-            factor = SCALE_OCB_BISHOPS_ONLY;
+            return SCALE_OCB_BISHOPS_ONLY;
 
         else if (!(rooks | queens)
             &&  onlyOne(white & knights)
