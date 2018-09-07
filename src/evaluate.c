@@ -642,9 +642,11 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                       &  ~ei->attackedBy2[US]
                       & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
+        int missing = MAX(0, 3 - popcount(myPawns & ei->kingAreas[US]));
+
         // Usually the King Area is 9 squares. Scale are attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
-        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
+        float scaledAttackCounts = (9.0 + missing) * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
         // Safe target squares are defended or are weak and attacked by two.
         // We exclude squares containing pieces which we cannot capture.
