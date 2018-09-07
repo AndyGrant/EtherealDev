@@ -381,7 +381,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  eval >= beta
         &&  depth >= NullMovePruningDepth
-        &&  hasAnUnblockedPawn(board, board->turn)
+        &&  hasAnUnblockedPawn(board, !board->turn)
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
