@@ -388,7 +388,7 @@ double completeLinearError(TexelEntry* tes, double params[NTERMS][PHASE_NB], dou
 }
 
 double singleLinearError(TexelEntry te, double params[NTERMS][PHASE_NB], double K) {
-    return te.result - sigmoid(K, linearEvaluation(te, params));
+    return pow(te.result - sigmoid(K, linearEvaluation(te, params)), 2);
 }
 
 double linearEvaluation(TexelEntry te, double params[NTERMS][PHASE_NB]) {
