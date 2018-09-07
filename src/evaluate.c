@@ -651,6 +651,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t safe =  ~board->colours[THEM]
                       & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
+        const int KSInvaders = 20;
+
+        uint64_t invaders =  board->pieces[THEM]
+                          &  ei->kingAreas[US]
+                          & ~ei->attackedBy[US][PAWN]
+                          &  ei->attackedBy[THEM][PAWN];
+
         // Find square and piece combinations which would check our King
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
         uint64_t knightThreats = knightAttacks(kingSq);
@@ -670,6 +677,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
+               + KSInvaders        * popcount(invaders);
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
