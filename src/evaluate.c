@@ -864,7 +864,7 @@ int evaluateScaleFactor(Board *board) {
             && onlyOne(black & rooks))
             factor = SCALE_OCB_ONE_ROOK;
 
-        factor += 4 * popcount(pawns);
+        factor += 3 * popcount(pawns);
     }
 
     return MIN(factor, SCALE_NORMAL);
