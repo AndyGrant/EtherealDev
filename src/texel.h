@@ -24,7 +24,7 @@
 
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
-#define NPARTITIONS (      1) // Total thread partitions
+#define NPARTITIONS (      3) // Total thread partitions
 #define LEARNING    (    2.5) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
