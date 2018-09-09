@@ -227,13 +227,13 @@ const int PassedSafePromotionPath = S(   0,  26);
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -37, -39);
-const int ThreatMinorAttackedByPawn  = S( -68, -54);
-const int ThreatMinorAttackedByMinor = S( -24,  -9);
-const int ThreatMinorAttackedByMajor = S( -47, -44);
-const int ThreatRookAttackedByLesser = S( -55, -25);
-const int ThreatQueenAttackedByOne   = S( -97,   1);
-const int ThreatOverloadedPieces     = S( -10, -26);
+const int ThreatWeakPawn             = S( -40, -40);
+const int ThreatMinorAttackedByPawn  = S( -65, -53);
+const int ThreatMinorAttackedByMinor = S( -26,  -9);
+const int ThreatMinorAttackedByMajor = S( -46, -44);
+const int ThreatRookAttackedByLesser = S( -57, -25);
+const int ThreatQueenAttackedByOne   = S( -99,   0);
+const int ThreatOverloadedPieces     = S( -11, -26);
 const int ThreatByPawnPush           = S(  20,  16);
 
 /* General Evaluation Terms */
