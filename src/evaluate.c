@@ -229,7 +229,7 @@ const int PassedSafePromotionPath = S(   0,  26);
 
 const int ThreatWeakPawn             = S( -37, -39);
 const int ThreatMinorAttackedByPawn  = S( -68, -54);
-const int ThreatMinorAttackedByMinor = S( -24,  -9);
+const int ThreatMinorAttackedByMinor = S( -12, -14);
 const int ThreatMinorAttackedByMajor = S( -47, -44);
 const int ThreatRookAttackedByLesser = S( -55, -25);
 const int ThreatQueenAttackedByOne   = S( -97,   1);
