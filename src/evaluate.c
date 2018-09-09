@@ -808,7 +808,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
 
     // Penalty for minor threats against completely unsupported minor pieces
-    count = popcount((knights | bishops) & attacksByMinors);// & ~ei->attacked[US]);
+    count = popcount((knights | bishops) & attacksByMinors); // & ~ei->attacked[US]);
     eval += count * ThreatMinorAttackedByMinor;
     if (TRACE) T.ThreatMinorAttackedByMinor[US] += count;
 
