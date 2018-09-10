@@ -60,6 +60,11 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
+const int PawnCandidatePasser[RANK_NB] = {
+    S(   0,   0), S(  -3,   0), S(  -4,   3), S(   0,  12),
+    S(   5,  23), S(   4,   3), S(   0,   0), S(   0,   0),
+};
+
 const int PawnIsolated = S(  -4,  -6);
 
 const int PawnStacked = S(  -5, -28);
@@ -338,9 +343,22 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
 
+        uint64_t threats = pawnAttacks(US, sq + Forward);
+        uint64_t support = pawnAttacks(THEM, sq + Forward);
+
         // Save passed pawn information for later evaluation
         if (!(passedPawnMasks(US, sq) & enemyPawns))
             setBit(&ei->passedPawns, sq);
+
+        // Eh.... athTF
+        if (    !testBit(ei->passedPawns, sq)
+            &&  !testBit(enemyPawns, sq + Forward)
+            &&  !testBit(enemyPawns, sq + Forward + Forward)
+            &&   popcount(support) >= popcount(threats)
+            && !(passedPawnMasks(US, sq + Forward + Forward) & enemyPawns)) {
+            pkeval += PawnCandidatePasser[relativeRankOf(US, sq)];
+            if (TRACE) T.PawnCandidatePasser[relativeRankOf(US, sq)][US]++;
+        }
 
         // Apply a penalty if the pawn is isolated
         if (!(isolatedPawnMasks(sq) & myPawns)) {
