@@ -25,11 +25,11 @@
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    1.0) // Learning rate step size
+#define LEARNING    (   10.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (     16) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -44,7 +44,7 @@
 #define TuneRookPSQT32                  (0)
 #define TuneQueenPSQT32                 (0)
 #define TuneKingPSQT32                  (0)
-#define TunePawnCandidatePasser         (0)
+#define TunePawnCandidatePasser         (1)
 #define TunePawnIsolated                (0)
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
@@ -176,7 +176,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     if (Tune##term) fname##_1(term, A);                         \
 } while (0)
 
-#define ENABLE_2(fname, term, A, legnth2) do {                  \
+#define ENABLE_2(fname, term, A, B) do {                        \
     if (Tune##term) fname##_2(term, A, B);                      \
 } while (0)
 
@@ -199,7 +199,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, RookPSQT32, 32);                            \
     ENABLE_1(fname, QueenPSQT32, 32);                           \
     ENABLE_1(fname, KingPSQT32, 32);                            \
-    ENABLE_1(fname, PawnCandidatePasser, 8);                    \
+    ENABLE_2(fname, PawnCandidatePasser, 2, 8);                 \
     ENABLE_0(fname, PawnIsolated);                              \
     ENABLE_0(fname, PawnStacked);                               \
     ENABLE_1(fname, PawnBackwards, 2);                          \
