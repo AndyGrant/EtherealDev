@@ -61,10 +61,10 @@ const int PieceValues[8][PHASE_NB] = {
 /* Pawn Evaluation Terms */
 
 const int PawnCandidatePasser[2][RANK_NB] = {
-    {S(   0,   0), S(  -4,   0), S(  -9,   6), S( -10,  27),
-     S(   1,  44), S(  23,  17), S(   0,   0), S(   0,   0)},
-    {S(   0,   0), S(  -4,   6), S(  -5,  19), S(   9,  51),
-     S(  24,  65), S(  14,  10), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  -4,   0), S(  -9,   6), S( -10,  27), S(   1,  44), S(  22,  16), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  -5,   8), S(  -8,  23), S(   1,  54), S(  10,  72), S(  23,  18), S(   0,   0), S(   0,   0)},
+};
+
 };
 
 const int PawnIsolated = S(  -4,  -6);
