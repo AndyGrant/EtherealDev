@@ -100,6 +100,8 @@ const int KnightMobility[9] = {
 
 const int BishopPair = S(  32,  70);
 
+const int BishopWings = S(   2,   9);
+
 const int BishopRammedPawns = S( -11, -12);
 
 const int BishopOutpost[2] = { S(  24,   1), S(  40,   0) };
@@ -471,6 +473,12 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)) {
         eval += BishopPair;
         if (TRACE) T.BishopPair[US]++;
+    }
+
+    // Apply a bonus for having a bishop when having pawns on both flanks
+    if (tempBishops && ((FILE_A | FILE_B) & myPawns) && ((FILE_G | FILE_H) & myPawns)) {
+        eval += BishopWings;
+        if (TRACE) T.BishopWings[US]++;
     }
 
     // Evaluate each bishop
