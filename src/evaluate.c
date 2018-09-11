@@ -61,10 +61,10 @@ const int PieceValues[8][PHASE_NB] = {
 /* Pawn Evaluation Terms */
 
 const int PawnCandidatePasser[2][RANK_NB] = {
-    {S(   0,   0), S(  -4,   0), S(  -9,   6), S( -10,  27),
-     S(   1,  44), S(  23,  17), S(   0,   0), S(   0,   0)},
-    {S(   0,   0), S(  -4,   6), S(  -5,  19), S(   9,  51),
-     S(  24,  65), S(  14,  10), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  -4,   0), S(  -9,   5), S( -11,  26),
+    S(   0,  44), S(  25,  18), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  -4,   7), S(  -5,  20), S(   9,  53),
+    S(  24,  68), S(  14,  10), S(   0,   0), S(   0,   0)},
 };
 
 const int PawnIsolated = S(  -4,  -6);
@@ -215,22 +215,22 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][8] = {
-  {{S(   0,   0), S( -28, -25), S( -22,   3), S( -12,   0),
-    S(  15,  -1), S(  54,   0), S( 141,  31), S(   0,   0)},
-   {S(   0,   0), S(  -5,  -7), S( -23,  11), S( -15,  24),
-    S(   2,  41), S(  65,  66), S( 191, 136), S(   0,   0)}},
-  {{S(   0,   0), S( -12,   5), S( -18,   1), S(  -9,  20),
-    S(  26,  37), S(  76,  75), S( 238, 158), S(   0,   0)},
-   {S(   0,   0), S( -23,  -8), S( -17,  -2), S( -17,  34),
-    S(  -1, 101), S(  44, 223), S( 125, 381), S(   0,   0)}},
+const int PassedPawn[2][2][RANK_NB] = {
+  {{S(   0,   0), S( -28, -25), S( -23,   2), S( -11,   0),
+    S(  16,   1), S(  53,   1), S( 140,  32), S(   0,   0)},
+   {S(   0,   0), S(  -7, -11), S( -24,   7), S( -15,  21),
+    S(   3,  44), S(  65,  68), S( 191, 137), S(   0,   0)}},
+  {{S(   0,   0), S( -15,   0), S( -20,  -4), S( -11,  20),
+    S(  23,  43), S(  73,  79), S( 239, 161), S(   0,   0)},
+   {S(   0,   0), S( -23, -11), S( -17,  -7), S( -13,  35),
+    S(   0,  98), S(  41, 214), S( 124, 378), S(   0,   0)}},
 };
 
-const int PassedFriendlyDistance = S(   4,  -6);
+const int PassedFriendlyDistance = S(   5,  -6);
 
-const int PassedEnemyDistance = S(  -1,   8);
+const int PassedEnemyDistance = S(  -2,  11);
 
-const int PassedSafePromotionPath = S(   0,  26);
+const int PassedSafePromotionPath = S(  -1,  23);
 
 /* Threat Evaluation Terms */
 
