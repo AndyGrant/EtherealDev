@@ -358,7 +358,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus for pawns which will become passers by advancing a single
         // square when exchanging our supporters with the remaining passer stoppers
         else if (!leftovers && popcount(pushSupport) >= popcount(pushThreats)) {
-            flag = popcount(support) >= popcount(threats);
+            flag = popcount(support) >= popcount(threats) - 1;
             pkeval += PawnCandidatePasser[flag][relativeRankOf(US, sq)];
             if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
         }
