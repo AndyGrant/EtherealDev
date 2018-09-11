@@ -353,7 +353,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         uint64_t leftovers   = stoppers ^ threats ^ pushThreats;
 
         // Save passed pawn information for later evaluation
-        if (!stoppers) setBit(&ei->passedPawns, sq);
+        if (!stoppers && !(myPawns & ranksAtOrAboveMasks(US, rankOf(sq + Forward)) & Files[fileOf(sq)]))
+            setBit(&ei->passedPawns, sq);
 
         // Apply a bonus for pawns which will become passers by advancing a single
         // square when exchanging our supporters with the remaining passer stoppers
