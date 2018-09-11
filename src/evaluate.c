@@ -345,6 +345,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
 
+        int blocked = testBit(myPawns, sq + Forward);
         uint64_t stoppers    = enemyPawns & passedPawnMasks(US, sq);
         uint64_t threats     = enemyPawns & pawnAttacks(US, sq);
         uint64_t support     = myPawns    & pawnAttacks(THEM, sq);
@@ -357,7 +358,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus for pawns which will become passers by advancing a single
         // square when exchanging our supporters with the remaining passer stoppers
-        else if (!leftovers && popcount(pushSupport) >= popcount(pushThreats)) {
+        else if (!blocked && !leftovers && popcount(pushSupport) >= popcount(pushThreats)){
             flag = popcount(support) >= popcount(threats);
             pkeval += PawnCandidatePasser[flag][relativeRankOf(US, sq)];
             if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
