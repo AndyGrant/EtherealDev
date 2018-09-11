@@ -33,7 +33,6 @@ uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t RanksAtOrAboveMasks[COLOUR_NB][RANK_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
-uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostRanks[COLOUR_NB];
 
@@ -109,12 +108,6 @@ void initMasks() {
     // Initalize relative outpost ranks
     OutpostRanks[WHITE] = RANK_4 | RANK_5 | RANK_6;
     OutpostRanks[BLACK] = RANK_3 | RANK_4 | RANK_5;
-
-    // Initalize pawn connected masks
-    for (int s = 8 ; s < 56; s++) {
-        PawnConnectedMasks[WHITE][s] = pawnAttacks(BLACK, s) | pawnAttacks(BLACK, s + 8);
-        PawnConnectedMasks[BLACK][s] = pawnAttacks(WHITE, s) | pawnAttacks(WHITE, s - 8);
-    }
 }
 
 int distanceBetween(int s1, int s2) {
@@ -150,12 +143,6 @@ uint64_t passedPawnMasks(int c, int s) {
     assert(0 <= c && c < COLOUR_NB);
     assert(0 <= s && s < SQUARE_NB);
     return PassedPawnMasks[c][s];
-}
-
-uint64_t pawnConnectedMasks(int c, int s) {
-    assert(0 <= c && c < COLOUR_NB);
-    assert(0 <= s && s < SQUARE_NB);
-    return PawnConnectedMasks[c][s];
 }
 
 uint64_t outpostSquareMasks(int c, int s) {

@@ -345,11 +345,14 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
 
+        uint64_t neighbors   = myPawns & isolatedPawnMasks(sq);
+        uint64_t support     = myPawns & pawnAttacks(THEM, sq);
+        uint64_t pushSupport = myPawns & pawnAttacks(THEM, sq + Forward);
+
         uint64_t stoppers    = enemyPawns & passedPawnMasks(US, sq);
         uint64_t threats     = enemyPawns & pawnAttacks(US, sq);
-        uint64_t support     = myPawns    & pawnAttacks(THEM, sq);
         uint64_t pushThreats = enemyPawns & pawnAttacks(US, sq + Forward);
-        uint64_t pushSupport = myPawns    & pawnAttacks(THEM, sq + Forward);
+
         uint64_t leftovers   = stoppers ^ threats ^ pushThreats;
 
         // Save passed pawn information for later evaluation
@@ -364,7 +367,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the pawn is isolated
-        if (!(isolatedPawnMasks(sq) & myPawns)) {
+        if (!neighbors) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
@@ -376,15 +379,14 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the pawn is backward
-        if (   !(passedPawnMasks(THEM, sq) & myPawns)
-            &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
+        if (pushThreats && !(passedPawnMasks(THEM, sq + Forward) & neighbors)) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag];
             if (TRACE) T.PawnBackwards[flag][US]++;
         }
 
         // Apply a bonus if the pawn is connected and not backward
-        else if (pawnConnectedMasks(US, sq) & myPawns) {
+        else if (support || pushSupport) {
             pkeval += PawnConnected32[relativeSquare32(sq, US)];
             if (TRACE) T.PawnConnected32[relativeSquare32(sq, US)][US]++;
         }
