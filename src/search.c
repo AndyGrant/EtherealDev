@@ -521,6 +521,23 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
+        // Step 18A. Singular Move Extensions. If we are looking at a table move,
+        // and it seems that under some conditions, the table move is better than
+        // all other possible moves, we will extend the search of the table move
+        extension =  !RootNode
+                  &&  depth >= 10
+                  &&  move == ttMove
+                  &&  ttDepth >= depth - 3
+                  && (ttBound & BOUND_LOWER)
+                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+
+        // Step 18B. Check Extensions. We extend captures and good quiets that
+        // come from in check positions, so long as no other extensions occur
+        extension += !RootNode
+                  && !extension
+                  &&  inCheck
+                  &&  staticExchangeEvaluation(board, move, 0);
+
         // Apply the move, and verify legality
         applyMove(board, move, undo);
         if (!isNotInCheck(board, !board->turn)){
@@ -534,7 +551,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
 
-        // Step 18. Late Move Reductions. Compute the reduction,
+        // Step 19. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
@@ -558,22 +575,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
-
-        // Step 19A. Singular Move Extensions. If we are looking at a table move,
-        // and it seems that under some conditions, the table move is better than
-        // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  &&  depth >= 10
-                  &&  move == ttMove
-                  &&  ttDepth >= depth - 3
-                  && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
-
-        // Step 19B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
-        extension += !RootNode
-                  &&  inCheck
-                  && !extension;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
@@ -933,9 +934,6 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
-    // Table move was already applied, undo that
-    revertMove(board, ttMove, undo);
-
     // Iterate and check all moves other than the table move
     initMovePicker(&movePicker, thread, NONE_MOVE, height);
     while ((move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE){
@@ -962,12 +960,6 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
         // Move failed high, thus ttMove is not singular
         if (value > rBeta) break;
     }
-
-    // Reapply the table move we took off
-    applyMove(board, ttMove, undo);
-
-    thread->moveStack[height] = ttMove;
-    thread->pieceStack[height] = pieceType(board->squares[MoveTo(ttMove)]);
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
