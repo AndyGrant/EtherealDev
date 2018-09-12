@@ -226,6 +226,10 @@ const int PassedPawn[2][2][8] = {
     S(  -1, 101), S(  44, 223), S( 125, 381), S(   0,   0)}},
 };
 
+const int PassedPawnFile[4] = {
+    S(   6,  12), S(   1,   9), S(  -5,   1), S(  -1,  -1),
+};
+
 const int PassedFriendlyDistance = S(   4,  -6);
 
 const int PassedEnemyDistance = S(  -1,   8);
@@ -759,6 +763,10 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         safeAdvance = !(bitboard & ei->attacked[THEM]);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
+
+        // Evaluate based on file, mirrored across the center
+        eval += PassedPawnFile[mirrorFile(fileOf(sq))];
+        if (TRACE) T.PassedPawnFile[mirrorFile(fileOf(sq))][US]++;
 
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ei->kingSquare[US]);

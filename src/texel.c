@@ -76,6 +76,7 @@ extern const int KingDefenders[12];
 extern const int KingShelter[2][8][8];
 extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
+extern const int PassedPawnFile[4];
 extern const int PassedFriendlyDistance;
 extern const int PassedEnemyDistance;
 extern const int PassedSafePromotionPath;
