@@ -56,7 +56,7 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    info->pvFactor = info->scoreFactor = 0; // Clear time usage heuristics
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf){
@@ -102,19 +102,19 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase our time if the score suddenly dropped
     if (lastValue > value + 20)
-        info->idealUsage *= 1.075;
+        info->scoreFactor += 1;
 
     // Increase our time if the score suddenly dropped
     if (lastValue > value + 40)
-        info->idealUsage *= 1.075;
+        info->scoreFactor += 1;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 20 < value)
-        info->idealUsage *= 1.075;
+        info->scoreFactor += 1;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 40 < value)
-        info->idealUsage *= 1.075;
+        info->scoreFactor += 1;
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
@@ -130,6 +130,8 @@ int terminateTimeManagment(SearchInfo* info) {
 
     // Adjust cutoff based on bestmove fluctuations
     cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
+
+    cutoff *= 1.00 + info->scoreFactor * ScoreFactorWeight;
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
