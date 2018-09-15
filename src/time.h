@@ -27,9 +27,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits);
 void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value);
 int terminateTimeManagment(SearchInfo* info);
 
-static const double PVFactorCount  = 6;
-static const double PVFactorWeight = 0.15;
+static const double PVFactorCount  = 3;
+static const double PVFactorWeight = 0.40;
 
-static const double ScoreFactorWeight = 0.09;
+static const double ScoreFactorWeight = 0.15;
 
 #endif
