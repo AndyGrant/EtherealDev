@@ -25,11 +25,11 @@
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    1.0) // Learning rate step size
+#define LEARNING    (   10.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (     25) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -76,6 +76,7 @@
 #define TuneThreatQueenAttackedByOne    (0)
 #define TuneThreatOverloadedPieces      (0)
 #define TuneThreatByPawnPush            (0)
+#define TuneMaterialImbalance           (1)
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
@@ -231,6 +232,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_0(fname, ThreatQueenAttackedByOne);                  \
     ENABLE_0(fname, ThreatOverloadedPieces);                    \
     ENABLE_0(fname, ThreatByPawnPush);                          \
+    ENABLE_2(fname, MaterialImbalance, 5, 5);                   \
 } while (0)
 
 #endif

@@ -87,6 +87,7 @@ extern const int ThreatRookAttackedByLesser;
 extern const int ThreatQueenAttackedByOne;
 extern const int ThreatOverloadedPieces;
 extern const int ThreatByPawnPush;
+extern const int MaterialImbalance[5][5];
 
 void runTexelTuning(Thread *thread) {
 

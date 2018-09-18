@@ -73,6 +73,7 @@ struct EvalTrace {
     int ThreatQueenAttackedByOne[COLOUR_NB];
     int ThreatOverloadedPieces[COLOUR_NB];
     int ThreatByPawnPush[COLOUR_NB];
+    int MaterialImbalance[5][5][COLOUR_NB];
 };
 
 struct EvalInfo {
@@ -105,6 +106,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassedPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
+int evaluateMaterialImbalance(Board *board);
 int evaluateScaleFactor(Board *board);
 void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable);
 
