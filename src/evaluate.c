@@ -46,16 +46,16 @@
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S( 100, 123);
-const int KnightValue = S( 463, 392);
-const int BishopValue = S( 473, 417);
-const int RookValue   = S( 639, 717);
-const int QueenValue  = S(1313,1348);
+const int PawnValue   = S(  78, 144);
+const int KnightValue = S( 449, 394);
+const int BishopValue = S( 464, 417);
+const int RookValue   = S( 631, 723);
+const int QueenValue  = S(1308,1346);
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
-    {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
+    {  78, 144}, { 449, 394}, { 464, 417}, { 631, 723},
+    {1308,1346}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 /* Pawn Evaluation Terms */
@@ -246,11 +246,11 @@ const int ThreatByPawnPush           = S(  20,  16);
 /* Material Imbalance Evaluation Terms */
 
 const int MaterialImbalance[5][5] = {
-   {S(   0,   0),                                                       },
-   {S(   0,   0), S(   0,   0),                                         },
-   {S(  -6,  -1), S(   2,   0), S(   0,   0),                           },
-   {S(  -1,  -7), S(  13,  -1), S(   4,  -5), S(   0,   0),             },
-   {S(   9,  -9), S(  13,   2), S(   6,   0), S(   0,  -2), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -2,   3), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -8,   3), S(   1,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -7,  -2), S(  13,  -2), S(   5,  -5), S(   0,   0), S(   0,   0)},
+   {S(   7,  -8), S(  13,   3), S(   6,   0), S(  -1,  -2), S(   0,   0)},
 };
 
 /* General Evaluation Terms */
