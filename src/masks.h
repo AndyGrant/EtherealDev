@@ -29,6 +29,7 @@ uint64_t bitsBetweenMasks(int s1, int s2);
 uint64_t kingAreaMasks(int colour, int sq);
 uint64_t ranksAtOrAboveMasks(int c, int r);
 uint64_t isolatedPawnMasks(int s);
+uint64_t backwardsPawnMasks(int c, int s);
 uint64_t passedPawnMasks(int c, int s);
 uint64_t pawnConnectedMasks(int c, int s);
 uint64_t outpostSquareMasks(int c, int s);

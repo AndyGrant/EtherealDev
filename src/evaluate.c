@@ -71,6 +71,8 @@ const int PawnIsolated = S(  -4,  -6);
 
 const int PawnStacked = S(  -5, -28);
 
+const int PawnWeakness = S( -10, -10);
+
 const int PawnBackwards[2] = { S(   5,  -3), S(  -9, -16) };
 
 const int PawnConnected32[32] = {
@@ -373,6 +375,14 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (Files[fileOf(sq)] & tempPawns) {
             pkeval += PawnStacked;
             if (TRACE) T.PawnStacked[US]++;
+        }
+
+        // Apply a penalty if losing this pawn creates a passer
+        if (     testBit(enemyPawns, sq + Forward)
+            &&  !testBit(ei->pawnAttacks[US], sq + Forward)
+            && !(backwardsPawnMasks(US, sq) & myPawns)) {
+            pkeval += PawnWeakness;
+            if (TRACE) T.PawnWeakness[US]++;
         }
 
         // Apply a penalty if the pawn is backward

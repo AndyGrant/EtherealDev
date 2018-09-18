@@ -32,6 +32,7 @@ uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t RanksAtOrAboveMasks[COLOUR_NB][RANK_NB];
 uint64_t IsolatedPawnMasks[SQUARE_NB];
+uint64_t BackwardsPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
@@ -90,6 +91,13 @@ void initMasks() {
             IsolatedPawnMasks[s] = Files[f + 1];
     }
 
+    for (int c = WHITE; c <= BLACK; c++) {
+        for (int s = 0; s < SQUARE_NB; s++) {
+            BackwardsPawnMasks[c][s]  = IsolatedPawnMasks[s] | Files[fileOf(s)];
+            BackwardsPawnMasks[c][s] &= ~RanksAtOrAboveMasks[c][rankOf(s)];
+        }
+    }
+
     // Initalize passed pawn masks and outpost masks
     for (int s = 0; s < SQUARE_NB; s++) {
         const uint64_t files = IsolatedPawnMasks[s] | Files[fileOf(s)];
@@ -144,6 +152,12 @@ uint64_t ranksAtOrAboveMasks(int c, int r) {
 uint64_t isolatedPawnMasks(int s) {
     assert(0 <= s && s < SQUARE_NB);
     return IsolatedPawnMasks[s];
+}
+
+uint64_t backwardsPawnMasks(int c, int s) {
+    assert(0 <= c && c < COLOUR_NB);
+    assert(0 <= s && s < SQUARE_NB);
+    return BackwardsPawnMasks[c][s];
 }
 
 uint64_t passedPawnMasks(int c, int s) {
