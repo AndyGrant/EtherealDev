@@ -105,25 +105,26 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Increase time if the PV changed moves
     if (thisMove != lastMove) {
+
+        // Reset scale factor when the PV swaps
         info->pvFactor = PVFactorCount;
-        return;
+
+        // Increase our time if the score suddenly dropped
+        if (lastValue > value + 20)
+            info->scoreFactor++;
+
+        // Increase our time if the score suddenly dropped
+        if (lastValue > value + 40)
+            info->scoreFactor++;
+
+        // Increase our time if the score suddenly jumps
+        if (lastValue + 20 < value)
+            info->scoreFactor++;
+
+        // Increase our time if the score suddenly jumps
+        if (lastValue + 40 < value)
+            info->scoreFactor++;
     }
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20)
-        info->scoreFactor++;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
-        info->scoreFactor++;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 20 < value)
-        info->scoreFactor++;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 40 < value)
-        info->scoreFactor++;
 }
 
 int terminateTimeManagment(SearchInfo* info) {
