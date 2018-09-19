@@ -231,6 +231,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
+    int shortSightedCount = 0;
+
     Undo undo[1];
     MovePicker movePicker;
 
@@ -546,6 +548,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            R -= shortSightedCount >= 3;
+
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
@@ -578,6 +582,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
 
+        int researched = 0;
+
         // Step 20A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
@@ -587,8 +593,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
-        if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
+        if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1))) {
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
+            researched = R != 1;
+        }
 
         // Step 20C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
@@ -599,6 +607,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Revert the board state
         revertMove(board, move, undo);
+
+        shortSightedCount += value <= best && researched;
 
         // Step 21. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
