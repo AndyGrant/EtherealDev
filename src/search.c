@@ -231,6 +231,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
+    int almostProbCut = 0;
+
     Undo undo[1];
     MovePicker movePicker;
 
@@ -434,8 +436,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
 
             // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 6)
+            if (value >= rBeta && depth > 6) {
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+                almostProbCut = 1;
+            }
 
             // Revert the board state
             revertMove(board, move, undo);
@@ -545,6 +549,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Increase for non improving nodes
             R += !improving;
+
+            R += almostProbCut;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
