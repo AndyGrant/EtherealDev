@@ -84,6 +84,7 @@ extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMinor;
 extern const int ThreatMinorAttackedByMajor;
 extern const int ThreatRookAttackedByLesser;
+extern const int ThreatRookAttackedByMajor;
 extern const int ThreatQueenAttackedByOne;
 extern const int ThreatOverloadedPieces;
 extern const int ThreatByPawnPush;
