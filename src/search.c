@@ -548,7 +548,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            R -= shortSightedCount >= 5;
+            R += shortSightedCount >= 5;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
