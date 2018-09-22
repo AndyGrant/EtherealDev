@@ -34,10 +34,8 @@ struct Thread {
     Board board;
     PVariation pv;
 
-    int value;
     int depth;
     int seldepth;
-
     uint64_t nodes;
     uint64_t tbhits;
 
