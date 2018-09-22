@@ -112,15 +112,15 @@ void* iterativeDeepening(void* vthread){
     // Perform iterative deepening until exit conditions
     for (thread->depth = 1; thread->depth < MAX_PLY; thread->depth++){
 
-        // Skip depths for the helper threads using the Stockfish method
-        if (!MainThread && (thread->depth + SkipPhase[cycle] / SkipSize[cycle]) % 2)
-            continue;
-
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
 
         // Perform the actual search for the current depth
         value = aspirationWindow(thread, thread->depth, value);
+
+        // Occasionally skip depths using Laser's method
+        if (!MainThread && (thread->depth + cycle) % SkipDepths[cycle] == 0)
+            thread->depth += SkipSize[cycle];
 
         // Helper threads need not worry about time and search info updates
         if (!MainThread) continue;
