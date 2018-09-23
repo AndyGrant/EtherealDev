@@ -22,6 +22,7 @@
 #include <setjmp.h>
 
 #include "board.h"
+#include "move.h"
 #include "search.h"
 #include "transposition.h"
 #include "types.h"
@@ -39,6 +40,7 @@ struct Thread {
     int seldepth;
     uint64_t nodes;
     uint64_t tbhits;
+    uint16_t bestmove;
 
     int *evalStack;
     int _evalStack[MAX_PLY+4];

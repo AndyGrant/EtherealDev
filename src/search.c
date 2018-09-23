@@ -113,11 +113,15 @@ void* iterativeDeepening(void* vthread){
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
 
+        // Save off best move from last search before overwriting
+        uint16_t oldBestMove = thread->bestmove;
+
         // Perform the actual search for the current depth
         thread->value = aspirationWindow(thread, thread->depth, thread->value);
 
         // Occasionally skip depths using Laser's method
-        if (!mainThread && (thread->depth + cycle) % SkipDepths[cycle] == 0)
+        if (   (thread->depth == 1 || oldBestMove == thread->bestmove)
+            && !mainThread && (thread->depth + cycle) % SkipDepths[cycle] == 0)
             thread->depth += SkipSize[cycle];
 
         // Helper threads need not worry about time and search info updates
@@ -126,7 +130,7 @@ void* iterativeDeepening(void* vthread){
         // Update the Search Info structure for the main thread
         info->depth                      = thread->depth;
         info->values[thread->depth]      = thread->value;
-        info->bestMoves[thread->depth]   = thread->pv.line[0];
+        info->bestMoves[thread->depth]   = thread->bestmove;
         info->ponderMoves[thread->depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
 
         // Send information about this search to the interface
@@ -593,6 +597,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 pv->length = 1 + lpv.length;
                 pv->line[0] = move;
                 memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+
+                if (RootNode)
+                    thread->bestmove = move;
             }
         }
 

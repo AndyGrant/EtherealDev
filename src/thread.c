@@ -85,10 +85,13 @@ void newSearchThreadPool(Thread* threads, Board* board, Limits* limits, SearchIn
         // Make our own copy of the original position
         memcpy(&threads[i].board, board, sizeof(Board));
 
-        // Zero out our depth and stat tracking
-        threads[i].depth  = 0;
-        threads[i].nodes  = 0ull;
-        threads[i].tbhits = 0ull;
+        // Reset search status information for each thread
+        threads[i].value    = 0;
+        threads[i].depth    = 0;
+        threads[i].seldepth = 0;
+        threads[i].nodes    = 0u;
+        threads[i].tbhits   = 0u;
+        threads[i].bestmove = NONE_MOVE;
     }
 }
 
