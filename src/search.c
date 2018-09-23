@@ -117,7 +117,9 @@ void* iterativeDeepening(void* vthread){
         thread->value = aspirationWindow(thread, thread->depth, thread->value);
 
         // Occasionally skip depths using Laser's method
-        if (!mainThread && (thread->depth + cycle) % SkipDepths[cycle] == 0)
+        if (    !mainThread
+            && (    thread->depth <= info->depth
+                || (thread->depth + cycle) % SkipDepths[cycle] == 0))
             thread->depth += SkipSize[cycle];
 
         // Helper threads need not worry about time and search info updates
