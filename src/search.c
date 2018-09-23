@@ -118,7 +118,7 @@ void* iterativeDeepening(void* vthread){
 
         // Occasionally skip depths using Laser's method
         if (    !mainThread
-            && (    thread->depth <= info->depth
+            && (    thread->depth < info->depth
                 || (thread->depth + cycle) % SkipDepths[cycle] == 0))
             thread->depth += SkipSize[cycle];
 
