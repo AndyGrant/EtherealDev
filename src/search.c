@@ -113,6 +113,9 @@ void* iterativeDeepening(void* vthread){
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
 
+        // Don't repeat an already finished search depth
+        if (!mainThread && thread->depth <= info->depth) continue;
+
         // Perform the actual search for the current depth
         thread->value = aspirationWindow(thread, thread->depth, thread->value);
 
