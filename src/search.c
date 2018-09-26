@@ -424,6 +424,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
+    if (   !PvNode
+        && !inCheck
+        &&  improving
+        &&  eval >= beta + 256)
+        depth = MAX(0, depth - 1);
+
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
