@@ -83,6 +83,7 @@ struct EvalInfo {
     uint64_t mobilityAreas[COLOUR_NB];
     uint64_t attacked[COLOUR_NB];
     uint64_t attackedBy2[COLOUR_NB];
+    uint64_t attackedBy3[COLOUR_NB];
     uint64_t attackedBy[COLOUR_NB][PIECE_NB];
     uint64_t occupiedMinusBishops[COLOUR_NB];
     uint64_t occupiedMinusRooks[COLOUR_NB];

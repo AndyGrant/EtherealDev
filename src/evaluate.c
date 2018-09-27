@@ -418,6 +418,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
         // Compute possible attacks and store off information for king safety
         attacks = knightAttacks(sq);
+        ei->attackedBy3[US]        |= attacks & ei->attackedBy2[US];
         ei->attackedBy2[US]        |= attacks & ei->attacked[US];
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][KNIGHT] |= attacks;
@@ -483,6 +484,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
         // Compute possible attacks and store off information for king safety
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+        ei->attackedBy3[US]        |= attacks & ei->attackedBy2[US];
         ei->attackedBy2[US]        |= attacks & ei->attacked[US];
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][BISHOP] |= attacks;
@@ -548,6 +550,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
 
         // Compute possible attacks and store off information for king safety
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[US]);
+        ei->attackedBy3[US]        |= attacks & ei->attackedBy2[US];
         ei->attackedBy2[US]      |= attacks & ei->attacked[US];
         ei->attacked[US]         |= attacks;
         ei->attackedBy[US][ROOK] |= attacks;
@@ -607,6 +610,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         // Compute possible attacks and store off information for king safety
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[US])
                 | bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+        ei->attackedBy3[US]       |= attacks & ei->attackedBy2[US];
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
@@ -668,10 +672,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        uint64_t targets = ~board->colours[THEM]       & ~ei->attackedBy[US][PAWN  ]
-                         & ~ei->attackedBy[US][KNIGHT] & ~ei->attackedBy[US][BISHOP]
-                         & ~ei->attackedBy[US][ROOK  ] & ~ei->attackedBy[US][QUEEN ]
-                         & (ei->attackedBy2[THEM]      | ~ei->attackedBy[US][KING  ]);
+        uint64_t targets = ~ei->attackedBy[US][PAWN  ] & ~ei->attackedBy[US][KNIGHT]
+                         & ~ei->attackedBy[US][BISHOP] & ~ei->attackedBy[US][ROOK  ]
+                         & (ei->attackedBy2[THEM]      | ~ei->attackedBy[US][KING  ])
+                         & (ei->attackedBy2[THEM]      | ~ei->attackedBy[US][QUEEN ]);
+
+        uint64_t safe =  ~board->colours[THEM] & targets
+                      & (~ei->attackedBy2[US] | ei->attackedBy3[THEM]);
 
         // Find square and piece combinations which would check our King
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
@@ -683,10 +690,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // Identify if pieces can move to those checking squares safely.
         // We check if our Queen can attack the square for safe Queen checks.
         // No attacks of other pieces is implicit in our definition of weak.
-        uint64_t knightChecks = knightThreats & targets & ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & targets & ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & targets & ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & targets & ei->attackedBy[THEM][QUEEN ];
+        uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -923,6 +930,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
 
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
+
+    ei->attackedBy3[WHITE] = ei->attackedBy3[BLACK] = 0ull;
 
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
