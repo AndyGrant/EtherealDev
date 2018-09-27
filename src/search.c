@@ -530,6 +530,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.killer2
               || move == movePicker.counter;
 
+            // Reduce when evaluation gap is large
+            R -= !improving && eval + 256 < alpha;
+
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
 
