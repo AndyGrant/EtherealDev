@@ -668,10 +668,9 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // when the king is in an open area and expects more attacks, or the opposite
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        // Safe target squares are defended or are weak and attacked by two.
-        // We exclude squares containing pieces which we cannot capture.
-        uint64_t safe =  ~board->colours[THEM]
-                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
+        uint64_t targets = ~board->colours[THEM]       & ~ei->attackedBy[US][PAWN  ]
+                         & ~ei->attackedBy[US][KNIGHT] & ~ei->attackedBy[US][BISHOP]
+                         & ~ei->attackedBy[US][ROOK  ] & ~ei->attackedBy[US][QUEEN ];
 
         // Find square and piece combinations which would check our King
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
@@ -683,11 +682,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         // Identify if pieces can move to those checking squares safely.
         // We check if our Queen can attack the square for safe Queen checks.
         // No attacks of other pieces is implicit in our definition of weak.
-        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        uint64_t knightChecks = knightThreats & targets & ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks = bishopThreats & targets & ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   = rookThreats   & targets & ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  = queenThreats  & targets & ei->attackedBy[THEM][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
