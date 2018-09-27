@@ -673,9 +673,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
         uint64_t targets = ~ei->attackedBy[US][PAWN  ] & ~ei->attackedBy[US][KNIGHT]
-                         & ~ei->attackedBy[US][BISHOP] & ~ei->attackedBy[US][ROOK  ]
-                         & (ei->attackedBy2[THEM]      | ~ei->attackedBy[US][KING  ])
-                         & (ei->attackedBy2[THEM]      | ~ei->attackedBy[US][QUEEN ]);
+                         & ~ei->attackedBy[US][BISHOP] & ~ei->attackedBy[US][ROOK  ];
 
         uint64_t safe =  ~board->colours[THEM] & targets
                       & (~ei->attackedBy2[US] | ei->attackedBy3[THEM]);
