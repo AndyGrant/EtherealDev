@@ -670,7 +670,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         uint64_t targets = ~board->colours[THEM]       & ~ei->attackedBy[US][PAWN  ]
                          & ~ei->attackedBy[US][KNIGHT] & ~ei->attackedBy[US][BISHOP]
-                         & ~ei->attackedBy[US][ROOK  ] & ~ei->attackedBy[US][QUEEN ];
+                         & ~ei->attackedBy[US][ROOK  ] & ~ei->attackedBy[US][QUEEN ]
+                         & (ei->attackedBy2[THEM]      | ~ei->attackedBy[US][KING  ]);
 
         // Find square and piece combinations which would check our King
         uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
