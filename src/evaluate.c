@@ -691,7 +691,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         uint64_t queenTrades = queenThreats & safe & ei->attackedBy[THEM][QUEEN] & ~queenChecks;
 
-        const int KSQueenTrades = 10;
+        const int KSQueenTrades = 40;
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
