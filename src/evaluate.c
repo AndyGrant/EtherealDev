@@ -689,6 +689,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
                                                      & ~ei->attackedBy[  US][QUEEN ];
 
+        uint64_t queenTrades = queenThreats & safe & ei->attackedBy[THEM][QUEEN] & ~queenChecks;
+
+        const int KSQueenTrades = 10;
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
@@ -699,6 +703,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * !!rookChecks
                + KSSafeBishopCheck * !!bishopChecks
                + KSSafeKnightCheck * !!knightChecks
+               + KSQueenTrades     * (queenTrades && !queenChecks)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
