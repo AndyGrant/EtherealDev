@@ -533,6 +533,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
 
+            // Adjust based on just cmhist and fuhist
+            R -= MAX(-1, MIN(1, (cmhist + fuhist) / 10000));
+
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
 
