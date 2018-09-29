@@ -686,10 +686,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         int bishopChecks = !!(bishopThreats & safe & ei->attackedBy[THEM][BISHOP]);
         int rookChecks   = !!(rookThreats   & safe & ei->attackedBy[THEM][ROOK  ]);
         int queenChecks  = !!(queenThreats  & safe & ei->attackedBy[THEM][QUEEN ]);
-        int checkCounts  = knightChecks + bishopChecks + rookChecks + queenChecks;
 
         count  =  ei->kingAttackersCount[THEM]
-               * (ei->kingAttackersWeight[THEM] + checkCounts);
+               * (ei->kingAttackersWeight[THEM]
+               +  knightChecks * KSAttackWeight[KNIGHT]
+               +  bishopChecks * KSAttackWeight[BISHOP]
+               +  rookChecks   * KSAttackWeight[ROOK  ]
+               +  queenChecks  * KSAttackWeight[QUEEN ]);
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
