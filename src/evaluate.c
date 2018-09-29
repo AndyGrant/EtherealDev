@@ -207,10 +207,10 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   85;
-const int KSSafeRookCheck   =   84;
+const int KSSafeQueenCheck  =   95;
+const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  113;
+const int KSSafeKnightCheck =  123;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -689,7 +689,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         int checkCounts  = knightChecks + bishopChecks + rookChecks + queenChecks;
 
         count  =  ei->kingAttackersWeight[THEM]
-               * (ei->kingAttackersCount[THEM] + checkCounts);
+               * (ei->kingAttackersCount[THEM] + !!checkCounts);
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
