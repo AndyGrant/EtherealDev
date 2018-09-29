@@ -680,25 +680,25 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        // Identify if pieces can move to those checking squares safely.
-        // We check if our Queen can attack the square for safe Queen checks.
-        // No attacks of other pieces is implicit in our definition of weak.
-        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
-                                                     & ~ei->attackedBy[  US][QUEEN ];
+        // Identify if pieces can move to those checking squares safely
+        // We consider moves which fork the Queen & King to be safe ones
+        int knightChecks = !!(knightThreats & safe & ei->attackedBy[THEM][KNIGHT]);
+        int bishopChecks = !!(bishopThreats & safe & ei->attackedBy[THEM][BISHOP]);
+        int rookChecks   = !!(rookThreats   & safe & ei->attackedBy[THEM][ROOK  ]);
+        int queenChecks  = !!(queenThreats  & safe & ei->attackedBy[THEM][QUEEN ]);
+        int checkCounts  = knightChecks + bishopChecks + rookChecks + queenChecks;
 
-        count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
+        count  =  ei->kingAttackersWeight[THEM]
+               * (ei->kingAttackersCount[THEM] + checkCounts);
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * !!queenChecks
-               + KSSafeRookCheck   * !!rookChecks
-               + KSSafeBishopCheck * !!bishopChecks
-               + KSSafeKnightCheck * !!knightChecks
+               + KSSafeQueenCheck  * queenChecks
+               + KSSafeRookCheck   * rookChecks
+               + KSSafeBishopCheck * bishopChecks
+               + KSSafeKnightCheck * knightChecks
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
