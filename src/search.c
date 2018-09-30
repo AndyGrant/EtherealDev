@@ -441,7 +441,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  improving
-        &&  eval >= beta + 256)
+        &&  eval >= beta + 400)
         depth = MAX(1, depth - 1);
 
     // Step 12. Initialize the Move Picker and being searching through each
