@@ -206,7 +206,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, skipQuiets = 0;
+    int inCheck, isQuiet, improving, singular, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
 
@@ -538,33 +538,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         } else R = 1;
 
-        // Step 19A. Singular Move Extensions. If we are looking at a table move,
-        // and it seems that under some conditions, the table move is better than
-        // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  &&  depth >= 10
-                  &&  move == ttMove
-                  &&  ttDepth >= depth - 3
-                  && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+        singular =   depth >= 10
+                 &&  move == ttMove
+                 && (ttBound & BOUND_LOWER)
+                 &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
-        // Step 19B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
-        extension += !RootNode
-                  &&  inCheck
-                  && !extension;
-
-        // Step 19C. History Extensions. We extend quiet moves with strong
-        // history scores for both counter move and followups. We only apply
-        // this extension to the first quiet moves tried during the search
-        extension += !RootNode
-                  && !extension
-                  &&  quiets <= 4
-                  &&  cmhist >= 10000
-                  &&  fuhist >= 10000;
+        extension =   inCheck
+                  || (singular && ttDepth >= depth - 3)
+                  || (quiets <= 4 && cmhist >= 10000 && fuhist >= 10000);
 
         // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + extension;
+        newDepth = depth + (extension && !RootNode);
 
         // Step 20A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
