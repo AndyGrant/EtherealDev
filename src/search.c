@@ -538,14 +538,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         } else R = 1;
 
-        singular =   depth >= 10
-                 &&  move == ttMove
-                 &&  ttDepth >= depth - 7
+        singular =   move == ttMove
                  && (ttBound & BOUND_LOWER)
                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
         extension =   inCheck
-                  || (singular && ttDepth >= depth - 3)
+                  || (singular && depth >= 10 && ttDepth >= depth - 3)
                   || (quiets <= 4 && cmhist >= 10000 && fuhist >= 10000);
 
         // New depth is what our search depth would be, assuming that we do no LMR
