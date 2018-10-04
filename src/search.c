@@ -540,6 +540,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         singular =   depth >= 10
                  &&  move == ttMove
+                 &&  ttDepth >= depth - 7
                  && (ttBound & BOUND_LOWER)
                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
