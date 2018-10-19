@@ -207,11 +207,11 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   75;
-const int KSSafeRookCheck   =   74;
+const int KSSafeQueenCheck  =   65;
+const int KSSafeRookCheck   =   64;
 const int KSSafeBishopCheck =   31;
-const int KSSafeKnightCheck =  103;
-const int KSSafeCheckEach   =   20;
+const int KSSafeKnightCheck =   93;
+const int KSSafeCheckEach   =   30;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
