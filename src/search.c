@@ -553,8 +553,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  inCheck
-                  &&  cmhist >= 0
-                  &&  fuhist >= 0;
+                  &&  cmhist >= -5000
+                  &&  fuhist >= -5000;
 
         // Step 19C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
