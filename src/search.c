@@ -56,9 +56,12 @@ volatile int IS_PONDERING; // Global PONDER flag for threads
 void initSearch(){
 
     // Init Late Move Reductions Table
-    for (int d = 1; d < 64; d++)
-        for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = 0.75 + log(d) * log(p) / 2.25;
+    for (int d = 1; d < 64; d++) {
+        for (int p = 1; p < 64; p++) {
+            LMRTable[d][p][0] = 0.75 + log(d) * log(p * 1.05) / 2.25;
+            LMRTable[d][p][1] = 0.75 + log(d) * log(p * 0.75) / 2.25;
+        }
+    }
 }
 
 void getBestMove(Thread* threads, Board* board, Limits* limits, uint16_t *best, uint16_t *ponder){
@@ -517,7 +520,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)][inCheck];
 
             // Increase for non PV nodes
             R += !PvNode;
