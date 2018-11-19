@@ -46,7 +46,7 @@
 #include "uci.h"
 #include "windows.h"
 
-int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
+int LMRTable[64][64][2]; // Late Move Reductions, LMRTable[depth][played]
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 
