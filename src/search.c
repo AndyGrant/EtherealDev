@@ -531,7 +531,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            const int B = 1 + !inCheck;
+            const int B = 2 + inCheck;
             R -= MAX(-B, MIN(B, hist / 5000));
 
             // Don't extend or drop into QS
