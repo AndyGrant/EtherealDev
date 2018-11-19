@@ -449,7 +449,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             quietsTried[quiets++] = move;
             cmhist = getCMHistoryScore(thread, height, move);
             fuhist = getFUHistoryScore(thread, height, move);
-            hist   = getHistoryScore(thread, move) + cmhist + fuhist;
+            hist   = getHistoryScore(thread, move) + cmhist + (inCheck ? 0 : fuhist);
         }
 
         // Step 13. Futility Pruning. If our score is far below alpha, and we
@@ -531,8 +531,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            if (!inCheck)
-                R -= MAX(-2, MIN(2, hist / 5000));
+            R -= MAX(-2, MIN(2, hist / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
