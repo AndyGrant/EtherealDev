@@ -560,7 +560,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  isQuiet
-                  &&  quiets <= 4
                   &&  cmhist >= 10000
                   &&  fuhist >= 10000;
 
