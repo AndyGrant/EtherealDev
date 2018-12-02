@@ -553,7 +553,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   &&  inCheck
                   && !extension
-                  &&  thread->pieceStack[height] != KING;
+                  &&  thread->pieceStack[height] != QUEEN;
 
         // Step 19C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
