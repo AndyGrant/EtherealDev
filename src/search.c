@@ -504,6 +504,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         applyMove(board, move, undo);
         if (!isNotInCheck(board, !board->turn)){
             revertMove(board, move, undo);
+            if (isQuiet) quiets--;
             continue;
         }
 
