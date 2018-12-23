@@ -205,6 +205,7 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
+const int KSStrongSquares   =   -4;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
@@ -663,6 +664,9 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
 
+        uint64_t strong = pawnLeftAttacks(myPawns, ~0ull, US)
+                        & pawnRightAttacks(myPawns, ~0ull, US);
+
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
         uint64_t weak =   ei->attacked[THEM]
@@ -696,6 +700,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
+               + KSStrongSquares   * popcount(strong & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * popcount(queenChecks)
