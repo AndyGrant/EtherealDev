@@ -69,7 +69,7 @@ const int PawnCandidatePasser[2][RANK_NB] = {
 
 const int PawnIsolated = S(  -4,  -6);
 
-const int PawnStacked = S(  -3, -14);
+const int PawnStacked = S(  -7, -13);
 
 const int PawnBackwards[2] = { S(   5,  -3), S(  -9, -16) };
 
