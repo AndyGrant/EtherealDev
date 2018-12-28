@@ -333,7 +333,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     ei->attackedBy[US][PAWN] = ei->pawnAttacks[US];
 
     // Update attacker counts for King Safety computation
-    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
+    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
     ei->kingAttacksCount[US] += popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
@@ -448,7 +448,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.KnightMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
+        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -519,7 +519,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.BishopMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
+        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -579,7 +579,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.RookMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
+        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -622,7 +622,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
+        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -904,20 +904,25 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     uint64_t queens  = board->pieces[QUEEN];
     uint64_t kings   = board->pieces[KING];
 
-    uint64_t whitePawns = white & pawns;
-    uint64_t blackPawns = black & pawns;
+    uint64_t wpawns = white & pawns;
+    uint64_t bpawns = black & pawns;
 
     int wKingSq = ei->kingSquare[WHITE] = getlsb(white & kings);
     int bKingSq = ei->kingSquare[BLACK] = getlsb(black & kings);
 
-    ei->pawnAttacks[WHITE] = pawnAttackSpan(whitePawns, ~0ull, WHITE);
-    ei->pawnAttacks[BLACK] = pawnAttackSpan(blackPawns, ~0ull, BLACK);
+    ei->pawnAttacks[WHITE] = pawnAttackSpan(wpawns, ~0ull, WHITE);
+    ei->pawnAttacks[BLACK] = pawnAttackSpan(bpawns, ~0ull, BLACK);
 
-    ei->rammedPawns[WHITE] = pawnAdvance(blackPawns, ~whitePawns, BLACK);
-    ei->rammedPawns[BLACK] = pawnAdvance(whitePawns, ~blackPawns, WHITE);
+    ei->pawnAttacks2[WHITE]  =  pawnLeftAttacks(wpawns, ~0ull, WHITE);
+    ei->pawnAttacks2[WHITE] &= pawnRightAttacks(wpawns, ~0ull, WHITE);
+    ei->pawnAttacks2[BLACK]  =  pawnLeftAttacks(bpawns, ~0ull, BLACK);
+    ei->pawnAttacks2[BLACK] &= pawnRightAttacks(bpawns, ~0ull, BLACK);
 
-    ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~whitePawns, BLACK);
-    ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~blackPawns, WHITE);
+    ei->rammedPawns[WHITE] = pawnAdvance(bpawns, ~wpawns, BLACK);
+    ei->rammedPawns[BLACK] = pawnAdvance(wpawns, ~bpawns, WHITE);
+
+    ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~wpawns, BLACK);
+    ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~bpawns, WHITE);
 
     ei->kingAreas[WHITE] = kingAreaMasks(WHITE, wKingSq);
     ei->kingAreas[BLACK] = kingAreaMasks(BLACK, bKingSq);
