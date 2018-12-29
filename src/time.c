@@ -97,24 +97,24 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
-    if (!limits->limitedBySelf || depth < 4)
+    if (!limits->limitedBySelf || depth < 8)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10 && value <= 0)
-        info->idealUsage *= 1.050;
+    if (lastValue > value + 15 && value <= 0)
+        info->idealUsage *= 1.10;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20 && value <= 0)
-        info->idealUsage *= 1.050;
+    if (lastValue > value + 30 && value <= 0)
+        info->idealUsage *= 1.10;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 15 < value && value >= 0)
-        info->idealUsage *= 1.025;
+        info->idealUsage *= 1.10;
 
     // Increase our time if the score suddenly jumps
     if (lastValue + 30 < value && value >= 0)
-        info->idealUsage *= 1.050;
+        info->idealUsage *= 1.10;
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
