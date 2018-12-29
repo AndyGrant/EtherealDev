@@ -205,7 +205,7 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
+const int KSStrongSquares   =  -20;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
@@ -333,7 +333,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     ei->attackedBy[US][PAWN] = ei->pawnAttacks[US];
 
     // Update attacker counts for King Safety computation
-    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
+    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
     ei->kingAttacksCount[US] += popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
@@ -448,7 +448,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.KnightMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
+        attacks &= ei->kingAreas[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -519,7 +519,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.BishopMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
+        attacks &= ei->kingAreas[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -579,7 +579,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.RookMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
+        attacks &= ei->kingAreas[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -622,7 +622,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenMobility[count][US]++;
 
         // Update for King Safety calculation
-        attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacks2[THEM];
+        attacks &= ei->kingAreas[THEM];
         if (attacks) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
@@ -696,7 +696,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+               + KSStrongSquares   * popcount(ei->pawnAttacks2[US] & ei->kingAreas[US])
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * popcount(queenChecks)
                + KSSafeRookCheck   * popcount(rookChecks)
