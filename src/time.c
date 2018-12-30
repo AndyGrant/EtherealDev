@@ -56,7 +56,8 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    // Clear our stability time usage heuristics
+    info->scoreFactor = info->pvFactor = 0;
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf){
@@ -70,9 +71,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
         // Playing using X + Y or X time controls
         else {
-            info->idealUsage =  0.52 * (limits->time + 23 * limits->inc) / 25;
-            info->maxAlloc   =  4.00 * (limits->time + 23 * limits->inc) / 25;
-            info->maxUsage   = 10.00 * (limits->time + 23 * limits->inc) / 25;
+            info->idealUsage =  1.00 * (limits->time + 25 * limits->inc) / 50;
+            info->maxAlloc   =  5.00 * (limits->time + 25 * limits->inc) / 50;
+            info->maxUsage   = 10.00 * (limits->time + 25 * limits->inc) / 50;
         }
 
         // Cap all time allocations using the move time buffer
@@ -101,24 +102,16 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         return;
 
     // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
-        info->idealUsage *= 1.050;
+    if (lastValue > value + 10) info->scoreFactor += ScoreFactorCount;
+    if (lastValue > value + 20) info->scoreFactor += ScoreFactorCount;
+    if (lastValue > value + 40) info->scoreFactor += ScoreFactorCount;
 
     // Increase our time if the score suddenly jumps
-    if (lastValue + 15 < value)
-        info->idealUsage *= 1.025;
+    if (lastValue + 20 < value) info->scoreFactor += ScoreFactorCount;
+    if (lastValue + 40 < value) info->scoreFactor += ScoreFactorCount;
 
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
+    // Decrease our time if the score remained the same
+    if (lastValue == value) info->scoreFactor = MAX(0, info->scoreFactor - 1);
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
@@ -131,6 +124,9 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 int terminateTimeManagment(SearchInfo* info) {
 
     double cutoff = info->idealUsage;
+
+    // Adjust cutoff based on score fluctuations
+    cutoff *= 1.00 + info->scoreFactor * ScoreFactorWeight;
 
     // Adjust cutoff based on bestmove fluctuations
     cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
