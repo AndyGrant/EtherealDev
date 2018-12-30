@@ -420,7 +420,7 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
     for (int a = 0; a < A; a++, i++) {
         if (a % 4 == 0) printf("\n    ");
-        printf("S(%4d,%4d), ", params[i][MG], params[i][EG]);
+        printf("S(%4d,%4d), ", (int)(0.9 * params[i][MG]), (int)(0.9 * params[i][EG]));
     }
 
     printf("\n};\n");
