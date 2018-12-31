@@ -128,6 +128,8 @@ const int RookMobility[15] = {
 
 /* Queen Evaluation Terms */
 
+const int QueenBishopSafety =  S(   3,  13);
+
 const int QueenMobility[28] = {
     S( -61,-263), S(-217,-390), S( -48,-205), S( -38,-190),
     S( -13,-132), S( -28, -69), S( -17, -90), S( -22, -76),
@@ -595,9 +597,10 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
 
     int sq, count, eval = 0;
-    uint64_t tempQueens, attacks;
+    uint64_t attacks;
 
-    tempQueens = board->pieces[QUEEN] & board->colours[US];
+    uint64_t enemyBishops = board->pieces[BISHOP] & board->colours[THEM];
+    uint64_t tempQueens   = board->pieces[ QUEEN] & board->colours[  US];
 
     ei->attackedBy[US][QUEEN] = 0ull;
 
@@ -615,6 +618,13 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
+
+        // Apply a bonus if we cannot be attacked by any bishop
+        if (   (!testBit(WHITE_SQUARES, sq) || !(WHITE_SQUARES & enemyBishops))
+            && (!testBit(BLACK_SQUARES, sq) || !(BLACK_SQUARES & enemyBishops))) {
+            eval += QueenBishopSafety;
+            if (TRACE) T.QueenBishopSafety[US]++;
+        }
 
         // Apply a bonus (or penalty) based on the mobility of the queen
         count = popcount(ei->mobilityAreas[US] & attacks);
