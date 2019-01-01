@@ -98,7 +98,7 @@ const int KnightMobility[9] = {
 
 /* Bishop Evaluation Terms */
 
-const int BishopPair = S(  32,  70);
+const int BishopPair = S(  24,  69);
 
 const int BishopRammedPawns = S( -11, -12);
 
@@ -237,6 +237,8 @@ const int PassedEnemyDistance[RANK_NB] = {
 };
 
 const int PassedSafePromotionPath = S(   0,  26);
+
+const int PassedPawnBishopPair = S(   4,  11);
 
 /* Threat Evaluation Terms */
 
@@ -778,6 +780,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus for having a bishop pair with our passer
+        flag = several(board->colours[US] & board->pieces[BISHOP]);
+        eval += flag * PassedPawnBishopPair;
+        if (TRACE) T.PassedPawnBishopPair[US]++;
     }
 
     return eval;
