@@ -440,7 +440,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 12. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    initMovePicker(&movePicker, thread, ttMove, height);
+    initMovePicker(&movePicker, thread, ttBound == BOUND_UPPER ? NONE_MOVE : ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
 
         // If this move is quiet we will save it to a list of attemped quiets.
