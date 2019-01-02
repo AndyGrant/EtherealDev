@@ -427,11 +427,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 11. Internal Iterative Deepening. Searching PV nodes without
     // a known good move can be expensive, so a reduced search first
     if (    PvNode
-        &&  ttMove == NONE_MOVE
-        &&  depth >= IIDDepth){
+        &&  depth >= IIDDepth
+        &&  ttMove == NONE_MOVE) {
 
-        // Search with a reduced depth
-        value = search(thread, &lpv, alpha, beta, depth-2, height);
+        // Search with a reduced depth (Such that no Singular Extensions occur)
+        value = search(thread, &lpv, alpha, beta, depth-4, height);
 
         // Probe for a new table move, and adjust any mate scores
         ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
