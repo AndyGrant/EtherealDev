@@ -129,12 +129,6 @@ void* iterativeDeepening(void* vthread){
         info->bestMoves[thread->depth]   = thread->pv.line[0];
         info->ponderMoves[thread->depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
 
-        // Send information about this search to the interface
-        uciReport(thread->threads, -MATE, MATE, thread->value);
-
-        // Update time allocation based on score and pv changes
-        updateTimeManagment(info, limits, thread->depth, thread->value);
-
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;
 
@@ -144,6 +138,9 @@ void* iterativeDeepening(void* vthread){
             || (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
             || (limits->limitedByDepth && thread->depth >= limits->depthLimit))
             break;
+
+        // Update time allocation based on score and pv changes
+        updateTimeManagment(info, limits, thread->depth, thread->value);
     }
 
     // Main thread should kill others when finishing
@@ -159,8 +156,11 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
     int alpha, beta, value, delta = 14;
 
     // Need a few searches to get a good window
-    if (depth <= 4)
-        return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+    if (depth <= 4) {
+        value = search(thread, &thread->pv, -MATE, MATE, depth, 0);
+        if (mainThread) uciReport(thread->threads, -MATE, MATE, value);
+        return value;
+    }
 
     // Create the aspiration window
     alpha = MAX(-MATE, lastValue - delta);
@@ -172,13 +172,22 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
         // Perform the search on the modified window
         value = search(thread, &thread->pv, alpha, beta, depth, 0);
 
+        // Main thread reports finished searches or searches with scores
+        // that are outside the search window, but only after five seconds
+        if (   (mainThread && value > alpha && value < beta)
+            || (mainThread && elapsedTime(thread->info) >= 5000))
+            uciReport(thread->threads, alpha, beta, value);
+
         // Result was within our window
         if (value > alpha && value < beta)
             return value;
 
-        // Report lower and upper bounds after at least 5 seconds
-        if (mainThread && elapsedTime(thread->info) >= 5000)
-            uciReport(thread->threads, alpha, beta, value);
+        // Exit early without resolving a fail high
+        if (   mainThread
+            && value >= beta
+            && thread->limits->limitedBySelf
+            && terminateTimeManagment(thread->info))
+            return value;
 
         // Search failed low
         if (value <= alpha) {
