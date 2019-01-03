@@ -186,7 +186,8 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
         if (   mainThread
             && value >= beta
             && thread->limits->limitedBySelf
-            && terminateTimeManagment(thread->info))
+            && terminateTimeManagment(thread->info)
+            && thread->pv.line[0] == thread->info->bestMoves[depth-1])
             return value;
 
         // Search failed low
