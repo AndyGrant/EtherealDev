@@ -61,8 +61,8 @@ const int PieceValues[8][PHASE_NB] = {
 /* Pawn Evaluation Terms */
 
 const int PawnIsland[5] = {
-    S(  -2,  -7), S(  24, -13), S(   8,   6), S(  -6,   9),
-    S( -23,   4),
+    S(   0,   6), S(  16, -22), S(   3,  -4), S(  -6,   7),
+    S( -12,  12),
 };
 
 const int PawnCandidatePasser[2][RANK_NB] = {
@@ -72,11 +72,11 @@ const int PawnCandidatePasser[2][RANK_NB] = {
      S(  24,  65), S(  14,  10), S(   0,   0), S(   0,   0)},
 };
 
-const int PawnIsolated = S(  -4,  -6);
+const int PawnIsolated = S(  -2, -11);
 
-const int PawnStacked = S(  -5, -28);
+const int PawnStacked = S(  -4, -25);
 
-const int PawnBackwards[2] = { S(   5,  -3), S(  -9, -16) };
+const int PawnBackwards[2] = { S(   5,  -3), S(  -9, -18) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
