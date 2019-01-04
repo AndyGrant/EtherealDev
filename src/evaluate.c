@@ -238,7 +238,7 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S(   0,  26);
 
-const int PassedNonIsolatedPawn = S(  16,  22);
+const int PassedNonIsolatedPawn = S(   7,  15);
 
 /* Threat Evaluation Terms */
 
@@ -749,7 +749,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     uint64_t bitboard;
     uint64_t myPawns   = board->colours[US] & board->pieces[PAWN];
-    uint64_t tempPawns = board->colours[US] & myPawns;
+    uint64_t tempPawns = myPawns & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -785,7 +785,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         //
         flag = !!(adjacentFilesMasks(fileOf(sq)) & myPawns);
         eval += flag * PassedNonIsolatedPawn;
-        if (TRACE) T.PassedNonIsolatedPawn[US]++;
+        if (TRACE) T.PassedNonIsolatedPawn[US] += flag;
     }
 
     return eval;
