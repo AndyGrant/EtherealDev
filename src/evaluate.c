@@ -238,7 +238,7 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S(   0,  26);
 
-const int PassedNonIsolatedPawn = S(  16,  22);
+const int PassedNonIsolatedPawn = S(  13,   8);
 
 /* Threat Evaluation Terms */
 
@@ -785,7 +785,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         //
         flag = !!(adjacentFilesMasks(fileOf(sq)) & myPawns);
         eval += flag * PassedNonIsolatedPawn;
-        if (TRACE) T.PassedNonIsolatedPawn[US]++;
+        if (TRACE) T.PassedNonIsolatedPawn[US] += flag;
     }
 
     return eval;
