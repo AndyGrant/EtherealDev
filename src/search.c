@@ -438,6 +438,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (ttHit) ttValue = valueFromTT(ttValue, height);
     }
 
+    int ttTactical = moveIsTactical(board, ttMove);
+
     uint16_t singularBreaker = NONE_MOVE;
 
     // Step 12. Initialize the Move Picker and being searching through each
@@ -527,7 +529,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            R -= singularBreaker;
+            R -= ttTactical && singularBreaker;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
