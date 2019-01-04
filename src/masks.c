@@ -27,6 +27,7 @@
 #include "types.h"
 
 int DistanceBetween[SQUARE_NB][SQUARE_NB];
+int PawnIslandTable[0x100];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t ForwardRanksMasks[COLOUR_NB][RANK_NB];
@@ -42,6 +43,17 @@ void initMasks() {
     for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
         for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
             DistanceBetween[sq1][sq2] = MAX(abs(fileOf(sq1)-fileOf(sq2)), abs(rankOf(sq1)-rankOf(sq2)));
+
+    // Initialize a lookup table to count the number of pawn islands
+    // with an 8-bit mask showing which files contain a friendly pawn
+    for (int i = 0; i <= 0xFF; i++) {
+        uint64_t mask = (uint64_t) i;
+        while (mask) {
+            mask >>= 1 + getlsb(mask);
+            mask >>= 1 + getlsb(~mask);
+            PawnIslandTable[i]++;
+        }
+    }
 
     // Initialize a table of bitmasks for the squares between two given ones (aligned on diagonal)
     for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
@@ -113,6 +125,13 @@ int distanceBetween(int s1, int s2) {
     assert(0 <= s1 && s1 < SQUARE_NB);
     assert(0 <= s2 && s2 < SQUARE_NB);
     return DistanceBetween[s1][s2];
+}
+
+int countPawnIslands(uint64_t pawns) {
+    pawns |= pawns >>  8;
+    pawns |= pawns >> 16;
+    pawns |= pawns >> 24;
+    return PawnIslandTable[pawns & 0xFF];
 }
 
 uint64_t bitsBetweenMasks(int s1, int s2) {

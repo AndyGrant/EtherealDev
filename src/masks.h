@@ -25,6 +25,7 @@
 void initMasks();
 
 int distanceBetween(int sq1, int sq2);
+int countPawnIslands(uint64_t pawns);
 uint64_t bitsBetweenMasks(int sq1, int sq2);
 uint64_t kingAreaMasks(int colour, int sq);
 uint64_t forwardRanksMasks(int colour, int rank);

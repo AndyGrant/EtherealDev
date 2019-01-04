@@ -60,6 +60,8 @@ const int PieceValues[8][PHASE_NB] = {
 
 /* Pawn Evaluation Terms */
 
+const int PawnIsland = S( -15,   6);
+
 const int PawnCandidatePasser[2][RANK_NB] = {
     {S(   0,   0), S(  -4,   0), S(  -9,   6), S( -10,  27),
      S(   1,  44), S(  23,  17), S(   0,   0), S(   0,   0)},
@@ -342,6 +344,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     pawns = board->pieces[PAWN];
     myPawns = tempPawns = pawns & board->colours[US];
     enemyPawns = pawns & board->colours[THEM];
+
+    // LALDON
+    flag = countPawnIslands(myPawns);
+    pkeval += flag * PawnIsland;
+    if (TRACE) T.PawnIsland[US] += flag;
 
     // Evaluate each pawn (but not for being passed)
     while (tempPawns) {
