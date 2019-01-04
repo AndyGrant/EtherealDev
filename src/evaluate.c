@@ -207,12 +207,11 @@ const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
-const int KSNoCheckingMoves =  -40;
+const int KSNoCheckingMoves =  -60;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -703,8 +702,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeQueenCheck  * popcount(safe & queenChecks)
                + KSSafeRookCheck   * popcount(safe & rookChecks)
                + KSSafeBishopCheck * popcount(safe & bishopChecks)
-               + KSSafeKnightCheck * popcount(safe & knightChecks)
-               + KSAdjustment;
+               + KSSafeKnightCheck * popcount(safe & knightChecks);
 
         // Convert safety to an MG and EG score, if we are unsafe
         if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
