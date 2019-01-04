@@ -74,27 +74,27 @@ static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2,
 static const int SkipDepths[16] = { 1, 2, 2, 4, 4, 3, 2, 5, 4, 3, 2, 6, 5, 4, 3, 2 };
 
 static const int RazorDepth = 1;
-static const int RazorMargin = 350;
+static const int RazorMargin = 375;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 85;
+static const int BetaMargin = 95;
 
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 120;
 
 static const int IIDDepth = 3;
 
-static const int FutilityMargin = 95;
+static const int FutilityMargin = 100;
 static const int FutilityPruningDepth = 8;
 static const int FutilityPruningHistoryLimit[] = { 12000, 6000 };
 
 static const int CounterMovePruningDepth[] = { 3, 2 };
-static const int CounterMoveHistoryLimit[] = { 0, -1000 };
+static const int CounterMoveHistoryLimit[] = { 0, -1500 };
 
 static const int FollowUpMovePruningDepth[] = { 3, 2 };
-static const int FollowUpMoveHistoryLimit[] = { -2000, -4000 };
+static const int FollowUpMoveHistoryLimit[] = { -2500, -5000 };
 
 static const int LateMovePruningDepth = 8;
 static const int LateMovePruningCounts[2][9] = {
@@ -103,8 +103,8 @@ static const int LateMovePruningCounts[2][9] = {
 };
 
 static const int SEEPruningDepth = 8;
-static const int SEEQuietMargin = -85;
-static const int SEENoisyMargin = -20;
+static const int SEEQuietMargin = -95;
+static const int SEENoisyMargin = -24;
 
 static const int QSEEMargin = 1;
 
