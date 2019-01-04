@@ -438,6 +438,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (ttHit) ttValue = valueFromTT(ttValue, height);
     }
 
+    uint16_t singularBreaker = NONE_MOVE;
+
     // Step 12. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
@@ -525,6 +527,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            R -= singularBreaker;
+
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
@@ -546,7 +550,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  move == ttMove
                   &&  ttDepth >= depth - 3
                   && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height, &singularBreaker);
 
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
@@ -910,7 +914,7 @@ int bestTacticalMoveValue(Board* board){
     return value;
 }
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height){
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height, uint16_t* singularBreaker){
 
     Board* const board = &thread->board;
 
@@ -948,7 +952,10 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
         revertMove(board, move, undo);
 
         // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
+        if (value > rBeta) {
+            *singularBreaker = move;
+            break;
+        }
     }
 
     // Reapply the table move we took off
