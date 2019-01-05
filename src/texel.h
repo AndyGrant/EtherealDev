@@ -28,8 +28,8 @@
 #define LEARNING    (   10.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
-#define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      1) // # of terms to tune
+#define NDEPTHS     (      5) // # of search iterations
+#define NTERMS      (     33) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -64,7 +64,7 @@
 #define TuneKingDefenders               (0)
 #define TuneKingShelter                 (0)
 #define TuneKingStorm                   (0)
-#define TunePassedPawn                  (0)
+#define TunePassedPawn                  (1)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
