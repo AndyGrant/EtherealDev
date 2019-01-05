@@ -534,7 +534,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= MAX(-2, MIN(2, hist / 5000));
 
 
-            R -= !RootNode && quiets <= 4 && cmhist >= 10000 && fuhist >= 10000;
+            R -= cmhist >= 10000 && fuhist >= 10000;
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
