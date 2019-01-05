@@ -154,9 +154,10 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth, int lastValue){
 
-    const int mainThread = thread->index == 0;
+    const int mainThread      = thread->index == 0;
+    const int aspirationCycle = thread->index % AspirationCycles;
 
-    int alpha, beta, value, delta = 14;
+    int alpha, beta, value, delta = AspirationWindows[aspirationCycle];
 
     // Need a few searches to get a good window
     if (depth <= 4)
