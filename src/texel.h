@@ -28,8 +28,8 @@
 #define LEARNING    (   10.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
-#define NDEPTHS     (      5) // # of search iterations
-#define NTERMS      (     33) // # of terms to tune
+#define NDEPTHS     (      0) // # of search iterations
+#define NTERMS      (      1) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -64,11 +64,11 @@
 #define TuneKingDefenders               (0)
 #define TuneKingShelter                 (0)
 #define TuneKingStorm                   (0)
-#define TunePassedPawn                  (1)
+#define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
-#define TunePassedNonIsolatedPawn       (1)
+#define TunePassedIsolatedPawn          (1)
 #define TuneThreatWeakPawn              (0)
 #define TuneThreatMinorAttackedByPawn   (0)
 #define TuneThreatMinorAttackedByMinor  (0)
@@ -224,7 +224,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, PassedFriendlyDistance, 8);                 \
     ENABLE_1(fname, PassedEnemyDistance, 8);                    \
     ENABLE_0(fname, PassedSafePromotionPath);                   \
-    ENABLE_0(fname, PassedNonIsolatedPawn);                     \
+    ENABLE_0(fname, PassedIsolatedPawn);                        \
     ENABLE_0(fname, ThreatWeakPawn);                            \
     ENABLE_0(fname, ThreatMinorAttackedByPawn);                 \
     ENABLE_0(fname, ThreatMinorAttackedByMinor);                \
