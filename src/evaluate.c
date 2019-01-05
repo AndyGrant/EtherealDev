@@ -234,7 +234,7 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S(   0,  26);
 
-const int PassedIsolatedPawn = (  -7,  -5);
+const int PassedIsolatedPawn = S(  -7,  -5);
 
 /* Threat Evaluation Terms */
 
