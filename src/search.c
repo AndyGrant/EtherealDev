@@ -507,6 +507,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
         }
 
+        int givesCheck = !!board->kingAttackers;
+
         thread->moveStack[height] = move;
         thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
@@ -524,6 +526,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Increase for non improving nodes
             R += !improving;
+
+            R -= givesCheck;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
@@ -551,8 +555,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 19B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
-                  &&  inCheck
-                  && !extension;
+                  && !extension
+                  && !isQuiet
+                  &&  givesCheck;
+
 
         // Step 19C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
