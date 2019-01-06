@@ -216,8 +216,9 @@ const int KSAdjustment      =  -18;
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawnCount[4] = {
-    S(  -3, -16), S(   0,   1), S(   4,  17), S(   4,  17),
+    S(  -8,  -7), S(  -2,  -2), S(   9,  12), S(   9,  12),
 };
+
 
 const int PassedPawn[2][2][8] = {
   {{S(   0,   0), S( -28, -25), S( -22,   3), S( -12,   0),
@@ -753,9 +754,12 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
+    const uint64_t EnemyCamp = colour == WHITE ? RANK_5 | RANK_6 | RANK_7
+                                               : RANK_2 | RANK_3 | RANK_4;
+
     // STOP BEING MEAN LALDON
-    eval += PassedPawnCount[MIN(3, popcount(tempPawns))];
-    if (TRACE) T.PassedPawnCount[MIN(3, popcount(tempPawns))][US]++;
+    eval += PassedPawnCount[MIN(3, popcount(tempPawns & EnemyCamp))];
+    if (TRACE) T.PassedPawnCount[MIN(3, popcount(tempPawns & EnemyCamp))][US]++;
 
     // Evaluate each passed pawn
     while (tempPawns){
