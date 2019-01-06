@@ -531,7 +531,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
-                  && !extension;
+                  && !extension
                   &&  inCheck
                   && (quiets <= 4 || !isQuiet);
 
