@@ -701,7 +701,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         int rightExposed = !(rightFile & (myPawns | enemyPawns))
                         &&  (rightFile & (enemyRooks | enemyQueens));
 
-        const int KSExposedOpenFile = 30;
+        const int KSExposedOpenFile = 15;
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
