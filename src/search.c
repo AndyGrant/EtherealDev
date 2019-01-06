@@ -326,14 +326,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                                      : evaluateBoard(board, &thread->pktable);
 
     // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * (depth - inCheck);
+    futilityMargin = eval + FutilityMargin * depth;
 
     // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * (depth - inCheck) * depth;
-    seeMargin[1] = SEEQuietMargin * (depth - inCheck);
+    seeMargin[0] = SEENoisyMargin * depth * depth;
+    seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
+
+    depth = MAX(1, depth);
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -531,9 +533,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
-                  && !extension
                   &&  inCheck
-                  && (depth <= 8 || !isQuiet);
+                  && !extension;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
