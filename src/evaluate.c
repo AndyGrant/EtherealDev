@@ -695,13 +695,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         uint64_t leftFile = kingFile != 0 ? Files[kingFile-1] : 0ull;
         int leftExposed = !(leftFile & (myPawns | enemyPawns))
-                       &&  (leftFile & (enemyRooks | enemyQueens));
+                       &&  (leftFile & enemyRooks);
 
         uint64_t rightFile = kingFile != 7 ? Files[kingFile+1] : 0ull;
         int rightExposed = !(rightFile & (myPawns | enemyPawns))
-                        &&  (rightFile & (enemyRooks | enemyQueens));
+                        &&  (rightFile & enemyRooks);
 
-        const int KSExposedOpenFile = 15;
+        const int KSExposedOpenFile = 12;
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -713,7 +713,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
-               + KSExposedOpenFile * (leftExposed || rightExposed)
+               + KSExposedOpenFile * (leftExposed + rightExposed)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
