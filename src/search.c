@@ -532,7 +532,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  inCheck
-                  && (depth <= 8 || !isQuiet);
+                  &&  depth <= 8;
 
 
         // Step 15C. History Extensions. We extend quiet moves with strong
