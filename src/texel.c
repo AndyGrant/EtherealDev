@@ -317,7 +317,7 @@ void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHA
 
     // Combine updated and current parameters
     for (int j = 0; j < NTERMS; j++) {
-        tparams[j][MG] = 0.9 * (params[j][MG] + cparams[j][MG]);
+        tparams[j][MG] = 0.8 * (params[j][MG] + cparams[j][MG]);
         tparams[j][EG] = params[j][EG] + cparams[j][EG];
     }
 
