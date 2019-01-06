@@ -285,7 +285,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
         // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        depth = 1;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -326,11 +326,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                                      : evaluateBoard(board, &thread->pktable);
 
     // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin * (depth - inCheck);
 
     // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
+    seeMargin[0] = SEENoisyMargin * (depth - inCheck) * depth;
+    seeMargin[1] = SEEQuietMargin * (depth - inCheck);
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
