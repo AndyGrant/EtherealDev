@@ -641,6 +641,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
+    uint64_t enemyRooks  = board->pieces[ROOK ] & board->colours[THEM];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
@@ -692,6 +693,16 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
+        uint64_t leftFile = kingFile != 0 ? Files[kingFile-1] : 0ull;
+        int leftExposed = !(leftFile & (myPawns | enemyPawns))
+                       &&  (leftFile & (enemyRooks | enemyQueens));
+
+        uint64_t rightFile = kingFile != 7 ? Files[kingFile+1] : 0ull;
+        int rightExposed = !(rightFile & (myPawns | enemyPawns))
+                        &&  (rightFile & (enemyRooks | enemyQueens));
+
+        const int KSExposedOpenFile = 30;
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
@@ -702,6 +713,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
+               + KSExposedOpenFile * (leftExposed || rightExposed)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
