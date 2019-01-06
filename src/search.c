@@ -528,11 +528,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
-        // Step 15B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
+        // Step 15B. Check Extensions.
         extension += !RootNode
+                  && !extension
                   &&  inCheck
-                  && !extension;
+                  && (depth <= 8 || !isQuiet);
+
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
