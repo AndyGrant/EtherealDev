@@ -29,7 +29,7 @@
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (      8) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -68,14 +68,14 @@
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
-#define TuneThreatWeakPawn              (0)
-#define TuneThreatMinorAttackedByPawn   (0)
-#define TuneThreatMinorAttackedByMinor  (0)
-#define TuneThreatMinorAttackedByMajor  (0)
-#define TuneThreatRookAttackedByLesser  (0)
-#define TuneThreatQueenAttackedByOne    (0)
-#define TuneThreatOverloadedPieces      (0)
-#define TuneThreatByPawnPush            (0)
+#define TuneThreatWeakPawn              (1)
+#define TuneThreatMinorAttackedByPawn   (1)
+#define TuneThreatMinorAttackedByMinor  (1)
+#define TuneThreatMinorAttackedByMajor  (1)
+#define TuneThreatRookAttackedByLesser  (1)
+#define TuneThreatQueenAttackedByOne    (1)
+#define TuneThreatOverloadedPieces      (1)
+#define TuneThreatByPawnPush            (1)
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
