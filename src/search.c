@@ -60,7 +60,7 @@ void initSearch(){
     for (int d = 1; d < 64; d++) {
         for (int p = 1; p < 64; p++) {
             LMRTable[d][p][0] = 1.75 + log(1.00 * d) * log(1.00 * p) / 2.25;
-            LMRTable[d][p][1] = 0.75 + log(1.25 * d) * log(0.75 * p) / 2.25;
+            LMRTable[d][p][1] = 0.75 + log(0.75 * d) * log(1.25 * p) / 2.25;
         }
     }
 }
