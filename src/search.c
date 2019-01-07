@@ -468,17 +468,24 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (   depth <= FollowUpMovePruningDepth[improving]
                 && fuhist < FollowUpMoveHistoryLimit[improving])
                 continue;
+
+            // Step 12E. Static Exchange Evaluation Pruning. Prune quiet
+            // moves with fail to beat a depth dependent SEE threadhold
+            if (    depth <= SEEPruningDepth
+                && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
+                continue;
         }
 
         // Step 13. Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (   !RootNode
-            &&  best > MATED_IN_MAX
-            &&  depth <= SEEPruningDepth
-            &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
-            continue;
+        else if (   !RootNode
+                 && !inCheck
+                 &&  best > MATED_IN_MAX
+                 &&  depth <= SEEPruningDepth
+                 &&  movePicker.stage > STAGE_GOOD_NOISY
+                 && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
+                 continue;
 
         // Apply the move, and verify legality
         applyMove(board, move, undo);
