@@ -521,16 +521,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
+        int singular =  !RootNode
                   &&  depth >= 8
                   &&  move == ttMove
                   &&  ttDepth >= depth - 2
-                  && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+                  && (ttBound & BOUND_LOWER);
+
+
+        extension = singular && moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
+                  && !singular
                   &&  inCheck
                   && !extension;
 
@@ -539,6 +542,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // this extension to the first quiet moves tried during the search
         extension += !RootNode
                   && !extension
+                  && !singular
                   &&  quiets <= 4
                   &&  cmhist >= 10000
                   &&  fuhist >= 10000;
