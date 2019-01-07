@@ -275,23 +275,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 4. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
-    if (depth <= 0){
-
-        // No king attackers indicates we are not checked. We reduce the
-        // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
-    }
+    // Step 4. Go into the Quiescence Search if we have reached the search horizon and
+    // we are not currently in check. Reduce the node counter to avoid double counting
+    if (depth <= 0 && !board->kingAttackers)
+        return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
     // the conditions about the board, the existance of tables, the probe depth,
     // as well as to not probe at the Root. The return is defined by the Fathom API
-    if ((tbresult = tablebasesProbeWDL(board, depth, height)) != TB_RESULT_FAILED){
+    if ((tbresult = tablebasesProbeWDL(board, MAX(0, depth), height)) != TB_RESULT_FAILED){
 
         thread->tbhits++; // Increment tbhits counter for this thread
 
@@ -318,8 +310,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 6. Initialize flags and values used by pruning and search methods
 
-    // We can grab in check based on the already computed king attackers bitboard
-    inCheck = !!board->kingAttackers;
+    depth = MAX(1, depth); // Incase we skipped going into the qsearch
+
+    inCheck = !!board->kingAttackers; // Already computed in the board
 
     // Save off static evaluation history. Reuse TT entry eval if possible
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
@@ -531,8 +524,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
+                  && !extension
                   &&  inCheck
-                  && !extension;
+                  &&  depth > 1;
+
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
