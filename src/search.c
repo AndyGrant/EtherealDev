@@ -533,7 +533,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   &&  inCheck
                   && !extension
-                  && (depth <= 6 || !isQuiet)
+                  && (depth <= 6 || !isQuiet);
 
         extension += !RootNode && !extension && board->kingAttackers && !isQuiet;
 
