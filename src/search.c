@@ -421,7 +421,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             revertMove(board, move, undo);
 
             // Probcut failed high
-            if (value >= rBeta) return  value;
+            if (value >= rBeta) return value;
         }
     }
 
@@ -546,8 +546,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && !extension
                   &&  quiets <= 4
                   &&  cmhist >= 10000
-                  &&  fuhist >= 10000
-                  &&  singular == NONE_MOVE;
+                  &&  fuhist >= 10000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
