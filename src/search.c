@@ -425,6 +425,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
+    uint16_t singular = NONE_MOVE;
+
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
@@ -528,11 +530,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
 
+        if (extension) singular = ttMove;
+
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
                   &&  inCheck
-                  && !extension;
+                  && !extension
+                  &&  singular == NONE_MOVE;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
@@ -541,7 +546,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && !extension
                   &&  quiets <= 4
                   &&  cmhist >= 10000
-                  &&  fuhist >= 10000;
+                  &&  fuhist >= 10000
+                  &&  singular == NONE_MOVE;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
