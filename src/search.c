@@ -539,6 +539,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // this extension to the first quiet moves tried during the search
         extension += !RootNode
                   && !extension
+                  &&  improving
                   &&  cmhist + fuhist >= 25000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
