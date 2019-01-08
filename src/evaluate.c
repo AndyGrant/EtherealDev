@@ -202,16 +202,18 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   95;
-const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSAttackWeight[]      = { 0, 16, 6, 10, 8, 0 };
+const int KSKnightOutpostWeight =    4;
+const int KSBishopOutpostWeight =    2;
+const int KSAttackValue         =   44;
+const int KSWeakSquares         =   38;
+const int KSFriendlyPawns       =  -22;
+const int KSNoEnemyQueens       = -276;
+const int KSSafeQueenCheck      =   95;
+const int KSSafeRookCheck       =   94;
+const int KSSafeBishopCheck     =   51;
+const int KSSafeKnightCheck     =  123;
+const int KSAdjustment          =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -405,7 +407,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, defended, count, outpost, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -429,8 +431,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
-        if (     testBit(outpostRanksMasks(US), sq)
-            && !(outpostSquareMasks(US, sq) & enemyPawns)) {
+        if ((outpost = testBit(outpostRanksMasks(US), sq) && !(outpostSquareMasks(US, sq) & enemyPawns))) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
@@ -453,6 +454,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
+            if (outpost) ei->kingAttackersWeight[US] += KSKnightOutpostWeight;
         }
     }
 
@@ -463,7 +465,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, defended, count, outpost, eval = 0;
     uint64_t attacks;
 
     uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
@@ -500,8 +502,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
-        if (     testBit(outpostRanksMasks(US), sq)
-            && !(outpostSquareMasks(US, sq) & enemyPawns)) {
+        if ((outpost = testBit(outpostRanksMasks(US), sq) && !(outpostSquareMasks(US, sq) & enemyPawns))) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
@@ -524,6 +525,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
+            if (outpost) ei->kingAttackersWeight[US] += KSBishopOutpostWeight;
         }
     }
 
