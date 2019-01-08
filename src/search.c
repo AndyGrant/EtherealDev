@@ -421,7 +421,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             revertMove(board, move, undo);
 
             // Probcut failed high
-            if (value >= rBeta) return value;
+            if (value >= rBeta) return  value;
         }
     }
 
