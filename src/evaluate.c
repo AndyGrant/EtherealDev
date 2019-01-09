@@ -505,7 +505,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             defended = !!(pawnAttacks(THEM, sq) & myPawns);
             if (!several(pawnAttacks(THEM, sq) & myPawns)) {
                 eval += BishopOutpost[defended];
-                if (TRACE) T.BishopOutpost[defended][US]++;
+                if  (TRACE) T.BishopOutpost[defended][US]++;
             }
         }
 
