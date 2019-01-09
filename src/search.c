@@ -161,7 +161,7 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
 
     // Need a few searches to get a good window
     if (depth <= 4)
-        return search(thread, &thread->pv, -MATE, MATE, depth, 0);
+        return search(thread, &thread->pv, -MATE, MATE, depth, 0, 0);
 
     // Create the aspiration window
     alpha = MAX(-MATE, lastValue - delta);
@@ -171,7 +171,7 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
     while (1) {
 
         // Perform the search on the modified window
-        value = search(thread, &thread->pv, alpha, beta, depth, 0);
+        value = search(thread, &thread->pv, alpha, beta, depth, 0, 0);
 
         // Result was within our window
         if (value > alpha && value < beta)
@@ -196,7 +196,7 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
     }
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int qavoids){
 
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -281,11 +281,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // No king attackers indicates we are not checked. We reduce the
         // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
+        if (!board->kingAttackers || qavoids >= 1)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
         // Search expects depth to be greater than or equal to 0
         depth = 0;
+
+        qavoids++;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -372,7 +374,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         thread->moveStack[height] = NULL_MOVE;
 
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1, qavoids);
 
         thread->moveStack[height] = NONE_MOVE;
 
@@ -411,11 +413,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
             // Verify the move has promise using a depth 2 search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1, qavoids);
 
             // Verify the move holds which a slightly reduced depth search
             if (value >= rBeta && depth > 6)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1, qavoids);
 
             // Revert the board state
             revertMove(board, move, undo);
@@ -526,7 +528,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  move == ttMove
                   &&  ttDepth >= depth - 2
                   && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
+                  &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height, qavoids);
 
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
@@ -549,21 +551,21 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1, qavoids);
 
         // Step 16B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1, qavoids);
 
         // Step 16C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1, qavoids);
 
         // Revert the board state
         revertMove(board, move, undo);
@@ -890,7 +892,7 @@ int bestTacticalMoveValue(Board* board){
     return value;
 }
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height){
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height, int qavoids){
 
     Board* const board = &thread->board;
 
@@ -922,7 +924,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int
         thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 
         // Perform a reduced depth search on a null rbeta window
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1, qavoids);
 
         // Revert board state
         revertMove(board, move, undo);

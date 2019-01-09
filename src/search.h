@@ -49,7 +49,7 @@ void* iterativeDeepening(void* vthread);
 
 int aspirationWindow(Thread* thread, int depth, int lastValue);
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
+int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height, int qavoids);
 
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
 
@@ -67,7 +67,7 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
 
 int bestTacticalMoveValue(Board* board);
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height);
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height, int qavoids);
 
 static const int SMPCycles      = 16;
 static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2, 1 };
