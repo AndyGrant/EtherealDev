@@ -513,9 +513,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
 
-            // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
-
         } else R = 1;
 
         // Step 15A. Singular Move Extensions. If we are looking at a table move,
@@ -544,7 +541,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  fuhist >= 10000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + (extension && R == 1);
+        newDepth = depth + (extension && R <= 1);
+
+        // Don't extend or drop into QS
+        R = MIN(depth - 1, MAX(R, 1));
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
