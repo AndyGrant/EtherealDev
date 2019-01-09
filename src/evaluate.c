@@ -203,8 +203,6 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]      = { 0, 16, 6, 10, 8, 0 };
-const int KSKnightOutpostWeight =    4;
-const int KSBishopOutpostWeight =    2;
 const int KSAttackValue         =   44;
 const int KSWeakSquares         =   38;
 const int KSFriendlyPawns       =  -22;
@@ -454,7 +452,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
-            if (outpost) ei->kingAttackersWeight[US] += KSKnightOutpostWeight;
+            if (outpost) ei->kingAttacksCount[US] += popcount(attacks) / 2;
         }
     }
 
@@ -525,7 +523,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
-            if (outpost) ei->kingAttackersWeight[US] += KSBishopOutpostWeight;
+            if (outpost) ei->kingAttacksCount[US] += popcount(attacks) / 2;
         }
     }
 
