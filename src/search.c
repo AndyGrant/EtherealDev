@@ -326,7 +326,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                                      : evaluateBoard(board, &thread->pktable);
 
     // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin * (depth - inCheck);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
