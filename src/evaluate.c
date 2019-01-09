@@ -88,6 +88,8 @@ const int PawnConnected32[32] = {
 
 const int KnightOutpost[2] = { S(  15,  -5), S(  32,   3) };
 
+const int KnightOutpostSupportsPawn = S(   7,   7);
+
 const int KnightBehindPawn = S(   4,  18);
 
 const int KnightMobility[9] = {
@@ -505,6 +507,12 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
+
+                        //
+            if (defended && (attacks & myPawns & forwardRanksMasks(US, rankOf(sq)))) {
+                eval += KnightOutpostSupportsPawn;
+                if (TRACE) T.KnightOutpostSupportsPawn[US]++;
+            }
         }
 
         // Apply a bonus if the bishop is behind a pawn
