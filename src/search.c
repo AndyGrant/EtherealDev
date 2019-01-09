@@ -531,7 +531,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15B. Check Extensions.
         extension += !RootNode
                   && !extension
-                  && (inCheck && !board->kingAttackers);
+                  && (inCheck && (!isQuiet || !board->kingAttackers));
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
