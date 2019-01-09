@@ -502,7 +502,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            defended = testBit(ei->pawnAttacks[US], sq);
+            defended = onlyOne(pawnAttacks(THEM, sq) & myPawns);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
         }
