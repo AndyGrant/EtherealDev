@@ -452,7 +452,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
-            if (outpost) ei->kingAttacksCount[US] += popcount(attacks) / 2;
+            if (outpost) ei->kingAttacksCount[US] += popcount(attacks);
         }
     }
 
@@ -523,7 +523,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
-            if (outpost) ei->kingAttacksCount[US] += popcount(attacks) / 2;
+            if (outpost) ei->kingAttacksCount[US] += popcount(attacks);
         }
     }
 
