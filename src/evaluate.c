@@ -106,6 +106,8 @@ const int BishopOutpost[2] = { S(  24,   1), S(  40,   0) };
 
 const int BishopBehindPawn = S(   3,  13);
 
+const int BishopBlockedByPawns = S(   0,  -8);
+
 const int BishopMobility[14] = {
     S( -60,-128), S( -48, -68), S( -16, -47), S(  -5, -21),
     S(   5, -11), S(  19,   0), S(  24,   7), S(  26,   6),
@@ -511,6 +513,13 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
             eval += BishopBehindPawn;
             if (TRACE) T.BishopBehindPawn[US]++;
+        }
+
+        // Apply a penalty if our bishop cannot retreat due to our pawns
+        uint64_t blockers = myPawns & pawnAttacks(THEM, sq);
+        if (several(blockers) || (blockers && (fileOf(sq) == 0 || fileOf(sq) == 7))) {
+            eval += BishopBlockedByPawns;
+            if (TRACE) T.BishopBlockedByPawns[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the bishop

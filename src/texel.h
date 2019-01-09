@@ -25,11 +25,11 @@
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    1.0) // Learning rate step size
+#define LEARNING    (  100.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (      1) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -56,6 +56,7 @@
 #define TuneBishopRammedPawns           (0)
 #define TuneBishopOutpost               (0)
 #define TuneBishopBehindPawn            (0)
+#define TuneBishopBlockedByPawns        (1)
 #define TuneBishopMobility              (0)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
@@ -211,6 +212,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_0(fname, BishopRammedPawns);                         \
     ENABLE_1(fname, BishopOutpost, 2);                          \
     ENABLE_0(fname, BishopBehindPawn);                          \
+    ENABLE_0(fname, BishopBlockedByPawns);                      \
     ENABLE_1(fname, BishopMobility, 14);                        \
     ENABLE_1(fname, RookFile, 2);                               \
     ENABLE_0(fname, RookOnSeventh);                             \
