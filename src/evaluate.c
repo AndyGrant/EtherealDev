@@ -200,6 +200,8 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
     S(  -9,  -5), S(   7, -10), S(  15,   1), S(   1,   1)}},
 };
 
+const int FawnPawn = S( -20, -40);
+
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
@@ -734,6 +736,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         int blocked = (ourDist != 7 && (ourDist == theirDist - 1));
         ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirDist];
         if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDist][US]++;
+
+        //
+        if (file != kingFile && !relativeRankOf(US, kingSq) && theirDist == 2 && blocked)
+            ei->pkeval[US] += FawnPawn;
     }
 
     return eval;
