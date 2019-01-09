@@ -281,7 +281,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // No king attackers indicates we are not checked. We reduce the
         // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers || qavoids >= 1)
+        if (!board->kingAttackers || qavoids >= 2)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
         // Search expects depth to be greater than or equal to 0
