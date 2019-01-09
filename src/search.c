@@ -471,10 +471,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Step 12C. Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   depth <= CounterMovePruningDepth[improving] + 1
-                && cmhist < CounterMoveHistoryLimit[improving]
-                && depth <= FollowUpMovePruningDepth[improving] + 1
-                && fuhist < FollowUpMoveHistoryLimit[improving])
+            if (   depth <= CounterMovePruningDepth[1]
+                && cmhist < CounterMoveHistoryLimit[1]
+                && depth <= FollowUpMovePruningDepth[1]
+                && fuhist < FollowUpMoveHistoryLimit[1])
                 continue;
         }
 
