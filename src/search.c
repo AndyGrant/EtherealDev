@@ -275,18 +275,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 4. Go into the Quiescence Search if we have reached
-    // the search horizon and are not currently in check
-    if (depth <= 0){
-
-        // No king attackers indicates we are not checked. We reduce the
-        // node count here, in order to avoid counting this node twice
-        if (!board->kingAttackers)
-            return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
-
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
-    }
+    // Step 4. Go into the Quiescence Search if we have reached the search horizon.
+    // Reduce the nods counter to ensure we do not count this same node two times
+    if (depth <= 0)
+        return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
     // the conditions about the board, the existance of tables, the probe depth,
