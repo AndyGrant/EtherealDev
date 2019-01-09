@@ -284,8 +284,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!board->kingAttackers || qavoids >= 2)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        // Search expects depth to be greater than or equal to 1
+        depth = 1;
 
         qavoids++;
     }
@@ -535,7 +535,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  inCheck
-                  && (played == 1 || !isQuiet);
+                  && (depth > 1 || !isQuiet);
 
 
         // Step 15C. History Extensions. We extend quiet moves with strong
