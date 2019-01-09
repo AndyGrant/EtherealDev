@@ -200,7 +200,7 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
     S(  -9,  -5), S(   7, -10), S(  15,   1), S(   1,   1)}},
 };
 
-const int FawnPawn = S( -20, -40);
+const int FawnPawn = S( -10, -20);
 
 /* King Safety Evaluation Terms */
 
