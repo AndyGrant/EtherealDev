@@ -497,7 +497,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV nodes
             R += !PvNode;
@@ -514,7 +514,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= MAX(-2, MIN(2, hist / 5000));
 
             // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
+            R = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
 
@@ -544,7 +544,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  fuhist >= 10000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + extension;
+        newDepth = depth + (extension && R == 1);
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
