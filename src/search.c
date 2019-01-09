@@ -544,7 +544,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         newDepth = depth + (extension && R <= 1);
 
         // Don't extend or drop into QS
-        R = MIN(depth - 1, MAX(R, 1));
+        if (isQuiet && depth > 2 && played > 1)
+            R = MIN(depth - 1, MAX(R, 1));
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
