@@ -506,7 +506,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Decrease when in check
-            R -= inCheck;
+            R -= inCheck && hist > 0;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
