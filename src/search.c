@@ -539,6 +539,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // this extension to the first quiet moves tried during the search
         extension += !PvNode
                   && !extension
+                  &&  isQuiet
                   &&  cmhist >= 12500
                   &&  fuhist >= 10000;
 
