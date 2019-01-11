@@ -155,7 +155,6 @@ void* iterativeDeepening(void* vthread){
 
 int aspirationWindow(Thread* thread, int depth, int lastValue){
 
-    uint16_t bestMove = NONE_MOVE;
     const int mainThread = thread->index == 0;
     int alpha, beta, value, delta = WindowSize;
 
