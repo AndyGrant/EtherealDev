@@ -186,11 +186,11 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
             beta = MIN(MATE, beta + delta);
 
         // Expand the search window
-        delta = delta + delta / 2;
+        delta += delta / 2;
 
-        // Reset the window on a move change
+        // Expand even more when the PV changes
         if (bestMove && bestMove != thread->pv.line[0])
-            delta = WindowSize;
+            delta += delta;
 
         // Store best move for future window changes
         bestMove = thread->pv.line[0];
