@@ -152,9 +152,10 @@ PawnKingEntry* getPawnKingEntry(PawnKingTable *pktable, uint64_t pkhash) {
     return pkentry->pkhash == pkhash ? pkentry : NULL;
 }
 
-void storePawnKingEntry(PawnKingTable *pktable, uint64_t pkhash, uint64_t passed, int eval) {
+void storePawnKingEntry(PawnKingTable *pktable, uint64_t pkhash, uint64_t passed, uint64_t backwards, int eval) {
     PawnKingEntry *pkentry = &pktable->entries[pkhash >> 48];
-    pkentry->pkhash = pkhash;
-    pkentry->passed = passed;
-    pkentry->eval   = eval;
+    pkentry->pkhash    = pkhash;
+    pkentry->passed    = passed;
+    pkentry->backwards = backwards;
+    pkentry->eval      = eval;
 }

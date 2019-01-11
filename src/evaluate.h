@@ -66,6 +66,7 @@ struct EvalTrace {
     int PassedEnemyDistance[8][COLOUR_NB];
     int PassedSafePromotionPath[COLOUR_NB];
     int ThreatWeakPawn[COLOUR_NB];
+    int ThreatWeakBackwardsPawn[COLOUR_NB];
     int ThreatMinorAttackedByPawn[COLOUR_NB];
     int ThreatMinorAttackedByMinor[COLOUR_NB];
     int ThreatMinorAttackedByMajor[COLOUR_NB];
@@ -87,6 +88,7 @@ struct EvalInfo {
     uint64_t occupiedMinusBishops[COLOUR_NB];
     uint64_t occupiedMinusRooks[COLOUR_NB];
     uint64_t passedPawns;
+    uint64_t backwardsPawns;
     int kingSquare[COLOUR_NB];
     int kingAttacksCount[COLOUR_NB];
     int kingAttackersCount[COLOUR_NB];
