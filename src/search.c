@@ -175,6 +175,9 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
         if (mainThread && elapsedTime(thread->info) >= WindowTimerMS)
             uciReport(thread->threads, alpha, beta, value);
 
+        // Expand the search window
+        delta = delta + delta / 2;
+
         // Search failed low
         if (value <= alpha) {
             beta  = (alpha + beta) / 2;
@@ -184,16 +187,6 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
         // Search failed high
         if (value >= beta)
             beta = MIN(MATE, beta + delta);
-
-        // Expand the search window
-        delta = delta + delta / 2;
-
-        // Reset the window on a move change
-        if (bestMove && bestMove != thread->pv.line[0])
-            delta = WindowSize;
-
-        // Store best move for future window changes
-        bestMove = thread->pv.line[0];
     }
 }
 
