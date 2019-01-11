@@ -284,8 +284,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!board->kingAttackers)
             return thread->nodes--, qsearch(thread, pv, alpha, beta, height);
 
-        // Search expects depth to be greater than or equal to 0
-        depth = 0;
+        // Search expects depth to be greater than or equal to 1
+        depth = 1;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -527,12 +527,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  ttDepth >= depth - 2
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, undo, depth, height);
-
-        // Step 15B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
-        extension += !RootNode
-                  &&  inCheck
-                  && !extension;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
