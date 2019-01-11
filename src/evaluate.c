@@ -241,7 +241,7 @@ const int PassedSafePromotionPath = S(   0,  26);
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -37, -39);
-const int ThreatMinorLockedToPawn    = S(   0, -14);
+const int ThreatMinorLockedToPawn    = S(  -4, -14);
 const int ThreatMinorAttackedByPawn  = S( -68, -54);
 const int ThreatMinorAttackedByMinor = S( -24,  -9);
 const int ThreatMinorAttackedByMajor = S( -47, -44);
@@ -814,7 +814,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
                             | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
 
-    uint64_t nonMinorDefense = defenseByPawns | defenseByMajors | defenseByKings;
+    uint64_t nonMajorDefense = defenseByPawns | defenseByMinors | defenseByKings;
 
     // A friendly minor / major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
@@ -834,8 +834,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     eval += count * ThreatWeakPawn;
     if (TRACE) T.ThreatWeakPawn[US] += count;
 
-    // Penalty for pawns defended by only minors and attacked by one too
-    count = popcount(pawns & attacksByMinors & defenseByMinors & ~nonMinorDefense);
+    // Penalty for pawns defended by only majors and attacked by a minor too
+    count = popcount(pawns & attacksByMinors & defenseByMajors & ~nonMajorDefense);
     eval += count * ThreatMinorLockedToPawn;
     if (TRACE) T.ThreatMinorLockedToPawn[US] += count;
 
