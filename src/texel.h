@@ -23,13 +23,13 @@
 #include "types.h"
 
 #define CLEARING    (      1) // Clear hashes between runs
-#define RESOLVE     (      1) // Resolve with qsearch
+#define RESOLVE     (      0) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (    100) // How often to report progress
 #define LEARNING    (   25.0) // Learning rate step size
 
 #define NDEPTHS     (      3) // # of search iterations
-#define NTERMS      (      1) // # of terms to tune
+#define NTERMS      (      2) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
 #define TunePawnValue                   (0)
@@ -68,7 +68,7 @@
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
-#define TuneThreatWeakPawn              (0)
+#define TuneThreatWeakPawn              (1)
 #define TuneThreatWeakBackwardsPawn     (1)
 #define TuneThreatMinorAttackedByPawn   (0)
 #define TuneThreatMinorAttackedByMinor  (0)

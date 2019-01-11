@@ -240,8 +240,8 @@ const int PassedSafePromotionPath = S(   0,  26);
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -37, -39);
-const int ThreatWeakBackwardsPawn    = S( -23, -47);
+const int ThreatWeakPawn             = S( -11, -14);
+const int ThreatWeakBackwardsPawn    = S(  -3, -69);
 const int ThreatMinorAttackedByPawn  = S( -68, -54);
 const int ThreatMinorAttackedByMinor = S( -24,  -9);
 const int ThreatMinorAttackedByMajor = S( -47, -44);
