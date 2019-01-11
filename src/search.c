@@ -393,8 +393,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
 
             // Apply move, skip if move is illegal
-            if (!apply(thread, board, move, height))
+            apply(thread, board, move, height);
+            if (!isNotInCheck(board, !board->turn)) {
+                revert(thread, board, move, height);
                 continue;
+            }
 
             // Verify the move has promise using a depth 2 search
             value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
@@ -467,8 +470,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             continue;
 
         // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
+        apply(thread, board, move, height);
+        if (!isNotInCheck(board, !board->turn)) {
+            revert(thread, board, move, height);
             continue;
+        }
 
         // Update counter of moves actually played
         played += 1;
@@ -675,8 +681,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             continue;
 
         // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
+        apply(thread, board, move, height);
+        if (!isNotInCheck(board, !board->turn)) {
+            revert(thread, board, move, height);
             continue;
+        }
 
         // Search next depth
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
@@ -885,8 +894,11 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
         if (move == ttMove) continue;
 
         // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
+        apply(thread, board, move, height);
+        if (!isNotInCheck(board, !board->turn)) {
+            revert(thread, board, move, height);
             continue;
+        }
 
         // Perform a reduced depth search on a null rbeta window
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);

@@ -33,31 +33,21 @@
 #include "types.h"
 #include "zobrist.h"
 
-int apply(Thread *thread, Board *board, uint16_t move, int height) {
+void apply(Thread *thread, Board *board, uint16_t move, int height) {
 
-    int legal;
     Undo *undo = &thread->undoStack[height];
 
-    // NULL moves are only tried when legal
+    // Special function for NULL moves
     if (move == NULL_MOVE) {
-        thread->moveStack[height] = NULL_MOVE;
         applyNullMove(board, undo);
-        return 1;
+        thread->moveStack[height] = NULL_MOVE;
+        return;
     }
 
-    // Apply and reject the move if illegal
+    // Apply and update histories
     applyMove(board, move, undo);
-    legal = isNotInCheck(board, !board->turn);
-    if (!legal) revertMove(board, move, undo);
-
-    // Track each move and which piece type made it throughout the tree
-    if (legal) {
-        thread->moveStack[height] = move;
-        thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
-    }
-
-    // Let the search know to skip this move
-    return legal;
+    thread->moveStack[height] = move;
+    thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
 }
 
 void applyMove(Board *board, uint16_t move, Undo *undo) {
