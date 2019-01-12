@@ -487,7 +487,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= MAX(-2, MIN(2, hist / 5000));
 
             // Adjust based on continuation history
-            R -= MAX(-1, MIN(1, (cmhist +fuhist) / 15000));
+            R -= MAX(-1, MIN(1, (cmhist + fuhist) / 20000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
