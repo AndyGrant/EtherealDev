@@ -711,6 +711,9 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // King Shelter & King Storm are stored in the Pawn King Table
     if (ei->pkentry != NULL) return eval;
 
+    if (kingFile == 0) kingFile = 1;
+    if (kingFile == 7) kingFile = 6;
+
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,
     // as well as the adjacent files. When looking at pawn distances, we will use a
     // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
