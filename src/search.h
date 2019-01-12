@@ -67,11 +67,15 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
 
 int bestTacticalMoveValue(Board* board);
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, Undo* undo, int depth, int height);
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int height);
 
 static const int SMPCycles      = 16;
 static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2, 1 };
 static const int SkipDepths[16] = { 1, 2, 2, 4, 4, 3, 2, 5, 4, 3, 2, 6, 5, 4, 3, 2 };
+
+static const int WindowDepth   = 5;
+static const int WindowSize    = 14;
+static const int WindowTimerMS = 5000;
 
 static const int RazorDepth = 1;
 static const int RazorMargin = 350;
