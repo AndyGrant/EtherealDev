@@ -501,11 +501,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
 
-        // Step 15B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
+        // Step 15B. Check Extensions. We extend tactical moves from transposition
+        // table, as well as any tactical move with a passing SEE value, which is
+        // known by looking at the current stage of our move picking structure
         extension += !RootNode
+                  && !extension
+                  && !isQuiet
                   &&  inCheck
-                  && !extension;
+                  &&  movePicker.stage <= STAGE_GOOD_NOISY;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
