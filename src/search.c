@@ -459,6 +459,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
+        int seePositive = staticExchangeEvaluation(board, move, 0);
+
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
             continue;
