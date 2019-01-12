@@ -463,6 +463,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if (!apply(thread, board, move, height))
             continue;
 
+        int givesCheck = !!board->kingAttackers;
+
         // Update counter of moves actually played
         played += 1;
 
@@ -504,8 +506,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
-                  &&  inCheck
-                  && !extension;
+                  && !extension
+                  &&  givesCheck
+                  &&  movePicker.stage < STAGE_BAD_NOISY;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
