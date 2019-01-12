@@ -40,7 +40,7 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
     // Track each move and which piece type made it throughout the tree
     thread->moveStack[height] = move;
-    thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
+    thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
