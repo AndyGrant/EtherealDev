@@ -505,6 +505,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
                   &&  inCheck
+                  && !isQuiet
                   && !extension;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
@@ -512,6 +513,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // this extension to the first quiet moves tried during the search
         extension += !RootNode
                   && !extension
+                  &&  isQuiet
                   &&  quiets <= 4
                   &&  cmhist >= 10000
                   &&  fuhist >= 10000;
