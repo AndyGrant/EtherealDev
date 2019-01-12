@@ -489,7 +489,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
 
-        } else R = 1;
+        }
+        else if (    !isQuiet && depth > 2 && played > 1
+                 &&  !PvNode && movePicker.stage == STAGE_BAD_NOISY)
+             R = MIN(depth - 1, 2);
+
+        else R = 1;
 
         // Step 15A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
