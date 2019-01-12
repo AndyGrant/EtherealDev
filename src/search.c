@@ -59,7 +59,7 @@ void initSearch(){
     // Init Late Move Reductions Table
     for (int d = 1; d < 64; d++)
         for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = 1.25 + log(d) * log(p) / 2.25;
+            LMRTable[d][p] = 1.4 + log(d) * log(p) / 2.3;
 }
 
 void getBestMove(Thread* threads, Board* board, Limits* limits, uint16_t *best, uint16_t *ponder){
@@ -484,7 +484,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            R -= MAX(-2, MIN(2, hist / 5000));
+            R -= MAX(-2, MIN(3, hist / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
