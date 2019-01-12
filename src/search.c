@@ -479,7 +479,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Reduce for Killers and Counters
-            if (!ttHit)
+            if (!ttHit || moveIsTactical(board, ttMove))
                 R -= move == movePicker.killer1
                   || move == movePicker.killer2
                   || move == movePicker.counter;
