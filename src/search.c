@@ -479,9 +479,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
+            if (!ttHit)
+                R -= move == movePicker.killer1
+                  || move == movePicker.killer2
+                  || move == movePicker.counter;
 
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
