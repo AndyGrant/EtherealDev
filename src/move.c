@@ -38,9 +38,12 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
     int legal;
     Undo *undo = &thread->undoStack[height];
 
+    // Track each move and which piece type made it throughout the tree
+    thread->moveStack[height] = move;
+    thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
+
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
-        thread->moveStack[height] = NULL_MOVE;
         applyNullMove(board, undo);
         return 1;
     }
@@ -49,12 +52,6 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
     applyMove(board, move, undo);
     legal = isNotInCheck(board, !board->turn);
     if (!legal) revertMove(board, move, undo);
-
-    // Track each move and which piece type made it throughout the tree
-    if (legal) {
-        thread->moveStack[height] = move;
-        thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
-    }
 
     // Let the search know to skip this move
     return legal;
