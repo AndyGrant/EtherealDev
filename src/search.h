@@ -86,17 +86,17 @@ static const int BetaMargin = 85;
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 110;
 
-static const int FutilityMargin = 95;
+static const int FutilityMargin = 105;
 static const int FutilityPruningDepth = 8;
-static const int FutilityPruningHistoryLimit[] = { 12000, 6000 };
+static const int FutilityPruningHistoryLimit[] = { 8000, 4000 };
 
 static const int CounterMovePruningDepth[] = { 3, 2 };
 static const int CounterMoveHistoryLimit[] = { 0, -1000 };
 
 static const int FollowUpMovePruningDepth[] = { 3, 2 };
-static const int FollowUpMoveHistoryLimit[] = { -2000, -4000 };
+static const int FollowUpMoveHistoryLimit[] = { -1500, -3000 };
 
 static const int LateMovePruningDepth = 8;
 static const int LateMovePruningCounts[2][9] = {
