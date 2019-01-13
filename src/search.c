@@ -599,7 +599,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     Board* const board = &thread->board;
 
     int eval, value, best;
-    uint16_t move;
+    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    uint16_t move, ttMove = NONE_MOVE;
 
     MovePicker movePicker;
 
@@ -628,16 +629,29 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (height >= MAX_PLY)
         return evaluateBoard(board, &thread->pktable);
 
+    // Step 3. Probe the Transposition Table, adjust the value, and consider cutoffs
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
+
+        ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
+
+        // Table is exact or produces a cutoff
+        if (    ttBound == BOUND_EXACT
+            || (ttBound == BOUND_LOWER && ttValue >= beta)
+            || (ttBound == BOUND_UPPER && ttValue <= alpha))
+            return ttValue;
+    }
+
     // Step 4. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = value = eval = evaluateBoard(board, &thread->pktable);
-    alpha = MAX(alpha, value);
-    if (alpha >= beta) return value;
+    best = eval = ttHit && ttEval != VALUE_NONE ? ttEval
+                : evaluateBoard(board, &thread->pktable);
+    alpha = MAX(alpha, eval);
+    if (alpha >= beta) return eval;
 
     // Step 5. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fail
-    if (value + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+    if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
     // Step 6. Move Generation and Looping. Generate all tactical,
