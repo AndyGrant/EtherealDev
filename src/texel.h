@@ -30,7 +30,7 @@
 
 #define NDEPTHS     (      0) // # of search iterations
 #define NTERMS      (     64) // # of terms to tune
-#define NPOSITIONS  (2629836) // # of FENs in book
+#define NPOSITIONS  (2651740) // # of FENs in book
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
