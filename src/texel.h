@@ -25,12 +25,12 @@
 #define CLEARING    (      1) // Clear hashes between runs
 #define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    1.0) // Learning rate step size
+#define LEARNING    (    5.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
 #define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
-#define NPOSITIONS  (1364312) // # of FENs in book
+#define NTERMS      (     64) // # of terms to tune
+#define NPOSITIONS  (2629836) // # of FENs in book
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
@@ -62,7 +62,7 @@
 #define TuneRookMobility                (0)
 #define TuneQueenMobility               (0)
 #define TuneKingDefenders               (0)
-#define TuneKingShelter                 (0)
+#define TuneKingShelter                 (1)
 #define TuneKingStorm                   (0)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
@@ -217,7 +217,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, RookMobility, 15);                          \
     ENABLE_1(fname, QueenMobility, 28);                         \
     ENABLE_1(fname, KingDefenders, 12);                         \
-    ENABLE_3(fname, KingShelter, 2, 8, 8);                      \
+    ENABLE_3(fname, KingShelter, 2, 4, 8);                      \
     ENABLE_3(fname, KingStorm, 2, 4, 8);                        \
     ENABLE_3(fname, PassedPawn, 2, 2, 8);                       \
     ENABLE_1(fname, PassedFriendlyDistance, 8);                 \
