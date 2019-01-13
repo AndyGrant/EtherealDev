@@ -404,11 +404,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
+    int bad = 0;
     if (   !PvNode
         && !inCheck
         && !improving
         &&  eval + 256 <= beta)
-        depth = MAX(0, depth - 1);
+        bad = 1;
 
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
@@ -483,6 +484,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Increase for non improving nodes
             R += !improving;
+
+            R += bad;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
