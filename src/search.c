@@ -185,7 +185,7 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
             beta = MIN(MATE, beta + delta);
 
         // Expand the search window
-        delta = delta + delta / 2;
+        delta = delta + delta / 4;
     }
 }
 
