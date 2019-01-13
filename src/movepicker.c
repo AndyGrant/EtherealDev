@@ -20,8 +20,8 @@
 #include <stdlib.h>
 
 #include "attacks.h"
-#include "board.h"
 #include "bitboards.h"
+#include "board.h"
 #include "castle.h"
 #include "evaluate.h"
 #include "history.h"
@@ -29,8 +29,9 @@
 #include "movegen.h"
 #include "movepicker.h"
 #include "psqt.h"
-#include "types.h"
+#include "search.h"
 #include "thread.h"
+#include "types.h"
 
 void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height){
 
@@ -56,13 +57,13 @@ void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height)
     mp->type = NORMAL_PICKER;
 }
 
-void initNoisyMovePicker(MovePicker* mp, Thread* thread, int threshold){
+void initNoisyMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int threshold){
 
     // Start with just the noisy moves
     mp->stage = STAGE_GENERATE_NOISY;
 
-    // Skip all special moves
-    mp->tableMove = NONE_MOVE;
+    // Save possible special moves
+    mp->tableMove = moveIsTactical(&thread->board, ttMove) ? ttMove : NONE_MOVE;
     mp->killer1   = NONE_MOVE;
     mp->killer2   = NONE_MOVE;
     mp->counter   = NONE_MOVE;

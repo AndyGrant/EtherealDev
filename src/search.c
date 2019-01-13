@@ -656,7 +656,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     // Step 6. Move Generation and Looping. Generate all tactical,
     // moves, return and try the ones which pass an SEE(QSEEMargin)
-    initNoisyMovePicker(&movePicker, thread, QSEEMargin);
+    initNoisyMovePicker(&movePicker, thread, ttMove, QSEEMargin);
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
         // Step 7. Futility Pruning. Similar to Delta Pruning, if

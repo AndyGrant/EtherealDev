@@ -45,7 +45,7 @@ struct MovePicker {
 };
 
 void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height);
-void initNoisyMovePicker(MovePicker* mp, Thread* thread, int threshold);
+void initNoisyMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int threshold);
 uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets);
 int getBestMoveIndex(MovePicker *mp, int start, int end);
 void evaluateNoisyMoves(MovePicker* mp);
