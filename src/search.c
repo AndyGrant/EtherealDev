@@ -215,18 +215,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Update longest searched line for this Thread
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
 
-    // Step 1A. Check to see if search time has expired. We will force the search
-    // to continue after the search time has been used in the event that we have
-    // not yet completed our depth one search, and therefore would have no best move
-    if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
-        && (thread->nodes & 1023) == 1023
-        &&  elapsedTime(thread->info) >= thread->info->maxUsage
-        &&  thread->depth > 1
-        && !IS_PONDERING)
+    // Step 1. Abort Check. Exit the search if signaled by main thread or the
+    // UCI thread, or if the search time has expired outside pondering mode
+    if (ABORT_SIGNAL || (terminateSearchEarly(thread) && !IS_PONDERING))
         longjmp(thread->jbuffer, 1);
-
-    // Step 1B. Check to see if the master thread finished
-    if (ABORT_SIGNAL) longjmp(thread->jbuffer, 1);
 
     // Step 2. Check for early exit conditions. Don't take early exits in
     // the RootNode, since this would prevent us from having a best move
@@ -621,18 +613,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Update longest searched line for this Thread
     thread->seldepth = MAX(thread->seldepth, height);
 
-    // Step 1A. Check to see if search time has expired. We will force the search
-    // to continue after the search time has been used in the event that we have
-    // not yet completed our depth one search, and therefore would have no best move
-    if (   (thread->limits->limitedBySelf || thread->limits->limitedByTime)
-        && (thread->nodes & 1023) == 1023
-        &&  elapsedTime(thread->info) >= thread->info->maxUsage
-        &&  thread->depth > 1
-        && !IS_PONDERING)
+    // Step 1. Abort Check. Exit the search if signaled by main thread or the
+    // UCI thread, or if the search time has expired outside pondering mode
+    if (ABORT_SIGNAL || (terminateSearchEarly(thread) && !IS_PONDERING))
         longjmp(thread->jbuffer, 1);
-
-    // Step 1B. Check to see if the master thread finished
-    if (ABORT_SIGNAL) longjmp(thread->jbuffer, 1);
 
     // Step 2. Draw Detection. Check for the fifty move rule,
     // a draw by repetition, or insufficient mating material
