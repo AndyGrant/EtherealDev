@@ -28,7 +28,7 @@
 #define REPORTING   (    100) // How often to report progress
 #define LEARNING    (   10.0) // Learning rate step size
 
-#define NDEPTHS     (      0) // # of search iterations
+#define NDEPTHS     (      5) // # of search iterations
 #define NTERMS      (     32) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
 
