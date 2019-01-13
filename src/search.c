@@ -404,6 +404,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         }
     }
 
+    if (   !PvNode
+        && !inCheck
+        && !improving
+        &&  eval + 512 <= beta)
+        depth = MAX(0, depth - 1);
+
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
