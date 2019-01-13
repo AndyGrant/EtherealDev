@@ -86,7 +86,12 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(  15,  -5), S(  32,   3) };
+const int KnightOutpost[2][8] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(  12,  -4),
+    S(   6,  -7), S(   7,  -5), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(  25,   4),
+    S(  29,   8), S(  31,   7), S(   0,   0), S(   0,   0)},
+};
 
 const int KnightBehindPawn = S(   4,  18);
 
@@ -102,7 +107,12 @@ const int BishopPair = S(  32,  70);
 
 const int BishopRammedPawns = S( -11, -12);
 
-const int BishopOutpost[2] = { S(  24,   1), S(  40,   0) };
+const int BishopOutpost[2][8] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(  19,  -2),
+    S(  13,  -2), S(  16,  -1), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(  40,   2),
+    S(  38,   0), S(  42,   3), S(   0,   0), S(   0,   0)},
+};
 
 const int BishopBehindPawn = S(   3,  13);
 
@@ -405,7 +415,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, rank, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -418,6 +428,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
         // Pop off the next knight
         sq = poplsb(&tempKnights);
+        rank = relativeRankOf(US, sq);
         if (TRACE) T.KnightValue[US]++;
         if (TRACE) T.KnightPSQT32[relativeSquare32(sq, US)][US]++;
 
@@ -432,8 +443,8 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[defended];
-            if (TRACE) T.KnightOutpost[defended][US]++;
+            eval += KnightOutpost[defended][rank];
+            if (TRACE) T.KnightOutpost[defended][rank][US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -463,7 +474,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, rank, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
@@ -483,6 +494,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
         // Pop off the next Bishop
         sq = poplsb(&tempBishops);
+        rank = relativeRankOf(US, sq);
         if (TRACE) T.BishopValue[US]++;
         if (TRACE) T.BishopPSQT32[relativeSquare32(sq, US)][US]++;
 
@@ -503,8 +515,8 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += BishopOutpost[defended];
-            if (TRACE) T.BishopOutpost[defended][US]++;
+            eval += BishopOutpost[defended][rank];
+            if (TRACE) T.BishopOutpost[defended][rank][US]++;
         }
 
         // Apply a bonus if the bishop is behind a pawn
