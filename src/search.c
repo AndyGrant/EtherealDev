@@ -210,11 +210,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
+    if (depth <= 0)
         return qsearch(thread, pv, alpha, beta, height);
-
-    // Ensure positive depth
-    depth = MAX(0, depth);
 
     // Updates for UCI reporting
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
