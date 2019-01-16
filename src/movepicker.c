@@ -61,7 +61,13 @@ void initNoisyMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int th
     // Start with the table move
     mp->stage = STAGE_TABLE;
 
-    // Allow even a quiet ttMove
+    // Skip the table move if its not a good noisy move
+    mp->stage +=  ttMove == NONE_MOVE
+              || !moveIsTactical(&thread->board, ttMove)
+              || !staticExchangeEvaluation(&thread->board, ttMove, threshold);
+
+    // Save any TT move, but we will skip past STAGE_TABLE if
+    // the move is not a capture and passing our SEE checks
     mp->tableMove = ttMove;
 
     // Skip other special moves
