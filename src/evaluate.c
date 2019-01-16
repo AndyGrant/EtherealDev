@@ -534,7 +534,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, open, count, eval = 0;
+    int sq, count, eval = 0;
     uint64_t attacks;
 
     uint64_t myPawns    = board->pieces[PAWN] & board->colours[  US];
@@ -557,12 +557,14 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         ei->attacked[US]         |= attacks;
         ei->attackedBy[US][ROOK] |= attacks;
 
-        // Rook is on a semi-open file if there are no pawns of the rook's
-        // colour on the file. If there are no pawns at all, it is an open file
-        if (!(myPawns & Files[fileOf(sq)])) {
-            open = !(enemyPawns & Files[fileOf(sq)]);
-            eval += RookFile[open];
-            if (TRACE) T.RookFile[open][US]++;
+        // Apply a bonus for the Rook being on a file without our Pawns, so long
+        // as we did not double our Pawns in order to make the file open. Apply
+        // a larger bonus if neither player controls a pawn on the Rook's file
+        if (   !(myPawns & Files[fileOf(sq)])
+            &&  !several(myPawns & Files[MAX(0, fileOf(sq)-1)])
+            &&  !several(myPawns & Files[MIN(7, fileOf(sq)+1)])) {
+            eval += RookFile[!(enemyPawns & Files[fileOf(sq)])];
+            if (TRACE) T.RookFile[!(enemyPawns & Files[fileOf(sq)])][US]++;
         }
 
         // Rook gains a bonus for being located on seventh rank relative to its
