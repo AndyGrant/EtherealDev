@@ -559,7 +559,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
 
         // Rook is on a semi-open file if there are no pawns of the rook's
         // colour on the file. If there are no pawns at all, it is an open file
-        if (!(myPawns & Files[fileOf(sq)])) {
+        if (!((myPawns & ~ei->passedPawns) & Files[fileOf(sq)])) {
             open = !(enemyPawns & Files[fileOf(sq)]);
             eval += RookFile[open];
             if (TRACE) T.RookFile[open][US]++;
