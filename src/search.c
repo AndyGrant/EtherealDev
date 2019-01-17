@@ -590,7 +590,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
 
-    int eval, value, best;
+    int eval, value, best, threshold;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
 
@@ -644,16 +644,16 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
-    // Step 6. Move Generation and Looping. Generate all tactical,
-    // moves, return and try the ones which pass an SEE(QSEEMargin)
-    initNoisyMovePicker(&movePicker, thread, QSEEMargin);
-    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
+    // Step 6. Futility Pruning. Determine the lowest margin to pass a
+    // typical implementation using an offset of QFutilityMargin. We will pass
+    // this threshold to the MovePicker. The Picker will only return moves which
+    // would pass the standard implementation of futility pruning for tactical moves
+    threshold = MAX(QSEEMargin, alpha - eval - QFutilityMargin);
 
-        // Step 7. Futility Pruning. Similar to Delta Pruning, if
-        // this capture in the best case would still fail to beat
-        // alpha minus some margin, we can safely skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
+    // Step 6. Move Generation and Looping. Generate all tactical moves and
+    // try those which would pass an SEE(MAX(QSEEMargin, FutilityMargin)
+    initNoisyMovePicker(&movePicker, thread, threshold);
+    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
