@@ -631,8 +631,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             return ttValue;
 
 
-        if (   (ttBound == BOUND_LOWER && ttEval != VALUE_NONE && ttEval > ttValue)
-            || (ttBound == BOUND_UPPER && ttEval != VALUE_NONE && ttEval < ttValue))
+        if (   (ttBound == BOUND_LOWER && ttEval != VALUE_NONE && ttEval < ttValue)
+            || (ttBound == BOUND_UPPER && ttEval != VALUE_NONE && ttEval > ttValue))
             return eval;
     }
 
