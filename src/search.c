@@ -211,7 +211,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
     if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Ensure positive depth
     depth = MAX(0, depth);
@@ -317,7 +317,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargin < alpha)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
@@ -586,9 +586,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+
+    assert(depth <= 0);
 
     Board* const board = &thread->board;
+    const int QFMargin = QFutilityMargin[MIN(QFutilitySteps-1, -depth)];
 
     int eval, value, best;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
@@ -641,7 +644,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     // Step 5. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional of the futility margin would still fail
-    if (eval + QFutilityMargin + bestTacticalMoveValue(board) < alpha)
+    if (eval + QFMargin + bestTacticalMoveValue(board) < alpha)
         return eval;
 
     // Step 6. Move Generation and Looping. Generate all tactical,
@@ -652,7 +655,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Step 7. Futility Pruning. Similar to Delta Pruning, if
         // this capture in the best case would still fail to beat
         // alpha minus some margin, we can safely skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (eval + QFMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
         // Apply move, skip if move is illegal
@@ -660,7 +663,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             continue;
 
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
 
         // Revert the board state
         revert(thread, board, move, height);
