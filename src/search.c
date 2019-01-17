@@ -629,6 +629,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             || (ttBound == BOUND_LOWER && ttValue >= beta)
             || (ttBound == BOUND_UPPER && ttValue <= alpha))
             return ttValue;
+
+
+        if (   (ttBound == BOUND_LOWER && ttEval != VALUE_NONE && eval > ttValue)
+            || (ttBound == BOUND_UPPER && ttEval != VALUE_NONE && eval < ttValue))
+            return eval;
     }
 
     // Step 4. Eval Pruning. If a static evaluation of the board will
