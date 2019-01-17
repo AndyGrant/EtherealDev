@@ -630,8 +630,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             || (ttBound == BOUND_UPPER && ttValue <= alpha))
             return ttValue;
 
-        if (  !moveIsTactical(board, ttMove)
-            && moveIsPsuedoLegal(board, ttMove))
+        if (   !moveIsTactical(board, ttMove)
+            &&  moveIsPsuedoLegal(board, ttMove))
             return ttValue;
     }
 
