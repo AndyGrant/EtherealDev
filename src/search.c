@@ -586,6 +586,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
 
     Board* const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
     int eval, value, best;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
@@ -649,7 +650,8 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         // Step 7. Futility Pruning. Similar to Delta Pruning, if
         // this capture in the best case would still fail to beat
         // alpha minus some margin, we can safely skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
+        if (  (move != ttMove || !InCheck)
+            && eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
             continue;
 
         // Apply move, skip if move is illegal
