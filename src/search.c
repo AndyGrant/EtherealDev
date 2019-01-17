@@ -54,6 +54,8 @@ volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
 
+uint64_t QSDEPTHS[MAX_PLY];
+
 void initSearch(){
 
     // Init Late Move Reductions Table
@@ -90,6 +92,10 @@ void getBestMove(Thread* threads, Board* board, Limits* limits, uint16_t *best, 
     // Wait for all (helper) threads to finish
     for (int i = 1; i < threads[0].nthreads; i++)
         pthread_join(pthreads[i], NULL);
+
+    for (int i = 0; i < MAX_PLY; i++)
+        if (QSDEPTHS[i] != 0ull)
+            printf("Depth [%2d] Count %"PRIu64"\n", i, QSDEPTHS[i]);
 
     // Save the best move and ponder move
     *best = info.bestMoves[info.depth];
@@ -211,7 +217,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
     if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Ensure positive depth
     depth = MAX(0, depth);
@@ -317,7 +323,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= RazorDepth
         &&  eval + RazorMargin < alpha)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
     // Move Pruning. If the eval is few pawns above beta then exit early
@@ -586,7 +592,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+
+    QSDEPTHS[abs(depth)]++;
 
     Board* const board = &thread->board;
 
@@ -660,7 +668,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
             continue;
 
         // Search next depth
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
 
         // Revert the board state
         revert(thread, board, move, height);

@@ -51,7 +51,7 @@ int aspirationWindow(Thread* thread, int depth, int lastValue);
 
 int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height);
+int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height);
 
 int staticExchangeEvaluation(Board* board, uint16_t move, int threshold);
 
