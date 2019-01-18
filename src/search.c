@@ -493,10 +493,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Step 15C. History Extensions. Extend quiet moves from the tranposition,
         // killer and counter move tables if they have exceptional continuation
-        // history scores.
+        // history scores. We may also extend tactical moves that are tried before
+        // the killer and counter moves if the table had an exceptional quiet move.
         extension += !RootNode
                   && !extension
-                  &&  isQuiet
                   &&  cmhist >= 10000
                   &&  fuhist >= 10000
                   &&  movePicker.stage <= STAGE_GENERATE_QUIET;
