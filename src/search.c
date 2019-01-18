@@ -443,6 +443,28 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
+        // Step 14A. Singular Move Extensions.
+        extension =  !RootNode
+                  &&  depth >= 8
+                  &&  move == ttMove
+                  &&  ttDepth >= depth - 2
+                  && (ttBound & BOUND_LOWER)
+                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
+
+        // Step 14B. History Extensions.
+        extension += !RootNode
+                  && !extension
+                  &&  quiets <= 4
+                  &&  cmhist >= 10000
+                  &&  fuhist >= 10000;
+
+        // Step 14B. Check Extensions.
+        extension += !RootNode
+                  && !extension
+                  &&  inCheck
+                  &&  staticExchangeEvaluation(board, move, 0);
+
+
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
             continue;
@@ -450,7 +472,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
 
-        // Step 14. Late Move Reductions. Compute the reduction,
+        // Step 15. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
@@ -474,31 +496,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
-
-        // Step 15A. Singular Move Extensions. If we are looking at a table move,
-        // and it seems that under some conditions, the table move is better than
-        // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  &&  depth >= 8
-                  &&  move == ttMove
-                  &&  ttDepth >= depth - 2
-                  && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
-
-        // Step 15B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
-        extension += !RootNode
-                  &&  inCheck
-                  && !extension;
-
-        // Step 15C. History Extensions. We extend quiet moves with strong
-        // history scores for both counter move and followups. We only apply
-        // this extension to the first quiet moves tried during the search
-        extension += !RootNode
-                  && !extension
-                  &&  quiets <= 4
-                  &&  cmhist >= 10000
-                  &&  fuhist >= 10000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
@@ -848,6 +845,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
 
     Board* const board = &thread->board;
 
+    int legal;
     int value = -MATE;
     int rBeta = MAX(ttValue - depth, -MATE);
 
@@ -855,8 +853,10 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
-    // Table move was already applied
+    // Verify legality of the move
+    legal = apply(thread, board, ttMove, height);
     revert(thread, board, ttMove, height);
+    if (!legal) return 0;
 
     // Iterate and check all moves other than the table move
     initMovePicker(&movePicker, thread, NONE_MOVE, height);
@@ -878,9 +878,6 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
         // Move failed high, thus ttMove is not singular
         if (value > rBeta) break;
     }
-
-    // Reapply the table move we took off
-    apply(thread, board, ttMove, height);
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
