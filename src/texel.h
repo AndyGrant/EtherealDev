@@ -28,7 +28,7 @@
 #define REPORTING   (    100) // How often to report progress
 
 #define LEARNING    (   64.0) // Learning rate initial size
-#define STEPS_PER   (   2500) // Steps reducing LEARNING
+#define STEPS_PER   (   1000) // Steps reducing LEARNING
 #define LEARN_CUT   (     10) // Divisor for LEARNING
 
 #define NDEPTHS     (      0) // # of search iterations
