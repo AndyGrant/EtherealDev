@@ -73,7 +73,7 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][8][8];
+extern const int KingShelter[2][4][8];
 extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
@@ -92,6 +92,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int i, j, iteration = -1;
+    double learningRate = LEARNING;
     double K, thisError, bestError = 1e6;
     double params[NTERMS][PHASE_NB] = {0};
     double cparams[NTERMS][PHASE_NB] = {0};
@@ -135,6 +136,10 @@ void runTexelTuning(Thread *thread) {
             printParameters(params, cparams);
         }
 
+        // Adjust learning rate after STEPS_PER iterations
+        if (iteration % STEPS_PER == 0)
+            learningRate = learningRate / LEARN_CUT;
+
         double gradients[NTERMS][PHASE_NB] = {0};
         #pragma omp parallel shared(gradients)
         {
@@ -170,8 +175,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][EG];
+            params[i][MG] += (2.0 / NPOSITIONS) * learningRate * gradients[i][MG];
+            params[i][EG] += (2.0 / NPOSITIONS) * learningRate * gradients[i][EG];
         }
     }
 }
