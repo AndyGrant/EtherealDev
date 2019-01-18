@@ -463,7 +463,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Reduce when we have been checked
-            // R -= inCheck;
+            R -= inCheck;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage <= STAGE_GENERATE_QUIET;
@@ -486,12 +486,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
 
-        // Step 15B. Check Extensions. We extend captures and good quiets
-        // that deliver a check, so long as no other extensions occur
+        // Step 15B. Check Extensions. We extend captures and good quiets from
+        // the table that deliver a check, so long as no other extensions occur
         extension += !RootNode
                   && !extension
                   &&  board->kingAttackers
-                  &&  movePicker.stage <= STAGE_GENERATE_QUIET;
+                  &&  movePicker.stage <= STAGE_GOOD_NOISY;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
