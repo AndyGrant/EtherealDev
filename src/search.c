@@ -651,11 +651,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
-        // Step 7. Futility Pruning. Similar to Delta Pruning, if
-        // this capture in the best case would still fail to beat
-        // alpha minus some margin, we can safely skip it
-        if (eval + QFutilityMargin + thisTacticalMoveValue(board, move) < alpha)
-            continue;
+
 
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
