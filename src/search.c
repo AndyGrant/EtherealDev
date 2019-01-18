@@ -463,7 +463,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             // Reduce when we have been checked
-            R -= inCheck;
+            // R -= inCheck;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage <= STAGE_GENERATE_QUIET;
