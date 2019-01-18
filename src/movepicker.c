@@ -259,10 +259,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             mp->moves[0] = mp->moves[mp->noisySize];
             mp->values[0] = mp->values[mp->noisySize];
 
-            assert(bestMove != mp->killer1);
-            assert(bestMove != mp->killer2);
-            assert(bestMove != mp->counter);
-
             // Do not play the table move twice
             if (bestMove == mp->tableMove)
                 return selectNextMove(mp, board, skipQuiets);
