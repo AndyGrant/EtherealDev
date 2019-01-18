@@ -170,8 +170,8 @@ void runTexelTuning(Thread *thread) {
         // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
         // final update step. Note that we have also simplified the minus off of the 2.
         for (i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * LEARNING * gradients[i][EG];
+            params[i][MG] += (2.0 * gradients[i][MG] * LEANRING) / NPOSITIONS;
+            params[i][EG] += (2.0 * gradients[i][EG] * LEANRING) / NPOSITIONS;
         }
     }
 }
