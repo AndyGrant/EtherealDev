@@ -475,9 +475,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  cmhist >= 10000
                   &&  fuhist >= 10000;
 
+        newDepth = depth + extension;
+
         // Step 14. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1){
+        if (isQuiet && played > 1){
 
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
@@ -499,9 +501,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R  = MIN(depth + extension - 1, MAX(R, 1));
 
         } else R = 1;
-
-        // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + extension;
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
