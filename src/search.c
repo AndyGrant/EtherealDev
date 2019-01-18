@@ -855,8 +855,8 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
 
     // Verify legality of the move
     legal = apply(thread, board, ttMove, height);
-    revert(thread, board, ttMove, height);
     if (!legal) return 0;
+    revert(thread, board, ttMove, height);
 
     // Iterate and check all moves other than the table move
     initMovePicker(&movePicker, thread, NONE_MOVE, height);
