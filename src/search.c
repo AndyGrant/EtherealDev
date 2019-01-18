@@ -450,31 +450,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
 
-        // Step 14. Late Move Reductions. Compute the reduction,
-        // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1){
-
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
-
-            // Increase for non PV nodes
-            R += !PvNode;
-
-            // Increase for non improving nodes
-            R += !improving;
-
-            // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
-
-            // Adjust based on history
-            R -= MAX(-2, MIN(2, hist / 5000));
-
-            // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
-
-        } else R = 1;
-
         // Step 15A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
@@ -499,6 +474,31 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  quiets <= 4
                   &&  cmhist >= 10000
                   &&  fuhist >= 10000;
+
+        // Step 14. Late Move Reductions. Compute the reduction,
+        // allow the later steps to perform the reduced searches
+        if (isQuiet && depth > 2 && played > 1){
+
+            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+
+            // Increase for non PV nodes
+            R += !PvNode;
+
+            // Increase for non improving nodes
+            R += !improving;
+
+            // Reduce for Killers and Counters
+            R -= move == movePicker.killer1
+              || move == movePicker.killer2
+              || move == movePicker.counter;
+
+            // Adjust based on history
+            R -= MAX(-2, MIN(2, hist / 5000));
+
+            // Don't extend or drop into QS
+            R  = MIN(depth + extension - 1, MAX(R, 1));
+
+        } else R = 1;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
