@@ -462,7 +462,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         extension += !RootNode
                   && !extension
                   &&  inCheck
-                  &&  staticExchangeEvaluation(board, move, 0);
+                  && (!isQuiet || staticExchangeEvaluation(board, move, 0));
 
 
         // Apply move, skip if move is illegal
