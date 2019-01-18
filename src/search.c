@@ -462,10 +462,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            // Reduce when we have been checked
+            R -= inCheck;
+
             // Reduce for Killers and Counters
-            R -= move == movePicker.killer1
-              || move == movePicker.killer2
-              || move == movePicker.counter;
+            R -= movePicker.stage <= STAGE_GENERATE_QUIET;
 
             // Adjust based on history
             R -= MAX(-2, MIN(2, hist / 5000));
@@ -485,11 +486,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && (ttBound & BOUND_LOWER)
                   &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
 
-        // Step 15B. Check Extensions. We extend captures and good quiets that
-        // come from in check positions, so long as no other extensions occur
+        // Step 15B. Check Extensions. We extend captures and good quiets
+        // that deliver a check, so long as no other extensions occur
         extension += !RootNode
-                  &&  inCheck
-                  && !extension;
+                  && !extension
+                  &&  board->kingAttackers
+                  &&  movePicker.stage <= STAGE_GENERATE_QUIET;
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
