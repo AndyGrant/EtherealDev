@@ -22,60 +22,12 @@
 
 #include "types.h"
 
-#define CLEARING    (      1) // Clear hashes between runs
-#define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
 #define LEARNING    (    1.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
 
-#define NDEPTHS     (      0) // # of search iterations
-#define NTERMS      (      0) // # of terms to tune
+#define NTERMS      (    588) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
-
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
-#define TuneRookValue                   (0)
-#define TuneQueenValue                  (0)
-#define TuneKingValue                   (0)
-#define TunePawnPSQT32                  (0)
-#define TuneKnightPSQT32                (0)
-#define TuneBishopPSQT32                (0)
-#define TuneRookPSQT32                  (0)
-#define TuneQueenPSQT32                 (0)
-#define TuneKingPSQT32                  (0)
-#define TunePawnCandidatePasser         (0)
-#define TunePawnIsolated                (0)
-#define TunePawnStacked                 (0)
-#define TunePawnBackwards               (0)
-#define TunePawnConnected32             (0)
-#define TuneKnightOutpost               (0)
-#define TuneKnightBehindPawn            (0)
-#define TuneKnightMobility              (0)
-#define TuneBishopPair                  (0)
-#define TuneBishopRammedPawns           (0)
-#define TuneBishopOutpost               (0)
-#define TuneBishopBehindPawn            (0)
-#define TuneBishopMobility              (0)
-#define TuneRookFile                    (0)
-#define TuneRookOnSeventh               (0)
-#define TuneRookMobility                (0)
-#define TuneQueenMobility               (0)
-#define TuneKingDefenders               (0)
-#define TuneKingShelter                 (0)
-#define TuneKingStorm                   (0)
-#define TunePassedPawn                  (0)
-#define TunePassedFriendlyDistance      (0)
-#define TunePassedEnemyDistance         (0)
-#define TunePassedSafePromotionPath     (0)
-#define TuneThreatWeakPawn              (0)
-#define TuneThreatMinorAttackedByPawn   (0)
-#define TuneThreatMinorAttackedByMinor  (0)
-#define TuneThreatMinorAttackedByMajor  (0)
-#define TuneThreatRookAttackedByLesser  (0)
-#define TuneThreatQueenAttackedByOne    (0)
-#define TuneThreatOverloadedPieces      (0)
-#define TuneThreatByPawnPush            (0)
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
@@ -166,22 +118,22 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
 #define PRINT_PARAM_3(term, A, B, C) (printParameters_3(#term, tparams, i, A, B, C), i+=A*B*C)
 
-// Wrap all of the above to check for the term being enabled
+// Generic wrapper for all of the above functions
 
 #define ENABLE_0(fname, term) do {                              \
-    if (Tune##term) fname##_0(term);                            \
+    fname##_0(term);                                            \
 } while (0)
 
 #define ENABLE_1(fname, term, A) do {                           \
-    if (Tune##term) fname##_1(term, A);                         \
+    fname##_1(term, A);                                         \
 } while (0)
 
 #define ENABLE_2(fname, term, A, B) do {                        \
-    if (Tune##term) fname##_2(term, A, B);                      \
+    fname##_2(term, A, B);                                      \
 } while (0)
 
 #define ENABLE_3(fname, term, A, B, C) do {                     \
-    if (Tune##term) fname##_3(term, A, B, C);                   \
+    fname##_3(term, A, B, C);                                   \
 } while (0)
 
 // Configuration for each aspect of the evaluation terms
