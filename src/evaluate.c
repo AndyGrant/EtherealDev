@@ -46,16 +46,15 @@
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S( 100, 123);
-const int KnightValue = S( 463, 392);
-const int BishopValue = S( 473, 417);
-const int RookValue   = S( 639, 717);
-const int QueenValue  = S(1313,1348);
+const int PawnValue   = S( 108, 144);
+const int KnightValue = S( 416, 411);
+const int BishopValue = S( 440, 427);
+const int RookValue   = S( 625, 717);
+const int QueenValue  = S(1308,1347);
 const int KingValue   = S(   0,   0);
-
 const int PieceValues[8][PHASE_NB] = {
-    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
-    {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
+    { 108, 144}, { 416, 411}, { 440, 427}, { 625, 717},
+    {1308,1347}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 /* Pawn Evaluation Terms */
