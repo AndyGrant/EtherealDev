@@ -24,7 +24,7 @@
 
 #define NPARTITIONS (     64) // Total thread partitions
 #define LEARNING    (    1.0) // Learning rate step size
-#define REPORTING   (    100) // How often to report progress
+#define REPORTING   (   1000) // How often to report progress
 
 #define NTERMS      (    588) // # of terms to tune
 #define NPOSITIONS  (1364312) // # of FENs in book
