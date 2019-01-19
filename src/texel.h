@@ -27,7 +27,7 @@
 #define REPORTING   (    100) // How often to report progress
 
 #define NTERMS      (    588) // # of terms to tune
-#define NPOSITIONS  (1364312) // # of FENs in book
+#define NPOSITIONS  (7500000) // # of FENs in book
 
 // Size of each allocated chunk
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
