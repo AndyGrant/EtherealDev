@@ -648,7 +648,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 6. Move Generation and Looping. Generate all tactical moves which
     // pass an SEE to be worth more than QSEEMargin and the minimum material
     // gain in order to pass the Futility Margin computed for Delta Pruning.
-    initNoisyMovePicker(&movePicker, thread, MAX(0, margin));
+    initNoisyMovePicker(&movePicker, thread, margin);
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
         // Apply move, skip if move is illegal
