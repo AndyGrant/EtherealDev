@@ -127,7 +127,7 @@ void runTexelTuning(Thread *thread) {
 
             // Check for a regression in tuning
             error = completeLinearError(tes, params, K);
-            if (error >= best) rate = rate / 4;
+            if (error >= best) rate = rate / 2;
 
             // Report current best parameters
             best = error;
