@@ -73,7 +73,7 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingShelter[2][8][8];
+extern const int KingShelter[2][4][8];
 extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
@@ -92,7 +92,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int iteration = -1;
-    double K, error, best = 1e6;
+    double K, error, best = 1e6, rate = LEARNING;
     TexelVector params = {0}, cparams = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -134,6 +134,9 @@ void runTexelTuning(Thread *thread) {
             printf("\nIteration [%d] Error = %g \n", iteration, best);
         }
 
+        if (iteration % LRSTEPSIZE == 0)
+            rate = rate / LRCUTSIZE;
+
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
             TexelVector gradient = {0};
@@ -143,7 +146,7 @@ void runTexelTuning(Thread *thread) {
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * LEARNING * gradient[i][j];
+                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
 }
