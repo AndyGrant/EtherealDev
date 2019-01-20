@@ -28,8 +28,8 @@
 #define NTERMS      (    588) // Total terms in the tuner
 
 
-#define LEARNING    (    1.0) // Learning rate
-#define BATCHSIZE   (7500000) // FENs per mini-batch
+#define LEARNING    (    0.1) // Learning rate
+#define BATCHSIZE   (   4096) // FENs per mini-batch
 #define NPOSITIONS  (7500000) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
