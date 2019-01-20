@@ -136,15 +136,16 @@ void runTexelTuning(Thread *thread) {
             if (iteration == 1000) break;
         }
 
-        TexelVector gradient = {0};
-        updateGradient(tes, gradient, params, K);
+        for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
-        // Finally, perform the update step of SGD. If we were to properly compute the gradients
-        // each term would be divided by -2 over NPOSITIONS. Instead we avoid those divisions until the
-        // final update step. Note that we have also simplified the minus off of the 2.
-        for (int i = 0; i < NTERMS; i++) {
-            params[i][MG] += (2.0 / NPOSITIONS) * LEARNING * gradient[i][MG];
-            params[i][EG] += (2.0 / NPOSITIONS) * LEARNING * gradient[i][EG];
+            TexelVector gradient = {0};
+            updateGradient(tes, gradient, params, K, batch);
+
+            // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
+            // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
+            for (int i = 0; i < NTERMS; i++)
+                for (int j = MG; j <= EG; j++)
+                    params[i][j] += (2.0 / BATCHSIZE) * LEARNING * gradient[i][j];
         }
     }
 }
@@ -267,13 +268,16 @@ void updateMemory(TexelEntry *te, int size) {
     TupleStackSize -= size;
 }
 
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K) {
+void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K, int batch) {
+
+    int start = batch * BATCHSIZE;
+    int end   = start + BATCHSIZE;
 
     #pragma omp parallel shared(gradient)
     {
         TexelVector local = {0};
-        #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS)
-        for (int i = 0; i < NPOSITIONS; i++) {
+        #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
+        for (int i = start; i < end; i++) {
 
             double error = singleLinearError(&tes[i], params, K);
 

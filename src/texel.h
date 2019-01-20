@@ -22,14 +22,17 @@
 
 #include "types.h"
 
-#define NPARTITIONS (     64) // Total thread partitions
-#define LEARNING    (    1.0) // Learning rate step size
-#define REPORTING   (    100) // How often to report progress
 #define KPRECISION  (     10) // Iterations for computing K
-#define NTERMS      (    588) // Total terms found in the tuner
-#define NPOSITIONS  (1364312) // Total FENS found in the book
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
+#define NPARTITIONS (     64) // Total thread partitions
+#define REPORTING   (    100) // How often to report progress
+#define NTERMS      (    588) // Total terms in the tuner
 
+
+#define LEARNING    (    1.0) // Learning rate
+#define BATCHSIZE   (1364312) // FENs per mini-batch
+#define NPOSITIONS  (1364312) // Total FENS in the book
+
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
 struct TexelTuple {
     int index;
@@ -53,7 +56,7 @@ void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(TexelVector cparams);
 
 void updateMemory(TexelEntry *te, int size);
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K);
+void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K, int batch);
 
 double computeOptimalK(TexelEntry *tes);
 double completeEvaluationError(TexelEntry *tes, double K);
