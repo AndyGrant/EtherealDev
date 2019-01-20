@@ -132,8 +132,6 @@ void runTexelTuning(Thread *thread) {
             best = error;
             printParameters(params, cparams);
             printf("\nIteration [%d] Error = %g \n", iteration, best);
-
-            if (iteration == 1000) break;
         }
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
