@@ -35,6 +35,7 @@
 #include "transposition.h"
 #include "types.h"
 #include "uci.h"
+#include "zobrist.h"
 
 // Internal Memory Managment
 TexelTuple* TupleStack;
