@@ -25,12 +25,11 @@
 #define NPARTITIONS (     64) // Total thread partitions
 #define LEARNING    (    1.0) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
+#define KPRECISION  (     10) // Iterations for computing K
+#define NTERMS      (    588) // Total terms found in the tuner
+#define NPOSITIONS  (1364312) // Total FENS found in the book
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
-#define NTERMS      (    588) // # of terms to tune
-#define NPOSITIONS  (1364312) // # of FENs in book
-
-// Size of each allocated chunk
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
 
 struct TexelTuple {
     int index;
@@ -45,20 +44,25 @@ struct TexelEntry {
     TexelTuple* tuples;
 };
 
+typedef double TexelVector[NTERMS][PHASE_NB];
+
 void runTexelTuning(Thread* thread);
-void initTexelEntries(TexelEntry* tes, Thread* thread);
 
+void initTexelEntries(TexelEntry *tes, Thread *thread);
 void initCoefficients(int coeffs[NTERMS]);
-void initCurrentParameters(double cparams[NTERMS][PHASE_NB]);
-void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHASE_NB]);
+void initCurrentParameters(TexelVector cparams);
 
-double computeOptimalK(TexelEntry* tes);
-double completeEvaluationError(TexelEntry* tes, double K);
-double completeLinearError(TexelEntry* tes, double params[NTERMS][PHASE_NB], double K);
-double singleLinearError(TexelEntry te, double params[NTERMS][PHASE_NB], double K);
-double linearEvaluation(TexelEntry te, double params[NTERMS][PHASE_NB]);
+void updateMemory(TexelEntry *te, int size);
+void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K);
+
+double computeOptimalK(TexelEntry *tes);
+double completeEvaluationError(TexelEntry *tes, double K);
+double completeLinearError(TexelEntry *tes, TexelVector params, double K);
+double singleLinearError(TexelEntry *te, TexelVector params, double K);
+double linearEvaluation(TexelEntry *te, TexelVector params);
 double sigmoid(double K, double S);
 
+void printParameters(TexelVector params, TexelVector cparams);
 void printParameters_0(char *name, int params[NTERMS][PHASE_NB], int i);
 void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A);
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B);
