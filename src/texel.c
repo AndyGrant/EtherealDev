@@ -92,7 +92,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int iteration = -1;
-    double K, error, best = 1e6;
+    double K, error, best = 1e6, rate = LEARNING;
     TexelVector params = {0}, cparams = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -126,7 +126,7 @@ void runTexelTuning(Thread *thread) {
 
             // Check for a regression in tuning
             error = completeLinearError(tes, params, K);
-            if (error >= best) break;
+            if (error >= best) rate = rate / 4;
 
             // Report current best parameters
             best = error;
@@ -143,7 +143,7 @@ void runTexelTuning(Thread *thread) {
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * LEARNING * gradient[i][j];
+                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
 }
@@ -268,7 +268,7 @@ void updateMemory(TexelEntry *te, int size) {
 
 void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K, int batch) {
 
-    int start = batch * BATCHSIZE;
+    int start = rand64() % (NPOSITIONS - BATCHSIZE);
     int end   = start + BATCHSIZE;
 
     #pragma omp parallel shared(gradient)
