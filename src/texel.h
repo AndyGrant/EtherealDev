@@ -34,6 +34,51 @@
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
+#define TuneRookValue                   (1)
+#define TuneQueenValue                  (1)
+#define TuneKingValue                   (1)
+#define TunePawnPSQT32                  (1)
+#define TuneKnightPSQT32                (1)
+#define TuneBishopPSQT32                (1)
+#define TuneRookPSQT32                  (1)
+#define TuneQueenPSQT32                 (1)
+#define TuneKingPSQT32                  (1)
+#define TunePawnCandidatePasser         (1)
+#define TunePawnIsolated                (1)
+#define TunePawnStacked                 (1)
+#define TunePawnBackwards               (1)
+#define TunePawnConnected32             (1)
+#define TuneKnightOutpost               (1)
+#define TuneKnightBehindPawn            (1)
+#define TuneKnightMobility              (1)
+#define TuneBishopPair                  (1)
+#define TuneBishopRammedPawns           (1)
+#define TuneBishopOutpost               (1)
+#define TuneBishopBehindPawn            (1)
+#define TuneBishopMobility              (1)
+#define TuneRookFile                    (1)
+#define TuneRookOnSeventh               (1)
+#define TuneRookMobility                (1)
+#define TuneQueenMobility               (1)
+#define TuneKingDefenders               (1)
+#define TuneKingShelter                 (1)
+#define TuneKingStorm                   (1)
+#define TunePassedPawn                  (1)
+#define TunePassedFriendlyDistance      (1)
+#define TunePassedEnemyDistance         (1)
+#define TunePassedSafePromotionPath     (1)
+#define TuneThreatWeakPawn              (1)
+#define TuneThreatMinorAttackedByPawn   (1)
+#define TuneThreatMinorAttackedByMinor  (1)
+#define TuneThreatMinorAttackedByMajor  (1)
+#define TuneThreatRookAttackedByLesser  (1)
+#define TuneThreatQueenAttackedByOne    (1)
+#define TuneThreatOverloadedPieces      (1)
+#define TuneThreatByPawnPush            (1)
+
 struct TexelTuple {
     int index;
     int coeff;
@@ -128,19 +173,19 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 // Generic wrapper for all of the above functions
 
 #define ENABLE_0(fname, term) do {                              \
-    fname##_0(term);                                            \
+    if (Tune##term) fname##_0(term);                            \
 } while (0)
 
 #define ENABLE_1(fname, term, A) do {                           \
-    fname##_1(term, A);                                         \
+    if (Tune##term) fname##_1(term, A);                         \
 } while (0)
 
 #define ENABLE_2(fname, term, A, B) do {                        \
-    fname##_2(term, A, B);                                      \
+    if (Tune##term) fname##_2(term, A, B);                      \
 } while (0)
 
 #define ENABLE_3(fname, term, A, B, C) do {                     \
-    fname##_3(term, A, B, C);                                   \
+    if (Tune##term) fname##_3(term, A, B, C);                   \
 } while (0)
 
 // Configuration for each aspect of the evaluation terms
