@@ -95,6 +95,7 @@ void runTexelTuning(Thread *thread) {
     int iteration = -1;
     double K, error, best = 1e6, rate = LEARNING;
     TexelVector params = {0}, cparams = {0};
+    TexelVector adjusted = {0}, previous = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -137,14 +138,23 @@ void runTexelTuning(Thread *thread) {
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
-            TexelVector gradient = {0};
-            updateGradient(tes, gradient, params, K);
-
-            // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
-            // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
+            // Adjust parameters using momentum
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
+                    adjusted[i][j] = params[i][j] - MOMENTUM * previous[i][j];
+
+            TexelVector gradient = {0};
+            updateGradient(tes, gradient, adjusted, K);
+
+            // Do some dope magic
+
+            for (int i = 0; i < NTERMS; i++) {
+                for (int j = MG; j <= EG; j++) {
+                    previous[i][j] *= MOMENTUM;
+                    previous[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
+                    params[i][j] += previous[i][j];
+                }
+            }
         }
     }
 }

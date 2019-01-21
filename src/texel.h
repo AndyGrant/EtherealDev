@@ -22,15 +22,16 @@
 
 #include "types.h"
 
-#define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (    100) // How often to report progress
 #define NTERMS      (    588) // Total terms in the tuner
-
-#define LEARNING    (   10.0) // Learning rate
-#define LRDROPRATE  (    2.0) // Cut LR by this each failure
-#define BATCHSIZE   (   8192) // FENs per mini-batch
 #define NPOSITIONS  (7500000) // Total FENS in the book
+
+#define KPRECISION  (     10) // Iterations for computing K
+#define LEARNING    (   10.0) // Base learning rate
+#define LRDROPRATE  (    2.0) // Cut size for learning rate
+#define MOMENTUM    (    0.2) // Momentum weight for updates
+#define BATCHSIZE   (   8192) // FENs per mini-batch
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
