@@ -253,11 +253,12 @@ const int ThreatByPawnPush           = S(  17,  21);
 
 const int MaterialImbalance[5][5] = {
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   2,   3), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(  -3,   5), S(   3,  -3), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S( -18,  10), S(   0,   4), S( -10,   0), S(   0,   0), S(   0,   0)},
-   {S(  31, -19), S(   1,  44), S(  -8,  51), S(-140,  82), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  -1,  -2), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -15,   3), S( -16,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  23,  11), S(  19,  24), S( -57,  34), S(   0,   0)},
 };
+
 
 /* General Evaluation Terms */
 
@@ -880,8 +881,8 @@ int evaluateMaterialImbalance(Board *board) {
 
     int eval = 0;
 
-    for (int p1 = PAWN; p1 <= QUEEN; p1++) {
-        for (int p2 = PAWN; p2 < p1; p2++) {
+    for (int p1 = KNIGHT; p1 <= QUEEN; p1++) {
+        for (int p2 = KNIGHT; p2 < p1; p2++) {
 
             int wcount = popcount(board->colours[WHITE] & board->pieces[p1])
                        * popcount(board->colours[BLACK] & board->pieces[p2]);
