@@ -61,16 +61,14 @@ const int PieceValues[8][PHASE_NB] = {
 /* Pawn Evaluation Terms */
 
 const int PawnCandidatePasser[2][8] = {
-   {S(   0,   0), S( -27, -11), S( -15,  11), S( -12,  27), S(   4,  62), S(  49,  71), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S( -16,  16), S(  -8,  22), S(   4,  46), S(  16,  88), S(  32,  58), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -27, -12), S( -15,   9), S( -12,  27), S(   4,  62), S(  49,  71), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -13,  -4), S(  -6,  11), S(   5,  35), S(  19,  74), S(  33,  51), S(   0,   0), S(   0,   0)},
 };
-
 
 
 const int PawnIsolated = S(  -8,  -9);
 
-const int PawnStacked = S( -19, -27);
-
+const int PawnStacked = S( -19, -29);
 
 const int PawnBackwards[2] = { S(   8,  -2), S(  -6, -20) };
 
@@ -217,23 +215,24 @@ const int KSAdjustment      =  -18;
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawn[2][2][8] = {
-  {{S(   0,   0), S( -42,   7), S( -61,  27), S( -86,  30), S( -11,  18), S(  71,   0), S( 156,  57), S(   0,   0)},
-   {S(   0,   0), S( -34,  12), S( -54,  28), S( -74,  30), S( -17,  29), S(  89,  23), S( 188,  86), S(   0,   0)}},
-  {{S(   0,   0), S( -28,   9), S( -54,  18), S( -77,  32), S(  -5,  32), S(  97,  33), S( 264, 119), S(   0,   0)},
-   {S(   0,   0), S( -29,   4), S( -46,  13), S( -68,  35), S(  -6,  56), S(  83, 135), S( 164, 290), S(   0,   0)}},
+  {{S(   0,   0), S( -42,   7), S( -61,  27), S( -87,  30), S( -11,  17), S(  70,  -1), S( 156,  56), S(   0,   0)},
+   {S(   0,   0), S( -33,  12), S( -54,  28), S( -75,  30), S( -18,  29), S(  88,  22), S( 188,  86), S(   0,   0)}},
+  {{S(   0,   0), S( -28,   9), S( -53,  18), S( -77,  32), S(  -5,  31), S(  96,  32), S( 263, 118), S(   0,   0)},
+   {S(   0,   0), S( -29,   5), S( -45,  13), S( -68,  35), S(  -7,  56), S(  82, 134), S( 164, 289), S(   0,   0)}},
 };
 
 const int PassedFriendlyDistance[8] = {
-    S(   0,   0), S(   0,   1), S(   2,  -4), S(   7, -12),
-    S(   6, -16), S(  -7, -15), S( -11,  -9), S(   0,   0),
+    S(   0,   0), S(   0,   1), S(   2,  -4), S(   7, -11),
+    S(   6, -16), S(  -7, -15), S( -11, -10), S(   0,   0),
 };
 
 const int PassedEnemyDistance[8] = {
-    S(   0,   0), S(   4,   0), S(   6,   1), S(   9,  11),
+    S(   0,   0), S(   4,   0), S(   6,   1), S(   9,  10),
     S(   2,  26), S(   7,  35), S(  21,  37), S(   0,   0),
 };
 
 const int PassedSafePromotionPath = S( -39,  40);
+
 
 /* Threat Evaluation Terms */
 
@@ -356,10 +355,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         uint64_t leftovers   = stoppers ^ threats ^ pushThreats;
 
         // Save passed pawn information for later evaluation
-        if (!stoppers) {
-            if (!several(forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)] & myPawns))
-                setBit(&ei->passedPawns, sq);
-        }
+        if (!stoppers && !several(forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)] & myPawns))
+            setBit(&ei->passedPawns, sq);
 
         // Apply a bonus for pawns which will become passers by advancing a single
         // square when exchanging our supporters with the remaining passer stoppers
