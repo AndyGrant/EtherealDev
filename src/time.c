@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "search.h"
-#include "thread.h"
 #include "time.h"
 #include "types.h"
 #include "uci.h"
@@ -71,9 +70,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
         // Playing using X + Y or X time controls
         else {
-            info->idealUsage =  1.00 * (limits->time + 25 * limits->inc) / 50;
-            info->maxAlloc   =  5.00 * (limits->time + 25 * limits->inc) / 50;
-            info->maxUsage   = 10.00 * (limits->time + 25 * limits->inc) / 50;
+            info->idealUsage =  0.52 * (limits->time + 23 * limits->inc) / 25;
+            info->maxAlloc   =  4.00 * (limits->time + 23 * limits->inc) / 25;
+            info->maxUsage   = 10.00 * (limits->time + 23 * limits->inc) / 25;
         }
 
         // Cap all time allocations using the move time buffer
@@ -138,18 +137,4 @@ int terminateTimeManagment(SearchInfo* info) {
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
-}
-
-int terminateSearchEarly(Thread *thread) {
-
-    // Terminate the search early if the max usage time has passed.
-    // Only check this once for every 1024 nodes examined. Never
-    // take an early exit before a depth one search has finished
-
-    const Limits *limits = thread->limits;
-
-    return  thread->depth > 1
-        && (thread->nodes & 1023) == 1023
-        && (limits->limitedBySelf || limits->limitedByTime)
-        &&  elapsedTime(thread->info) >= thread->info->maxUsage;
 }

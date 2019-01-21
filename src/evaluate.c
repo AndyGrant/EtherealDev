@@ -46,158 +46,151 @@
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S( 107, 135);
-const int KnightValue = S( 457, 409);
-const int BishopValue = S( 478, 424);
-const int RookValue   = S( 671, 713);
-const int QueenValue  = S(1246,1359);
+const int PawnValue   = S( 100, 123);
+const int KnightValue = S( 463, 392);
+const int BishopValue = S( 473, 417);
+const int RookValue   = S( 639, 717);
+const int QueenValue  = S(1313,1348);
 const int KingValue   = S(   0,   0);
 
 const int PieceValues[8][PHASE_NB] = {
-    { 107, 135}, { 457, 409}, { 478, 424}, { 671, 713},
-    {1246,1359}, {   0,   0}, {   0,   0}, {   0,   0},
+    { 100, 123}, { 463, 392}, { 473, 417}, { 639, 717},
+    {1313,1348}, {   0,   0}, {   0,   0}, {   0,   0},
 };
 
 /* Pawn Evaluation Terms */
 
-const int PawnCandidatePasser[2][RANK_NB] = {
-   {S(   0,   0), S( -26, -12), S( -13,  11), S( -13,  29),
-    S(   4,  63), S(  46,  68), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S( -14,  15), S(  -7,  21), S(   4,  46),
-    S(  16,  87), S(  33,  52), S(   0,   0), S(   0,   0)},
-};
+const int PawnIsolated = S(  -4,  -6);
 
-const int PawnIsolated = S(  -8,  -9);
+const int PawnStacked = S(  -5, -28);
 
-const int PawnStacked = S( -18, -29);
-
-const int PawnBackwards[2] = { S(   8,  -2), S(  -6, -20) };
+const int PawnBackwards[2] = { S(   5,  -3), S(  -9, -16) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(  -2,  -9), S(  11,   1), S(   4,   0), S(   4,  19),
-    S(  15,   0), S(  34,  -2), S(  22,   9), S(  26,  18),
-    S(  10,   0), S(  23,   4), S(  10,  11), S(  15,  23),
-    S(  16,   7), S(  24,  14), S(  30,  21), S(  34,  22),
-    S(  57,  27), S(  53,  47), S(  68,  55), S(  82,  60),
-    S( 110,  -3), S( 202,  11), S( 227,  28), S( 241,  52),
+    S(  -1, -10), S(  10,   1), S(   0,   0), S(   9,  18),
+    S(  10,   2), S(  22,   0), S(  16,   6), S(  19,  14),
+    S(   4,   0), S(  21,   4), S(  12,   8), S(  18,  15),
+    S(   4,  10), S(  20,  15), S(  19,  22), S(  37,  20),
+    S(  24,  53), S(  24,  64), S(  64,  61), S(  50,  73),
+    S( 104, -14), S( 197,  15), S( 227,  20), S( 249,  74),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(   7, -27), S(  31,  -1) };
+const int KnightOutpost[2] = { S(  15,  -5), S(  32,   3) };
 
-const int KnightBehindPawn = S(   4,  23);
+const int KnightBehindPawn = S(   4,  18);
 
 const int KnightMobility[9] = {
-    S( -83,-101), S( -34,-100), S( -19, -45), S(  -4, -20),
-    S(   7,  -8), S(  14,   8), S(  23,  11), S(  33,  11),
-    S(  44,  -5),
+    S( -90, -85), S( -36, -94), S( -22, -41), S(  -6, -14),
+    S(   2, -14), S(   8,   2), S(  17,   3), S(  33,  -1),
+    S(  53, -41),
 };
 
 /* Bishop Evaluation Terms */
 
-const int BishopPair = S(  25,  75);
+const int BishopPair = S(  32,  70);
 
-const int BishopRammedPawns = S( -10, -15);
+const int BishopRammedPawns = S( -11, -12);
 
-const int BishopOutpost[2] = { S(  11, -12), S(  43,   0) };
+const int BishopOutpost[2] = { S(  24,   1), S(  40,   0) };
 
-const int BishopBehindPawn = S(   3,  21);
+const int BishopBehindPawn = S(   3,  13);
 
 const int BishopMobility[14] = {
-    S( -64,-146), S( -28, -97), S(  -8, -58), S(   1, -30),
-    S(  11, -16), S(  19,   0), S(  21,   9), S(  22,  13),
-    S(  21,  19), S(  25,  18), S(  23,  19), S(  38,   3),
-    S(  41,  12), S(  64, -27),
+    S( -60,-128), S( -48, -68), S( -16, -47), S(  -5, -21),
+    S(   5, -11), S(  19,   0), S(  24,   7), S(  26,   6),
+    S(  26,  12), S(  34,   6), S(  36,   4), S(  46, -13),
+    S(  46,  -2), S(  40, -33),
 };
 
 /* Rook Evaluation Terms */
 
-const int RookFile[2] = { S(  18,   6), S(  41,   1) };
+const int RookFile[2] = { S(  11,   0), S(  41,  -1) };
 
-const int RookOnSeventh = S(  -1,  33);
+const int RookOnSeventh = S(   0,  25);
 
 const int RookMobility[15] = {
-    S(-150,-112), S( -55,-118), S( -14, -66), S(  -6, -22),
-    S(  -7,  -1), S(  -7,  14), S(  -6,  25), S(   0,  29),
-    S(   6,  32), S(   9,  37), S(  12,  44), S(  15,  49),
-    S(  15,  54), S(  22,  47), S(  71,  14),
+    S(-147,-107), S( -71,-120), S( -20, -69), S( -11, -28),
+    S(  -9,  -7), S(  -9,   8), S(  -9,  21), S(  -1,  27),
+    S(   3,  35), S(   7,  36), S(  10,  45), S(  21,  49),
+    S(  22,  52), S(  28,  48), S(  21,  48),
 };
 
 /* Queen Evaluation Terms */
 
 const int QueenMobility[28] = {
-    S( -61,-263), S(-213,-389), S( -60,-204), S( -28,-193),
-    S( -15,-142), S( -11, -91), S(  -5, -65), S(  -6, -38),
-    S(  -3, -27), S(  -2,  -5), S(   0,   7), S(   1,  21),
-    S(   3,  22), S(   4,  33), S(   2,  38), S(   1,  39),
-    S(   0,  42), S(  -4,  42), S(  -2,  36), S(  -6,  30),
-    S(   0,   7), S(  17, -11), S(  17, -40), S(  20, -57),
-    S(   4, -71), S(  21, -96), S( -58, -39), S( -27, -53),
+    S( -61,-263), S(-217,-390), S( -48,-205), S( -38,-190),
+    S( -13,-132), S( -28, -69), S( -17, -90), S( -22, -76),
+    S( -12, -61), S( -10, -51), S(  -3, -28), S(  -2, -27),
+    S(  -4, -16), S(   3,  -7), S(   2,  -2), S(   0,   3),
+    S(   6,  16), S(   0,  13), S(  12,  21), S(   1,  20),
+    S(   0,  18), S(  19,  22), S(   5,  -1), S(  32,   5),
+    S(  34,  13), S(  56,  -6), S( -51, -17), S(   0,   0),
 };
 
 /* King Evaluation Terms */
 
 const int KingDefenders[12] = {
-    S( -18,  -3), S( -10,   0), S(  -1,   2), S(   7,   4),
-    S(  16,   5), S(  27,   2), S(  32,   0), S(  16,   0),
+    S( -32,  -3), S( -15,   7), S(   0,   1), S(   9,  -1),
+    S(  23,  -6), S(  34,   3), S(  32,  12), S(  24,   0),
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
-  {{S( -14,   5), S(  16, -24), S(  19,  -8), S(   9,   2),
-    S(   4,   3), S(   9,   2), S(  -2, -32), S( -50,  19)},
-   {S(  17,  -6), S(  22, -18), S(  -1,  -6), S( -18,   2),
-    S( -30,  13), S( -69,  71), S(  95,  86), S( -29,   3)},
-   {S(  32,   0), S(  16, -10), S( -27,   5), S( -12, -10),
-    S( -23,  -4), S(  -7,  -3), S(   0,  66), S( -15,   0)},
-   {S(   4,  14), S(  20,  -8), S(   3, -11), S(  15, -24),
-    S(  23, -35), S( -50,   1), S(-139,  51), S(   3,  -5)},
-   {S( -12,   9), S(   0,  -2), S( -27,   0), S( -18,   1),
-    S( -20, -10), S( -38,  -1), S(  36, -15), S(  -6,  -2)},
-   {S(  44, -13), S(  25, -18), S( -22,   0), S( -12, -20),
-    S(   4, -25), S(  18, -25), S(  44, -30), S( -26,   1)},
-   {S(  25, -10), S(   1, -19), S( -23,  -5), S( -20, -13),
-    S( -30, -11), S( -34,  31), S(   1,  45), S( -13,   4)},
-   {S( -10,  -8), S(   6, -19), S(   9,  -2), S(  -2,   7),
-    S( -12,  13), S(  -9,  38), S(-191,  87), S( -19,  17)}},
-  {{S(   0,   0), S(  -9, -23), S(   0, -18), S( -44,  18),
-    S( -18,  -2), S(   5,  45), S(-169, -11), S( -46,  13)},
-   {S(   0,   0), S(  25, -20), S(   6,  -9), S( -20,  -5),
-    S(   1, -17), S(  30,  73), S(-186,  -6), S( -43,   7)},
-   {S(   0,   0), S(  35, -10), S(  -1,  -6), S(   8, -19),
-    S(  14,  -8), S( -93,  49), S( -87, -77), S( -23,  -3)},
-   {S(   0,   0), S(  -1,   9), S(  -1,   2), S( -16,  -1),
-    S( -26,   1), S(-103,  29), S(   7, -44), S( -22,  -5)},
-   {S(   0,   0), S(  11,   2), S(  11,  -5), S(  14, -12),
-    S(  13, -24), S( -54,  15), S(-107, -65), S(  -1,  -7)},
-   {S(   0,   0), S(   8,  -7), S( -20,   0), S( -27, -10),
-    S(  20, -28), S( -41,   3), S(  58,  41), S( -20,  -4)},
-   {S(   0,   0), S(  24, -13), S(  11, -12), S( -10, -10),
-    S( -29,   5), S(  -8,  15), S( -57, -53), S( -36,  15)},
-   {S(   0,   0), S(  14, -39), S(  19, -28), S( -19,  -5),
-    S( -19,  15), S(  -1,  15), S(-231, -59), S( -26,  10)}},
+  {{S( -17,  15), S(   6, -11), S(  16,   1), S(  23,   2),
+    S(   8,   7), S(  31,   4), S(  -1, -33), S( -31,   2)},
+   {S(   4,   6), S(  16,  -8), S(  12, -10), S(  -2, -13),
+    S( -27,   0), S( -66,  79), S( 101,  94), S( -30,   1)},
+   {S(  13,  13), S(   8,  -2), S( -20,   0), S(  -7,  -2),
+    S( -22,  -3), S(  14,  -9), S(   4,  65), S( -16,   2)},
+   {S(   9,  31), S(  14,   0), S(  -4,  -8), S(  20, -16),
+    S(  16, -36), S( -23, -33), S(-148,  41), S(  -1,   0)},
+   {S( -19,  20), S(  -2,   3), S( -31,   2), S( -11,   5),
+    S( -25, -17), S( -41, -19), S(  39,  -8), S( -14,   0)},
+   {S(  22,   3), S(  17,  -4), S( -21,   0), S(  -3, -21),
+    S(   7, -32), S(  17, -49), S(  50, -34), S( -12,   0)},
+   {S(  19,   3), S(   2, -10), S( -30,  -8), S( -17, -14),
+    S( -24, -21), S( -43,   9), S(   7,  47), S( -26,   8)},
+   {S( -19,  -3), S(  -1,  -9), S(   4,   0), S(   3,   3),
+    S( -11,  14), S(   4,  33), S(-201,  79), S( -18,  15)}},
+  {{S(   0,   0), S(   5, -16), S(   6, -14), S( -46,  19),
+    S(   0, -10), S(   9,  51), S(-171, -15), S( -51,  11)},
+   {S(   0,   0), S(  17,  -7), S(   8,  -7), S(  -5,  -8),
+    S(  11, -33), S(  52, 103), S(-188, -11), S( -45,   4)},
+   {S(   0,   0), S(  24,   0), S(   0,  -7), S(  20, -27),
+    S(  14,  -8), S(-114,  45), S( -90, -84), S( -22,  -1)},
+   {S(   0,   0), S(  -6,   9), S( -11,  13), S( -14,   3),
+    S( -24,   0), S(-117,  10), S(   5, -50), S( -28,   1)},
+   {S(   0,   0), S(   4,   5), S(   8,  -7), S(  25,  -4),
+    S(  10, -23), S( -45,   8), S(-109, -73), S(  -4,  -3)},
+   {S(   0,   0), S(  10,   1), S( -17,  -1), S( -12, -14),
+    S(  30, -38), S( -45,   5), S(  59,  47), S( -30,   1)},
+   {S(   0,   0), S(  12,  -1), S(  -3,   0), S( -20,  -5),
+    S( -20, -13), S(  23,  12), S( -58, -64), S( -43,  14)},
+   {S(   0,   0), S(   8, -28), S(   9, -16), S( -22,   0),
+    S( -27,  -3), S(   7, -17), S(-240, -74), S( -44,  16)}},
 };
 
 const int KingStorm[2][FILE_NB/2][RANK_NB] = {
-  {{S(   2,  21), S( 113, -12), S( -29,  24), S( -23,  10),
-    S( -14,   3), S(  -8,  -2), S( -19,   7), S( -22,  -2)},
-   {S(   2,  44), S(  56,   9), S( -18,  24), S(  -5,  13),
-    S(  -4,   5), S(   5,  -3), S(   0,   1), S( -14,   0)},
-   {S(  12,  35), S(  20,  18), S( -23,  20), S( -13,  10),
-    S(   3,   1), S(   7,   0), S(   9,  -7), S(   1,  -1)},
-   {S(   2,  25), S(  21,  19), S( -11,   8), S( -15,   3),
-    S( -13,   1), S(   7, -11), S(   0,  -7), S( -15,   2)}},
-  {{S(   0,   0), S( -11, -13), S( -16,  -1), S(  20, -16),
-    S(  11,  -7), S(   0, -18), S(  -8,   1), S(  16,  27)},
-   {S(   0,   0), S( -13, -27), S(  -9, -10), S(  33, -12),
-    S(  -1,  -1), S(  10, -23), S( -13,  -8), S( -15,   3)},
-   {S(   0,   0), S( -23, -41), S( -32,  -9), S(  10, -10),
-    S(   2,  -3), S( -10, -15), S( -14, -13), S( -10,   6)},
-   {S(   0,   0), S(  -1, -14), S( -19, -18), S( -11,  -4),
-    S(  -4,  -6), S(   6, -30), S(  66,  -6), S(  12,  18)}},
+  {{S(   2,   6), S(  33,  21), S(  -6,   9), S( -14,   4),
+    S(  -2,  -1), S(  -6,  -2), S( -12,   3), S(  -3,   3)},
+   {S(   5,  25), S(  12,  19), S(  -7,   4), S(  -5,  -2),
+    S(   0,  -1), S(   4,  -7), S(   1,   4), S(  -5,   8)},
+   {S(   3,  17), S(   3,  20), S( -12,   4), S( -18,   0),
+    S(   3,  -4), S(   2,  -3), S(   0,   0), S(   3,   3)},
+   {S(   5,  16), S(   6,  20), S(  -6,  -5), S( -20,  -7),
+    S(  -9,  -5), S(   3, -10), S(  -1,  -4), S( -14,   3)}},
+  {{S(   0,   0), S(   0,   0), S(   7, -12), S(  21, -14),
+    S(   6,  -1), S(  -2,  -6), S(  -7,  -1), S(   0,   1)},
+   {S(   0,   0), S(   0,   0), S(   0, -20), S(  28,  -9),
+    S(   0,   2), S(  -3,   0), S(  -1,   0), S(  -2,   0)},
+   {S(   0,   0), S(  -1,  -1), S(  -8, -21), S(  -3,  -4),
+    S(  -6,   5), S( -19,  -4), S(  -5,  -2), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(  -7, -19), S(  -3,  -3),
+    S(  -9,  -5), S(   7, -10), S(  15,   1), S(   1,   1)}},
 };
 
 /* King Safety Evaluation Terms */
@@ -215,39 +208,32 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -39,   0), S( -52,  23), S( -83,  26),
-    S(  -7,  16), S(  66,   1), S( 153,  59), S(   0,   0)},
-   {S(   0,   0), S( -26,   2), S( -46,  23), S( -71,  28),
-    S( -13,  30), S(  84,  29), S( 184,  96), S(   0,   0)}},
-  {{S(   0,   0), S( -27,  11), S( -47,  18), S( -73,  33),
-    S(  -2,  34), S(  91,  40), S( 259, 128), S(   0,   0)},
-   {S(   0,   0), S( -29,   6), S( -41,  14), S( -67,  37),
-    S(  -5,  61), S(  74, 145), S( 154, 302), S(   0,   0)}},
+const int PassedPawn[2][2][8] = {
+  {{S(   0,   0), S( -28, -25), S( -22,   3), S( -12,   0),
+    S(  15,  -1), S(  54,   0), S( 141,  31), S(   0,   0)},
+   {S(   0,   0), S(  -5,  -7), S( -23,  11), S( -15,  24),
+    S(   2,  41), S(  65,  66), S( 191, 136), S(   0,   0)}},
+  {{S(   0,   0), S( -12,   5), S( -18,   1), S(  -9,  20),
+    S(  26,  37), S(  76,  75), S( 238, 158), S(   0,   0)},
+   {S(   0,   0), S( -23,  -8), S( -17,  -2), S( -17,  34),
+    S(  -1, 101), S(  44, 223), S( 125, 381), S(   0,   0)}},
 };
 
-const int PassedFriendlyDistance[RANK_NB] = {
-    S(   0,   0), S(   0,   0), S(   2,  -4), S(   7, -11),
-    S(   5, -16), S(  -6, -15), S( -10, -11), S(   0,   0),
-};
+const int PassedFriendlyDistance = S(   4,  -6);
 
-const int PassedEnemyDistance[RANK_NB] = {
-    S(   0,   0), S(   3,   0), S(   5,   1), S(   9,  10),
-    S(   2,  25), S(   8,  34), S(  20,  37), S(   0,   0),
-};
+const int PassedEnemyDistance = S(  -1,   8);
 
-const int PassedSafePromotionPath = S( -33,  37);
+const int PassedSafePromotionPath = S(   0,  26);
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -13, -28);
-const int ThreatMinorAttackedByPawn  = S( -58, -51);
-const int ThreatMinorAttackedByMinor = S( -29, -36);
-const int ThreatMinorAttackedByMajor = S( -27, -42);
-const int ThreatRookAttackedByLesser = S( -59, -14);
-const int ThreatQueenAttackedByOne   = S( -51, -20);
-const int ThreatOverloadedPieces     = S(  -9, -19);
-const int ThreatByPawnPush           = S(  17,  21);
+const int ThreatWeakPawn             = S( -37, -39);
+const int ThreatMinorAttackedByPawn  = S( -68, -54);
+const int ThreatMinorAttackedByMajor = S( -47, -44);
+const int ThreatRookAttackedByLesser = S( -55, -25);
+const int ThreatQueenAttackedByOne   = S( -97,   1);
+const int ThreatOverloadedPieces     = S( -10, -26);
+const int ThreatByPawnPush           = S(  20,  16);
 
 /* General Evaluation Terms */
 
@@ -324,7 +310,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
     const int Forward = (colour == WHITE) ? 8 : -8;
 
-    int sq, flag, eval = 0, pkeval = 0;
+    int sq, semi, eval = 0, pkeval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
     // Store off pawn attacks for king safety and threat computations
@@ -351,26 +337,12 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(sq, US)][US]++;
 
-        uint64_t stoppers    = enemyPawns & passedPawnMasks(US, sq);
-        uint64_t threats     = enemyPawns & pawnAttacks(US, sq);
-        uint64_t support     = myPawns    & pawnAttacks(THEM, sq);
-        uint64_t pushThreats = enemyPawns & pawnAttacks(US, sq + Forward);
-        uint64_t pushSupport = myPawns    & pawnAttacks(THEM, sq + Forward);
-        uint64_t leftovers   = stoppers ^ threats ^ pushThreats;
-
         // Save passed pawn information for later evaluation
-        if (!stoppers) setBit(&ei->passedPawns, sq);
-
-        // Apply a bonus for pawns which will become passers by advancing a single
-        // square when exchanging our supporters with the remaining passer stoppers
-        else if (!leftovers && popcount(pushSupport) >= popcount(pushThreats)) {
-            flag = popcount(support) >= popcount(threats);
-            pkeval += PawnCandidatePasser[flag][relativeRankOf(US, sq)];
-            if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
-        }
+        if (!(passedPawnMasks(US, sq) & enemyPawns))
+            setBit(&ei->passedPawns, sq);
 
         // Apply a penalty if the pawn is isolated
-        if (!(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
+        if (!(isolatedPawnMasks(sq) & myPawns)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
@@ -384,9 +356,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Apply a penalty if the pawn is backward
         if (   !(passedPawnMasks(THEM, sq) & myPawns)
             &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
-            flag = !(Files[fileOf(sq)] & enemyPawns);
-            pkeval += PawnBackwards[flag];
-            if (TRACE) T.PawnBackwards[flag][US]++;
+            semi = !(Files[fileOf(sq)] & enemyPawns);
+            pkeval += PawnBackwards[semi];
+            if (TRACE) T.PawnBackwards[semi][US]++;
         }
 
         // Apply a bonus if the pawn is connected and not backward
@@ -408,6 +380,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
     int sq, defended, count, eval = 0;
     uint64_t attacks;
 
+    uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[US  ];
 
@@ -429,7 +402,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
-        if (     testBit(outpostRanksMasks(US), sq)
+        if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += KnightOutpost[defended];
@@ -437,7 +410,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the knight is behind a pawn
-        if (testBit(pawnAdvance(board->pieces[PAWN], 0ull, THEM), sq)) {
+        if (testBit(pawnAdvance((myPawns | enemyPawns), 0ull, THEM), sq)) {
             eval += KnightBehindPawn;
             if (TRACE) T.KnightBehindPawn[US]++;
         }
@@ -500,7 +473,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
-        if (     testBit(outpostRanksMasks(US), sq)
+        if (     testBit(outpostRanks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += BishopOutpost[defended];
@@ -685,12 +658,14 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        // Identify if there are pieces which can move to the checking squares safely.
-        // We consider forking a Queen to be a safe check, even with our own Queen.
-        uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
+        // Identify if pieces can move to those checking squares safely.
+        // We check if our Queen can attack the square for safe Queen checks.
+        // No attacks of other pieces is implicit in our definition of weak.
+        uint64_t knightChecks = knightThreats & safe &  ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks = bishopThreats & safe &  ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   = rookThreats   & safe &  ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  = queenThreats  & safe &  ei->attackedBy[THEM][QUEEN ]
+                                                     & ~ei->attackedBy[  US][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -698,10 +673,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeQueenCheck  * !!queenChecks
+               + KSSafeRookCheck   * !!rookChecks
+               + KSSafeBishopCheck * !!bishopChecks
+               + KSSafeKnightCheck * !!knightChecks
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
@@ -717,11 +692,11 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     for (int file = MAX(0, kingFile - 1); file <= MIN(FILE_NB - 1, kingFile + 1); file++) {
 
         // Find closest friendly pawn at or above our King on a given file
-        uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, kingRank);
+        uint64_t ours = myPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
         int ourDist = !ours ? 7 : abs(kingRank - rankOf(backmost(US, ours)));
 
         // Find closest enemy pawn at or above our King on a given file
-        uint64_t theirs = enemyPawns & Files[file] & forwardRanksMasks(US, kingRank);
+        uint64_t theirs = enemyPawns & Files[file] & ranksAtOrAboveMasks(US, kingRank);
         int theirDist = !theirs ? 7 : abs(kingRank - rankOf(backmost(US, theirs)));
 
         // Evaluate King Shelter using pawn distance. Use seperate evaluation
@@ -765,16 +740,16 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ei->kingSquare[US]);
-        eval += dist * PassedFriendlyDistance[rank];
-        if (TRACE) T.PassedFriendlyDistance[rank][US] += dist;
+        eval += dist * PassedFriendlyDistance;
+        if (TRACE) T.PassedFriendlyDistance[US] += dist;
 
         // Evaluate based on distance from their king
         dist = distanceBetween(sq, ei->kingSquare[THEM]);
-        eval += dist * PassedEnemyDistance[rank];
-        if (TRACE) T.PassedEnemyDistance[rank][US] += dist;
+        eval += dist * PassedEnemyDistance;
+        if (TRACE) T.PassedEnemyDistance[US] += dist;
 
         // Apply a bonus when the path to promoting is uncontested
-        bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
+        bitboard = ranksAtOrAboveMasks(US, rankOf(sq)) & Files[fileOf(sq)];
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
@@ -831,12 +806,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     eval += count * ThreatMinorAttackedByPawn;
     if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
 
-    // Penalty for any minor threat against minor pieces
-    count = popcount((knights | bishops) & attacksByMinors);
-    eval += count * ThreatMinorAttackedByMinor;
-    if (TRACE) T.ThreatMinorAttackedByMinor[US] += count;
-
-    // Penalty for all major threats against poorly supported minors
+    // Penalty for all major threats against our unsupported knights and bishops
     count = popcount((knights | bishops) & poorlyDefended & attacksByMajors);
     eval += count * ThreatMinorAttackedByMajor;
     if (TRACE) T.ThreatMinorAttackedByMajor[US] += count;
@@ -919,8 +889,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~whitePawns, BLACK);
     ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~blackPawns, WHITE);
 
-    ei->kingAreas[WHITE] = kingAreaMasks(WHITE, wKingSq);
-    ei->kingAreas[BLACK] = kingAreaMasks(BLACK, bKingSq);
+    ei->kingAreas[WHITE] = kingAttacks(wKingSq) | (1ull << wKingSq) | (kingAttacks(wKingSq) << 8);
+    ei->kingAreas[BLACK] = kingAttacks(bKingSq) | (1ull << bKingSq) | (kingAttacks(bKingSq) >> 8);
 
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);

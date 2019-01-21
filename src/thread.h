@@ -37,6 +37,7 @@ struct Thread {
     int value;
     int depth;
     int seldepth;
+
     uint64_t nodes;
     uint64_t tbhits;
 
@@ -48,8 +49,6 @@ struct Thread {
 
     int *pieceStack;
     int _pieceStack[MAX_PLY+4];
-
-    Undo undoStack[MAX_PLY];
 
     jmp_buf jbuffer;
 

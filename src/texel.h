@@ -22,62 +22,61 @@
 
 #include "types.h"
 
-#define KPRECISION  (     10) // Iterations for computing K
+#define CLEARING    (      1) // Clear hashes between runs
+#define RESOLVE     (      1) // Resolve with qsearch
 #define NPARTITIONS (     64) // Total thread partitions
+#define LEARNING    (    0.1) // Learning rate step size
 #define REPORTING   (    100) // How often to report progress
-#define NTERMS      (    588) // Total terms in the tuner
 
-#define LEARNING    (   10.0) // Learning rate
-#define LRDROPRATE  (    2.0) // Cut LR by this each failure
-#define BATCHSIZE   (   8192) // FENs per mini-batch
-#define NPOSITIONS  (7500000) // Total FENS in the book
+#define NDEPTHS     (      0) // # of search iterations
+#define NTERMS      (      0) // # of terms to tune
+#define NPOSITIONS  (1491723) // # of FENs in book
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
+#define TunePawnValue                   (0)
+#define TuneKnightValue                 (0)
+#define TuneBishopValue                 (0)
+#define TuneRookValue                   (0)
+#define TuneQueenValue                  (0)
+#define TuneKingValue                   (0)
+#define TunePawnPSQT32                  (0)
+#define TuneKnightPSQT32                (0)
+#define TuneBishopPSQT32                (0)
+#define TuneRookPSQT32                  (0)
+#define TuneQueenPSQT32                 (0)
+#define TuneKingPSQT32                  (0)
+#define TunePawnIsolated                (0)
+#define TunePawnStacked                 (0)
+#define TunePawnBackwards               (0)
+#define TunePawnConnected32             (0)
+#define TuneKnightOutpost               (0)
+#define TuneKnightBehindPawn            (0)
+#define TuneKnightMobility              (0)
+#define TuneBishopPair                  (0)
+#define TuneBishopRammedPawns           (0)
+#define TuneBishopOutpost               (0)
+#define TuneBishopBehindPawn            (0)
+#define TuneBishopMobility              (0)
+#define TuneRookFile                    (0)
+#define TuneRookOnSeventh               (0)
+#define TuneRookMobility                (0)
+#define TuneQueenMobility               (0)
+#define TuneKingDefenders               (0)
+#define TuneKingShelter                 (0)
+#define TuneKingStorm                   (0)
+#define TunePassedPawn                  (0)
+#define TunePassedFriendlyDistance      (0)
+#define TunePassedEnemyDistance         (0)
+#define TunePassedSafePromotionPath     (0)
+#define TuneThreatWeakPawn              (0)
+#define TuneThreatMinorAttackedByPawn   (0)
+#define TuneThreatMinorAttackedByMajor  (0)
+#define TuneThreatRookAttackedByLesser  (0)
+#define TuneThreatQueenAttackedByOne    (0)
+#define TuneThreatOverloadedPieces      (0)
+#define TuneThreatByPawnPush            (0)
 
-#define TunePawnValue                   (1)
-#define TuneKnightValue                 (1)
-#define TuneBishopValue                 (1)
-#define TuneRookValue                   (1)
-#define TuneQueenValue                  (1)
-#define TuneKingValue                   (1)
-#define TunePawnPSQT32                  (1)
-#define TuneKnightPSQT32                (1)
-#define TuneBishopPSQT32                (1)
-#define TuneRookPSQT32                  (1)
-#define TuneQueenPSQT32                 (1)
-#define TuneKingPSQT32                  (1)
-#define TunePawnCandidatePasser         (1)
-#define TunePawnIsolated                (1)
-#define TunePawnStacked                 (1)
-#define TunePawnBackwards               (1)
-#define TunePawnConnected32             (1)
-#define TuneKnightOutpost               (1)
-#define TuneKnightBehindPawn            (1)
-#define TuneKnightMobility              (1)
-#define TuneBishopPair                  (1)
-#define TuneBishopRammedPawns           (1)
-#define TuneBishopOutpost               (1)
-#define TuneBishopBehindPawn            (1)
-#define TuneBishopMobility              (1)
-#define TuneRookFile                    (1)
-#define TuneRookOnSeventh               (1)
-#define TuneRookMobility                (1)
-#define TuneQueenMobility               (1)
-#define TuneKingDefenders               (1)
-#define TuneKingShelter                 (1)
-#define TuneKingStorm                   (1)
-#define TunePassedPawn                  (1)
-#define TunePassedFriendlyDistance      (1)
-#define TunePassedEnemyDistance         (1)
-#define TunePassedSafePromotionPath     (1)
-#define TuneThreatWeakPawn              (1)
-#define TuneThreatMinorAttackedByPawn   (1)
-#define TuneThreatMinorAttackedByMinor  (1)
-#define TuneThreatMinorAttackedByMajor  (1)
-#define TuneThreatRookAttackedByLesser  (1)
-#define TuneThreatQueenAttackedByOne    (1)
-#define TuneThreatOverloadedPieces      (1)
-#define TuneThreatByPawnPush            (1)
+// Size of each allocated chunk
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 16))
 
 struct TexelTuple {
     int index;
@@ -92,25 +91,20 @@ struct TexelEntry {
     TexelTuple* tuples;
 };
 
-typedef double TexelVector[NTERMS][PHASE_NB];
-
 void runTexelTuning(Thread* thread);
+void initTexelEntries(TexelEntry* tes, Thread* thread);
 
-void initTexelEntries(TexelEntry *tes, Thread *thread);
 void initCoefficients(int coeffs[NTERMS]);
-void initCurrentParameters(TexelVector cparams);
+void initCurrentParameters(double cparams[NTERMS][PHASE_NB]);
+void printParameters(double params[NTERMS][PHASE_NB], double cparams[NTERMS][PHASE_NB]);
 
-void updateMemory(TexelEntry *te, int size);
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K);
-
-double computeOptimalK(TexelEntry *tes);
-double completeEvaluationError(TexelEntry *tes, double K);
-double completeLinearError(TexelEntry *tes, TexelVector params, double K);
-double singleLinearError(TexelEntry *te, TexelVector params, double K);
-double linearEvaluation(TexelEntry *te, TexelVector params);
+double computeOptimalK(TexelEntry* tes);
+double completeEvaluationError(TexelEntry* tes, double K);
+double completeLinearError(TexelEntry* tes, double params[NTERMS][PHASE_NB], double K);
+double singleLinearError(TexelEntry te, double params[NTERMS][PHASE_NB], double K);
+double linearEvaluation(TexelEntry te, double params[NTERMS][PHASE_NB]);
 double sigmoid(double K, double S);
 
-void printParameters(TexelVector params, TexelVector cparams);
 void printParameters_0(char *name, int params[NTERMS][PHASE_NB], int i);
 void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A);
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B);
@@ -170,7 +164,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
 #define PRINT_PARAM_3(term, A, B, C) (printParameters_3(#term, tparams, i, A, B, C), i+=A*B*C)
 
-// Generic wrapper for all of the above functions
+// Wrap all of the above to check for the term being enabled
 
 #define ENABLE_0(fname, term) do {                              \
     if (Tune##term) fname##_0(term);                            \
@@ -180,7 +174,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     if (Tune##term) fname##_1(term, A);                         \
 } while (0)
 
-#define ENABLE_2(fname, term, A, B) do {                        \
+#define ENABLE_2(fname, term, A, legnth2) do {                  \
     if (Tune##term) fname##_2(term, A, B);                      \
 } while (0)
 
@@ -203,7 +197,6 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, RookPSQT32, 32);                            \
     ENABLE_1(fname, QueenPSQT32, 32);                           \
     ENABLE_1(fname, KingPSQT32, 32);                            \
-    ENABLE_2(fname, PawnCandidatePasser, 2, 8);                 \
     ENABLE_0(fname, PawnIsolated);                              \
     ENABLE_0(fname, PawnStacked);                               \
     ENABLE_1(fname, PawnBackwards, 2);                          \
@@ -224,12 +217,11 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_3(fname, KingShelter, 2, 8, 8);                      \
     ENABLE_3(fname, KingStorm, 2, 4, 8);                        \
     ENABLE_3(fname, PassedPawn, 2, 2, 8);                       \
-    ENABLE_1(fname, PassedFriendlyDistance, 8);                 \
-    ENABLE_1(fname, PassedEnemyDistance, 8);                    \
+    ENABLE_0(fname, PassedFriendlyDistance);                    \
+    ENABLE_0(fname, PassedEnemyDistance);                       \
     ENABLE_0(fname, PassedSafePromotionPath);                   \
     ENABLE_0(fname, ThreatWeakPawn);                            \
     ENABLE_0(fname, ThreatMinorAttackedByPawn);                 \
-    ENABLE_0(fname, ThreatMinorAttackedByMinor);                \
     ENABLE_0(fname, ThreatMinorAttackedByMajor);                \
     ENABLE_0(fname, ThreatRookAttackedByLesser);                \
     ENABLE_0(fname, ThreatQueenAttackedByOne);                  \
