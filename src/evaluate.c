@@ -61,10 +61,10 @@ const int PieceValues[8][PHASE_NB] = {
 /* Pawn Evaluation Terms */
 
 const int PawnCandidatePasser[2][RANK_NB] = {
-   {S(   0,   0), S( -26, -12), S( -13,  11), S( -13,  29),
-    S(   4,  63), S(  46,  68), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S( -14,  15), S(  -7,  21), S(   4,  46),
-    S(  16,  87), S(  33,  52), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -28, -10), S( -15,  11), S( -13,  28),
+    S(   3,  63), S(  48,  72), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -16,  17), S(  -8,  22), S(   4,  46),
+    S(  16,  87), S(  30,  64), S(   0,   0), S(   0,   0)},
 };
 
 const int PawnIsolated = S(  -8,  -9);
@@ -216,29 +216,29 @@ const int KSAdjustment      =  -18;
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -39,   0), S( -52,  23), S( -83,  26),
-    S(  -7,  16), S(  66,   1), S( 153,  59), S(   0,   0)},
-   {S(   0,   0), S( -26,   2), S( -46,  23), S( -71,  28),
-    S( -13,  30), S(  84,  29), S( 184,  96), S(   0,   0)}},
-  {{S(   0,   0), S( -27,  11), S( -47,  18), S( -73,  33),
-    S(  -2,  34), S(  91,  40), S( 259, 128), S(   0,   0)},
-   {S(   0,   0), S( -29,   6), S( -41,  14), S( -67,  37),
-    S(  -5,  61), S(  74, 145), S( 154, 302), S(   0,   0)}},
+  {{S(   0,   0), S( -45,   5), S( -64,  26), S( -86,  28),
+    S( -10,  17), S(  81,  -4), S( 168,  52), S(   0,   0)},
+   {S(   0,   0), S( -33,   6), S( -57,  25), S( -73,  28),
+    S( -16,  28), S( 100,  20), S( 200,  81), S(   0,   0)}},
+  {{S(   0,   0), S( -34,  14), S( -60,  20), S( -77,  33),
+    S(  -5,  31), S( 104,  29), S( 268, 113), S(   0,   0)},
+   {S(   0,   0), S( -36,  10), S( -54,  17), S( -71,  36),
+    S( -10,  56), S(  86, 132), S( 174, 281), S(   0,   0)}},
 };
 
 const int PassedFriendlyDistance[RANK_NB] = {
     S(   0,   0), S(   0,   0), S(   2,  -4), S(   7, -11),
-    S(   5, -16), S(  -6, -15), S( -10, -11), S(   0,   0),
+    S(   6, -16), S(  -9, -15), S( -13,  -9), S(   0,   0),
 };
 
 const int PassedEnemyDistance[RANK_NB] = {
-    S(   0,   0), S(   3,   0), S(   5,   1), S(   9,  10),
-    S(   2,  25), S(   8,  34), S(  20,  37), S(   0,   0),
+    S(   0,   0), S(   5,  -1), S(   7,   0), S(   9,  10),
+    S(   1,  25), S(   7,  35), S(  21,  37), S(   0,   0),
 };
 
-const int PassedSafePromotionPath = S( -33,  37);
+const int PassedSafePromotionPath = S( -36,  38);
 
-const int PassedClearTarrasch = S(  14,  51);
+const int PassedClearTarrasch = S(  12,  55);
 
 /* Threat Evaluation Terms */
 
