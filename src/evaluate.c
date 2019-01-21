@@ -238,6 +238,8 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S( -33,  37);
 
+const int PassedClearTarrasch = S(  14,  52);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -13, -28);
@@ -743,10 +745,11 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
+    int sq, file, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myRooks   = board->colours[US] & board->pieces[ROOK];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -754,6 +757,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
         // Pop off the next passed Pawn
         sq = poplsb(&tempPawns);
+        file = fileOf(sq);
         rank = relativeRankOf(US, sq);
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
 
@@ -774,10 +778,17 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         if (TRACE) T.PassedEnemyDistance[rank][US] += dist;
 
         // Apply a bonus when the path to promoting is uncontested
-        bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
+        bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[file];
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus when our passed has a clear promotion
+        // path and is supported from behind by one of our rooks
+        flag = !several(bitboard & occupied)
+            && (Files[file] & rookAttacks(sq, occupied) & myRooks);
+        eval += flag * PassedClearTarrasch;
+        if (TRACE) T.PassedClearTarrasch[US] += flag;
     }
 
     return eval;
