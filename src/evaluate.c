@@ -251,7 +251,13 @@ const int ThreatByPawnPush           = S(  17,  21);
 
 /* Material Imbalance Evaluation Terms */
 
-const int MaterialImbalance[5][5];
+const int MaterialImbalance[5][5] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   2,   3), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -3,   5), S(   3,  -3), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S( -18,  10), S(   0,   4), S( -10,   0), S(   0,   0), S(   0,   0)},
+   {S(  31, -19), S(   1,  44), S(  -8,  51), S(-140,  82), S(   0,   0)},
+};
 
 /* General Evaluation Terms */
 
