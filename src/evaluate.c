@@ -249,6 +249,10 @@ const int ThreatQueenAttackedByOne   = S( -51, -20);
 const int ThreatOverloadedPieces     = S(  -9, -19);
 const int ThreatByPawnPush           = S(  17,  21);
 
+/* Material Imbalance Evaluation Terms */
+
+const int MaterialImbalance[5][5];
+
 /* General Evaluation Terms */
 
 const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
@@ -315,6 +319,8 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
 
     eval += evaluateThreats(ei, board, WHITE)
           - evaluateThreats(ei, board, BLACK);
+
+    eval += evaluateMaterialImbalance(board);
 
     return eval;
 }
@@ -860,6 +866,28 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(pushThreat);
     eval += count * ThreatByPawnPush;
     if (TRACE) T.ThreatByPawnPush[colour] += count;
+
+    return eval;
+}
+
+int evaluateMaterialImbalance(Board *board) {
+
+    int eval = 0;
+
+    for (int p1 = PAWN; p1 <= QUEEN; p1++) {
+        for (int p2 = PAWN; p2 < p1; p2++) {
+
+            int wcount = popcount(board->colours[WHITE] & board->pieces[p1])
+                       * popcount(board->colours[BLACK] & board->pieces[p2]);
+
+            int bcount = popcount(board->colours[WHITE] & board->pieces[p2])
+                       * popcount(board->colours[BLACK] & board->pieces[p1]);
+
+            eval += (wcount - bcount) * MaterialImbalance[p1][p2];
+            if (TRACE) T.MaterialImbalance[p1][p2][WHITE] += wcount;
+            if (TRACE) T.MaterialImbalance[p1][p2][BLACK] += bcount;
+        }
+    }
 
     return eval;
 }
