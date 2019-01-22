@@ -311,6 +311,10 @@ void evaluateNoisyMoves(MovePicker* mp){
         if ((mp->moves[i] & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
             mp->values[i] += PieceValues[QUEEN][EG];
 
+        // Ensure under promotions are the lowest ranked tacticals
+        else if (MoveType(mp->moves[i]) == PROMOTION_MOVE)
+            mp->values[i] = PieceValues[PAWN][EG] / 2;
+
         // Enpass is a special case of MVV-LVA
         else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
             mp->values[i] = PieceValues[PAWN][EG] - PAWN;
