@@ -361,7 +361,9 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
 }
 
 double singleLinearError(TexelEntry *te, TexelVector params, double K) {
-    return te->result - sigmoid(K, linearEvaluation(te, params));
+    double sigm = sigmoid(K, linearEvaluation(te, params));
+    double sigmprime = sigm * (1 - sigm);
+    return (te->result - sigm) * sigmprime;
 }
 
 double linearEvaluation(TexelEntry *te, TexelVector params) {
