@@ -27,8 +27,8 @@
 #define REPORTING   (    100) // How often to report progress
 #define NTERMS      (    588) // Total terms in the tuner
 
-#define LEARNING    (   10.0) // Learning rate
-#define LRDROPRATE  (    2.0) // Cut LR by this each failure
+#define LEARNING    (    1.0) // Learning rate
+#define LRDROPRATE  (    1.2) // Cut LR by this each failure
 #define BATCHSIZE   (   8192) // FENs per mini-batch
 #define NPOSITIONS  (7500000) // Total FENS in the book
 
@@ -101,7 +101,9 @@ void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(TexelVector cparams);
 
 void updateMemory(TexelEntry *te, int size);
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K);
+void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K, int batch);
+
+void shuffleTexelEntries(TexelEntry *tes);
 
 double computeOptimalK(TexelEntry *tes);
 double completeEvaluationError(TexelEntry *tes, double K);
