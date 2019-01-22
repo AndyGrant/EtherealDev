@@ -332,7 +332,7 @@ void evaluateQuietMoves(MovePicker* mp){
     for (int i = mp->split; i < mp->split + mp->quietSize; i++)
         mp->values[i] = 1 * getHistoryScore(mp->thread, mp->moves[i])
                       + 2 * getFUHistoryScore(mp->thread, mp->height, mp->moves[i])
-                      + 4 * getCMHistoryScore(mp->thread, mp->height, mp->moves[i]);
+                      + 3 * getCMHistoryScore(mp->thread, mp->height, mp->moves[i]);
 }
 
 int moveIsPsuedoLegal(Board* board, uint16_t move){
