@@ -78,17 +78,17 @@ static const int WindowSize    = 14;
 static const int WindowTimerMS = 5000;
 
 static const int RazorDepth = 1;
-static const int RazorMargin = 350;
+static const int RazorMargin = 400;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 85;
+static const int BetaMargin = 95;
 
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 110;
 
-static const int FutilityMargin = 95;
+static const int FutilityMargin = 105;
 static const int FutilityPruningDepth = 8;
 static const int FutilityPruningHistoryLimit[] = { 12000, 6000 };
 
@@ -105,12 +105,12 @@ static const int LateMovePruningCounts[2][9] = {
 };
 
 static const int SEEPruningDepth = 8;
-static const int SEEQuietMargin = -85;
+static const int SEEQuietMargin = -90;
 static const int SEENoisyMargin = -20;
 
 static const int QSEEMargin = 1;
 
-static const int QFutilityMargin = 100;
+static const int QFutilityMargin = 110;
 
 static const int SEEPieceValues[] = {
      100,  450,  450,  675,
