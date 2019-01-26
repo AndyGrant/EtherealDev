@@ -334,20 +334,20 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
-        &&  thread->moveStack[height-2] != NULL_MOVE
-        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
+        &&  thread->moveStack[height-2] != NULL_MOVE) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
-        apply(thread, board, NULL_MOVE, height);
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
-        revert(thread, board, NULL_MOVE, height);
-
-        if (value >= beta) return beta;
+        if (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta || depth - R > 2 * ttDepth) {
+            apply(thread, board, NULL_MOVE, height);
+            value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+            revert(thread, board, NULL_MOVE, height);
+            if (value >= beta) return beta;
+        }
     }
 
     // Step 10. ProbCut. If we have a good capture that causes a beta cutoff
