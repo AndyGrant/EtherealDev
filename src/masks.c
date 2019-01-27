@@ -26,7 +26,7 @@
 #include "masks.h"
 #include "types.h"
 
-int DistanceBetween[SQUARE_NB][SQUARE_NB];
+int8_t DistanceBetween[SQUARE_NB][SQUARE_NB];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t ForwardRanksMasks[COLOUR_NB][RANK_NB];
