@@ -110,10 +110,10 @@ static const int SEENoisyMargin = -20;
 
 static const int QSEEMargin = 1;
 
-static const int QFutilityMargin = 100;
+static const int QFutilityMargin = 75;
 
 static const int SEEPieceValues[] = {
-     100,  450,  450,  675,
+     125,  450,  450,  675,
     1300,    0,    0,    0,
 };
 
