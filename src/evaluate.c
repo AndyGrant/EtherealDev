@@ -517,8 +517,8 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus (or penalty) based on the mobility of the bishop
         count = popcount(ei->mobilityAreas[US] & attacks)
               - popcount(ei->pawnAttacks[THEM] & attacks);
-        eval += KnightMobility[MAX(0, count)];
-        if (TRACE) T.KnightMobility[MAX(0, count)][US]++;
+        eval += BishopMobility[MAX(0, count)];
+        if (TRACE) T.BishopMobility[MAX(0, count)][US]++;
 
         // Update for King Safety calculation
         attacks = attacks & ei->kingAreas[THEM];
@@ -578,8 +578,9 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus (or penalty) based on the mobility of the rook
         count = popcount(ei->mobilityAreas[US] & attacks)
               - popcount(ei->pawnAttacks[THEM] & attacks);
-        eval += KnightMobility[MAX(0, count)];
-        if (TRACE) T.KnightMobility[MAX(0, count)][US]++;
+        eval += RookMobility[MAX(0, count)];
+        if (TRACE) T.RookMobility[MAX(0, count)][US]++;
+
         // Update for King Safety calculation
         attacks = attacks & ei->kingAreas[THEM];
         if (attacks) {
@@ -621,8 +622,8 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus (or penalty) based on the mobility of the queen
         count = popcount(ei->mobilityAreas[US] & attacks)
               - popcount(ei->pawnAttacks[THEM] & attacks);
-        eval += KnightMobility[MAX(0, count)];
-        if (TRACE) T.KnightMobility[MAX(0, count)][US]++;
+        eval += QueenMobility[MAX(0, count)];
+        if (TRACE) T.QueenMobility[MAX(0, count)][US]++;
 
         // Update for King Safety calculation
         attacks = attacks & ei->kingAreas[THEM];
