@@ -90,7 +90,7 @@ const int KnightOutpost[2] = { S(   7, -25), S(  31,  -3) };
 
 const int KnightBehindPawn = S(   4,  21);
 
-const int KnightMobility[9] = {
+const int KnightMobility[9] =  {
     S( -81,-101), S( -35, -98), S( -16, -42), S(  -1, -17),
     S(   9,  -6), S(  16,   9), S(  25,  12), S(  34,  13),
     S(  45,   1),
