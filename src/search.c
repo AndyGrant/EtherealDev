@@ -361,13 +361,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
-        initMovePicker(&movePicker, thread, NONE_MOVE, height);
+        initNoisyMovePicker(&movePicker, thread, MAX(0, rBeta - eval));
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
-
-            // Move should pass an SEE() to be worth at least rBeta
-            if (!staticExchangeEvaluation(board, move, rBeta - eval))
-                continue;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height))
