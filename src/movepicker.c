@@ -44,7 +44,7 @@ void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height)
     mp->counter   = getCounterMove(thread, height);
 
     // Threshold for good noisy
-    mp->threshold = 0;
+    mp->goodMargin = mp->skipMargin = 0;
 
     // Reference to the board
     mp->thread = thread;
@@ -56,7 +56,7 @@ void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height)
     mp->type = NORMAL_PICKER;
 }
 
-void initNoisyMovePicker(MovePicker* mp, Thread* thread, int threshold){
+void initNoisyMovePicker(MovePicker* mp, Thread* thread, int goodMargin, int skipMargin){
 
     // Start with just the noisy moves
     mp->stage = STAGE_GENERATE_NOISY;
@@ -68,7 +68,8 @@ void initNoisyMovePicker(MovePicker* mp, Thread* thread, int threshold){
     mp->counter   = NONE_MOVE;
 
     // Threshold for good noisy
-    mp->threshold = threshold;
+    mp->goodMargin = MAX(goodMargin, skipMargin);
+    mp->skipMargin = skipMargin;
 
     // Reference to the board
     mp->thread = thread;
@@ -124,7 +125,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             if (mp->values[best] >= 0) {
 
                 // Skip bad noisy moves during this stage
-                if (!staticExchangeEvaluation(board, bestMove, mp->threshold)){
+                if (!staticExchangeEvaluation(board, bestMove, mp->goodMargin)){
 
                     // Flag for failed use in STAGE_BAD_NOISY
                     mp->values[best] = -1;
@@ -242,8 +243,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_BAD_NOISY:
 
-        // Noisy picker skips all bad noisy moves
-        if (mp->type == NOISY_PICKER) {
+        if (   mp->type == NOISY_PICKER
+            && mp->goodMargin > mp->skipMargin) {
             mp->stage = STAGE_DONE;
             return NONE_MOVE;
         }
@@ -264,6 +265,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
                 || bestMove == mp->killer1
                 || bestMove == mp->killer2
                 || bestMove == mp->counter)
+                return selectNextMove(mp, board, skipQuiets);
+
+            if (mp->type == NOISY_PICKER && !staticExchangeEvaluation(board, bestMove, mp->skipMargin))
                 return selectNextMove(mp, board, skipQuiets);
 
             return bestMove;

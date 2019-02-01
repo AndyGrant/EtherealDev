@@ -361,13 +361,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
-        initMovePicker(&movePicker, thread, NONE_MOVE, height);
+        initNoisyMovePicker(&movePicker, thread, 0, rBeta - eval);
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
-
-            // Move should pass an SEE() to be worth at least rBeta
-            if (!staticExchangeEvaluation(board, move, rBeta - eval))
-                continue;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height))
@@ -648,7 +644,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // the margin computed in the Delta Pruning step found above to beat
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
+    initNoisyMovePicker(&movePicker, thread, QSEEMargin, margin);
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Apply move, skip if move is illegal
