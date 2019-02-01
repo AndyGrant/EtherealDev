@@ -244,7 +244,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_BAD_NOISY:
 
         if (   mp->type == NOISY_PICKER
-            && mp->goodMargin > mp->skipMargin) {
+            && mp->goodMargin >= mp->skipMargin) {
             mp->stage = STAGE_DONE;
             return NONE_MOVE;
         }
