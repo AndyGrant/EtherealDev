@@ -700,7 +700,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * popcount(queenChecks)
                + KSSafeRookCheck   * popcount(rookChecks & ~queenChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks & & ~queenChecks)
+               + KSSafeBishopCheck * popcount(bishopChecks & ~queenChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
                + KSAdjustment;
 
