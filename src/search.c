@@ -418,7 +418,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
                 && quiets >= LateMovePruningCounts[improving][depth]) {
-                if (skipQuiets) continue
+                if (skipQuiets) continue;
                 else skipQuiets = 1;
             }
 
