@@ -406,6 +406,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             hist   = getHistoryScore(thread, move) + cmhist + fuhist;
         }
 
+        int special = move == ttMove
+                   || move == movePicker.killer1
+                   || move == movePicker.killer2
+                   || move == movePicker.counter;
+
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, except for mated lines and Root node moves
         if (!RootNode && isQuiet && best > MATED_IN_MAX) {
@@ -493,7 +498,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // come from in check positions, so long as no other extensions occur
         extension += !RootNode
                   &&  inCheck
-                  && !extension;
+                  && !extension
+                  && (special || !isQuiet);
 
         // Step 15C. History Extensions. We extend quiet moves with strong
         // history scores for both counter move and followups. We only apply
