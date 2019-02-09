@@ -410,6 +410,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // of the criteria below, except for mated lines and Root node moves
         if (!RootNode && isQuiet && best > MATED_IN_MAX) {
 
+            int special = move == movePicker.killer1
+                       || move == movePicker.killer2
+                       || move == movePicker.counter;
+
             // Step 12A. Futility Pruning. If our score is far below alpha, and we
             // don't expect anything from this move, we can skip all other quiets
             if (   futilityMargin <= alpha
@@ -426,13 +430,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Step 12C. Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   depth <= CounterMovePruningDepth[improving]
+            if (  !special
+                && depth <= CounterMovePruningDepth[improving]
                 && cmhist < CounterMoveHistoryLimit[improving])
                 continue;
 
             // Step 12D. Follow Up Move Pruning. Moves with poor follow up
             // move history are pruned at near leaf nodes of the search.
-            if (   depth <= FollowUpMovePruningDepth[improving]
+            if (  !special
+                && depth <= FollowUpMovePruningDepth[improving]
                 && fuhist < FollowUpMoveHistoryLimit[improving])
                 continue;
         }
