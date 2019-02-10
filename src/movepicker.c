@@ -151,10 +151,10 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             }
         }
 
-        // Jump to bad noisy moves when skipping quiets
-        if (skipQuiets){
-            mp->stage = STAGE_BAD_NOISY;
-            return selectNextMove(mp, board, skipQuiets);
+        // Noisy picker ends after good captures
+        if (mp->type == NOISY_PICKER){
+            mp->stage = STAGE_DONE;
+            return NONE_MOVE;
         }
 
         mp->stage = STAGE_KILLER_1;
@@ -165,9 +165,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_KILLER_2;
-        if (   !skipQuiets
-            &&  mp->killer1 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer1))
+        if (   mp->killer1 != mp->tableMove
+            && moveIsPsuedoLegal(board, mp->killer1))
             return mp->killer1;
 
         /* fallthrough */
@@ -176,9 +175,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
-        if (   !skipQuiets
-            &&  mp->killer2 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer2))
+        if (   mp->killer2 != mp->tableMove
+            && moveIsPsuedoLegal(board, mp->killer2))
             return mp->killer2;
 
         /* fallthrough */
@@ -187,11 +185,10 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play counter move if not yet played, and psuedo legal
         mp->stage = STAGE_GENERATE_QUIET;
-        if (   !skipQuiets
-            &&  mp->counter != mp->tableMove
-            &&  mp->counter != mp->killer1
-            &&  mp->counter != mp->killer2
-            &&  moveIsPsuedoLegal(board, mp->counter))
+        if (   mp->counter != mp->tableMove
+            && mp->counter != mp->killer1
+            && mp->counter != mp->killer2
+            && moveIsPsuedoLegal(board, mp->counter))
             return mp->counter;
 
         /* fallthrough */
@@ -241,12 +238,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         /* fallthrough */
 
     case STAGE_BAD_NOISY:
-
-        // Noisy picker skips all bad noisy moves
-        if (mp->type == NOISY_PICKER) {
-            mp->stage = STAGE_DONE;
-            return NONE_MOVE;
-        }
 
         // Check to see if there are still more noisy moves
         if (mp->noisySize != 0){
