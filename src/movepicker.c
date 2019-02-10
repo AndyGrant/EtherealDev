@@ -39,8 +39,8 @@ void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height)
 
     // Save possible special moves
     mp->tableMove = ttMove;
-    mp->killer1   = thread->killers[height][0];
-    mp->killer2   = thread->killers[height][1];
+    mp->killer1   = thread->killers[height+0];
+    mp->killer2   = thread->killers[height+2];
     mp->counter   = getCounterMove(thread, height);
 
     // Threshold for good noisy
@@ -178,6 +178,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         mp->stage = STAGE_COUNTER_MOVE;
         if (   !skipQuiets
             &&  mp->killer2 != mp->tableMove
+            &&  mp->killer2 != mp->killer1
             &&  moveIsPsuedoLegal(board, mp->killer2))
             return mp->killer2;
 

@@ -310,9 +310,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
-    // Reset Killer moves for our children
-    thread->killers[height+1][0] = NONE_MOVE;
-    thread->killers[height+1][1] = NONE_MOVE;
+    // Reset Killer move for our children
+    thread->killers[height+1] = NONE_MOVE;
+    thread->killers[height+2] = NONE_MOVE;
 
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
@@ -549,13 +549,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Search failed high. Update move tables and break.
         if (alpha >= beta){
 
-            if (isQuiet && thread->killers[height][0] != move){
-                thread->killers[height][1] = thread->killers[height][0];
-                thread->killers[height][0] = move;
-            }
-
-            if (isQuiet)
+            if (isQuiet) {
                 updateCounterMove(thread, height, move);
+                thread->killers[height] = move;
+            }
 
             break;
         }
