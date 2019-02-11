@@ -28,7 +28,9 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
 int terminateTimeManagment(SearchInfo* info);
 int terminateSearchEarly(Thread *thread);
 
-static const double PVFactorCount  = 8;
-static const double PVFactorWeight = 0.085;
+static const int PVStableBase = 8;
+static const int PVStableDepths = 6;
+static const int PVStableLowerBound = -18;
+static const double PVStableWeight = 0.080;
 
 #endif

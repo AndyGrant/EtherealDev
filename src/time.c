@@ -121,20 +121,23 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     if (lastValue + 30 < value)
         info->idealUsage *= 1.050;
 
-    // Always scale back the PV time factor
-    info->pvFactor = MAX(0, info->pvFactor - 1);
+    // Always scale back the PV time factor towards the lower bound
+    info->pvFactor = MAX(PVStableLowerBound, info->pvFactor - 1);
 
     // Increase time if the PV changed moves
     if (thisMove != lastMove)
-        info->pvFactor = PVFactorCount;
+        info->pvFactor = PVStableBase;
 }
 
 int terminateTimeManagment(SearchInfo* info) {
 
+    int factor = info->pvFactor;
     double cutoff = info->idealUsage;
 
+    if (factor < 0) factor /= PVStableDepths;
+
     // Adjust cutoff based on bestmove fluctuations
-    cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
+    cutoff *= 1.00 + factor * PVStableWeight;
 
     // Terminate search if cutoff is reached
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
