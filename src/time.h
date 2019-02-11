@@ -29,8 +29,8 @@ int terminateTimeManagment(SearchInfo* info);
 int terminateSearchEarly(Thread *thread);
 
 static const int PVStableBase = 8;
-static const int PVStableDepths = 6;
-static const int PVStableLowerBound = -18;
+static const int PVStableDepths = 4;
+static const int PVStableLowerBound = -8;
 static const double PVStableWeight = 0.080;
 
 #endif
