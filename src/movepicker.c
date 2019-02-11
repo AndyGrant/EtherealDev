@@ -39,8 +39,7 @@ void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height)
 
     // Save possible special moves
     mp->tableMove = ttMove;
-    mp->killer1   = thread->killers[height][0];
-    mp->killer2   = thread->killers[height][1];
+    mp->killer    = thread->killers[height];
     mp->counter   = getCounterMove(thread, height);
 
     // Threshold for good noisy
@@ -63,8 +62,7 @@ void initNoisyMovePicker(MovePicker* mp, Thread* thread, int threshold){
 
     // Skip all special moves
     mp->tableMove = NONE_MOVE;
-    mp->killer1   = NONE_MOVE;
-    mp->killer2   = NONE_MOVE;
+    mp->killer    = NONE_MOVE;
     mp->counter   = NONE_MOVE;
 
     // Threshold for good noisy
@@ -143,8 +141,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
                     return selectNextMove(mp, board, skipQuiets);
 
                 // Don't play the special moves twice
-                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+                if (bestMove == mp->killer ) mp->killer  = NONE_MOVE;
                 if (bestMove == mp->counter) mp->counter = NONE_MOVE;
 
                 return bestMove;
@@ -157,29 +154,18 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             return selectNextMove(mp, board, skipQuiets);
         }
 
-        mp->stage = STAGE_KILLER_1;
+        mp->stage = STAGE_KILLER_MOVE;
 
         /* fallthrough */
 
-    case STAGE_KILLER_1:
-
-        // Play killer move if not yet played, and psuedo legal
-        mp->stage = STAGE_KILLER_2;
-        if (   !skipQuiets
-            &&  mp->killer1 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer1))
-            return mp->killer1;
-
-        /* fallthrough */
-
-    case STAGE_KILLER_2:
+    case STAGE_KILLER_MOVE:
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
         if (   !skipQuiets
-            &&  mp->killer2 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer2))
-            return mp->killer2;
+            &&  mp->killer != mp->tableMove
+            &&  moveIsPsuedoLegal(board, mp->killer))
+            return mp->killer;
 
         /* fallthrough */
 
@@ -189,8 +175,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         mp->stage = STAGE_GENERATE_QUIET;
         if (   !skipQuiets
             &&  mp->counter != mp->tableMove
-            &&  mp->counter != mp->killer1
-            &&  mp->counter != mp->killer2
+            &&  mp->counter != mp->killer
             &&  moveIsPsuedoLegal(board, mp->counter))
             return mp->counter;
 
@@ -227,8 +212,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
             // Don't play a move more than once
             if (   bestMove == mp->tableMove
-                || bestMove == mp->killer1
-                || bestMove == mp->killer2
+                || bestMove == mp->killer
                 || bestMove == mp->counter)
                 return selectNextMove(mp, board, skipQuiets);
 
@@ -261,8 +245,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
             // Don't play a move more than once
             if (   bestMove == mp->tableMove
-                || bestMove == mp->killer1
-                || bestMove == mp->killer2
+                || bestMove == mp->killer
                 || bestMove == mp->counter)
                 return selectNextMove(mp, board, skipQuiets);
 
