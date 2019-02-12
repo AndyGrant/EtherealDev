@@ -210,11 +210,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta, height);
-
-    // Ensure positive depth
-    depth = MAX(0, depth);
+    if (depth <= 0) return qsearch(thread, pv, alpha, beta, height);
 
     // Updates for UCI reporting
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
@@ -652,7 +648,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // the margin computed in the Delta Pruning step found above to beat
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
+    initNoisyMovePicker(&movePicker, thread, ttMove, MAX(QSEEMargin, margin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Apply move, skip if move is illegal

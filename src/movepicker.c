@@ -56,13 +56,20 @@ void initMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int height)
     mp->type = NORMAL_PICKER;
 }
 
-void initNoisyMovePicker(MovePicker* mp, Thread* thread, int threshold){
+void initNoisyMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int threshold) {
 
     // Start with just the noisy moves
-    mp->stage = STAGE_GENERATE_NOISY;
+    mp->stage = STAGE_TABLE;
 
-    // Skip all special moves
-    mp->tableMove = NONE_MOVE;
+    // Try any TT move when in check, otherwise only try the TT move if
+    // it passes the same threshold as the rest of the noisy moves must
+    mp->stage += !thread->board.kingAttackers
+              && !staticExchangeEvaluation(&thread->board, ttMove, threshold);
+
+    // Allow even a quiet TT move
+    mp->tableMove = ttMove;
+
+    // Skip all other special moves
     mp->killer1   = NONE_MOVE;
     mp->killer2   = NONE_MOVE;
     mp->counter   = NONE_MOVE;
