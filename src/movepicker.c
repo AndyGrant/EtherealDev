@@ -85,6 +85,10 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     int best;
     uint16_t bestMove;
 
+    // Skip over all of the quiet move cases
+    if (skipQuiets && mp->stage > STAGE_GOOD_NOISY)
+        mp->stage = MAX(mp->stage, STAGE_BAD_NOISY);
+
     switch (mp->stage){
 
     case STAGE_TABLE:
@@ -165,9 +169,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_KILLER_2;
-        if (   !skipQuiets
-            &&  mp->killer1 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer1))
+        if (   mp->killer1 != mp->tableMove
+            && moveIsPsuedoLegal(board, mp->killer1))
             return mp->killer1;
 
         /* fallthrough */
@@ -176,9 +179,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
-        if (   !skipQuiets
-            &&  mp->killer2 != mp->tableMove
-            &&  moveIsPsuedoLegal(board, mp->killer2))
+        if (   mp->killer2 != mp->tableMove
+            && moveIsPsuedoLegal(board, mp->killer2))
             return mp->killer2;
 
         /* fallthrough */
@@ -187,11 +189,10 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         // Play counter move if not yet played, and psuedo legal
         mp->stage = STAGE_GENERATE_QUIET;
-        if (   !skipQuiets
-            &&  mp->counter != mp->tableMove
-            &&  mp->counter != mp->killer1
-            &&  mp->counter != mp->killer2
-            &&  moveIsPsuedoLegal(board, mp->counter))
+        if (   mp->counter != mp->tableMove
+            && mp->counter != mp->killer1
+            && mp->counter != mp->killer2
+            && moveIsPsuedoLegal(board, mp->counter))
             return mp->counter;
 
         /* fallthrough */
@@ -199,12 +200,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_GENERATE_QUIET:
 
         // Generate and evaluate all quiet moves when not skipping quiet moves
-        if (!skipQuiets){
-            mp->quietSize = 0;
-            genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
-            evaluateQuietMoves(mp);
-        }
-
+        mp->quietSize = 0;
+        genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
+        evaluateQuietMoves(mp);
         mp->stage = STAGE_QUIET;
 
         /* fallthrough */
@@ -212,7 +210,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_QUIET:
 
         // Check to see if there are still more quiet moves
-        if (!skipQuiets && mp->quietSize){
+        if (mp->quietSize){
 
             // Select next best quiet by history scores
             best = getBestMoveIndex(mp, mp->split, mp->split + mp->quietSize);
