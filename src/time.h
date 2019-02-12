@@ -29,6 +29,6 @@ int terminateTimeManagment(SearchInfo* info);
 int terminateSearchEarly(Thread *thread);
 
 static const double PVFactorCount  = 8;
-static const double PVFactorWeight = 0.085;
+static const double PVFactorWeight = 0.07;
 
 #endif

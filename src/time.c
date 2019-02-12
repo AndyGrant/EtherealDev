@@ -71,9 +71,9 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
         // Playing using X + Y or X time controls
         else {
-            info->idealUsage =  1.00 * (limits->time + 25 * limits->inc) / 50;
-            info->maxAlloc   =  5.00 * (limits->time + 25 * limits->inc) / 50;
-            info->maxUsage   = 10.00 * (limits->time + 25 * limits->inc) / 50;
+            info->idealUsage =  1.00 * (limits->time + 20 * limits->inc) / 40;
+            info->maxAlloc   =  5.00 * (limits->time + 20 * limits->inc) / 40;
+            info->maxUsage   = 10.00 * (limits->time + 20 * limits->inc) / 40;
         }
 
         // Cap all time allocations using the move time buffer
@@ -122,11 +122,11 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
         info->idealUsage *= 1.050;
 
     // Always scale back the PV time factor
-    info->pvFactor = MAX(0, info->pvFactor - 1);
+    info->pvFactor = MAX(-4, info->pvFactor - 1);
 
     // Increase time if the PV changed moves
     if (thisMove != lastMove)
-        info->pvFactor = PVFactorCount;
+        info->pvFactor = MIN(PVFactorCount, info->pvFactor + PVFactorCount);
 }
 
 int terminateTimeManagment(SearchInfo* info) {
