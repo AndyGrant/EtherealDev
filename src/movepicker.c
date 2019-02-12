@@ -89,12 +89,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     if (skipQuiets && mp->stage > STAGE_GOOD_NOISY)
         mp->stage = MAX(mp->stage, STAGE_BAD_NOISY);
 
-    // Noisy picker skips over bad noisy moves
-    if (mp->type == NOISY_PICKER && mp->stage > STAGE_GOOD_NOISY) {
-        mp->stage = STAGE_DONE;
-        return NONE_MOVE;
-    }
-
     switch (mp->stage){
 
     case STAGE_TABLE:
@@ -234,7 +228,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_BAD_NOISY:
 
         // Check to see if there are still more noisy moves
-        if (mp->noisySize){
+        if (mp->noisySize && mp->type != NOISY_PICKER){
 
             // Return moves one at a time without sorting
             bestMove = popMove(mp, &mp->noisySize, 0, mp->noisySize);
