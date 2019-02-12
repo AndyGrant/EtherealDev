@@ -361,7 +361,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  abs(beta) < MATE_IN_MAX
         &&  depth >= ProbCutDepth
-        &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
+        &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin
+        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta + ProbCutMargin || ttDepth + 4 < depth)){
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
