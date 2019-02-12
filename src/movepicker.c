@@ -131,8 +131,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
                     break;
                 }
 
-                // Flag this move as being a bad capture
-                mp->values[best] = -1;
+                // Flag this move as being a bad capture by forcing its value
+                // to be below zero. This is asserted in evaluate noisy moves
+                mp->values[best] -= 8192;
             }
 
             // Don't play the table move twice
@@ -231,7 +232,8 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         if (mp->noisySize && mp->type != NOISY_PICKER){
 
             // Return moves one at a time without sorting
-            bestMove = popMove(mp, &mp->noisySize, 0, mp->noisySize);
+            best = getBestMoveIndex(mp, 0, mp->noisySize);
+            bestMove = popMove(mp, &mp->noisySize, best, mp->noisySize);
 
             // Don't play a move more than once
             if (   bestMove == mp->tableMove
@@ -300,9 +302,8 @@ void evaluateNoisyMoves(MovePicker* mp){
         else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
             mp->values[i] = PieceValues[PAWN][EG] - PAWN;
 
-        // Later we will flag moves which were passed over in the STAGE_GOOD_NOISY
-        // phase due to failing an SEE(0), by setting the value to -1
-        assert(mp->values[i] >= 0);
+        // Ensure value is bounded by [0, 8192] for later flagging
+        assert(mp->values[i] >= 0 && mp->values[i] - 8192 < 0);
     }
 }
 
