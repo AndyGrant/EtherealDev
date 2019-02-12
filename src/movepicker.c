@@ -85,7 +85,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     int best;
     uint16_t bestMove;
 
-    // Skip over all of the quiet move cases
+    // When skipping quiets, jump over quiet cases
     if (skipQuiets && mp->stage > STAGE_GOOD_NOISY)
         mp->stage = MAX(mp->stage, STAGE_BAD_NOISY);
 
@@ -102,15 +102,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_GENERATE_NOISY:
 
-        // Generate and evaluate noisy moves. mp->split tracks the
-        // break point between noisy and quiets, which allows us
-        // to use a BAD_NOISY stage, where we skip noisy moves which
-        // fail a simple SEE, and try them after all quiet moves
-
-        mp->noisySize = 0;
+        // Generate and evaluate all noisy moves
         genAllNoisyMoves(board, mp->moves, &mp->noisySize);
         evaluateNoisyMoves(mp);
-        mp->split = mp->noisySize;
         mp->stage = STAGE_GOOD_NOISY;
 
         /* fallthrough */
@@ -199,8 +193,10 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_GENERATE_QUIET:
 
-        // Generate and evaluate all quiet moves when not skipping quiet moves
-        mp->quietSize = 0;
+        // Generate and evaluate all quiet moves. mp->split is used
+        // to cut the internal move list into one partition for the
+        // noisy moves and another partition for the quiet ones.
+        mp->split = mp->noisySize;
         genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
         evaluateQuietMoves(mp);
         mp->stage = STAGE_QUIET;

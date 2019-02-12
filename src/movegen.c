@@ -170,6 +170,8 @@ void genAllNoisyMoves(Board* board, uint16_t* moves, int* size){
     uint64_t myRooks   = friendly & (board->pieces[ROOK]   | board->pieces[QUEEN]);
     uint64_t myKings   = friendly &  board->pieces[KING];
 
+    *size = 0; // Always reset move list size
+
     // If there are two threats to the king, the only moves
     // which could be legal are captures made by the king
     if (several(board->kingAttackers)){
@@ -238,6 +240,8 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
     uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
     uint64_t myRooks   = friendly & (board->pieces[ROOK]   | board->pieces[QUEEN]);
     uint64_t myKings   = friendly &  board->pieces[KING];
+
+    *size = 0; // Always reset move list size
 
     // If there are two threats to the king, the only moves which
     // could be legal are moves made by the king, except castling
