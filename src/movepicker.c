@@ -62,7 +62,7 @@ void initNoisyMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int th
     mp->stage = STAGE_TABLE;
 
     // Try any TT move when in check
-    mp->stage += !thread->board.kingAttackers
+    mp->stage += !thread->board.kingAttackers;
 
     // Allow even a quiet TT move
     mp->tableMove = ttMove;
