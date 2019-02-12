@@ -118,37 +118,39 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_GOOD_NOISY:
 
         // Check to see if there are still more noisy moves
-        if (mp->noisySize != 0){
+        if (mp->noisySize){
 
-            // Select next best MVV-LVA from the noisy moves
-            best = getBestMoveIndex(mp, 0, mp->noisySize);
+            while (1) {
 
-            // Values below zero are flagged as failing an SEE (bad noisy)
-            if (mp->values[best] >= 0) {
+                // Select best move based on MVV-LVA
+                best = getBestMoveIndex(mp, 0, mp->noisySize);
 
-                // Skip bad noisy moves during this stage
-                if (!staticExchangeEvaluation(board,  mp->moves[best], mp->threshold)){
-
-                    // Flag for failed use in STAGE_BAD_NOISY
-                    mp->values[best] = -1;
-
-                    // Try again to find a noisy move passing SEE
+                // Best move has been flagged as a bad capture
+                if (mp->values[best] < 0) {
+                    mp->stage = STAGE_KILLER_1;
                     return selectNextMove(mp, board, skipQuiets);
                 }
 
-                bestMove = popMove(mp, &mp->noisySize, best, mp->noisySize);
+                // Selected move was able to pass an SEE(mp->threshold)
+                if (staticExchangeEvaluation(board, mp->moves[best], mp->threshold)) {
+                    bestMove = popMove(mp, &mp->noisySize, best, mp->noisySize);
+                    break;
+                }
 
-                // Don't play the table move twice
-                if (bestMove == mp->tableMove)
-                    return selectNextMove(mp, board, skipQuiets);
-
-                // Don't play the special moves twice
-                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
-                if (bestMove == mp->counter) mp->counter = NONE_MOVE;
-
-                return bestMove;
+                // Flag this move as being a bad capture
+                mp->values[best] = -1;
             }
+
+            // Don't play the table move twice
+            if (bestMove == mp->tableMove)
+                return selectNextMove(mp, board, skipQuiets);
+
+            // Don't play the special moves twice
+            if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
+            if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+            if (bestMove == mp->counter) mp->counter = NONE_MOVE;
+
+            return bestMove;
         }
 
         // Jump to bad noisy moves when skipping quiets
@@ -232,7 +234,7 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
     case STAGE_BAD_NOISY:
 
         // Check to see if there are still more noisy moves
-        if (mp->noisySize != 0){
+        if (mp->noisySize){
 
             // Return moves one at a time without sorting
             bestMove = popMove(mp, &mp->noisySize, 0, mp->noisySize);
