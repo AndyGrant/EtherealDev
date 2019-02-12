@@ -61,10 +61,8 @@ void initNoisyMovePicker(MovePicker* mp, Thread* thread, uint16_t ttMove, int th
     // Start with just the noisy moves
     mp->stage = STAGE_TABLE;
 
-    // Try any TT move when in check, otherwise only try the TT move if
-    // it passes the same threshold as the rest of the noisy moves must
+    // Try any TT move when in check
     mp->stage += !thread->board.kingAttackers
-              && !staticExchangeEvaluation(&thread->board, ttMove, threshold - 1);
 
     // Allow even a quiet TT move
     mp->tableMove = ttMove;
