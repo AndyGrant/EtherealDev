@@ -108,7 +108,7 @@ static const int SEEPruningDepth = 8;
 static const int SEEQuietMargin = -85;
 static const int SEENoisyMargin = -20;
 
-static const int QSEEMargin = 1;
+static const int QSEEMargin[2] = { 1, 0 };
 
 static const int QFutilityMargin = 100;
 
