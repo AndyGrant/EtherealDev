@@ -23,8 +23,12 @@
 
 #include "types.h"
 
-#define NULL_MOVE (11)
-#define NONE_MOVE ( 0)
+#define NONE_MOVE      (   0)
+#define NULL_MOVE      (  11)
+#define OO_WHITE_MOVE  (4484)
+#define OOO_WHITE_MOVE (4228)
+#define OO_BLACK_MOVE  (8124)
+#define OOO_BLACK_MOVE (7868)
 
 #define NORMAL_MOVE    (0 << 12)
 #define CASTLE_MOVE    (1 << 12)
