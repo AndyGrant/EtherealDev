@@ -113,16 +113,10 @@ static int moveIsPsuedoLegal(Board *board, uint16_t move) {
         || (ptype != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
         return 0;
 
-    // Verify the move type may work with the moving piece
-    if (   (type == CASTLE_MOVE && ftype != KING)
-        || (type == ENPASS_MOVE && ftype != PAWN)
-        || (type == PROMOTION_MOVE && ftype != PAWN))
-        return 0;
-
     if (ftype == PAWN){
 
-        // Proven via the above conditionals block
-        assert(type != CASTLE_MOVE);
+        // Pawns cannot be apart of a castle move
+        if (type == CASTLE_MOVE) return 0;
 
         // Find our potential attacks and advances
         uint64_t attacks = pawnAttacks(colour, from);
@@ -144,10 +138,10 @@ static int moveIsPsuedoLegal(Board *board, uint16_t move) {
         return testBit(~PROMOTION_RANKS & (forward | (attacks & enemy)), to);
     }
 
-    // Minor and Major moves are legal when the move type is normal (shown above
-    // via process of elimination) and the destination is a valid attack target
+    // Minor and Major moves are legal when the move type is normal.
+    // The special moves allowed at this point will belong to the King
 
-    assert(type == NORMAL_MOVE || ftype == PAWN || ftype == KING);
+    if (type != NORMAL_MOVE && ftype != KING) return 0;
     if (ftype == KNIGHT) return testBit(knightAttacks(from) & ~friendly, to);
     if (ftype == BISHOP) return testBit(bishopAttacks(from, occupied) & ~friendly, to);
     if (ftype == ROOK  ) return testBit(rookAttacks(from, occupied) & ~friendly, to);
@@ -160,6 +154,9 @@ static int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     // Normal moves are legal when the target exists as a valid potential attack
     if (type == NORMAL_MOVE) return testBit(kingAttacks(from) & ~friendly, to);
+
+    // Kings cannot be apart of an enpass or promotion move
+    if (type == ENPASS_MOVE || type == PROMOTION_MOVE) return 0;
 
     // Only remaining moves that are candidates are castle moves. We can simply
     // check for equality between the move and each of the four possible castling
