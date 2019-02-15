@@ -31,7 +31,7 @@
 #include "types.h"
 #include "thread.h"
 
-void evaluateNoisyMoves(MovePicker *mp) {
+static void evaluateNoisyMoves(MovePicker *mp) {
 
     // Use modified MVV-LVA to evaluate moves
     for (int i = 0; i < mp->noisySize; i++){
@@ -56,7 +56,7 @@ void evaluateNoisyMoves(MovePicker *mp) {
     }
 }
 
-void evaluateQuietMoves(MovePicker *mp) {
+static void evaluateQuietMoves(MovePicker *mp) {
 
     // Evaluate based on Butterfly history (Colour, From, To), and
     // Continuation History (Counter Move, Followup Move histories)
@@ -67,7 +67,7 @@ void evaluateQuietMoves(MovePicker *mp) {
                       + getFUHistoryScore(mp->thread, mp->height, mp->moves[i]);
 }
 
-int getBestMoveIndex(MovePicker *mp, int start, int end) {
+static int getBestMoveIndex(MovePicker *mp, int start, int end) {
 
     int best = start;
 
@@ -78,7 +78,7 @@ int getBestMoveIndex(MovePicker *mp, int start, int end) {
     return best;
 }
 
-uint16_t popMove(MovePicker *mp, int *counter, int index, int end) {
+static uint16_t popMove(MovePicker *mp, int *counter, int index, int end) {
 
     // Return the move located at the given index, and shift the move
     // list by placing the last item into the newly created hole
@@ -91,7 +91,7 @@ uint16_t popMove(MovePicker *mp, int *counter, int index, int end) {
     return best;
 }
 
-int moveIsPsuedoLegal(Board *board, uint16_t move) {
+static int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     const int colour = board->turn;
     const int to     = MoveTo(move);
@@ -242,7 +242,7 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
     mp->type = NOISY_PICKER;
 }
 
-uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
+uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     int best;
     uint16_t bestMove;
@@ -260,48 +260,56 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_GENERATE_NOISY:
 
-        // Generate and evaluate all noisy moves
+        // Generate and evaluate noisy moves. mp->split tracks the
+        // break point between noisy and quiets, which allows us
+        // to use a BAD_NOISY stage, where we skip noisy moves which
+        // fail a simple SEE, and try them after all quiet moves
+
         genAllNoisyMoves(board, mp->moves, &mp->noisySize);
         evaluateNoisyMoves(mp);
+        mp->split = mp->noisySize;
         mp->stage = STAGE_GOOD_NOISY;
 
         /* fallthrough */
 
     case STAGE_GOOD_NOISY:
 
-        if (mp->noisySize){
+        // Check to see if there are still more noisy moves
+        if (mp->noisySize != 0){
 
-            while (1) {
+            // Select next best MVV-LVA from the noisy moves
+            best = getBestMoveIndex(mp, 0, mp->noisySize);
+            bestMove = mp->moves[best];
 
-                // Select best move based on MVV-LVA
-                best = getBestMoveIndex(mp, 0, mp->noisySize);
+            // Values below zero are flagged as failing an SEE (bad noisy)
+            if (mp->values[best] >= 0) {
 
-                // Best move has been flagged as a bad capture
-                if (mp->values[best] < 0) {
-                    mp->stage = STAGE_KILLER_1;
+                // Skip bad noisy moves during this stage
+                if (!staticExchangeEvaluation(board, bestMove, mp->threshold)){
+
+                    // Flag for failed use in STAGE_BAD_NOISY
+                    mp->values[best] = -1;
+
+                    // Try again to find a noisy move passing SEE
                     return selectNextMove(mp, board, skipQuiets);
                 }
 
-                // Selected move was able to pass an SEE(mp->threshold)
-                if (staticExchangeEvaluation(board, mp->moves[best], mp->threshold)) {
-                    bestMove = popMove(mp, &mp->noisySize, best, mp->noisySize);
-                    break;
-                }
+                // Reduce effective move list size
+                mp->noisySize -= 1;
+                mp->moves[best] = mp->moves[mp->noisySize];
+                mp->values[best] = mp->values[mp->noisySize];
 
-                // Flag this move as being a bad capture
-                mp->values[best] = -1;
+                // Don't play the table move twice
+                if (bestMove == mp->tableMove)
+                    return selectNextMove(mp, board, skipQuiets);
+
+                // Don't play the special moves twice
+                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
+                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
+                if (bestMove == mp->counter) mp->counter = NONE_MOVE;
+
+                return bestMove;
             }
-
-            // Don't play the table move twice
-            if (bestMove == mp->tableMove)
-                return selectNextMove(mp, board, skipQuiets);
-
-            // Don't play the special moves twice
-            if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-            if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
-            if (bestMove == mp->counter) mp->counter = NONE_MOVE;
-
-            return bestMove;
         }
 
         // Jump to bad noisy moves when skipping quiets
@@ -316,7 +324,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_KILLER_1:
 
-        // Play killer move if not yet played and psuedo legal
+        // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_KILLER_2;
         if (   !skipQuiets
             &&  mp->killer1 != mp->tableMove
@@ -327,7 +335,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_KILLER_2:
 
-        // Play killer move if not yet played and psuedo legal
+        // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
         if (   !skipQuiets
             &&  mp->killer2 != mp->tableMove
@@ -338,7 +346,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_COUNTER_MOVE:
 
-        // Play counter move if not yet played and psuedo legal
+        // Play counter move if not yet played, and psuedo legal
         mp->stage = STAGE_GENERATE_QUIET;
         if (   !skipQuiets
             &&  mp->counter != mp->tableMove
@@ -351,12 +359,8 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_GENERATE_QUIET:
 
-        // Generate and evaluate all quiet moves. mp->split is used
-        // to cut the internal move list into one partition for the
-        // noisy moves and another partition for the quiet ones.
-
-        if (!skipQuiets) {
-            mp->split = mp->noisySize;
+        // Generate and evaluate all quiet moves when not skipping quiet moves
+        if (!skipQuiets){
             genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
             evaluateQuietMoves(mp);
         }
@@ -367,11 +371,19 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_QUIET:
 
-        if (mp->quietSize && !skipQuiets){
+        // Check to see if there are still more quiet moves
+        if (!skipQuiets && mp->quietSize){
 
             // Select next best quiet by history scores
-            best = getBestMoveIndex(mp, mp->split, mp->quietSize + mp->split);
-            bestMove = popMove(mp, &mp->quietSize, best, mp->quietSize + mp->split);
+            best = getBestMoveIndex(mp, mp->split, mp->split + mp->quietSize);
+
+            // Save the best move before overwriting it
+            bestMove = mp->moves[best];
+
+            // Reduce effective move list size
+            mp->quietSize--;
+            mp->moves[best] = mp->moves[mp->split + mp->quietSize];
+            mp->values[best] = mp->values[mp->split + mp->quietSize];
 
             // Don't play a move more than once
             if (   bestMove == mp->tableMove
@@ -390,11 +402,22 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     case STAGE_BAD_NOISY:
 
-        // We skip all bad noisy moves when using a NOISY_PICKER
-        if (mp->noisySize && mp->type != NOISY_PICKER){
+        // Noisy picker skips all bad noisy moves
+        if (mp->type == NOISY_PICKER) {
+            mp->stage = STAGE_DONE;
+            return NONE_MOVE;
+        }
 
-            // Return moves one at a time without sorting
-            bestMove = popMove(mp, &mp->noisySize, 0, mp->noisySize);
+        // Check to see if there are still more noisy moves
+        if (mp->noisySize != 0){
+
+            // Save the best move before overwriting it
+            bestMove = mp->moves[0];
+
+            // Reduce effective move list size
+            mp->noisySize -= 1;
+            mp->moves[0] = mp->moves[mp->noisySize];
+            mp->values[0] = mp->values[mp->noisySize];
 
             // Don't play a move more than once
             if (   bestMove == mp->tableMove
