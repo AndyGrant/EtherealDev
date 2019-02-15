@@ -31,7 +31,7 @@
 #include "types.h"
 #include "thread.h"
 
-static void evaluateNoisyMoves(MovePicker *mp) {
+void evaluateNoisyMoves(MovePicker *mp) {
 
     // Use modified MVV-LVA to evaluate moves
     for (int i = 0; i < mp->noisySize; i++){
@@ -56,7 +56,7 @@ static void evaluateNoisyMoves(MovePicker *mp) {
     }
 }
 
-static void evaluateQuietMoves(MovePicker *mp) {
+void evaluateQuietMoves(MovePicker *mp) {
 
     // Evaluate based on Butterfly history (Colour, From, To), and
     // Continuation History (Counter Move, Followup Move histories)
@@ -67,7 +67,7 @@ static void evaluateQuietMoves(MovePicker *mp) {
                       + getFUHistoryScore(mp->thread, mp->height, mp->moves[i]);
 }
 
-static int getBestMoveIndex(MovePicker *mp, int start, int end) {
+int getBestMoveIndex(MovePicker *mp, int start, int end) {
 
     int best = start;
 
@@ -78,7 +78,7 @@ static int getBestMoveIndex(MovePicker *mp, int start, int end) {
     return best;
 }
 
-static uint16_t popMove(MovePicker *mp, int *counter, int index, int end) {
+uint16_t popMove(MovePicker *mp, int *counter, int index, int end) {
 
     // Return the move located at the given index, and shift the move
     // list by placing the last item into the newly created hole
@@ -91,7 +91,7 @@ static uint16_t popMove(MovePicker *mp, int *counter, int index, int end) {
     return best;
 }
 
-static int moveIsPsuedoLegal(Board *board, uint16_t move) {
+int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     const int colour = board->turn;
     const int to     = MoveTo(move);
@@ -247,10 +247,6 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
     int best;
     uint16_t bestMove;
 
-    // When skipping quiets jump over the quiet cases
-    if (skipQuiets && mp->stage > STAGE_GOOD_NOISY)
-        mp->stage = STAGE_BAD_NOISY;
-
     switch (mp->stage){
 
     case STAGE_TABLE:
@@ -322,8 +318,9 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
         // Play killer move if not yet played and psuedo legal
         mp->stage = STAGE_KILLER_2;
-        if (   mp->killer1 != mp->tableMove
-            && moveIsPsuedoLegal(board, mp->killer1))
+        if (   !skipQuiets
+            &&  mp->killer1 != mp->tableMove
+            &&  moveIsPsuedoLegal(board, mp->killer1))
             return mp->killer1;
 
         /* fallthrough */
@@ -332,8 +329,9 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
         // Play killer move if not yet played and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
-        if (   mp->killer2 != mp->tableMove
-            && moveIsPsuedoLegal(board, mp->killer2))
+        if (   !skipQuiets
+            &&  mp->killer2 != mp->tableMove
+            &&  moveIsPsuedoLegal(board, mp->killer2))
             return mp->killer2;
 
         /* fallthrough */
@@ -342,10 +340,11 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
         // Play counter move if not yet played and psuedo legal
         mp->stage = STAGE_GENERATE_QUIET;
-        if (   mp->counter != mp->tableMove
-            && mp->counter != mp->killer1
-            && mp->counter != mp->killer2
-            && moveIsPsuedoLegal(board, mp->counter))
+        if (   !skipQuiets
+            &&  mp->counter != mp->tableMove
+            &&  mp->counter != mp->killer1
+            &&  mp->counter != mp->killer2
+            &&  moveIsPsuedoLegal(board, mp->counter))
             return mp->counter;
 
         /* fallthrough */
@@ -356,16 +355,19 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         // to cut the internal move list into one partition for the
         // noisy moves and another partition for the quiet ones.
 
-        mp->split = mp->noisySize;
-        genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
-        evaluateQuietMoves(mp);
+        if (!skipQuiets) {
+            mp->split = mp->noisySize;
+            genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
+            evaluateQuietMoves(mp);
+        }
+
         mp->stage = STAGE_QUIET;
 
         /* fallthrough */
 
     case STAGE_QUIET:
 
-        if (mp->quietSize){
+        if (mp->quietSize && !skipQuiets){
 
             // Select next best quiet by history scores
             best = getBestMoveIndex(mp, mp->split, mp->quietSize + mp->split);
