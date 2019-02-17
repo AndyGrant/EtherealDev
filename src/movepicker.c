@@ -89,6 +89,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_TABLE:
 
+        for (int x = 0; x < 100000; x++)
+            moveIsPsuedoLegal(board, mp->tableMove);
+
         // Play table move if it is psuedo legal
         mp->stage = STAGE_GENERATE_NOISY;
         if (moveIsPsuedoLegal(board, mp->tableMove))
@@ -163,6 +166,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_KILLER_1:
 
+        for (int x = 0; x < 100000; x++)
+            moveIsPsuedoLegal(board, mp->killer1);
+
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_KILLER_2;
         if (   !skipQuiets
@@ -174,6 +180,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
     case STAGE_KILLER_2:
 
+        for (int x = 0; x < 100000; x++)
+            moveIsPsuedoLegal(board, mp->killer2);
+
         // Play killer move if not yet played, and psuedo legal
         mp->stage = STAGE_COUNTER_MOVE;
         if (   !skipQuiets
@@ -184,6 +193,9 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
         /* fallthrough */
 
     case STAGE_COUNTER_MOVE:
+
+        for (int x = 0; x < 100000; x++)
+            moveIsPsuedoLegal(board, mp->counter);
 
         // Play counter move if not yet played, and psuedo legal
         mp->stage = STAGE_GENERATE_QUIET;
