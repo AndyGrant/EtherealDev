@@ -369,26 +369,6 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
     if (ptype != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE)
         return 0;
 
-
-    // Knight, Rook, Bishop, and Queen moves are legal so long as the
-    // move type is NORMAL and the destination is an attacked square
-
-    if (ftype == KNIGHT)
-        return type == NORMAL_MOVE
-            && testBit(knightAttacks(from) & ~friendly, to);
-
-    if (ftype == BISHOP)
-        return type == NORMAL_MOVE
-            && testBit(bishopAttacks(from, occupied) & ~friendly, to);
-
-    if (ftype == ROOK)
-        return type == NORMAL_MOVE
-            && testBit(rookAttacks(from, occupied) & ~friendly, to);
-
-    if (ftype == QUEEN)
-        return type == NORMAL_MOVE
-            && testBit(queenAttacks(from, occupied) & ~friendly, to);
-
     if (ftype == PAWN){
 
         // Throw out castle moves with our pawn
@@ -416,6 +396,26 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
         // Normal moves are legal if we can move there
         return testBit(~PROMOTION_RANKS & ((attacks & enemy) | forward), to);
     }
+
+
+    // Knight, Rook, Bishop, and Queen moves are legal so long as the
+    // move type is NORMAL and the destination is an attacked square
+
+    if (ftype == KNIGHT)
+        return type == NORMAL_MOVE
+            && testBit(knightAttacks(from) & ~friendly, to);
+
+    if (ftype == BISHOP)
+        return type == NORMAL_MOVE
+            && testBit(bishopAttacks(from, occupied) & ~friendly, to);
+
+    if (ftype == ROOK)
+        return type == NORMAL_MOVE
+            && testBit(rookAttacks(from, occupied) & ~friendly, to);
+
+    if (ftype == QUEEN)
+        return type == NORMAL_MOVE
+            && testBit(queenAttacks(from, occupied) & ~friendly, to);
 
     if (ftype == KING){
 
