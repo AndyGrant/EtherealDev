@@ -357,18 +357,12 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
     uint64_t occupied = friendly | enemy;
     uint64_t attacks, forward;
 
-    // Quick check against obvious illegal moves
-    if (move == NULL_MOVE || move == NONE_MOVE)
+    // Quick check against obvious illegal moves; Special illegal moves,
+    // using our opponent's pieces, and illegally marked non promotions
+    if (    move == NONE_MOVE || move == NULL_MOVE
+        ||  pieceColour(board->squares[from]) != colour
+        || (ptype != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
         return 0;
-
-    // Verify the moving piece is our own
-    if (pieceColour(board->squares[from]) != colour)
-        return 0;
-
-    // Non promotions should be marked as PROMOTE_TO_KNIGHT
-    if (ptype != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE)
-        return 0;
-
 
     // Knight, Rook, Bishop, and Queen moves are legal so long as the
     // move type is NORMAL and the destination is an attacked square
