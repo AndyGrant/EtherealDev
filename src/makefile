@@ -20,7 +20,7 @@ LIBS    = -lpthread -lm
 EXE     = Ethereal
 
 WFLAGS = -std=gnu11 -Wall -Wextra -Wshadow
-CFLAGS = -DNDEBUG -O3 $(WFLAGS) -march=native -flto
+CFLAGS = -DNDEBUG -O1 $(WFLAGS) -march=native -flto
 RFLAGS = -DNDEBUG -O3 $(WFLAGS) -flto -static
 TFLAGS = -DNDEBUG -O3 $(WFLAGS) -march=native -flto -fopenmp -DTUNE
 PFLAGS = -DNDEBUG -O0 $(WFLAGS) -p -pg
