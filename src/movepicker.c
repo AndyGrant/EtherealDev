@@ -355,7 +355,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
     uint64_t friendly = board->colours[ colour];
     uint64_t enemy    = board->colours[!colour];
     uint64_t occupied = friendly | enemy;
-    uint64_t left, right, forward;
+    uint64_t attacks, forward;
 
     // Quick check against obvious illegal moves
     if (move == NULL_MOVE || move == NONE_MOVE)
@@ -395,30 +395,26 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
         if (type == CASTLE_MOVE)
             return 0;
 
-        // Look at the squares which our pawn threatens
-        left  = pawnLeftAttacks(1ull << from, ~0ull, colour);
-        right = pawnRightAttacks(1ull << from, ~0ull, colour);
+        attacks = pawnAttacks(colour, from);
 
         // Enpass moves are legal if our to square is the enpass
         // square and we could attack a piece on the enpass square
         if (type == ENPASS_MOVE)
-            return to == board->epSquare && testBit(left | right, to);
+            return to == board->epSquare && testBit(attacks, to);
 
         // Ensure that left and right are now captures, compute advances
-        left = left & enemy;
-        right = right & enemy;
         forward = pawnAdvance(1ull << from, occupied, colour);
 
         // Promotion moves are legal if we can move to one of the promotion
         // ranks, defined by PROMOTION_RANKS, independent of moving colour
         if (type == PROMOTION_MOVE)
-            return testBit(PROMOTION_RANKS & (left | right | forward), to);
+            return testBit(PROMOTION_RANKS & ((attacks & enemy) | forward), to);
 
         // Add the double advance to forward
         forward |= pawnAdvance(forward & (!colour ? RANK_3 : RANK_6), occupied, colour);
 
         // Normal moves are legal if we can move there
-        return testBit(~PROMOTION_RANKS & (left | right | forward), to);
+        return testBit(~PROMOTION_RANKS & ((attacks & enemy) | forward), to);
     }
 
     if (ftype == KING){
