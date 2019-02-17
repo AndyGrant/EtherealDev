@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "types.h"
@@ -67,11 +66,11 @@ int popcount(uint64_t b);
 int getlsb(uint64_t b);
 int getmsb(uint64_t b);
 int poplsb(uint64_t *b);
-bool several(uint64_t b);
-bool onlyOne(uint64_t b);
+int several(uint64_t b);
+int onlyOne(uint64_t b);
 
 void setBit(uint64_t *b, int i);
 void clearBit(uint64_t *b, int i);
-bool testBit(uint64_t b, int i);
+int testBit(uint64_t b, int i);
 
 void printBitboard(uint64_t b);

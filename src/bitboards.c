@@ -83,11 +83,11 @@ int poplsb(uint64_t *b) {
     return lsb;
 }
 
-bool several(uint64_t b) {
-    return b & (b - 1);
+int several(uint64_t b) {
+    return !!(b & (b - 1));
 }
 
-bool onlyOne(uint64_t b) {
+int onlyOne(uint64_t b) {
     return b && !several(b);
 }
 
@@ -101,9 +101,9 @@ void clearBit(uint64_t *b, int i) {
     *b ^= 1ull << i;
 }
 
-bool testBit(uint64_t b, int i) {
+int testBit(uint64_t b, int i) {
     assert(0 <= i && i < SQUARE_NB);
-    return b & (1ull << i);
+    return !!(b & (1ull << i));
 }
 
 void printBitboard(uint64_t b) {
