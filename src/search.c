@@ -463,7 +463,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non PV nodes
             R += !PvNode;
 
-            R += multi;
+            R -= multi;
 
             // Increase for non improving nodes
             R += !improving;
