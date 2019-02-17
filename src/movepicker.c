@@ -396,13 +396,13 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
         // Promotion moves are legal if we can move to one of the promotion
         // ranks, defined by PROMOTION_RANKS, independent of moving colour
         if (type == PROMOTION_MOVE)
-            return !!(PROMOTION_RANKS & (left | right | forward) & (1ull << to));
+            return testBit(PROMOTION_RANKS & (left | right | forward), to);
 
         // Add the double advance to forward
         forward |= pawnAdvance(forward & (!colour ? RANK_3 : RANK_6), occupied, colour);
 
         // Normal moves are legal if we can move there
-        return !!((left | right | forward) & (1ull << to) & ~PROMOTION_RANKS);
+        return testBit((left | right | forward) & ~PROMOTION_RANKS, to);
     }
 
     if (ftype == KING){
