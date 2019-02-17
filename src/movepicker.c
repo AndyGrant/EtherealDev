@@ -402,8 +402,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
         // Enpass moves are legal if our to square is the enpass
         // square and we could attack a piece on the enpass square
         if (type == ENPASS_MOVE)
-            return   to == board->epSquare
-                && ((left | right) & (1ull << board->epSquare));
+            return to == board->epSquare && testBit(left | right, to);
 
         // Ensure that left and right are now captures, compute advances
         left = left & enemy;
@@ -413,13 +412,13 @@ int moveIsPsuedoLegal(Board* board, uint16_t move){
         // Promotion moves are legal if we can move to one of the promotion
         // ranks, defined by PROMOTION_RANKS, independent of moving colour
         if (type == PROMOTION_MOVE)
-            return !!(PROMOTION_RANKS & (left | right | forward) & (1ull << to));
+            return testBit(PROMOTION_RANKS & (left | right | forward), to);
 
         // Add the double advance to forward
         forward |= pawnAdvance(forward & (!colour ? RANK_3 : RANK_6), occupied, colour);
 
         // Normal moves are legal if we can move there
-        return !!((left | right | forward) & (1ull << to) & ~PROMOTION_RANKS);
+        return testBit(~PROMOTION_RANKS & (left | right | forward), to);
     }
 
     if (ftype == KING){
