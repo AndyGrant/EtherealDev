@@ -198,8 +198,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, skipQuiets = 0;
+    int i, R, newDepth, singular, rAlpha, rBeta, oldAlpha = alpha;
+    int inCheck, isQuiet, improving, extension, skipQuiets = 0, multi = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
@@ -479,15 +479,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         } else R = 1;
 
-        // Step 15A. Singular Move Extensions. If we are looking at a table move,
-        // and it seems that under some conditions, the table move is better than
-        // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  &&  depth >= 8
-                  &&  move == ttMove
-                  &&  ttDepth >= depth - 2
-                  && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
+
+        singular = !RootNode && depth >= 8 && move == ttMove
+                 && ttDepth >= depth - 2 && (ttBound & BOUND_LOWER);
+
+        if (singular) {
+            singular = moveIsSingular(thread, ttMove, ttValue, depth, height);
+            multi = !singular;
+        }
+
+        extension = singular;
 
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
@@ -505,7 +506,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  fuhist >= 10000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
-        newDepth = depth + extension;
+        newDepth = depth + (extension && !multi);
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
