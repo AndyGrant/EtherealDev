@@ -198,7 +198,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int i, R, singular, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -314,6 +314,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     thread->killers[height+1][0] = NONE_MOVE;
     thread->killers[height+1][1] = NONE_MOVE;
 
+    // Check if this node and TT entry are candiates for a singular move
+    singular = !RootNode
+            &&  depth >= 8
+            &&  ttDepth >= depth - 2
+            && (ttBound & BOUND_LOWER);
+
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
     // the Quiescence search was sufficient.
@@ -380,8 +386,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Verify the move has promise using a depth 2 search
             value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
 
-            // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 6)
+            // ?
+            if (value >= rBeta && depth > 6 && singular && move != ttMove) {
+                value = -search(thread, &lpv, -beta, -beta+1, depth-4, height+1);
+                if (value >= beta) {
+                    revert(thread, board, move, height);
+                    return value;
+                }
+            }
+
+            else if (value >= rBeta && depth > 6)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
@@ -482,12 +496,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 15A. Singular Move Extensions. If we are looking at a table move,
         // and it seems that under some conditions, the table move is better than
         // all other possible moves, we will extend the search of the table move
-        extension =  !RootNode
-                  &&  depth >= 8
-                  &&  move == ttMove
-                  &&  ttDepth >= depth - 2
-                  && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
+        extension =  singular
+                  && move == ttMove
+                  && moveIsSingular(thread, ttMove, ttValue, depth, height);
 
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
