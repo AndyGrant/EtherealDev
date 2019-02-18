@@ -383,26 +383,26 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (!apply(thread, board, move, height))
                 continue;
 
-            // Verify the move has promise using a depth 2 search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
 
-            // ?
-            if (value >= rBeta && depth > 6 && singular && move != ttMove) {
+            if (singular && move != ttMove)
                 value = -search(thread, &lpv, -beta, -beta+1, depth-4, height+1);
-                if (value >= beta) {
-                    revert(thread, board, move, height);
-                    return value;
-                }
-            }
 
-            else if (value >= rBeta && depth > 6)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            else {
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
+                if (value >= rBeta)
+                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            }
 
             // Revert the board state
             revert(thread, board, move, height);
 
+            // Multicut move found to fail high
+            if (singular && move != ttMove && value >= beta)
+                return value;
+
             // Probcut failed high
             if (value >= rBeta) return value;
+
         }
     }
 
