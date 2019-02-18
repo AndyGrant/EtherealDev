@@ -487,7 +487,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   &&  move == ttMove
                   &&  ttDepth >= depth - 2
                   && (ttBound & BOUND_LOWER)
-                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height);
+                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height, &movePicker);
 
         // Step 15B. Check Extensions. We extend captures and good quiets that
         // come from in check positions, so long as no other extensions occur
@@ -844,7 +844,7 @@ int bestTacticalMoveValue(Board* board){
     return value;
 }
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int height){
+int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int height, MovePicker* otherMP){
 
     Board* const board = &thread->board;
 
@@ -876,7 +876,10 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
         revert(thread, board, move, height);
 
         // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
+        if (value > rBeta) {
+            otherMP->singular = move;
+            break;
+        }
     }
 
     // Reapply the table move we took off
