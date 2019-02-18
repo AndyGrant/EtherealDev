@@ -85,16 +85,6 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
 
         /* fallthrough */
 
-    case STAGE_SINGULAR_KILLER:
-
-        // Play the singular killer if it is psuedo legal
-        mp->stage = STAGE_GENERATE_NOISY;
-        if (    mp->singular != mp->table
-            &&  moveIsPsuedoLegal(board, mp->singular))
-            return mp->singular;
-
-        /* fallthrough */
-
     case STAGE_GENERATE_NOISY:
 
         // Generate and evaluate noisy moves. mp->split tracks the
@@ -138,13 +128,14 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
                 mp->values[best] = mp->values[mp->noisySize];
 
                 // Don't play any moves twice
-                if (bestMove == mp->table || bestMove == mp->singular)
+                if (bestMove == mp->table)
                     return selectNextMove(mp, board, skipQuiets);
 
                 // Don't play the special moves twice
-                if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
-                if (bestMove == mp->counter) mp->counter = NONE_MOVE;
+                if (bestMove == mp->singular) mp->singular = NONE_MOVE;
+                if (bestMove == mp->killer1 ) mp->killer1  = NONE_MOVE;
+                if (bestMove == mp->killer2 ) mp->killer2  = NONE_MOVE;
+                if (bestMove == mp->counter ) mp->counter  = NONE_MOVE;
 
                 return bestMove;
             }
@@ -156,7 +147,17 @@ uint16_t selectNextMove(MovePicker* mp, Board* board, int skipQuiets){
             return selectNextMove(mp, board, skipQuiets);
         }
 
+        mp->stage = STAGE_SINGULAR_KILLER;
+
+        /* fallthrough */
+
+    case STAGE_SINGULAR_KILLER:
+
+        // Play the singular killer if it is psuedo legal
         mp->stage = STAGE_KILLER_1;
+        if (    mp->singular != mp->table
+            &&  moveIsPsuedoLegal(board, mp->singular))
+            return mp->singular;
 
         /* fallthrough */
 
