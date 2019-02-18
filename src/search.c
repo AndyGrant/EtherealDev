@@ -373,6 +373,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         initMovePicker(&movePicker, thread, NONE_MOVE, height);
 
+        int foo = singular && ttValue >= beta;
+
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
             // Move should pass an SEE() to be worth at least rBeta
@@ -384,7 +386,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
 
 
-            if (singular && move != ttMove)
+            if (foo && move != ttMove)
                 value = -search(thread, &lpv, -beta, -beta+1, depth-4, height+1);
 
             else {
@@ -397,7 +399,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             revert(thread, board, move, height);
 
             // Multicut move found to fail high
-            if (singular && move != ttMove && value >= beta)
+            if (foo && move != ttMove && value >= beta)
                 return value;
 
             // Probcut failed high
