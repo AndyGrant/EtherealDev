@@ -317,7 +317,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // Check if this node and TT entry are candiates for a singular move
     singular = !RootNode
             &&  depth >= 8
-            &&  ttDepth >= depth - 2
+            &&  ttDepth >= depth - 3
             && (ttBound & BOUND_LOWER);
 
     // Step 7. Razoring. If a Quiescence Search for the current position
