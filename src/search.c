@@ -377,8 +377,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (!apply(thread, board, move, height))
                 continue;
 
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-2, height+1);
+
+            if (value >= rBeta && depth > 6)
             value = -search(thread, &lpv, -beta, -beta+1, depth-4, height+1);
-            if (value >= rBeta)
+
+            if (value >= rBeta && depth > 6)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
