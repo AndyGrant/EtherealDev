@@ -377,11 +377,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             if (!apply(thread, board, move, height))
                 continue;
 
-            // Verify the move has promise using a depth 2 search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
-
-            // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 6)
+            value = -search(thread, &lpv, -beta, -beta+1, depth-4, height+1);
+            if (value >= rBeta)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
