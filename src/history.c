@@ -25,7 +25,7 @@
 #include "thread.h"
 #include "types.h"
 
-int getHistoryScore(Thread *thread, uint16_t move) {
+int getHistory(Thread *thread, uint16_t move) {
 
     int colour = thread->board.turn;
     int from   = MoveFrom(move);
@@ -42,118 +42,70 @@ void updateHistory(Thread *thread, uint16_t move, int delta) {
 
     int entry;
     int colour = thread->board.turn;
-    int from  = MoveFrom(move);
-    int to    = MoveTo(move);
+    int from   = MoveFrom(move);
+    int to     = MoveTo(move);
+
+    // Bound update by [HistoryMin, HistoryMax]
+    delta = MAX(HistoryMin, MIN(HistoryMax, delta));
 
     assert(0 <= colour && colour < COLOUR_NB);
     assert(0 <= from && from < SQUARE_NB);
     assert(0 <= to && to < SQUARE_NB);
 
-    delta = MAX(-400, MIN(400, delta));
-
     entry = thread->history[colour][from][to];
-    entry += 32 * delta - entry * abs(delta) / 512;
+    entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
     thread->history[colour][from][to] = entry;
 }
 
-int getCMHistoryScore(Thread *thread, int height, uint16_t move) {
+int getContinuationHistory(Thread *thread, int height, uint16_t move, int plies) {
 
     int to1, to2, piece1, piece2;
-    uint16_t previous = thread->moveStack[height-1];
+    uint16_t continuing = thread->moveStack[height-plies];
 
-    // Check for root position or null moves
-    if (previous == NULL_MOVE || previous == NONE_MOVE)
+    // No history when following non moves
+    if (continuing == NONE_MOVE || continuing == NULL_MOVE)
         return 0;
 
-    to1    = MoveTo(previous);
-    piece1 = pieceType(thread->board.squares[to1]);
-
-    to2    = MoveTo(move);
+    // Find piece types and destination squares
+    to1 = MoveTo(continuing), to2 = MoveTo(move);
+    piece1 = thread->pieceStack[height-plies];
     piece2 = pieceType(thread->board.squares[MoveFrom(move)]);
 
+    assert(1 <= plies && plies <= CONT_NB);
     assert(0 <= piece1 && piece1 < PIECE_NB);
     assert(0 <= to1 && to1 < SQUARE_NB);
     assert(0 <= piece2 && piece2 < PIECE_NB);
     assert(0 <= to2 && to2 < SQUARE_NB);
 
-    return thread->cmhistory[piece1][to1][piece2][to2];
+    return thread->continuation[plies-1][piece1][to1][piece2][to2];
 }
 
-void updateCMHistory(Thread *thread, int height, uint16_t move, int delta) {
+void updateContinuationHistory(Thread *thread, int height, uint16_t move, int plies, int delta) {
 
-    int entry, to1, to2, piece1, piece2;
-    uint16_t previous = thread->moveStack[height-1];
+    int to1, to2, piece1, piece2, entry;
+    uint16_t continuing = thread->moveStack[height-plies];
 
-    // Check for root position or null moves
-    if (previous == NULL_MOVE || previous == NONE_MOVE)
+    // No history when following non moves
+    if (continuing == NONE_MOVE || continuing == NULL_MOVE)
         return;
 
-    to1    = MoveTo(previous);
-    piece1 = pieceType(thread->board.squares[to1]);
-
-    to2    = MoveTo(move);
+    // Find piece types and destination squares
+    to1 = MoveTo(continuing), to2 = MoveTo(move);
+    piece1 = thread->pieceStack[height-plies];
     piece2 = pieceType(thread->board.squares[MoveFrom(move)]);
 
+    // Bound update by [HistoryMin, HistoryMax]
+    delta = MAX(HistoryMin, MIN(HistoryMax, delta));
+
+    assert(1 <= plies && plies <= CONT_NB);
     assert(0 <= piece1 && piece1 < PIECE_NB);
     assert(0 <= to1 && to1 < SQUARE_NB);
     assert(0 <= piece2 && piece2 < PIECE_NB);
     assert(0 <= to2 && to2 < SQUARE_NB);
 
-    delta = MAX(-400, MIN(400, delta));
-
-    entry = thread->cmhistory[piece1][to1][piece2][to2];
-    entry += 32 * delta - entry * abs(delta) / 512;
-    thread->cmhistory[piece1][to1][piece2][to2] = entry;
-}
-
-int getFUHistoryScore(Thread *thread, int height, uint16_t move) {
-
-    int to1, to2, piece1, piece2;
-    uint16_t following = thread->moveStack[height-2];
-
-    // Check for root position or null moves
-    if (following == NULL_MOVE || following == NONE_MOVE)
-        return 0;
-
-    to1    = MoveTo(following);
-    piece1 = thread->pieceStack[height-2];
-
-    to2    = MoveTo(move);
-    piece2 = pieceType(thread->board.squares[MoveFrom(move)]);
-
-    assert(0 <= piece1 && piece1 < PIECE_NB);
-    assert(0 <= to1 && to1 < SQUARE_NB);
-    assert(0 <= piece2 && piece2 < PIECE_NB);
-    assert(0 <= to2 && to2 < SQUARE_NB);
-
-    return thread->fuhistory[piece1][to1][piece2][to2];
-}
-
-void updateFUHistory(Thread *thread, int height, uint16_t move, int delta) {
-
-    int entry, to1, to2, piece1, piece2;
-    uint16_t following = thread->moveStack[height-2];
-
-    // Check for root position or null moves
-    if (following == NULL_MOVE || following == NONE_MOVE)
-        return;
-
-    to1    = MoveTo(following);
-    piece1 = thread->pieceStack[height-2];
-
-    to2    = MoveTo(move);
-    piece2 = pieceType(thread->board.squares[MoveFrom(move)]);
-
-    assert(0 <= piece1 && piece1 < PIECE_NB);
-    assert(0 <= to1 && to1 < SQUARE_NB);
-    assert(0 <= piece2 && piece2 < PIECE_NB);
-    assert(0 <= to2 && to2 < SQUARE_NB);
-
-    delta = MAX(-400, MIN(400, delta));
-
-    entry = thread->fuhistory[piece1][to1][piece2][to2];
-    entry += 32 * delta - entry * abs(delta) / 512;
-    thread->fuhistory[piece1][to1][piece2][to2] = entry;
+    entry = thread->continuation[plies-1][piece1][to1][piece2][to2];
+    entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+    thread->continuation[plies-1][piece1][to1][piece2][to2] = entry;
 }
 
 uint16_t getCounterMove(Thread *thread, int height) {

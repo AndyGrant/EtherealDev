@@ -401,9 +401,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
-            cmhist = getCMHistoryScore(thread, height, move);
-            fuhist = getFUHistoryScore(thread, height, move);
-            hist   = getHistoryScore(thread, move) + cmhist + fuhist;
+            cmhist = getContinuationHistory(thread, height, move, 1);
+            fuhist = getContinuationHistory(thread, height, move, 2);
+            hist   = getHistory(thread, move) + cmhist + fuhist;
         }
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
@@ -572,13 +572,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (best >= beta && !moveIsTactical(board, bestMove)){
 
         updateHistory(thread, bestMove, depth*depth);
-        updateCMHistory(thread, height, bestMove, depth*depth);
-        updateFUHistory(thread, height, bestMove, depth*depth);
+        updateContinuationHistory(thread, height, bestMove, 1, depth*depth);
+        updateContinuationHistory(thread, height, bestMove, 2, depth*depth);
 
         for (i = 0; i < quiets - 1; i++) {
             updateHistory(thread, quietsTried[i], -depth*depth);
-            updateCMHistory(thread, height, quietsTried[i], -depth*depth);
-            updateFUHistory(thread, height, quietsTried[i], -depth*depth);
+            updateContinuationHistory(thread, height, quietsTried[i], 1, -depth*depth);
+            updateContinuationHistory(thread, height, quietsTried[i], 2, -depth*depth);
         }
     }
 
