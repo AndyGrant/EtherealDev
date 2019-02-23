@@ -198,7 +198,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    int i, R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -543,21 +543,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 pv->length = 1 + lpv.length;
                 pv->line[0] = move;
                 memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+
+                // Search failed high
+                if (alpha >= beta) break;
             }
-        }
-
-        // Search failed high. Update move tables and break.
-        if (alpha >= beta){
-
-            if (isQuiet && thread->killers[height][0] != move){
-                thread->killers[height][1] = thread->killers[height][0];
-                thread->killers[height][0] = move;
-            }
-
-            if (isQuiet)
-                updateCounterMove(thread, height, move);
-
-            break;
         }
     }
 
@@ -569,18 +558,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
 
     // Step 19. Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove)){
-
-        updateHistory(thread, bestMove, depth*depth);
-        updateContinuationHistory(thread, height, bestMove, 1, depth*depth);
-        updateContinuationHistory(thread, height, bestMove, 2, depth*depth);
-
-        for (i = 0; i < quiets - 1; i++) {
-            updateHistory(thread, quietsTried[i], -depth*depth);
-            updateContinuationHistory(thread, height, quietsTried[i], 1, -depth*depth);
-            updateContinuationHistory(thread, height, quietsTried[i], 2, -depth*depth);
-        }
-    }
+    if (best >= beta && !moveIsTactical(board, bestMove))
+        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
 
     // Step 20. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
