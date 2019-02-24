@@ -25,15 +25,7 @@
 #include "thread.h"
 #include "types.h"
 
-
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
-
-    // Update the following history heuristics
-    // 1. Butterfly History
-    // 2. Counter Move History
-    // 3. Followup Move History
-    // 4. Killer Move Refutations
-    // 5. Counter Move Refutations
 
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
@@ -48,13 +40,6 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int followingPiece = thread->pieceStack[height-2];
     int followingTo = MoveTo(following);
 
-    // Simple assert check on all array bounds
-    assert(0 <= colour && colour < COLOUR_NB);
-    assert(0 <= counteringPiece && counteringPiece < PIECE_NB);
-    assert(0 <= counteringTo && counteringTo < SQUARE_NB);
-    assert(0 <= followingPiece && followingPiece < PIECE_NB);
-    assert(0 <= followingTo && followingTo < SQUARE_NB);
-
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
 
@@ -64,14 +49,9 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         int delta = (moves[i] == bestMove) ? bonus : -bonus;
 
         // Extract information from this move
-        int from = MoveFrom(moves[i]);
         int to = MoveTo(moves[i]);
+        int from = MoveFrom(moves[i]);
         int piece = pieceType(thread->board.squares[from]);
-
-        // Simple assert check on all array bounds
-        assert(0 <= from && from < SQUARE_NB);
-        assert(0 <= to && to < SQUARE_NB);
-        assert(0 <= piece && piece < PIECE_NB);
 
         // Update Butterfly History
         entry = thread->history[colour][from][to];
@@ -93,7 +73,6 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         }
     }
 
-
     // Update Killer Moves (Avoid duplicates)
     if (thread->killers[height][0] != bestMove) {
         thread->killers[height][1] = thread->killers[height][0];
@@ -105,40 +84,65 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         thread->cmtable[!colour][counteringPiece][counteringTo] = bestMove;
 }
 
-int getHistory(Thread *thread, uint16_t move) {
+void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length, int height) {
 
-    int colour = thread->board.turn;
-    int from   = MoveFrom(move);
-    int to     = MoveTo(move);
+    // Extract information from last move
+    uint16_t countering = thread->moveStack[height-1];
+    int counteringPiece = thread->pieceStack[height-1];
+    int counteringTo = MoveTo(countering);
 
-    assert(0 <= colour && colour < COLOUR_NB);
-    assert(0 <= from && from < SQUARE_NB);
-    assert(0 <= to && to < SQUARE_NB);
+    // Extract information from two moves ago
+    uint16_t following = thread->moveStack[height-2];
+    int followingPiece = thread->pieceStack[height-2];
+    int followingTo = MoveTo(following);
 
-    return thread->history[colour][from][to];
+    for (int i = start; i < start + length; i++) {
+
+        // Extract information from this move
+        int to = MoveTo(moves[i]);
+        int from = MoveFrom(moves[i]);
+        int piece = pieceType(thread->board.squares[from]);
+
+        // Start with the basic Butterfly history
+        scores[i] = thread->history[thread->board.turn][from][to];
+
+        // Add Counter Move History if it exists
+        if (countering != NONE_MOVE && countering != NULL_MOVE)
+            scores[i] += thread->continuation[0][counteringPiece][counteringTo][piece][to];
+
+        // Add Followup Move History if it exists
+        if (following != NONE_MOVE && following != NULL_MOVE)
+            scores[i] += thread->continuation[1][followingPiece][followingTo][piece][to];
+    }
 }
 
-int getContinuationHistory(Thread *thread, int height, uint16_t move, int plies) {
+void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhist, int *fmhist) {
 
-    int to1, to2, piece1, piece2;
-    uint16_t continuing = thread->moveStack[height-plies];
+    // Extract information from this move
+    int to = MoveTo(move);
+    int from = MoveFrom(move);
+    int piece = pieceType(thread->board.squares[from]);
 
-    // No history when following non moves
-    if (continuing == NONE_MOVE || continuing == NULL_MOVE)
-        return 0;
+    // Extract information from last move
+    uint16_t countering = thread->moveStack[height-1];
+    int counteringPiece = thread->pieceStack[height-1];
+    int counteringTo = MoveTo(countering);
 
-    // Find piece types and destination squares
-    to1 = MoveTo(continuing), to2 = MoveTo(move);
-    piece1 = thread->pieceStack[height-plies];
-    piece2 = pieceType(thread->board.squares[MoveFrom(move)]);
+    // Extract information from two moves ago
+    uint16_t following = thread->moveStack[height-2];
+    int followingPiece = thread->pieceStack[height-2];
+    int followingTo = MoveTo(following);
 
-    assert(1 <= plies && plies <= CONT_NB);
-    assert(0 <= piece1 && piece1 < PIECE_NB);
-    assert(0 <= to1 && to1 < SQUARE_NB);
-    assert(0 <= piece2 && piece2 < PIECE_NB);
-    assert(0 <= to2 && to2 < SQUARE_NB);
+    // Set basic Butterfly history
+    *hist = thread->history[thread->board.turn][from][to];
 
-    return thread->continuation[plies-1][piece1][to1][piece2][to2];
+    // Set Counter Move History if it exists
+    if (countering == NONE_MOVE || countering == NULL_MOVE) *cmhist = 0;
+    else *cmhist = thread->continuation[0][counteringPiece][counteringTo][piece][to];
+
+    // Set Followup Move History if it exists
+    if (following == NONE_MOVE || following == NULL_MOVE) *fmhist = 0;
+    else *fmhist = thread->continuation[1][followingPiece][followingTo][piece][to];
 }
 
 uint16_t getCounterMove(Thread *thread, int height) {
