@@ -196,7 +196,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     Board* const board = &thread->board;
 
     unsigned tbresult;
-    int quiets = 0, played = 0, hist = 0, cmhist = 0, fuhist = 0;
+    int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
@@ -401,7 +401,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Also lookup the history score, as we will in most cases need it.
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
-            getHistory(thread, move, height, &hist, &cmhist, &fuhist);
+            getHistory(thread, move, height, &hist, &cmhist, &fmhist);
         }
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
@@ -412,7 +412,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // don't expect anything from this move, we can skip all other quiets
             if (   futilityMargin <= alpha
                 && depth <= FutilityPruningDepth
-                && hist + cmhist + fuhist < FutilityPruningHistoryLimit[improving])
+                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
             // Step 12B. Late Move Pruning / Move Count Pruning. If we have
@@ -431,7 +431,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Step 12D. Follow Up Move Pruning. Moves with poor follow up
             // move history are pruned at near leaf nodes of the search.
             if (   depth <= FollowUpMovePruningDepth[improving]
-                && fuhist < FollowUpMoveHistoryLimit[improving])
+                && fmhist < FollowUpMoveHistoryLimit[improving])
                 continue;
         }
 
@@ -470,7 +470,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
               || move == movePicker.counter;
 
             // Adjust based on history
-            R -= MAX(-2, MIN(2, (hist + cmhist + fuhist) / 5000));
+            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
@@ -500,7 +500,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   && !extension
                   &&  quiets <= 4
                   &&  cmhist >= 10000
-                  &&  fuhist >= 10000;
+                  &&  fmhist >= 10000;
 
         // New depth is what our search depth would be, assuming that we do no LMR
         newDepth = depth + extension;
