@@ -365,23 +365,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
-        initMovePicker(&movePicker, thread, NONE_MOVE, height);
+        initNoisyMovePicker(&movePicker, thread, MIN(0, eval - rBeta));
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
-
-            // Move should pass an SEE() to be worth at least rBeta
-            if (!staticExchangeEvaluation(board, move, rBeta - eval))
-                continue;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height))
                 continue;
 
-            // Verify the move has promise using a depth 2 search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
+            // Verify the move has promise using a depth 1 search
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, 1, height+1);
 
             // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 6)
+            if (value >= rBeta && depth > 5)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
