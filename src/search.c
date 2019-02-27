@@ -364,25 +364,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-
-        initMovePicker(&movePicker, thread, NONE_MOVE, height);
+        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
-
-            // Move should pass an SEE() to be worth at least rBeta
-            if (!staticExchangeEvaluation(board, move, rBeta - eval))
-                continue;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height))
                 continue;
 
-            // Verify the move has promise using a depth 2 search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, 2, height+1);
-
-            // Verify the move holds which a slightly reduced depth search
-            if (value >= rBeta && depth > 6)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            // Perform a reduced depth verification search
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
             revert(thread, board, move, height);
