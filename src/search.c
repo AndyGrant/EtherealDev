@@ -833,6 +833,10 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
         // Skip the table move
         if (move == ttMove) continue;
 
+        // F*** em
+        if (movePicker.stage == STAGE_BAD_NOISY)
+            break;
+
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
             continue;
