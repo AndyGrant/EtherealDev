@@ -457,7 +457,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            R += ttTactical && MoveFrom(ttMove) == MoveFrom(move);
+            R -= ttTactical && MoveFrom(ttMove) == MoveFrom(move);
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
