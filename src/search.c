@@ -197,7 +197,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int ttHit, ttTactical = 0, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
@@ -250,6 +250,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
+
+        ttTactical = moveIsTactical(board, ttMove); //
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
@@ -454,6 +456,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Increase for non improving nodes
             R += !improving;
+
+            R += ttTactical && MoveFrom(ttMove) == MoveFrom(move);
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
