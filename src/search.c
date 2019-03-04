@@ -338,8 +338,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  depth >= NullMovePruningDepth
         &&  eval >= beta
+        &&  depth >= NullMovePruningDepth
         &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
@@ -459,6 +459,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= move == movePicker.killer1
               || move == movePicker.killer2
               || move == movePicker.counter;
+
+            R += move == movePicker.counter && cmhist < 0;
 
             // Adjust based on history
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
