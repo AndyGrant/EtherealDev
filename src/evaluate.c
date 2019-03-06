@@ -204,7 +204,7 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
+const int KSWeakSquares     =   42;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
