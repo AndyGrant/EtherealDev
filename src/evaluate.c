@@ -204,7 +204,8 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
+const int KSWeakSquares     =   30;
+const int KSInvadedSquares  =   38;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
@@ -695,7 +696,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
+               + KSWeakSquares     * popcount(~board->colours[THEM] & weak & ei->kingAreas[US])
+               + KSInvadedSquares  * popcount(board->colours[THEM] & weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * popcount(queenChecks)
