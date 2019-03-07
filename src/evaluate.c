@@ -204,8 +204,8 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
-const int KSWeakSquares     =   30;
-const int KSInvadedSquares  =   38;
+const int KSWeakSquares     =   38;
+const int KSInvadedSquares  =   50;
 const int KSFriendlyPawns   =  -22;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
@@ -707,7 +707,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        if (count > 0) eval -= MakeScore(count * count / 750, count / 22);
     }
 
     // King Shelter & King Storm are stored in the Pawn King Table
