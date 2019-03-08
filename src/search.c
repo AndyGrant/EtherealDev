@@ -456,7 +456,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !improving;
 
             R += thread->moveStack[height-1] == NULL_MOVE
-              && eval + 128 < alpha;
+              && eval + 256 < alpha;
 
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
