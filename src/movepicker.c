@@ -284,13 +284,13 @@ int getBestMoveIndex(MovePicker *mp, int start, int end) {
 
 void evaluateNoisyMoves(MovePicker* mp){
 
-    int fromType, toType;
+    int recaptureSquare = MoveTo(mp->thread->moveStack[mp->height-1]);
 
     // Use modified MVV-LVA to evaluate moves
     for (int i = 0; i < mp->noisySize; i++){
 
-        fromType = pieceType(mp->thread->board.squares[MoveFrom(mp->moves[i])]);
-        toType   = pieceType(mp->thread->board.squares[MoveTo(mp->moves[i])]);
+        int fromType = pieceType(mp->thread->board.squares[MoveFrom(mp->moves[i])]);
+        int toType   = pieceType(mp->thread->board.squares[MoveTo(mp->moves[i])]);
 
         // Use the standard MVV-LVA
         mp->values[i] = PieceValues[toType][EG] - fromType;
@@ -302,6 +302,10 @@ void evaluateNoisyMoves(MovePicker* mp){
         // Enpass is a special case of MVV-LVA
         else if (MoveType(mp->moves[i]) == ENPASS_MOVE)
             mp->values[i] = PieceValues[PAWN][EG] - PAWN;
+
+        // Tend to moves which capture the last moved piece
+        if (MoveTo(mp->moves[i]) == recaptureSquare)
+            mp->values[i] += 25;
 
         // Later we will flag moves which were passed over in the STAGE_GOOD_NOISY
         // phase due to failing an SEE(0), by setting the value to -1
