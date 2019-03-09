@@ -26,7 +26,7 @@
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (      1) // How often to report progress
 #define NTERMS      (    588) // Total terms in the tuner
-#define NDEPTHS     (      1) // Depths to resolve the FEN
+#define NDEPTHS     (      6) // Depths to resolve the FEN
 
 #define LEARNING    (    0.1) // Learning rate
 #define LRDROPRATE  (      1) // Cut LR by this each failure
