@@ -161,7 +161,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
-    thread->limits = &limits; thread->depth  = 0;
+    thread->limits = &limits; thread->depth = 0;
 
     // Create a TexelEntry for each FEN
     for (i = 0; i < NPOSITIONS; i++) {
@@ -184,7 +184,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Resolve FEN to a quiet position
         boardFromFEN(&thread->board, line);
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        if (NDEPTHS) resetThreadPool(thread), clearTT();
+        search(thread, &thread->pv, -MATE, MATE, NDEPTHS, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
 
