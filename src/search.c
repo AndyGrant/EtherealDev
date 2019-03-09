@@ -328,7 +328,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
+        &&  eval - BetaMargin * depth > beta
+        &&  thread->moveStack[height-1] != NULL_MOVE)
         return eval;
 
     // Step 9. Null Move Pruning. If our position is so good that giving
