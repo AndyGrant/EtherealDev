@@ -73,7 +73,6 @@ extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
-extern const int KingDefenders[12];
 extern const int KingShelter[2][8][8];
 extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
@@ -125,18 +124,14 @@ void runTexelTuning(Thread *thread) {
         // Shuffle the dataset before each epoch
         shuffleTexelEntries(tes);
 
-        // Report every REPORTING iterations
-        if (++iteration % REPORTING == 0) {
+        // Check for a regression in tuning
+        error = completeLinearError(tes, params, K);
+        if (error > best) rate = rate / LRDROPRATE;
+        best = error;
 
-            // Check for a regression in tuning
-            error = completeLinearError(tes, params, K);
-            if (error > best) rate = rate / LRDROPRATE;
-
-            // Report current best parameters
-            best = error;
-            printParameters(params, cparams);
-            printf("\nIteration [%d] Error = %g \n", iteration, best);
-        }
+        // Report current best parameters
+        printParameters(params, cparams);
+        printf("\nIteration [%d] Error = %g \n", iteration, best);
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 

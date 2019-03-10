@@ -24,12 +24,11 @@
 
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
-#define REPORTING   (      1) // How often to report progress
-#define NTERMS      (    588) // Total terms in the tuner
+#define NTERMS      (    576) // Total terms in the tuner
 
 #define LEARNING    (    0.1) // Learning rate
 #define LRDROPRATE  (      1) // Cut LR by this each failure
-#define BATCHSIZE   (   2048) // FENs per mini-batch
+#define BATCHSIZE   (   4096) // FENs per mini-batch
 #define NPOSITIONS  (7500000) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
@@ -63,7 +62,6 @@
 #define TuneRookOnSeventh               (1)
 #define TuneRookMobility                (1)
 #define TuneQueenMobility               (1)
-#define TuneKingDefenders               (1)
 #define TuneKingShelter                 (1)
 #define TuneKingStorm                   (1)
 #define TunePassedPawn                  (1)
@@ -222,7 +220,6 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_0(fname, RookOnSeventh);                             \
     ENABLE_1(fname, RookMobility, 15);                          \
     ENABLE_1(fname, QueenMobility, 28);                         \
-    ENABLE_1(fname, KingDefenders, 12);                         \
     ENABLE_3(fname, KingShelter, 2, 8, 8);                      \
     ENABLE_3(fname, KingStorm, 2, 4, 8);                        \
     ENABLE_3(fname, PassedPawn, 2, 2, 8);                       \

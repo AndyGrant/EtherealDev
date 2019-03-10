@@ -140,12 +140,6 @@ const int QueenMobility[28] = {
 
 /* King Evaluation Terms */
 
-const int KingDefenders[12] = {
-    S( -21,  -3), S(  -9,   0), S(   0,   2), S(   7,   4),
-    S(  16,   5), S(  27,   2), S(  32,   0), S(  14,   0),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
-};
-
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -12,   4), S(  16, -24), S(  18,  -9), S(   9,   2),
     S(   4,   3), S(   7,   2), S(  -2, -32), S( -49,  19)},
@@ -643,21 +637,12 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
-    uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
-                          | (board->pieces[KNIGHT] & board->colours[US])
-                          | (board->pieces[BISHOP] & board->colours[US]);
-
     int kingSq = ei->kingSquare[US];
     int kingFile = fileOf(kingSq);
     int kingRank = rankOf(kingSq);
 
     if (TRACE) T.KingValue[US]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
-
-    // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[US]);
-    eval += KingDefenders[count];
-    if (TRACE) T.KingDefenders[count][US]++;
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
