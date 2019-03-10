@@ -340,12 +340,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     int sq, flag, eval = 0, pkeval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
-    // Find and save possible attacks
-    ei->attackedBy[US][PAWN] = 0ull;
-    updateAttackTables(ei, US, PAWN, ei->pawnAttacks[US]);
-
     // Update attacker counts for King Safety computation
-    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
+    attacks = ei->attackedBy[US][PAWN] & ei->kingAreas[THEM];
     ei->kingAttacksCount[US] += popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
@@ -395,7 +391,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is backward
         if (   !(passedPawnMasks(THEM, sq) & myPawns)
-            &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
+            &&  (testBit(ei->attackedBy[THEM][PAWN], sq + Forward))) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag];
             if (TRACE) T.PawnBackwards[flag][US]++;
@@ -441,7 +437,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            defended = testBit(ei->pawnAttacks[US], sq);
+            defended = testBit(ei->attackedBy[US][PAWN], sq);
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
         }
@@ -506,7 +502,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            defended = testBit(ei->pawnAttacks[US], sq);
+            defended = testBit(ei->attackedBy[US][PAWN], sq);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
         }
@@ -898,8 +894,17 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     int wKingSq = ei->kingSquare[WHITE] = getlsb(white & kings);
     int bKingSq = ei->kingSquare[BLACK] = getlsb(black & kings);
 
-    ei->pawnAttacks[WHITE] = pawnAttackSpan(whitePawns, ~0ull, WHITE);
-    ei->pawnAttacks[BLACK] = pawnAttackSpan(blackPawns, ~0ull, BLACK);
+    ei->attackedBy[WHITE][PAWN] = pawnAttackSpan(whitePawns, ~0ull, WHITE);
+    ei->attackedBy[BLACK][PAWN] = pawnAttackSpan(blackPawns, ~0ull, BLACK);
+
+    ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
+    ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
+
+    ei->attacked[WHITE] = ei->attackedBy[WHITE][PAWN] | ei->attackedBy[WHITE][KING];
+    ei->attacked[BLACK] = ei->attackedBy[BLACK][PAWN] | ei->attackedBy[BLACK][KING];
+
+    ei->attackedBy2[WHITE] = ei->attackedBy[WHITE][PAWN] & ei->attackedBy[WHITE][KING];
+    ei->attackedBy2[BLACK] = ei->attackedBy[BLACK][PAWN] & ei->attackedBy[BLACK][KING];
 
     ei->rammedPawns[WHITE] = pawnAdvance(blackPawns, ~whitePawns, BLACK);
     ei->rammedPawns[BLACK] = pawnAdvance(whitePawns, ~blackPawns, WHITE);
@@ -910,12 +915,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAreas[WHITE] = kingAreaMasks(WHITE, wKingSq);
     ei->kingAreas[BLACK] = kingAreaMasks(BLACK, bKingSq);
 
-    ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
-    ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
-
-    ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
-    ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
-    ei->attackedBy2[WHITE] = ei->attackedBy2[BLACK] = 0ull;
+    ei->mobilityAreas[WHITE] = ~(ei->attackedBy[BLACK][PAWN] | (white & kings) | ei->blockedPawns[WHITE]);
+    ei->mobilityAreas[BLACK] = ~(ei->attackedBy[WHITE][PAWN] | (black & kings) | ei->blockedPawns[BLACK]);
 
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
