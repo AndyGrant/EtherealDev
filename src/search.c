@@ -323,14 +323,13 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  eval + RazorMargin < alpha)
         return qsearch(thread, pv, alpha, beta, height);
 
-    // Step 7B. Null Razoring. If following up one of our own NULL moves,
-    // or responding to our opponent's NULL move, we can extend the scope
-    // of razorable nodes to include higher depths and larger alpha windows
+    // Step 7B. Null Razoring. When following a NULL move we can expand the
+    // range of prunable search depths when there is a larger alpha window
     if (    !PvNode
         &&  !inCheck
         &&   depth <= NullRazorDepth
         &&   eval + NullRazorMargin < alpha
-        &&  (thread->moveStack[height-1] == NULL_MOVE || thread->moveStack[height-1] == NULL_MOVE))
+        &&   thread->moveStack[height-1] == NULL_MOVE)
         return qsearch(thread, pv, alpha, beta, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null

@@ -80,8 +80,8 @@ static const int WindowTimerMS = 5000;
 static const int RazorDepth = 1;
 static const int RazorMargin = 350;
 
-static const int NullRazorDepth  = 3;
-static const int NullRazorMargin = 250;
+static const int NullRazorDepth  = 4;
+static const int NullRazorMargin = 500;
 
 static const int BetaPruningDepth = 8;
 static const int BetaMargin = 85;
