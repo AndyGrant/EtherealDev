@@ -122,7 +122,7 @@ void runTexelTuning(Thread *thread) {
     while (1) {
 
         // Shuffle the dataset before each epoch
-        shuffleTexelEntries(tes);
+        shuffleTexelEntries(tes); iteration++;
 
         // Check for a regression in tuning
         error = completeLinearError(tes, params, K);
