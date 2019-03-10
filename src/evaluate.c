@@ -255,6 +255,19 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
 
+static void updateAttackTables(EvalInfo *ei, int colour, int ptype, uint64_t attacks) {
+    ei->attackedBy2[colour] |= attacks & ei->attacked[colour];
+    ei->attackedBy[colour][ptype] |= attacks;
+    ei->attacked[colour] |= attacks;
+}
+
+static void updateKingSafety(EvalInfo *ei, int colour, int ptype, uint64_t attacks) {
+    ei->kingAttackersCount[colour] += 1;
+    ei->kingAttacksCount[colour] += popcount(attacks);
+    ei->kingAttackersWeight[colour] += KSAttackWeight[ptype];
+}
+
+
 int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     EvalInfo ei;
@@ -327,10 +340,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     int sq, flag, eval = 0, pkeval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
-    // Store off pawn attacks for king safety and threat computations
-    ei->attackedBy2[US]      = ei->pawnAttacks[US] & ei->attacked[US];
-    ei->attacked[US]        |= ei->pawnAttacks[US];
-    ei->attackedBy[US][PAWN] = ei->pawnAttacks[US];
+    // Find and save possible attacks
+    ei->attackedBy[US][PAWN] = 0ull;
+    updateAttackTables(ei, US, PAWN, ei->pawnAttacks[US]);
 
     // Update attacker counts for King Safety computation
     attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
@@ -421,11 +433,9 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.KnightValue[US]++;
         if (TRACE) T.KnightPSQT32[relativeSquare32(sq, US)][US]++;
 
-        // Compute possible attacks and store off information for king safety
+        // Find and save possible attacks
         attacks = knightAttacks(sq);
-        ei->attackedBy2[US]        |= attacks & ei->attacked[US];
-        ei->attacked[US]           |= attacks;
-        ei->attackedBy[US][KNIGHT] |= attacks;
+        updateAttackTables(ei, US, KNIGHT, attacks);
 
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
@@ -447,13 +457,9 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         eval += KnightMobility[count];
         if (TRACE) T.KnightMobility[count][US]++;
 
-        // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
-        if (attacks) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
-        }
+        // Update King Safety threats
+        if ((attacks &= ei->kingAreas[THEM]))
+            updateKingSafety(ei, US, KNIGHT, attacks);
     }
 
     return eval;
@@ -486,11 +492,9 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.BishopValue[US]++;
         if (TRACE) T.BishopPSQT32[relativeSquare32(sq, US)][US]++;
 
-        // Compute possible attacks and store off information for king safety
+        // Find and save possible attacks
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[US]);
-        ei->attackedBy2[US]        |= attacks & ei->attacked[US];
-        ei->attacked[US]           |= attacks;
-        ei->attackedBy[US][BISHOP] |= attacks;
+        updateAttackTables(ei, US, BISHOP, attacks);
 
         // Apply a penalty for the bishop based on number of rammed pawns
         // of our own colour, which reside on the same shade of square as the bishop
@@ -518,13 +522,9 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         eval += BishopMobility[count];
         if (TRACE) T.BishopMobility[count][US]++;
 
-        // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
-        if (attacks) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
-        }
+        // Update King Safety threats
+        if ((attacks &= ei->kingAreas[THEM]))
+            updateKingSafety(ei, US, BISHOP, attacks);
     }
 
     return eval;
@@ -551,11 +551,9 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.RookValue[US]++;
         if (TRACE) T.RookPSQT32[relativeSquare32(sq, US)][US]++;
 
-        // Compute possible attacks and store off information for king safety
+        // Find and save possible attacks
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[US]);
-        ei->attackedBy2[US]      |= attacks & ei->attacked[US];
-        ei->attacked[US]         |= attacks;
-        ei->attackedBy[US][ROOK] |= attacks;
+        updateAttackTables(ei, US, ROOK, attacks);
 
         // Rook is on a semi-open file if there are no pawns of the rook's
         // colour on the file. If there are no pawns at all, it is an open file
@@ -578,13 +576,9 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         eval += RookMobility[count];
         if (TRACE) T.RookMobility[count][US]++;
 
-        // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
-        if (attacks) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[ROOK];
-        }
+        // Update King Safety threats
+        if ((attacks &= ei->kingAreas[THEM]))
+            updateKingSafety(ei, US, ROOK, attacks);
     }
 
     return eval;
@@ -609,25 +603,19 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenValue[US]++;
         if (TRACE) T.QueenPSQT32[relativeSquare32(sq, US)][US]++;
 
-        // Compute possible attacks and store off information for king safety
+        // Find and save possible attacks
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[US])
                 | bishopAttacks(sq, ei->occupiedMinusBishops[US]);
-        ei->attackedBy2[US]       |= attacks & ei->attacked[US];
-        ei->attacked[US]          |= attacks;
-        ei->attackedBy[US][QUEEN] |= attacks;
+        updateAttackTables(ei, US, QUEEN, attacks);
 
         // Apply a bonus (or penalty) based on the mobility of the queen
         count = popcount(ei->mobilityAreas[US] & attacks);
         eval += QueenMobility[count];
         if (TRACE) T.QueenMobility[count][US]++;
 
-        // Update for King Safety calculation
-        attacks = attacks & ei->kingAreas[THEM];
-        if (attacks) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
-        }
+        // Update King Safety threats
+        if ((attacks &= ei->kingAreas[THEM]))
+            updateKingSafety(ei, US, QUEEN, attacks);
     }
 
     return eval;
@@ -927,6 +915,7 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
 
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
+    ei->attackedBy2[WHITE] = ei->attackedBy2[BLACK] = 0ull;
 
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
