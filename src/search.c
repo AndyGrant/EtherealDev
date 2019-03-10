@@ -330,7 +330,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= NullRazorDepth
         &&  eval + NullRazorMargin < alpha
-        &&  thread->moveStack[height-1] == NULL_MOVE))
+        &&  thread->moveStack[height-1] == NULL_MOVE)
         return qsearch(thread, pv, alpha, beta, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
