@@ -366,7 +366,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
 
-        while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
+        int count = 0;
+
+        while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height))
@@ -380,6 +382,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             // Probcut failed high
             if (value >= rBeta) return value;
+
+            // Give up after a few moves
+            if (++count >= 3) break;
         }
     }
 
