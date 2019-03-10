@@ -330,7 +330,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= NullRazorDepth
         &&  eval + NullRazorMargin < alpha
-        &&  thread->moveStack[height-1] == NULL_MOVE) {
+        &&  thread->moveStack[height-1] == NULL_MOVE){
         value = qsearch(thread, pv, alpha, beta, height);
         if (value <= alpha) return value;
     }
