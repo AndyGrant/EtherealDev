@@ -430,7 +430,8 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
         if (     testBit(outpostRanksMasks(US), sq)
-            && !(outpostSquareMasks(US, sq) & enemyPawns)) {
+            && !(outpostSquareMasks(US, sq) & enemyPawns)
+            &&  (forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)] & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += KnightOutpost[defended];
             if (TRACE) T.KnightOutpost[defended][US]++;
@@ -501,7 +502,8 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus if the bishop is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (     testBit(outpostRanksMasks(US), sq)
-            && !(outpostSquareMasks(US, sq) & enemyPawns)) {
+            && !(outpostSquareMasks(US, sq) & enemyPawns)
+            &&  (forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)] & enemyPawns)) {
             defended = testBit(ei->pawnAttacks[US], sq);
             eval += BishopOutpost[defended];
             if (TRACE) T.BishopOutpost[defended][US]++;
