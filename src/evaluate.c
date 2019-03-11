@@ -340,6 +340,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     int sq, flag, eval = 0, pkeval = 0;
     uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
 
+    // Find and save possible attacks
+    updateAttackTables(ei, US, PAWN, ei->pawnAttacks[US]);
+
     // Update attacker counts for King Safety computation
     attacks = ei->attackedBy[US][PAWN] & ei->kingAreas[THEM];
     ei->kingAttacksCount[US] += popcount(attacks);
@@ -391,7 +394,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is backward
         if (   !(passedPawnMasks(THEM, sq) & myPawns)
-            &&  (testBit(ei->attackedBy[THEM][PAWN], sq + Forward))) {
+            &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag];
             if (TRACE) T.PawnBackwards[flag][US]++;
@@ -883,24 +886,21 @@ void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable){
     uint64_t whitePawns = white & pawns;
     uint64_t blackPawns = black & pawns;
 
-    ei->kingSquare[WHITE] = getlsb(white & kings);
-    ei->kingSquare[BLACK] = getlsb(black & kings);
-
     for (int colour = WHITE; colour <= BLACK; colour++)
         for (int piece = PAWN; piece <= KING; piece++)
             ei->attackedBy[colour][piece] = 0ull;
 
-    ei->attackedBy[WHITE][PAWN] = pawnAttackSpan(whitePawns, ~0ull, WHITE);
-    ei->attackedBy[BLACK][PAWN] = pawnAttackSpan(blackPawns, ~0ull, BLACK);
+    ei->kingSquare[WHITE] = getlsb(white & kings);
+    ei->kingSquare[BLACK] = getlsb(black & kings);
 
-    ei->attackedBy[WHITE][KING] = kingAttacks(ei->kingSquare[WHITE]);
-    ei->attackedBy[BLACK][KING] = kingAttacks(ei->kingSquare[BLACK]);
+    ei->attacked[WHITE] = ei->attackedBy2[WHITE] = 0ull;
+    ei->attacked[BLACK] = ei->attackedBy2[BLACK] = 0ull;
 
-    ei->attacked[WHITE] = ei->attackedBy[WHITE][PAWN] | ei->attackedBy[WHITE][KING];
-    ei->attacked[BLACK] = ei->attackedBy[BLACK][PAWN] | ei->attackedBy[BLACK][KING];
+    updateAttackTables(ei, WHITE, KING, kingAttacks(ei->kingSquare[WHITE]));
+    updateAttackTables(ei, BLACK, KING, kingAttacks(ei->kingSquare[BLACK]));
 
-    ei->attackedBy2[WHITE] = ei->attackedBy[WHITE][PAWN] & ei->attackedBy[WHITE][KING];
-    ei->attackedBy2[BLACK] = ei->attackedBy[BLACK][PAWN] & ei->attackedBy[BLACK][KING];
+    ei->pawnAttacks[WHITE] = pawnAttackSpan(whitePawns, ~0ull, WHITE);
+    ei->pawnAttacks[BLACK] = pawnAttackSpan(blackPawns, ~0ull, BLACK);
 
     ei->rammedPawns[WHITE] = pawnAdvance(blackPawns, ~whitePawns, BLACK);
     ei->rammedPawns[BLACK] = pawnAdvance(whitePawns, ~blackPawns, WHITE);
@@ -911,8 +911,8 @@ void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable){
     ei->kingAreas[WHITE] = kingAreaMasks(WHITE, ei->kingSquare[WHITE]);
     ei->kingAreas[BLACK] = kingAreaMasks(BLACK, ei->kingSquare[BLACK]);
 
-    ei->mobilityAreas[WHITE] = ~(ei->attackedBy[BLACK][PAWN] | (white & kings) | ei->blockedPawns[WHITE]);
-    ei->mobilityAreas[BLACK] = ~(ei->attackedBy[WHITE][PAWN] | (black & kings) | ei->blockedPawns[BLACK]);
+    ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
+    ei->mobilityAreas[BLACK] = ~(ei->pawnAttacks[WHITE] | (black & kings) | ei->blockedPawns[BLACK]);
 
     ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & (bishops | queens));
     ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & (bishops | queens));
