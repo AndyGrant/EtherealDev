@@ -419,8 +419,6 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[US  ];
 
-    ei->attackedBy[US][KNIGHT] = 0ull;
-
     // Evaluate each knight
     while (tempKnights) {
 
@@ -471,8 +469,6 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
     uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempBishops = board->pieces[BISHOP] & board->colours[US  ];
-
-    ei->attackedBy[US][BISHOP] = 0ull;
 
     // Apply a bonus for having a pair of bishops
     if ((tempBishops & WHITE_SQUARES) && (tempBishops & BLACK_SQUARES)) {
@@ -537,8 +533,6 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
     uint64_t enemyPawns = board->pieces[PAWN] & board->colours[THEM];
     uint64_t tempRooks  = board->pieces[ROOK] & board->colours[  US];
 
-    ei->attackedBy[US][ROOK] = 0ull;
-
     // Evaluate each rook
     while (tempRooks) {
 
@@ -585,11 +579,9 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
 
     int sq, count, eval = 0;
-    uint64_t tempQueens, attacks;
+    uint64_t attacks;
 
-    tempQueens = board->pieces[QUEEN] & board->colours[US];
-
-    ei->attackedBy[US][QUEEN] = 0ull;
+    uint64_t tempQueens = board->pieces[QUEEN] & board->colours[US];
 
     // Evaluate each queen
     while (tempQueens) {
@@ -891,14 +883,18 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     uint64_t whitePawns = white & pawns;
     uint64_t blackPawns = black & pawns;
 
-    int wKingSq = ei->kingSquare[WHITE] = getlsb(white & kings);
-    int bKingSq = ei->kingSquare[BLACK] = getlsb(black & kings);
+    ei->kingSquare[WHITE] = getlsb(white & kings);
+    ei->kingSquare[BLACK] = getlsb(black & kings);
+
+    for (int colour = WHITE; colour <= BLACK; colour++)
+        for (int piece = PAWN; piece <= KING; piece++)
+            ei->attackedBy[colour][piece] = 0ull;
 
     ei->attackedBy[WHITE][PAWN] = pawnAttackSpan(whitePawns, ~0ull, WHITE);
     ei->attackedBy[BLACK][PAWN] = pawnAttackSpan(blackPawns, ~0ull, BLACK);
 
-    ei->attackedBy[WHITE][KING] = kingAttacks(wKingSq);
-    ei->attackedBy[BLACK][KING] = kingAttacks(bKingSq);
+    ei->attackedBy[WHITE][KING] = kingAttacks(ei->kingSquare[WHITE]);
+    ei->attackedBy[BLACK][KING] = kingAttacks(ei->kingSquare[BLACK]);
 
     ei->attacked[WHITE] = ei->attackedBy[WHITE][PAWN] | ei->attackedBy[WHITE][KING];
     ei->attacked[BLACK] = ei->attackedBy[BLACK][PAWN] | ei->attackedBy[BLACK][KING];
@@ -912,8 +908,8 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~whitePawns, BLACK);
     ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~blackPawns, WHITE);
 
-    ei->kingAreas[WHITE] = kingAreaMasks(WHITE, wKingSq);
-    ei->kingAreas[BLACK] = kingAreaMasks(BLACK, bKingSq);
+    ei->kingAreas[WHITE] = kingAreaMasks(WHITE, ei->kingSquare[WHITE]);
+    ei->kingAreas[BLACK] = kingAreaMasks(BLACK, ei->kingSquare[BLACK]);
 
     ei->mobilityAreas[WHITE] = ~(ei->attackedBy[BLACK][PAWN] | (white & kings) | ei->blockedPawns[WHITE]);
     ei->mobilityAreas[BLACK] = ~(ei->attackedBy[WHITE][PAWN] | (black & kings) | ei->blockedPawns[BLACK]);
