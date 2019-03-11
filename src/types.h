@@ -87,6 +87,7 @@ static inline int makePiece(int pt, int c) {
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
+#define BOUND(A, B, X) (MAX(A, MIN(B, X)))
 
 // Forward definition of all structs
 

@@ -57,7 +57,7 @@ void initTimeManagment(SearchInfo* info, Limits* limits){
 
     info->startTime = limits->start; // Save off the start time of the search
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    info->scoreFactor = info->pvFactor = 0; // Clear our stability heuristics
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf){
@@ -96,42 +96,31 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     const uint16_t lastMove = info->bestMoves[depth-1];
     const int lastValue     = info->values[depth-1];
 
-    // Don't adjust time when we are at low depths, or if
-    // we simply are not in control of our own time usage
-    if (!limits->limitedBySelf || depth < 4)
-        return;
+    // Only adjust after a few depths when running the clock
+    if (!limits->limitedBySelf || depth < 4) return;
 
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 10)
-        info->idealUsage *= 1.050;
+    // Alway scale back the Score time factor
+    info->scoreFactor = MAX(0, info->scoreFactor - 1);
 
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 20)
-        info->idealUsage *= 1.050;
+    // Add up to 6 to the factor for a score drop
+    info->scoreFactor += BOUND(0, 6, (lastValue - value) /  8);
 
-    // Increase our time if the score suddenly dropped
-    if (lastValue > value + 40)
-        info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 15 < value)
-        info->idealUsage *= 1.025;
-
-    // Increase our time if the score suddenly jumps
-    if (lastValue + 30 < value)
-        info->idealUsage *= 1.050;
+    // Add up to 3 to the factor for a score jump
+    info->scoreFactor += BOUND(0, 3, (value - lastValue) / 15);
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
 
-    // Increase time if the PV changed moves
-    if (thisMove != lastMove)
-        info->pvFactor = PVFactorCount;
+    // Reset the PV factor if the PV move changed
+    if (thisMove != lastMove) info->pvFactor = PVFactorCount;
 }
 
 int terminateTimeManagment(SearchInfo* info) {
 
     double cutoff = info->idealUsage;
+
+    // Adjust cutoff based on score fluctuations
+    cutoff *= 1.00 + info->scoreFactor * ScoreFactorWeight;
 
     // Adjust cutoff based on bestmove fluctuations
     cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
