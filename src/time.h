@@ -31,6 +31,6 @@ int terminateSearchEarly(Thread *thread);
 static const double PVFactorCount  = 8;
 static const double PVFactorWeight = 0.085;
 
-static const double ScoreFactorWeight = 0.04;
+static const double ScoreFactorWeight = 0.02;
 
 #endif
