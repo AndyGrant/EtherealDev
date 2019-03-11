@@ -100,13 +100,13 @@ void updateTimeManagment(SearchInfo* info, Limits* limits, int depth, int value)
     if (!limits->limitedBySelf || depth < 4) return;
 
     // Alway scale back the Score time factor
-    info->scoreFactor = MAX(0, info->scoreFactor - 1);
+    // info->scoreFactor = MAX(0, info->scoreFactor - 1);
 
     // Add up to 6 to the factor for a score drop
-    info->scoreFactor += 2 * BOUND(0, 6, (lastValue - value) /  8);
+    info->scoreFactor += BOUND(0, 3, (lastValue - value) / 10);
 
     // Add up to 3 to the factor for a score jump
-    info->scoreFactor += 2 * BOUND(0, 3, (value - lastValue) / 15);
+    info->scoreFactor += BOUND(0, 3, (value - lastValue) / 15);
 
     // Always scale back the PV time factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
