@@ -715,7 +715,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
+int evaluatePassedPawns(EvalInfo *ei, Board *board, int colour){
 
     const int US = colour, THEM = !colour;
 
@@ -870,7 +870,7 @@ int evaluateScaleFactor(Board *board) {
     return SCALE_NORMAL;
 }
 
-void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
+void initializeEvalInfo(EvalInfo *ei, Board *board, PawnKingTable *pktable){
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
