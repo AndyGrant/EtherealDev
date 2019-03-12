@@ -128,6 +128,8 @@ const int RookMobility[15] = {
 
 /* Queen Evaluation Terms */
 
+const int QueenRookSynergy = S(  -2,  18);
+
 const int QueenMobility[28] = {
     S( -61,-263), S(-211,-387), S( -60,-202), S( -25,-192),
     S( -13,-141), S(  -8, -90), S(  -2, -62), S(  -3, -35),
@@ -615,6 +617,12 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
+
+        // Apply a bonus for working with a friendly rook
+        if (attacks & board->colours[US] & board->pieces[ROOK]) {
+            if (TRACE) T.QueenRookSynergy[US]++;
+            eval += QueenRookSynergy;
+        }
 
         // Apply a bonus (or penalty) based on the mobility of the queen
         count = popcount(ei->mobilityAreas[US] & attacks);

@@ -57,6 +57,7 @@ struct EvalTrace {
     int RookFile[2][COLOUR_NB];
     int RookOnSeventh[COLOUR_NB];
     int RookMobility[15][COLOUR_NB];
+    int QueenRookSynergy[COLOUR_NB];
     int QueenMobility[28][COLOUR_NB];
     int KingDefenders[12][COLOUR_NB];
     int KingShelter[2][8][8][COLOUR_NB];
