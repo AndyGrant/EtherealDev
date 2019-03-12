@@ -128,7 +128,7 @@ const int RookMobility[15] = {
 
 /* Queen Evaluation Terms */
 
-const int QueenRookSynergy = S(  -2,  18);
+const int QueenRookSynergy = S(  -4,  26);
 
 const int QueenMobility[28] = {
     S( -61,-263), S(-211,-387), S( -60,-202), S( -25,-192),
