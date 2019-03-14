@@ -373,7 +373,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is isolated. Ignore passed pawns
         // that are isolated. evaluatePassedPawns() will handle this case
-        if (stoppers && !(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
+        if (!(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
