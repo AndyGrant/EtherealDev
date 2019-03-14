@@ -238,6 +238,8 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S( -27,  36);
 
+const int PassedIsolatedPawn;
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -14, -28);
@@ -369,8 +371,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
         }
 
-        // Apply a penalty if the pawn is isolated
-        if (!(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
+        // Apply a penalty if the pawn is isolated. Ignore passed pawns
+        // that are isolated. evaluatePassedPawns() will handle this case
+        if (stoppers && !(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
@@ -747,6 +750,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
+    uint64_t myRooks   = board->colours[US] & board->pieces[PAWN];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
 
     // Evaluate each passed pawn
@@ -778,6 +782,12 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a penalty for having no pawn or tarrasch support
+        bitboard = ~forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
+        flag = !(testBit(ei->pawnAttacks[US], sq) || (bitboard & myRooks));
+        eval += flag * PassedIsolatedPawn;
+        if (TRACE) T.PassedIsolatedPawn[US] += flag;
     }
 
     return eval;
