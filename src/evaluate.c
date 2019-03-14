@@ -238,7 +238,7 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S( -26,  35);
 
-const int PassedIsolatedPawn = S(  -4,  -7);
+const int PassedIsolatedPawn[2];
 
 /* Threat Evaluation Terms */
 
@@ -786,8 +786,8 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // Apply a penalty for having no pawn or tarrasch support
         bitboard = ~forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
         flag = !(testBit(ei->pawnAttacks[US], sq) || (bitboard & myRooks));
-        eval += flag * PassedIsolatedPawn;
-        if (TRACE) T.PassedIsolatedPawn[US] += flag;
+        eval += PassedIsolatedPawn[flag];
+        if (TRACE) T.PassedIsolatedPawn[US][flag]++;
     }
 
     return eval;

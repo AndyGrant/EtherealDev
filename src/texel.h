@@ -25,7 +25,7 @@
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (     10) // How often to report progress
-#define NTERMS      (     67) // Total terms in the tuner
+#define NTERMS      (     68) // Total terms in the tuner
 
 #define LEARNING    (    0.1) // Learning rate
 #define LRDROPRATE  (      1) // Cut LR by this each failure
@@ -230,7 +230,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, PassedFriendlyDistance, 8);                 \
     ENABLE_1(fname, PassedEnemyDistance, 8);                    \
     ENABLE_0(fname, PassedSafePromotionPath);                   \
-    ENABLE_0(fname, PassedIsolatedPawn);                        \
+    ENABLE_1(fname, PassedIsolatedPawn, 2);                     \
     ENABLE_0(fname, ThreatWeakPawn);                            \
     ENABLE_0(fname, ThreatMinorAttackedByPawn);                 \
     ENABLE_0(fname, ThreatMinorAttackedByMinor);                \
