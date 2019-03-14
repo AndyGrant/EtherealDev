@@ -56,12 +56,14 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         // Update Butterfly History
         entry = thread->history[colour][from][to];
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+        assert(-32768 <= entry && entry <= 32767);
         thread->history[colour][from][to] = entry;
 
         // Update Counter Move History
         if (counter != NONE_MOVE && counter != NULL_MOVE) {
             entry = thread->continuation[0][cmPiece][cmTo][piece][to];
             entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+            assert(-32768 <= entry && entry <= 32767);
             thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
         }
 
@@ -69,6 +71,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         if (follow != NONE_MOVE && follow != NULL_MOVE) {
             entry = thread->continuation[1][fmPiece][fmTo][piece][to];
             entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+            assert(-32768 <= entry && entry <= 32767);
             thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
         }
     }
