@@ -399,8 +399,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Step 12A. Futility Pruning. If our score is far below alpha, and we
             // don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
-                && eval + MAX(0, FutilityMargin * (depth + MAX(-2, MIN(2, (hist + cmhist + fmhist) / 10000)))) <= alpha
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && eval + MAX(0, FutilityMargin * (depth + MAX(-2, MIN(2, (hist + cmhist + fmhist) / 10000)))) <= alpha)
                 skipQuiets = 1;
 
             // Step 12B. Late Move Pruning / Move Count Pruning. If we have
