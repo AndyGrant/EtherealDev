@@ -454,6 +454,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
+            // Reduce for some in check nodes
+            R -= inCheck && hist + cmhist + fmhist > 0;
+
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
@@ -478,7 +481,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // an early move has excellent continuation history, or when we have a move
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
-        extension =  (inCheck)
+        extension =  (inCheck && (!isQuiet || played == 1))
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
