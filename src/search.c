@@ -465,7 +465,18 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
 
-        } else R = 1;
+        }
+
+        else if (!isQuiet && depth > 2 && played > 1 && movePicker.stage == STAGE_BAD_NOISY) {
+
+            R = 1 + !improving + !PvNode;
+
+            // Don't extend or drop into QS
+            R  = MIN(depth - 1, MAX(R, 1));
+
+        }
+
+        else R = 1;
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
