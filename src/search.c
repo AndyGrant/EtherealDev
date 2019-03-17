@@ -469,7 +469,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         else if (!isQuiet && depth > 2 && played > 1 && movePicker.stage == STAGE_BAD_NOISY) {
 
-            R = LMRTable[MIN(depth, 63)][MIN(played, 63)] / 2;
+            R = LMRTable[MIN(depth, 63)][MIN(played, 63)] / 3;
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
