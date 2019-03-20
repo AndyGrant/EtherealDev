@@ -442,7 +442,26 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Update counter of moves actually played
         played += 1;
 
-        // Step 14. Late Move Reductions. Compute the reduction,
+        // Identify moves which are candidate singular moves
+        singular =  !RootNode
+                 &&  depth >= 8
+                 &&  move == ttMove
+                 &&  ttDepth >= depth - 2
+                 && (ttBound & BOUND_LOWER);
+
+        // Step 14. Extensions. Search an additional ply when we are in check, when
+        // an early move has excellent continuation history, or when we have a move
+        // from the transposition table which appears to beat all other moves by a
+        // relativly large margin,
+        extension =  (inCheck)
+                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
+
+
+        // Factor the extension into the new depth. Do not extend at the root
+        newDepth = depth + (extension && !RootNode);
+
+        // Step 15. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
@@ -463,27 +482,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
 
             // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
+            R  = MIN(newDepth - 1, MAX(R, 1));
 
         } else R = 1;
-
-        // Identify moves which are candidate singular moves
-        singular =  !RootNode
-                 &&  depth >= 8
-                 &&  move == ttMove
-                 &&  ttDepth >= depth - 2
-                 && (ttBound & BOUND_LOWER);
-
-        // Step 15. Extensions. Search an additional ply when we are in check, when
-        // an early move has excellent continuation history, or when we have a move
-        // from the transposition table which appears to beat all other moves by a
-        // relativly large margin,
-        extension =  (inCheck)
-                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
-                  || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
-
-        // Factor the extension into the new depth. Do not extend at the root
-        newDepth = depth + (extension && !RootNode);
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
