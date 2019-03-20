@@ -475,11 +475,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                  && (ttBound & BOUND_LOWER);
 
         // Step 15. Extensions. Search an additional ply when we are in check, when
-        // an early move has excellent continuation history, or when we have a move
-        // from the transposition table which appears to beat all other moves by a
-        // relativly large margin,
+        // a move has excellent continuation history, or when we have a move from the
+        // transposition table which appears to beat all other moves by a large margin
         extension =  (inCheck)
-                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (isQuiet && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
         // Factor the extension into the new depth. Do not extend at the root
@@ -488,7 +487,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, depth-R, height+1);
 
         // Step 16B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
