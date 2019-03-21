@@ -454,7 +454,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non improving nodes
             R += !improving;
 
-            R -= inCheck
+            R -= inCheck;
 
             R -= cmhist >= 10000 && fmhist >= 10000;
 
