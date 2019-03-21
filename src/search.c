@@ -314,6 +314,15 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     thread->killers[height+1][0] = NONE_MOVE;
     thread->killers[height+1][1] = NONE_MOVE;
 
+
+    int foobar = eval;
+
+    if (ttHit && ttValue != VALUE_NONE)
+        if (    ttBound == BOUND_EXACT
+            || (ttBound == BOUND_LOWER && ttValue >= eval)
+            || (ttBound == BOUND_UPPER && ttValue <= eval))
+            foobar = ttValue;
+
     // Step 7. Razoring. If a Quiescence Search for the current position
     // still falls way below alpha, we will assume that the score from
     // the Quiescence search was sufficient.
@@ -328,8 +337,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  foobar - BetaMargin * depth > beta)
+        return foobar;
 
     // Step 9. Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
