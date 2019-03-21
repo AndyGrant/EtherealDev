@@ -373,7 +373,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                 continue;
 
             // Perform a reduced depth verification search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4+inCheck, height+1);
 
             // Revert the board state
             revert(thread, board, move, height);
