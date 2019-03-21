@@ -329,7 +329,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= RazorDepth
-        &&  eval + RazorMargin < alpha)
+        &&  foobar + RazorMargin < alpha)
         return qsearch(thread, pv, alpha, beta, height);
 
     // Step 8. Beta Pruning / Reverse Futility Pruning / Static Null
@@ -337,8 +337,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  foobar - BetaMargin * depth > beta)
-        return foobar;
+        &&  eval - BetaMargin * depth > beta)
+        return eval;
 
     // Step 9. Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
