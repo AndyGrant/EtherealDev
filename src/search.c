@@ -485,11 +485,14 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // Factor the extension into the new depth. Do not extend at the root
         newDepth = depth + (extension && !RootNode) - 1;
 
-        value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
-        if (R && value > alpha)
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth, height+1);
+        if (played > 1) {
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
 
-        if (value > alpha && value < beta)
+            if (R && value > alpha)
+                value = -search(thread, &lpv, -alpha-1, -alpha, newDepth, height+1);
+        }
+
+        if (played == 1 || (value > alpha && value < beta))
             value = -search(thread, &lpv, -beta, -alpha, newDepth, height+1);
 
         // Revert the board state
