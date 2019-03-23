@@ -537,7 +537,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 19. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove))
-        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
+        updateHistoryHeuristics(thread, quietsTried, quiets, height, (depth+PvNode)*(depth+PvNode));
 
     // Step 20. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
