@@ -214,7 +214,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         return qsearch(thread, pv, alpha, beta, height);
 
     // Ensure positive depth
-    depth = MAX(0, depth);
+    depth = MAX(1, depth);
 
     // Updates for UCI reporting
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
@@ -253,7 +253,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)){
+        if (ttDepth >= depth && !PvNode){
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
@@ -304,7 +304,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     futilityMargin = eval + FutilityMargin * depth;
 
     // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
+    seeMargin[0] = SEENoisyMargin * depth * (depth - 1);
     seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
@@ -410,7 +410,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quiets >= LateMovePruningCounts[improving][depth])
+                && quiets >= LateMovePruningCounts[improving||inCheck][depth])
                 skipQuiets = 1;
 
             // Step 12C. Counter Move Pruning. Moves with poor counter
@@ -478,7 +478,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // an early move has excellent continuation history, or when we have a move
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
-        extension =  (inCheck)
+        extension =  (inCheck && !skipQuiets)
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
