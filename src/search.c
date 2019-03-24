@@ -397,7 +397,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // After trying a handful of quiets from a checked position, we
         // adjust the SEE margin to no longer allow material sacrifices
-        if (isQuiet && !PvNode && inCheck && quiets > depth)
+        if (isQuiet && && inCheck && quiets > 2 * depth)
             seeMargin[isQuiet] = 0;
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
