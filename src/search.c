@@ -393,6 +393,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))){
             quietsTried[quiets++] = move;
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
+
+            if (inCheck && quiets == depth + 1)
+                seeMargin[isQuiet] = MAX(0, SEEQuietMargin * (depth - 1));
         }
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
