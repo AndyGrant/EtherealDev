@@ -81,7 +81,7 @@ static const int RazorDepth = 1;
 static const int RazorMargin = 325;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 85;
+static const int BetaMargin = 75;
 
 static const int NullMovePruningDepth = 2;
 
