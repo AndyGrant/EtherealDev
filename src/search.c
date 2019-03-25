@@ -460,7 +460,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
                   + -7500 * !improving
                   + hist + cmhist + fmhist;
 
-            R -= MAX(-L, MIN(U, H / 6000));
+            R -= MAX(-L, MIN(U, H / 7500));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
