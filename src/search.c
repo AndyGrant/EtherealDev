@@ -501,7 +501,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
-        if (PvNode && (played == 1 || value > alpha))
+        if (PvNode && (played == 1 || (value > alpha && value < beta)))
             value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
 
         // Revert the board state
