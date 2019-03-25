@@ -448,19 +448,19 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Increase for non PV nodes
-            R += !PvNode;
-
-            // Increase for non improving nodes
-            R += !improving;
-
             // Reduce for Killers and Counters
             R -= move == movePicker.killer1
               || move == movePicker.killer2
               || move == movePicker.counter;
 
-            // Adjust based on history
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+            int L = 2 + !PvNode + !improving;
+            int U = 2 + (PvNode && improving);
+
+            int H = -5000 * !PvNode
+                  + -5000 * !improving
+                  + hist + cmhist + fmhist;
+
+            R -= MAX(-L, MIN(U, H / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
