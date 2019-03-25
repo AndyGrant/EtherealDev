@@ -456,11 +456,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             int L = 2 + !PvNode + !improving;
             int U = 2 + (PvNode && improving);
 
-            int H = -5000 * !PvNode
-                  + -5000 * !improving
+            int H = -7500 * !PvNode
+                  + -7500 * !improving
                   + hist + cmhist + fmhist;
 
-            R -= MAX(-L, MIN(U, H / 5000));
+            R -= MAX(-L, MIN(U, H / 6000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
