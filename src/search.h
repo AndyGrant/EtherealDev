@@ -98,10 +98,10 @@ static const int CounterMoveHistoryLimit[] = { 0, -1000 };
 static const int FollowUpMovePruningDepth[] = { 3, 2 };
 static const int FollowUpMoveHistoryLimit[] = { -2000, -4000 };
 
-static const int LateMovePruningDepth = 8;
-static const int LateMovePruningCounts[2][9] = {
-    {  0,  3,  4,  6, 10, 14, 19, 25, 31},
-    {  0,  5,  7, 11, 17, 26, 36, 48, 63},
+static const int LateMovePruningDepth = 12;
+static const int LateMovePruningCounts[2][13] = {
+    {  0,  3,  4,  6, 10, 14, 19, 25, 31, 38, 46, 55, 65},
+    {  0,  5,  7, 11, 17, 26, 36, 48, 63, 80, 99, 99, 99},
 };
 
 static const int SEEPruningDepth = 8;
