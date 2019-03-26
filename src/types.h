@@ -46,7 +46,7 @@ enum {
 
 enum {
     WHITE_OO_MAP  = ((1ull <<  5) | (1ull <<  6)),
-    WHITE_OOO_MAP = ((1ull <<  1) | (1ull <<  2) | (1ull <<  2)),
+    WHITE_OOO_MAP = ((1ull <<  1) | (1ull <<  2) | (1ull <<  3)),
     BLACK_OO_MAP  = ((1ull << 61) | (1ull << 62)),
     BLACK_OOO_MAP = ((1ull << 57) | (1ull << 58) | (1ull << 59))
 };
