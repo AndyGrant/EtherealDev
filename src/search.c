@@ -200,7 +200,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
+    int eval, value = -MATE, best = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
 
@@ -300,9 +300,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     eval = thread->evalStack[height] = ttHit && ttEval != VALUE_NONE ? ttEval
                                      : evaluateBoard(board, &thread->pktable);
 
-    // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * depth;
-
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
     seeMargin[1] = SEEQuietMargin * depth;
@@ -399,11 +396,12 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > MATED_IN_MAX) {
 
+            int sum = hist + cmhist + fmhist;
+
             // Step 12A. Futility Pruning. If our score is far below alpha, and we
             // don't expect anything from this move, we can skip all other quiets
-            if (   futilityMargin <= alpha
-                && depth <= FutilityPruningDepth
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+            if (   depth <= FutilityPruningDepth
+                && eval + FutilityMargin * (depth + (sum > 5000) + (sum > 10000)) < alpha)
                 skipQuiets = 1;
 
             // Step 12B. Late Move Pruning / Move Count Pruning. If we have
