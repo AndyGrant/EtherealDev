@@ -301,7 +301,7 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
             && !squareIsAttacked(board, BLACK, 61))
             moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE);
 
-        if (  ((occupied & BLACK_OOO_RIGHTS) == 0)
+        if (  ((occupied & BLACK_OOO_MAP) == 0)
             && (board->castleRights & BLACK_OOO_RIGHTS)
             && !squareIsAttacked(board, BLACK, 59))
             moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE);
