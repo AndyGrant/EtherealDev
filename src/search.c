@@ -328,7 +328,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta
-        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta))
+        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta + depth * BetaMargin))
         return eval;
 
     // Step 9. Null Move Pruning. If our position is so good that giving
