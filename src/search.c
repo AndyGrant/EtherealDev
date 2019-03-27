@@ -340,8 +340,6 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  depth >= NullMovePruningDepth
         &&  eval >= beta
         &&  hasNonPawnMaterial(board, board->turn)
-        &&  thread->moveStack[height-1] != NULL_MOVE
-        &&  thread->moveStack[height-2] != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
@@ -350,7 +348,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
         revert(thread, board, NULL_MOVE, height);
 
-        if (value >= beta) return beta;
+        if (value >= beta)
+            return beta;
+
+        if (thread->moveStack[height-1] == NULL_MOVE)
+            return alpha;
     }
 
     // Step 10. Probcut Pruning. If we have a good capture that causes a cutoff
