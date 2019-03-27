@@ -478,6 +478,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
         extension =  (inCheck)
+                  || (PvNode && movePicker.stage == STAGE_GOOD_NOISY)
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
