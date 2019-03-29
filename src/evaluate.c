@@ -273,8 +273,8 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
     phase = (phase * 256 + 12) / 24;
 
     // Compute the interpolated and scaled evaluation
-    eval = ScoreMG(eval) * (256 - phase)
-         + ScoreEG(eval) * phase / 256;
+    eval = (ScoreMG(eval) * (256 - phase)
+          + ScoreEG(eval) * phase) / 256;
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
