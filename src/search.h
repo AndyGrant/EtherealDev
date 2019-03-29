@@ -86,7 +86,7 @@ static const int BetaMargin = 85;
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 130;
 
 static const int FutilityMargin = 90;
 static const int FutilityPruningDepth = 8;
