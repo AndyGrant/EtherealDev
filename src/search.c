@@ -361,20 +361,16 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  abs(beta) < MATE_IN_MAX
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
 
+        int R = 4 + (eval > beta + ProbCutMargin);
+
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
-
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE){
 
-            // Apply move, skip if move is illegal
-            if (!apply(thread, board, move, height))
-                continue;
-
             // Perform a reduced depth verification search
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
-
-            // Revert the board state
+            if (!apply(thread, board, move, height)) continue;
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-R, height+1);
             revert(thread, board, move, height);
 
             // Probcut failed high
