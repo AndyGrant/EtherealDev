@@ -361,7 +361,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         &&  abs(beta) < MATE_IN_MAX
         &&  eval + bestTacticalMoveValue(board) >= beta + ProbCutMargin){
 
-        int R = 4 + (eval > beta + ProbCutMargin);
+        R = 4 + (eval > beta + ProbCutMargin);
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
