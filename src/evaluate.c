@@ -210,6 +210,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSDefenders       =  -10;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -653,11 +654,6 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.KingValue[US]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
 
-    // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[US]);
-    eval += KingDefenders[count];
-    if (TRACE) T.KingDefenders[count][US]++;
-
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
@@ -701,6 +697,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
+               + KSDefenders       * popcount(myDefenders)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
