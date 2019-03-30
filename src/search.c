@@ -804,7 +804,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
     Board* const board = &thread->board;
 
-    uint16_t move;
+    uint16_t move, quietsTried[MAX_MOVES];
     int skipQuiets = 0, quiets = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     MovePicker movePicker;
@@ -825,13 +825,20 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
         revert(thread, board, move, height);
 
-        // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
+        // Track quiet moves played that are played
+        if (!moveIsTactical(board, move))
+            quietsTried[quiets++] = move;
 
         // Start skipping quiets at a certain point
-        quiets += !moveIsTactical(board, move);
         skipQuiets = quiets >= SingularQuietLimit;
+
+        // Move failed high, thus ttMove is not singular
+        if (value > rBeta) break;
     }
+
+    // Update histories when we refute the singular move
+    if (value > rBeta && !moveIsTactical(board, move))
+        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth/4);
 
     // Reapply the table move we took off
     apply(thread, board, ttMove, height);
