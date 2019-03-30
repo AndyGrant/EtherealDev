@@ -829,7 +829,7 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
         if (value > rBeta) break;
 
         quiets += !moveIsTactical(board, move);
-        skipQuiets = quiets >= depth / 2;
+        skipQuiets = quiets >= 6;
     }
 
     // Reapply the table move we took off
