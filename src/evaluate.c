@@ -690,6 +690,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
+        uint64_t safeChecks   = knightChecks | bishopChecks | rookChecks | queenChecks;
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -701,6 +702,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
+               + 25                * popcount(safeChecks & ei->kingAreas[US])
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
