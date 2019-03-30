@@ -804,10 +804,9 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
 
     Board* const board = &thread->board;
 
-    int value = -MATE;
-    int rBeta = MAX(ttValue - depth, -MATE);
-
     uint16_t move;
+    int skipQuiets = 0, quiets = 0;
+    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
@@ -816,23 +815,21 @@ int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int 
 
     // Iterate and check all moves other than the table move
     initMovePicker(&movePicker, thread, NONE_MOVE, height);
-    while ((move = selectNextMove(&movePicker, board, 0)) != NONE_MOVE){
+    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
 
         // Skip the table move
         if (move == ttMove) continue;
 
-        // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
-            continue;
-
         // Perform a reduced depth search on a null rbeta window
+        if (!apply(thread, board, move, height)) continue;
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
-
-        // Revert board state
         revert(thread, board, move, height);
 
         // Move failed high, thus ttMove is not singular
         if (value > rBeta) break;
+
+        quiets += !moveIsTactical(board, move);
+        skipQuiets = quiets >= depth / 2;
     }
 
     // Reapply the table move we took off
