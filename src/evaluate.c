@@ -867,27 +867,30 @@ int evaluateScaleFactor(Board *board) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
 
+    int imbalance, weights;
+
     if (    onlyOne(white & bishops)
         &&  onlyOne(black & bishops)
         &&  onlyOne(bishops & WHITE_SQUARES)) {
 
-        if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
+        // OCB but there exists an imbalance in material
+        if (   popcount(white & knights) != popcount(black & knights)
+            || popcount(white & rooks  ) != popcount(black & rooks  )
+            || popcount(white & queens ) != popcount(black & queens))
+            return SCALE_NORMAL;
 
-        if (   !(rooks | queens)
-            &&  onlyOne(white & knights)
-            &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
+        imbalance = (1 + abs(popcount(white & pawns) - popcount(black & pawns)));
 
-        if (   !(knights | queens)
-            && onlyOne(white & rooks)
-            && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
+        weights = popcount(knights) + popcount(rooks) + popcount(queens);
+
+        return MIN(SCALE_NORMAL, SCALE_OCB + imbalance * weights);
+
     }
 
     return SCALE_NORMAL;

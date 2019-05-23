@@ -22,10 +22,11 @@
 #include "types.h"
 
 enum {
-    SCALE_OCB_BISHOPS_ONLY =  64,
-    SCALE_OCB_ONE_KNIGHT   = 106,
-    SCALE_OCB_ONE_ROOK     =  96,
-    SCALE_NORMAL           = 128,
+    SCALE_OCB     =  64,
+    SCALE_NORMAL  = 128,
+    WEIGHT_KNIGHT =  12,
+    WEIGHT_ROOK   =   8,
+    WEIGHT_QUEEN  =   6,
 };
 
 struct EvalTrace {
