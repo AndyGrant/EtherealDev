@@ -115,6 +115,6 @@ static const int SEEPieceValues[] = {
 static const int QSEEMargin = 1;
 static const int QFutilityMargin = 100;
 
-static const int SingularQuietLimit[] = { 5, 10 };
+static const int SingularQuietLimit[] = { 8, 4 };
 
 #endif
