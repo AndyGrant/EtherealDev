@@ -468,7 +468,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // relativly large margin,
         extension =  (inCheck)
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
-                  || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
+                  || (singular && moveIsSingular(thread, ttMove, ttValue, PvNode, depth, height));
 
         // Factor the extension into the new depth. Do not extend at the root
         newDepth = depth + (extension && !RootNode);
@@ -779,7 +779,7 @@ int bestTacticalMoveValue(Board* board){
     return value;
 }
 
-int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height) {
+int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int pvnode, int depth, int height) {
 
     Board* const board = &thread->board;
 
@@ -809,7 +809,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
         // Start skipping quiets at a certain point
         quiets += !moveIsTactical(board, move);
-        skipQuiets = quiets >= SingularQuietLimit;
+        skipQuiets = quiets >= SingularQuietLimit[pvnode];
     }
 
     // Reapply the table move we took off

@@ -67,7 +67,7 @@ int thisTacticalMoveValue(Board* board, uint16_t move);
 
 int bestTacticalMoveValue(Board* board);
 
-int moveIsSingular(Thread* thread, uint16_t ttMove, int ttValue, int depth, int height);
+int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int pvnode, int depth, int height);
 
 static const int SMPCycles      = 16;
 static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2, 1 };
@@ -115,6 +115,6 @@ static const int SEEPieceValues[] = {
 static const int QSEEMargin = 1;
 static const int QFutilityMargin = 100;
 
-static const int SingularQuietLimit = 6;
+static const int SingularQuietLimit[] = { 5, 10 };
 
 #endif
