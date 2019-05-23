@@ -133,15 +133,15 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    // Set basic Butterfly history
+    // Get basic Butterfly history
     *hist = thread->history[thread->board.turn][from][to];
 
-    // Set Counter Move History if it exists
-    if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
+    // Get Counter Move History or reuse the Butterfly history
+    if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = *hist;
     else *cmhist = thread->continuation[0][cmPiece][cmTo][piece][to];
 
-    // Set Followup Move History if it exists
-    if (follow == NONE_MOVE || follow == NULL_MOVE) *fmhist = 0;
+    // Get Followup Move History or reuse the Butterfly history
+    if (follow == NONE_MOVE || follow == NULL_MOVE) *fmhist = *hist;
     else *fmhist = thread->continuation[1][fmPiece][fmTo][piece][to];
 }
 
