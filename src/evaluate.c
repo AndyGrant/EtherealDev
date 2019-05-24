@@ -885,7 +885,7 @@ int evaluateScaleFactor(Board *board) {
             || popcount(white & queens ) != popcount(black & queens))
             return SCALE_NORMAL;
 
-        imbalance = (1 + abs(popcount(white & pawns) - popcount(black & pawns)));
+        imbalance = 3 + abs(popcount(white & pawns) - popcount(black & pawns));
 
         weights = WEIGHT_KNIGHT * popcount(knights)
                 + WEIGHT_ROOK   * popcount(rooks  )

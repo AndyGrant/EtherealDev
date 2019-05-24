@@ -24,9 +24,9 @@
 enum {
     SCALE_OCB     =  64,
     SCALE_NORMAL  = 128,
-    WEIGHT_KNIGHT =  12,
-    WEIGHT_ROOK   =   8,
-    WEIGHT_QUEEN  =  16,
+    WEIGHT_KNIGHT =   5,
+    WEIGHT_ROOK   =   4,
+    WEIGHT_QUEEN  =   8,
 };
 
 struct EvalTrace {
