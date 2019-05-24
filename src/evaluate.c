@@ -885,11 +885,11 @@ int evaluateScaleFactor(Board *board) {
             || popcount(white & queens ) != popcount(black & queens))
             return SCALE_NORMAL;
 
-        imbalance = (1 + abs(popcount(white & pawns) - popcount(black & pawns)));
+        imbalance = abs(popcount(white & pawns) - popcount(black & pawns));
 
         weights = popcount(knights) + popcount(rooks) + popcount(queens);
 
-        return MIN(SCALE_NORMAL, SCALE_OCB + imbalance * weights);
+        return MIN(SCALE_NORMAL, SCALE_OCB + MAX(1, imbalance) * weights);
 
     }
 
