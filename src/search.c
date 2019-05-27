@@ -443,7 +443,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             R += !PvNode + !improving;
 
             // Increase for taking back moves
-            R += MoveTo(move) == MoveFrom(thread->moveStack[height-2])
+            R += improving
+              && MoveTo(move) == MoveFrom(thread->moveStack[height-2])
               && MoveFrom(move) == MoveTo(thread->moveStack[height-2]);
 
             // Increase for King moves that evade checks
