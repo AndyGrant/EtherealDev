@@ -202,7 +202,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
-    PVariation lpv; lpv.length = pv->length = 0;
+    PVariation lpv;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
@@ -211,6 +211,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Ensure positive depth
     depth = MAX(0, depth);
+
+    // Ensure we have a fresh PV
+    pv->length = 0;
 
     // Updates for UCI reporting
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, height);
@@ -547,7 +550,10 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
-    PVariation lpv; lpv.length = pv->length = 0;
+    PVariation lpv;
+
+    // Ensure we have a fresh PV
+    pv->length = 0;
 
     // Updates for UCI reporting
     thread->seldepth = MAX(thread->seldepth, height);
