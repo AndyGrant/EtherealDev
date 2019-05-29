@@ -13,7 +13,7 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with this program.  If not, see < http://www.gnu.org/licenses/>.
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -442,10 +442,8 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for non PV and non improving nodes
             R += !PvNode + !improving;
 
-            // Increase for taking back moves
-            R += improving
-              && MoveTo(move) == MoveFrom(thread->moveStack[height-2])
-              && MoveFrom(move) == MoveTo(thread->moveStack[height-2]);
+            // Increase for taking back moves which improved our position
+            R += improving && movesAreInverses(move, thread->moveStack[height-2]);
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
@@ -726,6 +724,10 @@ int moveIsTactical(Board* board, uint16_t move){
     return board->squares[MoveTo(move)] != EMPTY
         || MoveType(move) == PROMOTION_MOVE
         || MoveType(move) == ENPASS_MOVE;
+}
+
+int movesAreInverses(uint16_t move1, uint16_t move2) {
+    return move1 == MoveMake(MoveTo(move2), MoveFrom(move2), MoveType(move2));
 }
 
 int hasNonPawnMaterial(Board* board, int turn){
