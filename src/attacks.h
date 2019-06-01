@@ -30,7 +30,6 @@ struct Magic {
 };
 
 void initAttacks();
-
 uint64_t pawnAttacks(int colour, int sq);
 uint64_t knightAttacks(int sq);
 uint64_t bishopAttacks(int sq, uint64_t occupied);

@@ -49,7 +49,7 @@ struct Undo {
     int capturePiece;
 };
 
-void squareToString(int s, char *str);
+void squareToString(int sq, char *str);
 
 void boardFromFEN(Board *board, const char *fen);
 void boardToFEN(Board *board, char *fen);

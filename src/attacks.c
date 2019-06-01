@@ -27,7 +27,6 @@
 #include "bitboards.h"
 #include "types.h"
 
-
 uint64_t PawnAttacks[COLOUR_NB][SQUARE_NB];
 uint64_t KnightAttacks[SQUARE_NB];
 uint64_t BishopAttacks[0x1480];
@@ -37,15 +36,14 @@ uint64_t KingAttacks[SQUARE_NB];
 Magic BishopTable[SQUARE_NB];
 Magic RookTable[SQUARE_NB];
 
-
 static int validCoordinate(int rank, int file) {
-    return 0 <= rank && rank < 8
-        && 0 <= file && file < 8;
+    return 0 <= rank && rank < RANK_NB
+        && 0 <= file && file < FILE_NB;
 }
 
-static void setSquare(uint64_t *bb, int rank, int file){
+static void setSquare(uint64_t *b, int rank, int file){
     if (validCoordinate(rank, file))
-        *bb |= 1ull << square(rank, file);
+        *b |= 1ull << square(rank, file);
 }
 
 static int sliderIndex(uint64_t occupied, Magic *table) {
@@ -65,10 +63,7 @@ static uint64_t sliderAttacks(int sq, uint64_t occupied, const int delta[4][2]) 
 
         dr = delta[i][0], df = delta[i][1];
 
-        for (rank = rankOf(sq) + dr, file = fileOf(sq) + df;
-             validCoordinate(rank, file);
-             rank += dr, file += df) {
-
+        for (rank = rankOf(sq) + dr, file = fileOf(sq) + df; validCoordinate(rank, file); rank += dr, file += df) {
             setBit(&result, square(rank, file));
             if (testBit(occupied, square(rank, file)))
                 break;
@@ -127,7 +122,7 @@ void initAttacks() {
         }
     }
 
-    // Init attack tables for sliding pieces
+    // Init attack tables for Bishops & Rooks & Queens
     for (int sq = 0; sq < 64; sq++) {
         initSliderAttacks(sq, BishopTable, BishopMagics[sq], BishopDelta);
         initSliderAttacks(sq,   RookTable,   RookMagics[sq],   RookDelta);

@@ -27,15 +27,15 @@
 #include "bitboards.h"
 #include "board.h"
 #include "masks.h"
-#include "psqt.h"
-#include "search.h"
-#include "time.h"
-#include "thread.h"
-#include "uci.h"
-#include "transposition.h"
-#include "types.h"
 #include "move.h"
 #include "movegen.h"
+#include "psqt.h"
+#include "search.h"
+#include "thread.h"
+#include "time.h"
+#include "transposition.h"
+#include "types.h"
+#include "uci.h"
 #include "zobrist.h"
 
 const char *PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
@@ -68,7 +68,6 @@ static void setSquare(Board *board, int colour, int piece, int sq) {
 }
 
 static int stringToSquare(const char *str) {
-
     return str[0] == '-' ? -1 : square(str[1] - '1', str[0] - 'a');
 }
 

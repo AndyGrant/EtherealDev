@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "types.h"
 #include "zobrist.h"
@@ -43,18 +43,16 @@ uint64_t rand64() {
 void initZobrist() {
 
     // Init the main Zobrist keys for pieces and squares
-    for (int pt = PAWN; pt <= KING; pt++) {
-        for (int sq = 0; sq < SQUARE_NB; sq++) {
-            ZobristKeys[makePiece(pt, WHITE)][sq] = rand64();
-            ZobristKeys[makePiece(pt, BLACK)][sq] = rand64();
-        }
-    }
+    for (int pt = PAWN; pt <= KING; pt++)
+        for (int sq = 0; sq < SQUARE_NB; sq++)
+            for (int c = WHITE; c <= BLACK; c++)
+                ZobristKeys[makePiece(pt, c)][sq] = rand64();
 
     // Init the enpass file Zobrist keys
     for (int f = 0; f < FILE_NB; f++)
         ZobristEnpassKeys[f] = rand64();
 
-    // Init the Zobrist castle keys for each castle status
+    // Init the Zobrist castle keys for each castle type
     ZobristCastleKeys[WHITE_OO_RIGHTS ] = rand64();
     ZobristCastleKeys[WHITE_OOO_RIGHTS] = rand64();
     ZobristCastleKeys[BLACK_OO_RIGHTS ] = rand64();
