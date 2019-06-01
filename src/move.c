@@ -430,3 +430,7 @@ void moveToString(uint16_t move, char *str) {
         str[5] = '\0';
     }
 }
+
+int movesAreInverses(uint16_t move1, uint16_t move2) {
+    return move1 == MoveMake(MoveTo(move2), MoveFrom(move2), MoveType(move2));
+}
