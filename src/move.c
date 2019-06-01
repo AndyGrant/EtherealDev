@@ -32,7 +32,6 @@
 #include "types.h"
 #include "zobrist.h"
 
-
 static const int CastleMask[SQUARE_NB] = {
    13, 15, 15, 15, 12, 15, 15, 14,
    15, 15, 15, 15, 15, 15, 15, 15,
@@ -54,10 +53,9 @@ static int castleGetRookTo(int from, int to){
     return from + table[(to >> 2) & 1];
 }
 
-
 int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
-    int legal;
+    int legal, evading = !!board->kingAttackers;
     Undo *undo = &thread->undoStack[height];
 
     // NULL moves are only tried when legal
@@ -69,7 +67,7 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
     // Apply and reject the move if illegal
     applyMove(board, move, undo);
-    legal = isNotInCheck(board, !board->turn);
+    legal = moveWasLegal(board, move, !board->turn, evading);
     if (!legal) revertMove(board, move, undo);
 
     // Track each move and which piece type made it throughout the tree
@@ -429,4 +427,17 @@ void moveToString(uint16_t move, char *str) {
         str[4] = PieceLabel[BLACK][MovePromoPiece(move)];
         str[5] = '\0';
     }
+}
+
+int moveWasLegal(Board *board, uint16_t move, int us, int evading) {
+
+    int ourKingSq = getlsb(board->colours[us] & board->pieces[KING]);
+
+    // If we were not trying to escape a check, then any move by a piece
+    // which is not connected by a slider ray to our King must be legal
+    if (!evading && !testBit(sliderAttackMasks(ourKingSq), MoveFrom(move)))
+      return 1;
+
+    // Otherwise, see if any piece still attacks our King
+    return !squareIsAttacked(board, us, ourKingSq);
 }

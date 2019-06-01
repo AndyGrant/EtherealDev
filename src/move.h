@@ -54,6 +54,7 @@ void revertMove(Board* board, uint16_t move, Undo* undo);
 void revertNullMove(Board* board, Undo* undo);
 
 void moveToString(uint16_t move, char *str);
+int moveWasLegal(Board *board, uint16_t move, int us, int evading);
 
 #define MoveFrom(move)         (((move) >> 0) & 63)
 #define MoveTo(move)           (((move) >> 6) & 63)

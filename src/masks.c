@@ -35,6 +35,7 @@ uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostRanksMasks[COLOUR_NB];
+uint64_t SliderAttackMasks[SQUARE_NB];
 
 void initMasks() {
 
@@ -107,6 +108,10 @@ void initMasks() {
         PawnConnectedMasks[WHITE][s] = pawnAttacks(BLACK, s) | pawnAttacks(BLACK, s + 8);
         PawnConnectedMasks[BLACK][s] = pawnAttacks(WHITE, s) | pawnAttacks(WHITE, s - 8);
     }
+
+    // Initialize a table of slider rays with no blockers
+    for (int sq = 0; sq < SQUARE_NB; sq++)
+      SliderAttackMasks[sq] = queenAttacks(sq, 0ull);
 }
 
 int distanceBetween(int s1, int s2) {
@@ -159,4 +164,9 @@ uint64_t outpostSquareMasks(int colour, int sq) {
 uint64_t outpostRanksMasks(int colour) {
     assert(0 <= colour && colour < COLOUR_NB);
     return OutpostRanksMasks[colour];
+}
+
+uint64_t sliderAttackMasks(int sq) {
+    assert(0 <= sq && sq < SQUARE_NB);
+    return SliderAttackMasks[sq];
 }
