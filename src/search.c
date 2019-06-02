@@ -135,7 +135,7 @@ void* iterativeDeepening(void* vthread){
         // Update time allocation based on score and pv changes
         updateTimeManagment(info, limits, thread->depth, thread->value);
 
-        // Don't want to exit while pondering
+        // We don't want to exit while pondering
         if (IS_PONDERING) continue;
 
         // Check for termination by any of the possible limits

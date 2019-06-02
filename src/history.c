@@ -137,11 +137,11 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     *hist = thread->history[thread->board.turn][from][to];
 
     // Set Counter Move History if it exists
-    if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
+    if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = MAX(*hist, 0);
     else *cmhist = thread->continuation[0][cmPiece][cmTo][piece][to];
 
     // Set Followup Move History if it exists
-    if (follow == NONE_MOVE || follow == NULL_MOVE) *fmhist = 0;
+    if (follow == NONE_MOVE || follow == NULL_MOVE) *fmhist = MAX(*hist, 0);
     else *fmhist = thread->continuation[1][fmPiece][fmTo][piece][to];
 }
 
