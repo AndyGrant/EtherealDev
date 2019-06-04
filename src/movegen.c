@@ -99,8 +99,7 @@ void genAllLegalMoves(Board* board, uint16_t* moves, int* size){
     // Check each move for legality before copying
     for (i = 0; i < psuedoSize; i++){
         applyMove(board, psuedoMoves[i], undo);
-        if (isNotInCheck(board, !board->turn))
-            moves[(*size)++] = psuedoMoves[i];
+        if (moveWasLegal(board)) moves[(*size)++] = psuedoMoves[i];
         revertMove(board, psuedoMoves[i], undo);
     }
 }
@@ -282,12 +281,3 @@ void genAllQuietMoves(Board* board, uint16_t* moves, int* size){
             moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE);
     }
 }
-
-int isNotInCheck(Board* board, int colour){
-    int kingsq = getlsb(board->colours[colour] & board->pieces[KING]);
-    assert(board->squares[kingsq] == WHITE_KING + colour);
-    return !squareIsAttacked(board, colour, kingsq);
-}
-
-
-

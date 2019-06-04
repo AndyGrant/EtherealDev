@@ -23,14 +23,9 @@
 
 #include "types.h"
 
-
-
 void genAllLegalMoves(Board* board, uint16_t* moves, int* size);
 void genAllMoves(Board* board, uint16_t* moves, int* size);
 void genAllNoisyMoves(Board* board, uint16_t* moves, int* size);
 void genAllQuietMoves(Board* board, uint16_t* moves, int* size);
-
-int isNotInCheck(Board* board, int colour);
-
 
 #endif
