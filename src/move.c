@@ -491,7 +491,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move) {
         || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
         return 0;
 
-    // Knight, Rook, Bishop, and Queen moves are legal so long as the
+    // Knight, Bishop, Rook, and Queen moves are legal so long as the
     // move type is NORMAL and the destination is an attacked square
 
     if (ftype == KNIGHT)
