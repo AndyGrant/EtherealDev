@@ -475,21 +475,19 @@ int moveWasLegal(Board *board) {
 
 int moveIsPsuedoLegal(Board* board, uint16_t move) {
 
-    int colour = board->turn;
-    int to     = MoveTo(move);
     int from   = MoveFrom(move);
     int type   = MoveType(move);
     int ftype  = pieceType(board->squares[from]);
 
-    uint64_t friendly = board->colours[ colour];
-    uint64_t enemy    = board->colours[!colour];
+    uint64_t friendly = board->colours[ board->turn];
+    uint64_t enemy    = board->colours[!board->turn];
     uint64_t occupied = friendly | enemy;
     uint64_t attacks, forward;
 
     // Quick check against obvious illegal moves, moving from an empty
     // or enemy square, and moves with invalid promotion flags enabled
     if (   (move == NULL_MOVE || move == NONE_MOVE)
-        || (pieceColour(board->squares[from]) != colour)
+        || (pieceColour(board->squares[from]) != board->turn)
         || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
         return 0;
 
@@ -498,19 +496,19 @@ int moveIsPsuedoLegal(Board* board, uint16_t move) {
 
     if (ftype == KNIGHT)
         return type == NORMAL_MOVE
-            && testBit(knightAttacks(from) & ~friendly, to);
+            && testBit(knightAttacks(from) & ~friendly, MoveTo(move));
 
     if (ftype == BISHOP)
         return type == NORMAL_MOVE
-            && testBit(bishopAttacks(from, occupied) & ~friendly, to);
+            && testBit(bishopAttacks(from, occupied) & ~friendly, MoveTo(move));
 
     if (ftype == ROOK)
         return type == NORMAL_MOVE
-            && testBit(rookAttacks(from, occupied) & ~friendly, to);
+            && testBit(rookAttacks(from, occupied) & ~friendly, MoveTo(move));
 
     if (ftype == QUEEN)
         return type == NORMAL_MOVE
-            && testBit(queenAttacks(from, occupied) & ~friendly, to);
+            && testBit(queenAttacks(from, occupied) & ~friendly, MoveTo(move));
 
     if (ftype == PAWN) {
 
@@ -524,37 +522,37 @@ int moveIsPsuedoLegal(Board* board, uint16_t move) {
         // Enpass moves are legal if our to square is the enpass
         // square and we could attack a piece on the enpass square
         if (type == ENPASS_MOVE)
-            return to == board->epSquare && testBit(attacks, to);
+            return MoveTo(move) == board->epSquare && testBit(attacks, MoveTo(move));
 
         // Compute simple pawn advances
-        forward = pawnAdvance(1ull << from, occupied, colour);
+        forward = pawnAdvance(1ull << from, occupied, board->turn);
 
         // Promotion moves are legal if we can move to one of the promotion
         // ranks, defined by PROMOTION_RANKS, independent of moving colour
         if (type == PROMOTION_MOVE)
-            return testBit(PROMOTION_RANKS & ((attacks & enemy) | forward), to);
+            return testBit(PROMOTION_RANKS & ((attacks & enemy) | forward), MoveTo(move));
 
         // Add the double advance to forward
-        forward |= pawnAdvance(forward & (!colour ? RANK_3 : RANK_6), occupied, colour);
+        forward |= pawnAdvance(forward & (!board->turn ? RANK_3 : RANK_6), occupied, board->turn);
 
         // Normal moves are legal if we can move there
-        return testBit(~PROMOTION_RANKS & ((attacks & enemy) | forward), to);
+        return testBit(~PROMOTION_RANKS & ((attacks & enemy) | forward), MoveTo(move));
     }
 
     if (ftype == KING) {
 
         // Normal moves are legal if to square is a valid target
         if (type == NORMAL_MOVE)
-            return testBit(kingAttacks(from) & ~friendly, to);
+            return testBit(kingAttacks(from) & ~friendly, MoveTo(move));
 
         // Kings cannot enpass, promote, or castle out of check
-        if (type == ENPASS_MOVE || type == PROMOTION_MOVE || board->kingAttackers)
+        if (type != CASTLE_MOVE || board->kingAttackers)
             return 0;
 
         // Castling is hard to verify directly, so just generate
         // the possible castling options, and check equality
 
-        if (colour == WHITE) {
+        if (board->turn == WHITE) {
 
             if (  ((occupied & WHITE_OO_MAP) == 0ull)
                 && (board->castleRights & WHITE_OO_RIGHTS)
@@ -569,7 +567,7 @@ int moveIsPsuedoLegal(Board* board, uint16_t move) {
                 return 1;
         }
 
-        if (colour == BLACK) {
+        if (board->turn == BLACK) {
 
             if (  ((occupied & BLACK_OO_MAP) == 0ull)
                 && (board->castleRights & BLACK_OO_RIGHTS)
