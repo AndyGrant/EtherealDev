@@ -546,7 +546,7 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     if (ftype == KING) {
 
-        // Normal moves are legal if to square is a valid target
+        // Normal moves are legal if the to square is a valid target
         if (type == NORMAL_MOVE)
             return testBit(kingAttacks(from) & ~friendly, MoveTo(move));
 
@@ -554,41 +554,44 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
         if (type != CASTLE_MOVE || board->kingAttackers)
             return 0;
 
-        // Castling is hard to verify directly, so just generate
-        // the possible castling options, and check equality
+        // Castle moves are hard to verify with simple rules, but we do know
+        // that there are only four legal moves that have the CASTLE flag set.
+        // We can simply compare the given move to those four, and if a match
+        // is found we verify the legality in the same way decide to generate
 
-        if (board->turn == WHITE) {
+        switch (move) {
 
-            if (  ((occupied & WHITE_OO_MAP) == 0ull)
-                && (board->castleRights & WHITE_OO_RIGHTS)
-                &&  MoveMake(4, 6, CASTLE_MOVE) == move
-                && !squareIsAttacked(board, WHITE, 5))
-                return 1;
+            // Compare against White King Side Castle
+            case MoveMake(4, 6, CASTLE_MOVE):
+                return   board->turn == WHITE
+                    &&  (occupied & WHITE_OO_MAP) == 0ull
+                    &&  (board->castleRights & WHITE_OO_RIGHTS)
+                    &&  !squareIsAttacked(board, WHITE, 5);
 
-            if (  ((occupied & WHITE_OOO_MAP) == 0ull)
-                && (board->castleRights & WHITE_OOO_RIGHTS)
-                &&  MoveMake(4, 2, CASTLE_MOVE) == move
-                && !squareIsAttacked(board, WHITE, 3))
-                return 1;
+            // Compare against White Queen Side Castle
+            case MoveMake(4, 2, CASTLE_MOVE):
+                return   board->turn == WHITE
+                    &&  (occupied & WHITE_OOO_MAP) == 0ull
+                    &&  (board->castleRights & WHITE_OOO_RIGHTS)
+                    &&  !squareIsAttacked(board, WHITE, 3);
+
+            // Compare against Black King Side Castle
+            case MoveMake(60, 62, CASTLE_MOVE):
+                return   board->turn == BLACK
+                    &&  (occupied & BLACK_OO_MAP) == 0ull
+                    &&  (board->castleRights & BLACK_OO_RIGHTS)
+                    &&  !squareIsAttacked(board, BLACK, 61);
+
+            // Compare against Black Queen Side Castle
+            case MoveMake(60, 58, CASTLE_MOVE):
+                return   board->turn == BLACK
+                    &&  (occupied & BLACK_OOO_MAP) == 0ull
+                    &&  (board->castleRights & BLACK_OOO_RIGHTS)
+                    &&  !squareIsAttacked(board, BLACK, 59);
+
+            // Castle moves must be one of the above
+            default: return 0;
         }
-
-        if (board->turn == BLACK) {
-
-            if (  ((occupied & BLACK_OO_MAP) == 0ull)
-                && (board->castleRights & BLACK_OO_RIGHTS)
-                &&  MoveMake(60, 62, CASTLE_MOVE) == move
-                && !squareIsAttacked(board, BLACK, 61))
-                return 1;
-
-            if (  ((occupied & BLACK_OOO_MAP) == 0ull)
-                && (board->castleRights & BLACK_OOO_RIGHTS)
-                &&  MoveMake(60, 58, CASTLE_MOVE) == move
-                && !squareIsAttacked(board, BLACK, 59))
-                return 1;
-        }
-
-        // No such castle was found via generation
-        return 0;
     }
 
     // The colour check should (assuming board->squares only contains pieces
