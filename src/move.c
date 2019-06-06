@@ -491,7 +491,7 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     // Quick check against obvious illegal moves, moving from an empty
     // or enemy square, and moves with invalid promotion flags enabled
-    if (   (move == NULL_MOVE || move == NONE_MOVE)
+    if (   (move == NONE_MOVE || move == NULL_MOVE)
         || (pieceColour(board->squares[from]) != board->turn)
         || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
         return 0;
