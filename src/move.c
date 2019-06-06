@@ -424,10 +424,15 @@ void revertNullMove(Board *board, Undo *undo) {
 
 int moveIsTactical(Board *board, uint16_t move) {
 
-    // Check for captures, promotions, or enpass
+    // We can use a simple bit trick since we assert that only
+    // the enpass and promotion moves will ever have the 13th bit,
+    // (ie 2 << 12) set. We use (2 << 12) in order to match move.h
+    assert(ENPASS_MOVE & PROMOTION_MOVE & (2 << 12));
+    assert(!((NORMAL_MOVE | CASTLE_MOVE) & (2 << 12)));
+
+    // Check for captures, promotions, or enpassant
     return board->squares[MoveTo(move)] != EMPTY
-        || MoveType(move) == PROMOTION_MOVE
-        || MoveType(move) == ENPASS_MOVE;
+        || (move & ENPASS_MOVE & PROMOTION_MOVE);
 }
 
 int moveEstimatedValue(Board *board, uint16_t move) {
@@ -473,7 +478,7 @@ int moveWasLegal(Board *board) {
     return !squareIsAttacked(board, !board->turn, sq);
 }
 
-int moveIsPsuedoLegal(Board* board, uint16_t move) {
+int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     int from   = MoveFrom(move);
     int type   = MoveType(move);
