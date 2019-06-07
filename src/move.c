@@ -198,9 +198,9 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->hash ^= ZobristCastleKeys[board->castleRights];
 
     board->psqtmat += PSQT[fromPiece][to]
-                    - PSQT[fromPiece][from]
-                    + PSQT[rFromPiece][rTo]
-                    - PSQT[rFromPiece][rFrom];
+                   -  PSQT[fromPiece][from]
+                   +  PSQT[rFromPiece][rTo]
+                   -  PSQT[rFromPiece][rFrom];
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
@@ -238,8 +238,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
     undo->capturePiece   = enpassPiece;
 
     board->psqtmat += PSQT[fromPiece][to]
-                    - PSQT[fromPiece][from]
-                    - PSQT[enpassPiece][ep];
+                   -  PSQT[fromPiece][from]
+                   -  PSQT[enpassPiece][ep];
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
@@ -284,8 +284,8 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     board->hash ^= ZobristCastleKeys[board->castleRights];
 
     board->psqtmat += PSQT[promoPiece][to]
-                    - PSQT[fromPiece][from]
-                    - PSQT[toPiece][to];
+                   -  PSQT[fromPiece][from]
+                   -  PSQT[toPiece][to];
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[promoPiece][to]
@@ -294,6 +294,8 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     board->pkhash  ^= ZobristKeys[fromPiece][from];
 
     assert(pieceType(fromPiece) == PAWN);
+    assert(pieceType(toPiece) != PAWN);
+    assert(pieceType(toPiece) != KING);
 }
 
 void applyNullMove(Board *board, Undo *undo) {
@@ -440,13 +442,13 @@ int moveEstimatedValue(Board *board, uint16_t move) {
     // Start with the value of the piece on the target square
     int value = SEEPieceValues[pieceType(board->squares[MoveTo(move)])];
 
-    // Factor in the new piece's value and remove our pawn
+    // Factor in the new piece's value and remove our promoted pawn
     if (MoveType(move) == PROMOTION_MOVE)
         value += SEEPieceValues[MovePromoPiece(move)] - SEEPieceValues[PAWN];
 
     // Target square is encoded as empty for enpass moves
     if (MoveType(move) == ENPASS_MOVE)
-        value += SEEPieceValues[PAWN];
+        value = SEEPieceValues[PAWN];
 
     return value;
 }
@@ -545,8 +547,8 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     }
 
     // The colour check should (assuming board->squares only contains
-    // pieces and EMPTY flags) should ensure that ftype is an actual
-    // piece, which at this point the only piece left is the King
+    // pieces and EMPTY flags) ensure that ftype is an actual piece,
+    // which at this point the only piece left to check is the King
     assert(ftype == KING);
 
     // Normal moves are legal if the to square is a valid target
