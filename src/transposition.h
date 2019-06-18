@@ -24,10 +24,11 @@
 #include "types.h"
 
 enum {
-    BOUND_NONE  = 0,
-    BOUND_LOWER = 1,
-    BOUND_UPPER = 2,
-    BOUND_EXACT = 3,
+    BOUND_NONE  = 0, BOUND_LOWER = 1,
+    BOUND_UPPER = 2, BOUND_EXACT = 3,
+
+    PAWN_KING_LOOKUP_BITS = 20,
+    PAWN_KING_TABLE_SIZE  = 1ull << PAWN_KING_LOOKUP_BITS
 };
 
 struct TTEntry {
@@ -57,7 +58,7 @@ struct PawnKingEntry {
 };
 
 struct PawnKingTable {
-    PawnKingEntry entries[0x10000];
+    PawnKingEntry entries[PAWN_KING_TABLE_SIZE];
 };
 
 void initTT(uint64_t megabytes);
