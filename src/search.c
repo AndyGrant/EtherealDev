@@ -439,17 +439,17 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1){
 
-            /// Use the LMR Formula as a starting point
+            // Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV and non improving nodes
             R += !PvNode + !improving;
 
-            // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+            // Decrease when dealing with checks
+            R -= inCheck || board->kingAttackers;
 
             // Increase for King moves that evade checks
-            R -= inCheck && pieceType(board->squares[MoveTo(move)]) != KING;
+            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
