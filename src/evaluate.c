@@ -237,7 +237,7 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S( -27,  36);
 
-const int PassedWideOpenPromotionPath = S(   0,   0);
+const int PassedWideOpenPromotionPath = S(   0,  16);
 
 /* Threat Evaluation Terms */
 
