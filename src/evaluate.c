@@ -784,7 +784,7 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         // paths, are uncontested and not occupied by any of the opponent's
         // pieces. The idea comes from Stockfish developer Vizvezdenec
         bitboard |= forwardRanksMasks(US, rankOf(sq)) & adjacentFilesMasks(fileOf(sq));
-        flag = !(bitboard & (ei->attacked[THEM] | board->pieces[THEM]));
+        flag = !(bitboard & (ei->attacked[THEM] | board->colours[THEM]));
         eval += flag * PassedWideOpenPromotionPath;
         if (TRACE) T.PassedWideOpenPromotionPath[US] += flag;
     }
