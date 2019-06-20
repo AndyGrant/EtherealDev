@@ -237,6 +237,8 @@ const int PassedEnemyDistance[RANK_NB] = {
 
 const int PassedSafePromotionPath = S( -27,  36);
 
+const int PassedWideOpenPromotionPath = S(   0,   0);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -14, -28);
@@ -777,6 +779,14 @@ int evaluatePassedPawns(EvalInfo* ei, Board* board, int colour){
         flag = !(bitboard & ei->attacked[THEM]);
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus when the path to promoting, as well as the adjacent
+        // paths, are uncontested and not occupied by any of the opponent's
+        // pieces. The idea comes from Stockfish developer Vizvezdenec
+        bitboard |= forwardRanksMasks(US, rankOf(sq)) & adjacentFilesMasks(fileOf(sq));
+        flag = !(bitboard & (ei->attacked[THEM] | board->pieces[THEM]));
+        eval += flag * PassedWideOpenPromotionPath;
+        if (TRACE) T.PassedWideOpenPromotionPath[US] += flag;
     }
 
     return eval;
