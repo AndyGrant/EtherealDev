@@ -548,8 +548,8 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     if (type == NORMAL_MOVE)
         return testBit(kingAttacks(from) & ~friendly, MoveTo(move));
 
-    // Kings cannot enpass, promote, or castle out of check
-    if (type != CASTLE_MOVE || board->kingAttackers)
+    // Kings cannot enpass or promote
+    if (type != CASTLE_MOVE)
         return 0;
 
     // Verifying a castle move can be difficult, so instead we will just
@@ -557,19 +557,7 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     // player. If one matches, we can then verify the psuedo legality
     // using the same code as from movegen.c
 
-
-    int _size = 0;
-    uint16_t _moves[MAX_MOVES];
-    genAllQuietMoves(board, _moves, &_size);
-
-    for (int i = 0; i < _size; i++)
-        if (move == _moves[i])
-            return 1;
-    return 0;
-
-
-
-    while (castles) {
+    while (castles && !board->kingAttackers) {
 
         // Figure out which pieces are moving to which squares
         rook = poplsb(&castles), king = from;
