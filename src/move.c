@@ -562,6 +562,7 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
         kingTo = square(rankOf(rook), rook > king ? 6 : 2);
         rookTo = rook > king ? kingTo - 1 : kingTo + 1;
 
+        // Make sure we are generating the
         if (move != MoveMake(king, kingTo, CASTLE_MOVE))
             continue;
 

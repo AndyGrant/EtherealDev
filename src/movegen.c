@@ -237,7 +237,7 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         mask = bitsBetweenMasks(king, kingTo);
         while (mask)
             if (squareIsAttacked(board, board->turn, poplsb(&mask)))
-                { attacked = 1; break; };
+                { attacked = 1; break; }
 
         // None of the passover squares are attacked
         if (!attacked)
