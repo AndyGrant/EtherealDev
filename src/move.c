@@ -32,7 +32,7 @@
 #include "types.h"
 #include "zobrist.h"
 
-static int castleRookFrom(const Board *board, int from, int to) {
+static int castleRookFrom(Board *board, int from, int to) {
     static const uint64_t FirstRank[COLOUR_NB] = {RANK_1, RANK_8};
     const uint64_t rooks = board->castleRooks & FirstRank[board->turn];
     return to > from ? getmsb(rooks) : getlsb(rooks);
