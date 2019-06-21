@@ -73,7 +73,7 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
         board->pieces[KNIGHT],
         board->pieces[PAWN  ],
         board->fiftyMoveRule,
-        board->castleRooks,
+        0,
         board->epSquare == -1 ? 0 : board->epSquare,
         board->turn == WHITE ? 1 : 0
     );
@@ -100,7 +100,7 @@ int tablebasesProbeDTZ(Board *board, uint16_t *move) {
         board->pieces[KNIGHT],
         board->pieces[PAWN  ],
         board->fiftyMoveRule,
-        board->castleRooks,
+        0,
         board->epSquare == -1 ? 0 : board->epSquare,
         board->turn == WHITE ? 1 : 0,
         NULL
