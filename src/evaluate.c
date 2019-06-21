@@ -68,24 +68,24 @@ const int PawnCandidatePasser[2][RANK_NB] = {
 
 const int PawnIsolated = S(  -8, -10);
 
-const int PawnStacked = S( -19, -26);
+const int PawnStacked = S( -19, -25);
 
-const int PawnBackwards[2] = { S(   8,  -2), S(  -6, -18) };
+const int PawnBackwards[2] = { S(   5,   1), S(  -9, -15) };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(  -2,  -7), S(  11,   0), S(   4,   0), S(   4,  18),
-    S(  15,   0), S(  34,  -1), S(  22,  10), S(  26,  18),
-    S(  10,   0), S(  23,   4), S(  10,  12), S(  15,  23),
-    S(  16,   7), S(  24,  14), S(  31,  20), S(  34,  21),
+    S(  -1,  -7), S(  11,   1), S(   5,   1), S(   3,  18),
+    S(  15,   1), S(  33,  -1), S(  21,  10), S(  25,  18),
+    S(  10,   2), S(  23,   6), S(  10,  12), S(  15,  24),
+    S(  15,   8), S(  24,  14), S(  30,  20), S(  35,  20),
     S(  57,  26), S(  53,  47), S(  69,  55), S(  82,  59),
-    S( 110,  -1), S( 202,  10), S( 227,  28), S( 240,  51),
+    S( 110,   0), S( 202,  10), S( 227,  28), S( 240,  51),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 /* Knight Evaluation Terms */
 
-const int KnightBackwardsPawns = S(   0,   5);
+const int KnightBackwardsPawns = S(  -2,   6);
 
 const int KnightOutpost[2] = { S(   7, -25), S(  31,  -3) };
 
