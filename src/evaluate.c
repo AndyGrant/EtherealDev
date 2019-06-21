@@ -85,6 +85,8 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
+const int KnightBackwardsPawns = S(   0,   0);
+
 const int KnightOutpost[2] = { S(   7, -25), S(  31,  -3) };
 
 const int KnightBehindPawn = S(   4,  21);
@@ -281,7 +283,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
-        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, ei.backwardsPawns, pkeval);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -386,6 +388,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag];
             if (TRACE) T.PawnBackwards[flag][US]++;
+            setBit(&ei->backwardsPawns, sq);
         }
 
         // Apply a bonus if the pawn is connected and not backward
@@ -425,6 +428,11 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy2[US]        |= attacks & ei->attacked[US];
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][KNIGHT] |= attacks;
+
+        // Apply a bonus for each backward pawn our opponent has per knight
+        count = popcount(enemyPawns & ei->backwardsPawns);
+        eval += count * KnightBackwardsPawns;
+        if (TRACE) T.KnightBackwardsPawns[US] += count;
 
         // Apply a bonus if the knight is on an outpost square, and cannot be attacked
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
@@ -937,8 +945,9 @@ void initializeEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAttackersCount[WHITE]  = ei->kingAttackersCount[BLACK]  = 0;
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
-    ei->pkentry       =     pktable == NULL ? NULL : getPawnKingEntry(pktable, board->pkhash);
-    ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
-    ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
-    ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
+    ei->pkentry        =     pktable == NULL ? NULL : getPawnKingEntry(pktable, board->pkhash);
+    ei->passedPawns    = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
+    ei->backwardsPawns = ei->pkentry == NULL ? 0ull : ei->pkentry->backwards;
+    ei->pkeval[WHITE]  = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
+    ei->pkeval[BLACK]  = ei->pkentry == NULL ? 0    : 0;
 }

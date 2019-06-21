@@ -24,10 +24,10 @@
 
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
-#define REPORTING   (      1) // How often to report progress
-#define NTERMS      (    588) // Total terms in the tuner
+#define REPORTING   (     10) // How often to report progress
+#define NTERMS      (      1) // Total terms in the Tuner (589)
 
-#define LEARNING    (    0.1) // Learning rate
+#define LEARNING    (   10.0) // Learning rate
 #define LRDROPRATE  (      1) // Cut LR by this each failure
 #define BATCHSIZE   (   2048) // FENs per mini-batch
 #define NPOSITIONS  (7500000) // Total FENS in the book
@@ -51,6 +51,7 @@
 #define TunePawnStacked                 (1)
 #define TunePawnBackwards               (1)
 #define TunePawnConnected32             (1)
+#define TuneKnightBackwardsPawns        (1)
 #define TuneKnightOutpost               (1)
 #define TuneKnightBehindPawn            (1)
 #define TuneKnightMobility              (1)
@@ -210,6 +211,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_0(fname, PawnStacked);                               \
     ENABLE_1(fname, PawnBackwards, 2);                          \
     ENABLE_1(fname, PawnConnected32, 32);                       \
+    ENABLE_0(fname, KnightBackwardsPawns);                      \
     ENABLE_1(fname, KnightOutpost, 2);                          \
     ENABLE_0(fname, KnightBehindPawn);                          \
     ENABLE_1(fname, KnightMobility, 9);                         \
