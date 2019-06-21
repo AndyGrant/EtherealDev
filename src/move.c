@@ -92,22 +92,16 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // Store hash history for repetition checking
     board->history[board->numMoves++] = board->hash;
 
-    // Always update fifty move, functions will reset
-    board->fiftyMoveRule += 1;
-
-    // Update the hash for turn and changes to enpass square
-    board->hash ^= ZobristTurnKey;
-    if (board->epSquare != -1)
-        board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
-
     // Run the correct move application function
     table[MoveType(move) >> 12](board, move, undo);
 
-    // No function updated epsquare so we reset
-    if (board->epSquare == undo->epSquare) board->epSquare = -1;
+    // Update the hash for changes to the enpass square
+    if (undo->epSquare != -1)
+        board->hash ^= ZobristEnpassKeys[fileOf(undo->epSquare)];
 
-    // No function updates this so we do it here
-    board->turn = !board->turn;
+    // No function updated epsquare so we reset
+    if (board->epSquare == undo->epSquare)
+        board->epSquare = -1;
 
     // Need king attackers to verify move legality
     board->kingAttackers = attackersToKingSquare(board);
@@ -125,6 +119,7 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
     const int toType = pieceType(toPiece);
     const int toColour = pieceColour(toPiece);
 
+    board->fiftyMoveRule += 1;
     if (fromType == PAWN || toPiece != EMPTY)
         board->fiftyMoveRule = 0;
 
@@ -148,7 +143,8 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[toPiece][to];
+                   ^  ZobristKeys[toPiece][to]
+                   ^  ZobristTurnKey;
 
     if (fromType == PAWN || fromType == KING)
         board->pkhash ^= ZobristKeys[fromPiece][from]
@@ -168,6 +164,8 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
             board->hash ^= ZobristEnpassKeys[fileOf(from)];
         }
     }
+
+    board->turn = !board->turn;
 }
 
 void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
@@ -180,6 +178,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
 
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
+
+    board->fiftyMoveRule += 1;
 
     board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
@@ -205,7 +205,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
                    ^  ZobristKeys[rFromPiece][rFrom]
-                   ^  ZobristKeys[rFromPiece][rTo];
+                   ^  ZobristKeys[rFromPiece][rTo]
+                   ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to];
@@ -213,6 +214,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     assert(pieceType(fromPiece) == KING);
 
     undo->capturePiece = EMPTY;
+
+    board->turn = !board->turn;
 }
 
 void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
@@ -243,7 +246,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[enpassPiece][ep];
+                   ^  ZobristKeys[enpassPiece][ep]
+                   ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
@@ -251,6 +255,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(enpassPiece) == PAWN);
+
+    board->turn = !board->turn;
 }
 
 void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
@@ -289,13 +295,16 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[promoPiece][to]
-                   ^  ZobristKeys[toPiece][to];
+                   ^  ZobristKeys[toPiece][to]
+                   ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from];
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(toPiece) != PAWN);
     assert(pieceType(toPiece) != KING);
+
+    board->turn = !board->turn;
 }
 
 void applyNullMove(Board *board, Undo *undo) {

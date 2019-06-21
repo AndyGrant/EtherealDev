@@ -42,12 +42,10 @@ uint64_t rand64() {
 void initZobrist() {
 
     // Init the main Zobrist keys for all pieces
-    for (int pt = PAWN; pt <= KING; pt++) {
-        for (int sq = 0; sq < SQUARE_NB; sq++) {
-            ZobristKeys[makePiece(pt, WHITE)][sq] = rand64();
-            ZobristKeys[makePiece(pt, BLACK)][sq] = rand64();
-        }
-    }
+    for (int piece = PAWN; piece <= KING; piece++)
+        for (int sq = 0; sq < SQUARE_NB; sq++)
+            for (int colour = WHITE; colour <= BLACK; colour++)
+                ZobristKeys[makePiece(piece, colour)][sq] = rand64();
 
     // Init the Zobrist keys for each enpass file
     for (int f = 0; f < FILE_NB; f++)
