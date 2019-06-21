@@ -225,13 +225,6 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     // We cannot castle out of check
     if (board->kingAttackers) return;
 
-    // Check for White King Side Castle
-    if (    board->turn == WHITE
-        && (occupied & WHITE_OO_MAP) == 0ull
-        && (board->castleRights & WHITE_OO_RIGHTS)
-        && !squareIsAttacked(board, WHITE, 5))
-        moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE), count++;
-
     // Check for White Queen Side Castle
     if (    board->turn == WHITE
         && (occupied & WHITE_OOO_MAP) == 0ull
@@ -239,12 +232,12 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         && !squareIsAttacked(board, WHITE, 3))
         moves[(*size)++] = MoveMake(4, 2, CASTLE_MOVE), count++;
 
-    // Check for Black King Side Castle
-    if (    board->turn == BLACK
-        && (occupied & BLACK_OO_MAP) == 0ull
-        && (board->castleRights & BLACK_OO_RIGHTS)
-        && !squareIsAttacked(board, BLACK, 61))
-        moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE), count++;
+    // Check for White King Side Castle
+    if (    board->turn == WHITE
+        && (occupied & WHITE_OO_MAP) == 0ull
+        && (board->castleRights & WHITE_OO_RIGHTS)
+        && !squareIsAttacked(board, WHITE, 5))
+        moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE), count++;
 
     // Check for Black Queen Side Castle
     if (    board->turn == BLACK
@@ -252,6 +245,13 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         && (board->castleRights & BLACK_OOO_RIGHTS)
         && !squareIsAttacked(board, BLACK, 59))
         moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE), count++;
+
+    // Check for Black King Side Castle
+    if (    board->turn == BLACK
+        && (occupied & BLACK_OO_MAP) == 0ull
+        && (board->castleRights & BLACK_OO_RIGHTS)
+        && !squareIsAttacked(board, BLACK, 61))
+        moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE), count++;
 
     /******************************************************/
 
