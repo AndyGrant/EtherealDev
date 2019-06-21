@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include "bitboards.h"
 #include "types.h"
 #include "zobrist.h"
 
@@ -61,6 +62,8 @@ void initZobrist() {
 
     // Init the Zobrist keys for each set of castle flags
     for (int cr = 0; cr < 0x10; cr++) {
+
+        if (popcount(cr) == 1) continue; // Dont kill what we did
 
         if (cr & WHITE_OO_RIGHTS)
             ZobristCastleKeys[cr] ^= ZobristCastleKeys[WHITE_OO_RIGHTS];
