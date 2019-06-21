@@ -57,7 +57,7 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
 
     if (    height == 0
         ||  board->epSquare != -1
-        ||  board->castleRights != 0
+        ||  board->castleRooks != 0
         ||  board->fiftyMoveRule != 0
         ||  cardinality > (int)TB_LARGEST
         || (cardinality == (int)TB_LARGEST && depth < (int)TB_PROBE_DEPTH))
@@ -73,7 +73,7 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
         board->pieces[KNIGHT],
         board->pieces[PAWN  ],
         board->fiftyMoveRule,
-        board->castleRights,
+        board->castleRooks,
         board->epSquare == -1 ? 0 : board->epSquare,
         board->turn == WHITE ? 1 : 0
     );
@@ -86,7 +86,7 @@ int tablebasesProbeDTZ(Board *board, uint16_t *move) {
     unsigned wdl, dtz, to, from, ep, promo;
 
     // Check to make sure we expect to be within the Syzygy tables
-    if (popcount(board->colours[WHITE] | board->colours[BLACK]) > (int)TB_LARGEST)
+    if (board->castleRooks || popcount(board->colours[WHITE] | board->colours[BLACK]) > (int)TB_LARGEST)
         return 0;
 
     // Tap into Fathom's API routines
@@ -100,7 +100,7 @@ int tablebasesProbeDTZ(Board *board, uint16_t *move) {
         board->pieces[KNIGHT],
         board->pieces[PAWN  ],
         board->fiftyMoveRule,
-        board->castleRights,
+        board->castleRooks,
         board->epSquare == -1 ? 0 : board->epSquare,
         board->turn == WHITE ? 1 : 0,
         NULL

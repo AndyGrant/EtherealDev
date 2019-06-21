@@ -23,8 +23,7 @@
 
 uint64_t ZobristKeys[32][SQUARE_NB];
 uint64_t ZobristEnpassKeys[FILE_NB];
-uint64_t ZobristCastleKeys[0x10];
-uint64_t ZobristCastleKeys2[SQUARE_NB];
+uint64_t ZobristCastleKeys[SQUARE_NB];
 uint64_t ZobristTurnKey;
 
 uint64_t rand64() {
@@ -54,41 +53,8 @@ void initZobrist() {
 
     // Init the Zobrist keys for each castle rook
     for (int sq = 0; sq < SQUARE_NB; sq++)
-        ZobristCastleKeys2[sq] = rand64();
+        ZobristCastleKeys[sq] = rand64();
 
     // Init the Zobrist key for side to move
     ZobristTurnKey = rand64();
-
-
-    /******************************************************/
-
-    // Init the Zobrist keys for each castle type
-    ZobristCastleKeys[WHITE_OO_RIGHTS ] = ZobristCastleKeys2[ 7];
-    ZobristCastleKeys[WHITE_OOO_RIGHTS] = ZobristCastleKeys2[ 0];
-    ZobristCastleKeys[BLACK_OO_RIGHTS ] = ZobristCastleKeys2[63];
-    ZobristCastleKeys[BLACK_OOO_RIGHTS] = ZobristCastleKeys2[56];
-
-    // Init the Zobrist keys for each set of castle flags
-    for (int cr = 0; cr < 0x10; cr++) {
-
-        if (  cr == WHITE_OO_RIGHTS
-        || cr == WHITE_OOO_RIGHTS
-        || cr == BLACK_OO_RIGHTS
-        || cr == BLACK_OOO_RIGHTS)
-        continue;
-
-        if (cr & WHITE_OO_RIGHTS)
-            ZobristCastleKeys[cr] ^= ZobristCastleKeys[WHITE_OO_RIGHTS];
-
-        if (cr & WHITE_OOO_RIGHTS)
-            ZobristCastleKeys[cr] ^= ZobristCastleKeys[WHITE_OOO_RIGHTS];
-
-        if (cr & BLACK_OO_RIGHTS)
-            ZobristCastleKeys[cr] ^= ZobristCastleKeys[BLACK_OO_RIGHTS];
-
-        if (cr & BLACK_OOO_RIGHTS)
-            ZobristCastleKeys[cr] ^= ZobristCastleKeys[BLACK_OOO_RIGHTS];
-    }
-
-    /******************************************************/
 }

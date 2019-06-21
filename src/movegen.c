@@ -218,44 +218,6 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     buildRookMoves(moves, size, myRooks, occupied, destinations);
     buildKingMoves(moves, size, myKings, ~occupied);
 
-    /******************************************************/
-
-    int count = 0;
-
-    // We cannot castle out of check
-    if (board->kingAttackers) return;
-
-    // Check for White King Side Castle
-    if (    board->turn == WHITE
-        && (occupied & WHITE_OO_MAP) == 0ull
-        && (board->castleRights & WHITE_OO_RIGHTS)
-        && !squareIsAttacked(board, WHITE, 5))
-        moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE), count++;
-
-    // Check for White Queen Side Castle
-    if (    board->turn == WHITE
-        && (occupied & WHITE_OOO_MAP) == 0ull
-        && (board->castleRights & WHITE_OOO_RIGHTS)
-        && !squareIsAttacked(board, WHITE, 3))
-        moves[(*size)++] = MoveMake(4, 2, CASTLE_MOVE), count++;
-
-    // Check for Black King Side Castle
-    if (    board->turn == BLACK
-        && (occupied & BLACK_OO_MAP) == 0ull
-        && (board->castleRights & BLACK_OO_RIGHTS)
-        && !squareIsAttacked(board, BLACK, 61))
-        moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE), count++;
-
-    // Check for Black Queen Side Castle
-    if (    board->turn == BLACK
-        && (occupied & BLACK_OOO_MAP) == 0ull
-        && (board->castleRights & BLACK_OOO_RIGHTS)
-        && !squareIsAttacked(board, BLACK, 59))
-        moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE), count++;
-
-    /******************************************************/
-
-
     // Attempt to generate a castle move for each rook
     while (castles && !board->kingAttackers) {
 
@@ -278,13 +240,7 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
                 { attacked = 1; break; }
 
         // None of the passover squares are attacked
-        if (!attacked) {
-            count--;
-            assert(moves[*size-1] == MoveMake(king, kingTo, CASTLE_MOVE)
-                 ||moves[*size-2] == MoveMake(king, kingTo, CASTLE_MOVE));
-        }
-            // moves[(*size)++] = MoveMake(king, kingTo, CASTLE_MOVE);
+        if (!attacked)
+            moves[(*size)++] = MoveMake(king, kingTo, CASTLE_MOVE);
     }
-
-    assert(count == 0);
 }

@@ -92,6 +92,7 @@ void boardFromFEN(Board *board, const char *fen) {
     char ch;
     char *str = strdup(fen), *strPos = NULL;
     char *token = strtok_r(str, " ", &strPos);
+    uint64_t rooks, kings, white, black;
 
     clearBoard(board); // Zero out, set squares to EMPTY
 
@@ -118,18 +119,16 @@ void boardFromFEN(Board *board, const char *fen) {
     // Castling rights
     token = strtok_r(NULL, " ", &strPos);
 
-    /******************************************************/
-
-    uint64_t rooks = board->pieces[ROOK];
-    uint64_t kings = board->pieces[KING];
-    uint64_t white = board->colours[WHITE];
-    uint64_t black = board->colours[BLACK];
+    rooks = board->pieces[ROOK];
+    kings = board->pieces[KING];
+    white = board->colours[WHITE];
+    black = board->colours[BLACK];
 
     while ((ch = *token++)) {
-        if (ch == 'K') board->castleRights |= WHITE_OO_RIGHTS, setBit(&board->castleRooks, getmsb(white & rooks));
-        if (ch == 'Q') board->castleRights |= WHITE_OOO_RIGHTS, setBit(&board->castleRooks, getlsb(white & rooks));
-        if (ch == 'k') board->castleRights |= BLACK_OO_RIGHTS, setBit(&board->castleRooks, getmsb(black & rooks));
-        if (ch == 'q') board->castleRights |= BLACK_OOO_RIGHTS, setBit(&board->castleRooks, getlsb(black & rooks));
+        if (ch == 'K') setBit(&board->castleRooks, getmsb(white & rooks));
+        if (ch == 'Q') setBit(&board->castleRooks, getlsb(white & rooks));
+        if (ch == 'k') setBit(&board->castleRooks, getmsb(black & rooks));
+        if (ch == 'q') setBit(&board->castleRooks, getlsb(black & rooks));
     }
 
     for (sq = 0; sq < SQUARE_NB; sq++) {
@@ -139,17 +138,8 @@ void boardFromFEN(Board *board, const char *fen) {
         if (testBit(black & kings, sq)) board->castleMasks[sq] &= ~black;
     }
 
-    board->hash ^= ZobristCastleKeys[board->castleRights];
-
-    uint64_t temphash = 0ull;
     rooks = board->castleRooks;
-    while (rooks) {
-        int sss = poplsb(&rooks);
-        temphash ^= ZobristCastleKeys2[sss];
-    }
-    assert(temphash == ZobristCastleKeys[board->castleRights]);
-
-    /******************************************************/
+    while (rooks) board->hash ^= ZobristCastleKeys[poplsb(&rooks)];
 
     // En passant
     board->epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
@@ -201,16 +191,16 @@ void boardToFEN(Board *board, char *fen) {
     *fen++ = ' ';
 
     // Castle rights
-    if (board->castleRights & WHITE_OO_RIGHTS)
-        *fen++ = 'K';
-    if (board->castleRights & WHITE_OOO_RIGHTS)
-        *fen++ = 'Q';
-    if (board->castleRights & BLACK_OO_RIGHTS)
-        *fen++ = 'k';
-    if (board->castleRights & BLACK_OOO_RIGHTS)
-        *fen++ = 'q';
-    if (!board->castleRights)
-        *fen++ = '-';
+    // if (board->castleRights & WHITE_OO_RIGHTS)
+    //     *fen++ = 'K';
+    // if (board->castleRights & WHITE_OOO_RIGHTS)
+    //     *fen++ = 'Q';
+    // if (board->castleRights & BLACK_OO_RIGHTS)
+    //     *fen++ = 'k';
+    // if (board->castleRights & BLACK_OOO_RIGHTS)
+    //     *fen++ = 'q';
+    // if (!board->castleRights)
+    //     *fen++ = '-';
 
     // En passant and Fifty move
     squareToString(board->epSquare, str);
