@@ -46,7 +46,7 @@ static const char *Benchmarks[] = {
 };
 
 static void clearBoard(Board *board) {
-    memset(board, 0, sizeof(*board));
+    memset(board, 0, sizeof(Board));
     memset(&board->squares, EMPTY, sizeof(board->squares));
 }
 
@@ -135,7 +135,7 @@ void boardFromFEN(Board *board, const char *fen) {
         if (testBit(black & kings, sq)) board->castleMasks[sq] &= ~black;
     }
 
-    rooks = board->castleRights;
+    rooks = board->castleRooks;
     while (rooks) board->hash ^= ZobristCastleKeys[poplsb(&rooks)];
 
     board->epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
@@ -182,17 +182,17 @@ void boardToFEN(Board *board, char *fen) {
     *fen++ = board->turn == WHITE ? 'w' : 'b';
     *fen++ = ' ';
 
-    // Castle rights
-    if (board->castleRights & WHITE_OO_RIGHTS)
-        *fen++ = 'K';
-    if (board->castleRights & WHITE_OOO_RIGHTS)
-        *fen++ = 'Q';
-    if (board->castleRights & BLACK_OO_RIGHTS)
-        *fen++ = 'k';
-    if (board->castleRights & BLACK_OOO_RIGHTS)
-        *fen++ = 'q';
-    if (!board->castleRights)
-        *fen++ = '-';
+    // // Castle rights
+    // if (board->castleRights & WHITE_OO_RIGHTS)
+    //     *fen++ = 'K';
+    // if (board->castleRights & WHITE_OOO_RIGHTS)
+    //     *fen++ = 'Q';
+    // if (board->castleRights & BLACK_OO_RIGHTS)
+    //     *fen++ = 'k';
+    // if (board->castleRights & BLACK_OOO_RIGHTS)
+    //     *fen++ = 'q';
+    // if (!board->castleRights)
+    //     *fen++ = '-';
 
     // En passant and Fifty move
     squareToString(board->epSquare, str);
@@ -201,28 +201,24 @@ void boardToFEN(Board *board, char *fen) {
 
 void printBoard(Board *board) {
 
-    static const char table[COLOUR_NB][PIECE_NB] = {
-        {'P','N','B','R','Q','K'},
-        {'p','n','b','r','q','k'},
-    };
-
     char fen[256];
-    int i, j, file, colour, type;
+    int sq, file;
 
     // Print each row of the board, starting from the top
-    for(i = 56, file = 8; i >= 0; i -= 8, file--){
+    for(sq = 56, file = 8; sq >= 0; sq -= 8, file--) {
 
         printf("\n     |----|----|----|----|----|----|----|----|\n");
         printf("   %d ", file);
 
         // Print each square in a row, starting from the left
-        for(j = 0; j < 8; j++){
-            colour = pieceColour(board->squares[i+j]);
-            type = pieceType(board->squares[i+j]);
+        for(int i = 0; i < 8; i++) {
 
-            switch(colour){
-                case WHITE: printf("| *%c ", table[colour][type]); break;
-                case BLACK: printf("|  %c ", table[colour][type]); break;
+            int colour = pieceColour(board->squares[sq+i]);
+            int type = pieceType(board->squares[sq+i]);
+
+            switch(colour) {
+                case WHITE: printf("| *%c ", PieceLabel[colour][type]); break;
+                case BLACK: printf("|  %c ", PieceLabel[colour][type]); break;
                 default   : printf("|    "); break;
             }
         }
