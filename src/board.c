@@ -118,18 +118,45 @@ void boardFromFEN(Board *board, const char *fen) {
     // Castling rights
     token = strtok_r(NULL, " ", &strPos);
 
+    /******************************************************/
+
+    uint64_t rooks = board->pieces[ROOK];
+    uint64_t kings = board->pieces[KING];
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+
     while ((ch = *token++)) {
-        if (ch =='K')
-            board->castleRights |= WHITE_OO_RIGHTS;
-        else if (ch == 'Q')
-            board->castleRights |= WHITE_OOO_RIGHTS;
-        else if (ch == 'k')
-            board->castleRights |= BLACK_OO_RIGHTS;
-        else if (ch == 'q')
-            board->castleRights |= BLACK_OOO_RIGHTS;
+        if (ch == 'K') board->castleRights |= WHITE_OO_RIGHTS, setBit(&board->castleRooks, getmsb(white & rooks));
+        if (ch == 'Q') board->castleRights |= WHITE_OOO_RIGHTS, setBit(&board->castleRooks, getlsb(white & rooks));
+        if (ch == 'k') board->castleRights |= BLACK_OO_RIGHTS, setBit(&board->castleRooks, getmsb(black & rooks));
+        if (ch == 'q') board->castleRights |= BLACK_OOO_RIGHTS, setBit(&board->castleRooks, getlsb(black & rooks));
+    }
+
+    for (sq = 0; sq < SQUARE_NB; sq++) {
+        board->castleMasks[sq] = ~0ull;
+        if (testBit(board->castleRooks, sq)) clearBit(&board->castleMasks[sq], sq);
+        if (testBit(white & kings, sq)) board->castleMasks[sq] &= ~white;
+        if (testBit(black & kings, sq)) board->castleMasks[sq] &= ~black;
     }
 
     board->hash ^= ZobristCastleKeys[board->castleRights];
+
+    uint64_t temphash = 0ull;
+    rooks = board->castleRooks;
+    printBitboard(rooks);
+    printBitboard(ZobristCastleKeys[board->castleRights]);
+    while (rooks) {
+        int sss = poplsb(&rooks);
+        temphash ^= ZobristCastleKeys2[sss];
+        printBitboard(ZobristCastleKeys2[sss]);
+    }
+
+
+
+
+    assert(temphash == ZobristCastleKeys[board->castleRights]);
+
+    /******************************************************/
 
     // En passant
     board->epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
