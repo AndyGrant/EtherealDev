@@ -85,7 +85,7 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightBackwardsPawns = S(   0,   0);
+const int KnightBackwardsPawns = S(   0,   5);
 
 const int KnightOutpost[2] = { S(   7, -25), S(  31,  -3) };
 
