@@ -48,7 +48,6 @@ static const char *Benchmarks[] = {
 static void clearBoard(Board *board) {
     memset(board, 0, sizeof(*board));
     memset(&board->squares, EMPTY, sizeof(board->squares));
-    board->epSquare = -1;
 }
 
 static void setSquare(Board *board, int colour, int piece, int sq) {
@@ -92,10 +91,10 @@ void boardFromFEN(Board *board, const char *fen) {
     char ch;
     char *str = strdup(fen), *strPos = NULL;
     char *token = strtok_r(str, " ", &strPos);
+    uint64_t rooks, kings, white, black;
 
     clearBoard(board); // Zero out, set squares to EMPTY
 
-    // Piece placement
     while ((ch = *token++)) {
         if (isdigit(ch))
             sq += ch - '0';
@@ -110,39 +109,42 @@ void boardFromFEN(Board *board, const char *fen) {
         }
     }
 
-    // Turn of play
     token = strtok_r(NULL, " ", &strPos);
     board->turn = token[0] == 'w' ? WHITE : BLACK;
     if (board->turn == BLACK) board->hash ^= ZobristTurnKey;
 
-    // Castling rights
-    token = strtok_r(NULL, " ", &strPos);
+    rooks = board->pieces[ROOK];
+    kings = board->pieces[KING];
+    white = board->colours[WHITE];
+    black = board->colours[BLACK];
 
+    token = strtok_r(NULL, " ", &strPos);
     while ((ch = *token++)) {
-        if (ch =='K')
-            board->castleRights |= WHITE_OO_RIGHTS;
-        else if (ch == 'Q')
-            board->castleRights |= WHITE_OOO_RIGHTS;
-        else if (ch == 'k')
-            board->castleRights |= BLACK_OO_RIGHTS;
-        else if (ch == 'q')
-            board->castleRights |= BLACK_OOO_RIGHTS;
+        if (ch == 'K') setBit(&board->castleRooks, getmsb(white & rooks));
+        if (ch == 'Q') setBit(&board->castleRooks, getlsb(white & rooks));
+        if (ch == 'k') setBit(&board->castleRooks, getmsb(black & rooks));
+        if (ch == 'q') setBit(&board->castleRooks, getlsb(black & rooks));
+        if ('A' <= ch && ch <= 'H') setBit(&board->castleRooks, square(0, ch = 'A'));
+        if ('a' <= ch && ch <= 'h') setBit(&board->castleRooks, square(7, ch = 'a'));
     }
 
-    board->hash ^= ZobristCastleKeys[board->castleRights];
+    for (sq = 0; sq < SQUARE_NB; sq++) {
+        board->castleMasks[sq] = ~0ull;
+        if (testBit(board->castleRooks, sq)) clearBit(&board->castleMasks[sq], sq);
+        if (testBit(white & kings, sq)) board->castleMasks[sq] &= ~white;
+        if (testBit(black & kings, sq)) board->castleMasks[sq] &= ~black;
+    }
 
-    // En passant
+    rooks = board->castleRights;
+    while (rooks) board->hash ^= ZobristCastleKeys[poplsb(&rooks)];
+
     board->epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
     if (board->epSquare != -1)
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
 
-    // 50 move counter
     board->fiftyMoveRule = atoi(strtok_r(NULL, " ", &strPos));
 
-    // Move count: ignore and use zero, as we count since root
     board->numMoves = 0;
-
-    // Need king attackers for move generation
     board->kingAttackers = attackersToKingSquare(board);
 
     free(str);
