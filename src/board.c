@@ -143,17 +143,10 @@ void boardFromFEN(Board *board, const char *fen) {
 
     uint64_t temphash = 0ull;
     rooks = board->castleRooks;
-    printBitboard(rooks);
-    printBitboard(ZobristCastleKeys[board->castleRights]);
     while (rooks) {
         int sss = poplsb(&rooks);
         temphash ^= ZobristCastleKeys2[sss];
-        printBitboard(ZobristCastleKeys2[sss]);
     }
-
-
-
-
     assert(temphash == ZobristCastleKeys[board->castleRights]);
 
     /******************************************************/

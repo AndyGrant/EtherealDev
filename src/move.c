@@ -98,6 +98,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->hash          = board->hash;
     undo->pkhash        = board->pkhash;
     undo->kingAttackers = board->kingAttackers;
+    undo->castleRooks   = board->castleRooks;
     undo->castleRights  = board->castleRights;
     undo->epSquare      = board->epSquare;
     undo->fiftyMoveRule = board->fiftyMoveRule;
@@ -125,6 +126,20 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
 
     // Need king attackers to verify move legality
     board->kingAttackers = attackersToKingSquare(board);
+
+    /******************************************************/
+
+    uint64_t temphash = 0ull, rooks = board->castleRooks;
+    if (popcount(board->castleRooks) != popcount(board->castleRights)) {
+        printBitboard(board->castleRooks);
+        printf("%d\n", board->castleRights);
+        printBoard(board);
+    }
+    assert(popcount(board->castleRooks) == popcount(board->castleRights));
+    while (rooks) temphash ^= ZobristCastleKeys2[poplsb(&rooks)];
+    assert(temphash == ZobristCastleKeys[board->castleRights]);
+
+    /******************************************************/
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
@@ -155,6 +170,9 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
     board->hash ^= ZobristCastleKeys[board->castleRights];
     board->castleRights &= CastleMask[from] & CastleMask[to];
     board->hash ^= ZobristCastleKeys[board->castleRights];
+
+    board->castleRooks &= board->castleMasks[from];
+    board->castleRooks &= board->castleMasks[to];
 
     board->psqtmat += PSQT[fromPiece][to]
                    -  PSQT[fromPiece][from]
@@ -189,8 +207,17 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     const int from = MoveFrom(move);
     const int to = MoveTo(move);
 
+    /******************************************************/
+
     const int rFrom = castleGetRookFrom(from, to);
     const int rTo = castleGetRookTo(from, to);
+
+    const int rFrom2 = castleRookFrom2(board, from, to);
+    const int rTo2 = to > from ? to - 1 : to + 1;
+
+    assert(rFrom == rFrom2 && rTo == rTo2);
+
+    /******************************************************/
 
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
@@ -210,6 +237,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->hash ^= ZobristCastleKeys[board->castleRights];
     board->castleRights &= CastleMask[from];
     board->hash ^= ZobristCastleKeys[board->castleRights];
+
+    board->castleRooks &= board->castleMasks[from];
 
     board->psqtmat += PSQT[fromPiece][to]
                    -  PSQT[fromPiece][from]
@@ -297,6 +326,8 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     board->castleRights &= CastleMask[to];
     board->hash ^= ZobristCastleKeys[board->castleRights];
 
+    board->castleRooks &= board->castleMasks[to];
+
     board->psqtmat += PSQT[promoPiece][to]
                    -  PSQT[fromPiece][from]
                    -  PSQT[toPiece][to];
@@ -346,6 +377,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->hash          = undo->hash;
     board->pkhash        = undo->pkhash;
     board->kingAttackers = undo->kingAttackers;
+    board->castleRooks   = undo->castleRooks;
     board->castleRights  = undo->castleRights;
     board->epSquare      = undo->epSquare;
     board->fiftyMoveRule = undo->fiftyMoveRule;
@@ -373,8 +405,17 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
 
     else if (MoveType(move) == CASTLE_MOVE) {
 
+        /******************************************************/
+
         const int rFrom = castleGetRookFrom(from, to);
         const int rTo = castleGetRookTo(from, to);
+
+        const int rFrom2 = castleRookFrom2(board, from, to);
+        const int rTo2 = to > from ? to - 1 : to + 1;
+
+        assert(rFrom == rFrom2 && rTo == rTo2);
+
+        /******************************************************/
 
         board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
         board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
@@ -495,6 +536,12 @@ int moveWasLegal(Board *board) {
 }
 
 int moveIsPsuedoLegal(Board *board, uint16_t move) {
+    int legal = _moveIsPsuedoLegal(board, move);
+    assert(legal == moveIsPsuedoLegal2(board, move));
+    return legal;
+}
+
+int _moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     int from   = MoveFrom(move);
     int type   = MoveType(move);
@@ -611,6 +658,121 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
         // Castle moves must be one of the above
         default: return 0;
     }
+}
+
+int moveIsPsuedoLegal2(Board *board, uint16_t move) {
+
+    int from   = MoveFrom(move);
+    int type   = MoveType(move);
+    int ftype  = pieceType(board->squares[from]);
+    int rook, king, rookTo, kingTo;
+
+    uint64_t friendly = board->colours[ board->turn];
+    uint64_t enemy    = board->colours[!board->turn];
+    uint64_t castles  = friendly & board->castleRooks;
+    uint64_t occupied = friendly | enemy;
+    uint64_t attacks, forward, mask;
+
+    // Quick check against obvious illegal moves, moving from an empty
+    // or enemy square, and moves with invalid promotion flags enabled
+    if (   (move == NONE_MOVE || move == NULL_MOVE)
+        || (pieceColour(board->squares[from]) != board->turn)
+        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
+        return 0;
+
+    // Knight, Bishop, Rook, and Queen moves are legal so long as the
+    // move type is NORMAL and the destination is an attacked square
+
+    if (ftype == KNIGHT)
+        return type == NORMAL_MOVE
+            && testBit(knightAttacks(from) & ~friendly, MoveTo(move));
+
+    if (ftype == BISHOP)
+        return type == NORMAL_MOVE
+            && testBit(bishopAttacks(from, occupied) & ~friendly, MoveTo(move));
+
+    if (ftype == ROOK)
+        return type == NORMAL_MOVE
+            && testBit(rookAttacks(from, occupied) & ~friendly, MoveTo(move));
+
+    if (ftype == QUEEN)
+        return type == NORMAL_MOVE
+            && testBit(queenAttacks(from, occupied) & ~friendly, MoveTo(move));
+
+    if (ftype == PAWN) {
+
+        // Throw out castle moves with our pawn
+        if (type == CASTLE_MOVE)
+            return 0;
+
+        // Look at the squares which our pawn threatens
+        attacks = pawnAttacks(board->turn, from);
+
+        // Enpass moves are legal if our to square is the enpass
+        // square and we could attack a piece on the enpass square
+        if (type == ENPASS_MOVE)
+            return MoveTo(move) == board->epSquare && testBit(attacks, MoveTo(move));
+
+        // Compute simple pawn advances
+        forward = pawnAdvance(1ull << from, occupied, board->turn);
+
+        // Promotion moves are legal if we can move to one of the promotion
+        // ranks, defined by PROMOTION_RANKS, independent of moving colour
+        if (type == PROMOTION_MOVE)
+            return testBit(PROMOTION_RANKS & ((attacks & enemy) | forward), MoveTo(move));
+
+        // Add the double advance to forward
+        forward |= pawnAdvance(forward & (!board->turn ? RANK_3 : RANK_6), occupied, board->turn);
+
+        // Normal moves are legal if we can move there
+        return testBit(~PROMOTION_RANKS & ((attacks & enemy) | forward), MoveTo(move));
+    }
+
+    // The colour check should (assuming board->squares only contains
+    // pieces and EMPTY flags) ensure that ftype is an actual piece,
+    // which at this point the only piece left to check is the King
+    assert(ftype == KING);
+
+    // Normal moves are legal if the to square is a valid target
+    if (type == NORMAL_MOVE)
+        return testBit(kingAttacks(from) & ~friendly, MoveTo(move));
+
+    // Kings cannot enpass or promote
+    if (type != CASTLE_MOVE)
+        return 0;
+
+    // Verifying a castle move can be difficult, so instead we will just
+    // attempt to generate the (two) possible castle moves for the given
+    // player. If one matches, we can then verify the psuedo legality
+    // using the same code as from movegen.c
+
+    while (castles && !board->kingAttackers) {
+
+        // Figure out which pieces are moving to which squares
+        rook = poplsb(&castles), king = from;
+        kingTo = square(rankOf(rook), rook > king ? 6 : 2);
+        rookTo = rook > king ? kingTo - 1 : kingTo + 1;
+
+        // Make sure we are generating the
+        if (move != MoveMake(king, kingTo, CASTLE_MOVE))
+            continue;
+
+        // Castle is illegal if we would go over a piece
+        mask  = bitsBetweenMasks(king, kingTo);
+        mask |= bitsBetweenMasks(rook, rookTo);
+        mask &= ~((1ull << king) | (1ull << rook));
+        if (occupied & mask) return 0;
+
+        // Castle is illegal if we move through a checking threat
+        mask = bitsBetweenMasks(king, kingTo);
+        while (mask)
+            if (squareIsAttacked(board, board->turn, poplsb(&mask)))
+                return 0;
+
+        return 1; // All requirments are met
+    }
+
+    return 0;
 }
 
 void moveToString(uint16_t move, char *str) {

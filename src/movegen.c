@@ -170,7 +170,8 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     const int Forward = board->turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
 
-    uint64_t destinations, pawnForwardOne, pawnForwardTwo;
+    int rook, king, rookTo, kingTo, attacked;
+    uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
 
     uint64_t friendly = board->colours[ board->turn];
     uint64_t enemy    = board->colours[!board->turn];
@@ -181,7 +182,7 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
     uint64_t myRooks   = friendly & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
     uint64_t myKings   = friendly &  board->pieces[KING  ];
-
+    uint64_t castles   = friendly &  board->castleRooks;
 
     // Double checks can only be evaded by moving the King. We do not
     // look at captures by the king since we are generating quiet moves
@@ -217,6 +218,10 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     buildRookMoves(moves, size, myRooks, occupied, destinations);
     buildKingMoves(moves, size, myKings, ~occupied);
 
+    /******************************************************/
+
+    int count = 0;
+
     // We cannot castle out of check
     if (board->kingAttackers) return;
 
@@ -225,26 +230,61 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         && (occupied & WHITE_OO_MAP) == 0ull
         && (board->castleRights & WHITE_OO_RIGHTS)
         && !squareIsAttacked(board, WHITE, 5))
-        moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE);
+        moves[(*size)++] = MoveMake(4, 6, CASTLE_MOVE), count++;
 
     // Check for White Queen Side Castle
     if (    board->turn == WHITE
         && (occupied & WHITE_OOO_MAP) == 0ull
         && (board->castleRights & WHITE_OOO_RIGHTS)
         && !squareIsAttacked(board, WHITE, 3))
-        moves[(*size)++] = MoveMake(4, 2, CASTLE_MOVE);
+        moves[(*size)++] = MoveMake(4, 2, CASTLE_MOVE), count++;
 
     // Check for Black King Side Castle
     if (    board->turn == BLACK
         && (occupied & BLACK_OO_MAP) == 0ull
         && (board->castleRights & BLACK_OO_RIGHTS)
         && !squareIsAttacked(board, BLACK, 61))
-        moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE);
+        moves[(*size)++] = MoveMake(60, 62, CASTLE_MOVE), count++;
 
     // Check for Black Queen Side Castle
     if (    board->turn == BLACK
         && (occupied & BLACK_OOO_MAP) == 0ull
         && (board->castleRights & BLACK_OOO_RIGHTS)
         && !squareIsAttacked(board, BLACK, 59))
-        moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE);
+        moves[(*size)++] = MoveMake(60, 58, CASTLE_MOVE), count++;
+
+    /******************************************************/
+
+
+    // Attempt to generate a castle move for each rook
+    while (castles && !board->kingAttackers) {
+
+        // Figure out which pieces are moving to which squares
+        rook = poplsb(&castles), king = getlsb(myKings);
+        kingTo = square(rankOf(rook), rook > king ? 6 : 2);
+        rookTo = rook > king ? kingTo - 1 : kingTo + 1;
+        attacked = 0;
+
+        // Castle is illegal if we would go over a piece
+        mask  = bitsBetweenMasks(king, kingTo);
+        mask |= bitsBetweenMasks(rook, rookTo);
+        mask &= ~((1ull << king) | (1ull << rook));
+        if (occupied & mask) continue;
+
+        // Castle is illegal if we move through a checking threat
+        mask = bitsBetweenMasks(king, kingTo);
+        while (mask)
+            if (squareIsAttacked(board, board->turn, poplsb(&mask)))
+                { attacked = 1; break; }
+
+        // None of the passover squares are attacked
+        if (!attacked) {
+            count--;
+            assert(moves[*size-1] == MoveMake(king, kingTo, CASTLE_MOVE)
+                 ||moves[*size-2] == MoveMake(king, kingTo, CASTLE_MOVE));
+        }
+            // moves[(*size)++] = MoveMake(king, kingTo, CASTLE_MOVE);
+    }
+
+    assert(count == 0);
 }

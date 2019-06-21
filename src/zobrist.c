@@ -71,7 +71,11 @@ void initZobrist() {
     // Init the Zobrist keys for each set of castle flags
     for (int cr = 0; cr < 0x10; cr++) {
 
-        if (popcount(cr) == 1) continue; // Dont kill
+        if (  cr == WHITE_OO_RIGHTS
+        || cr == WHITE_OOO_RIGHTS
+        || cr == BLACK_OO_RIGHTS
+        || cr == BLACK_OOO_RIGHTS)
+        continue;
 
         if (cr & WHITE_OO_RIGHTS)
             ZobristCastleKeys[cr] ^= ZobristCastleKeys[WHITE_OO_RIGHTS];

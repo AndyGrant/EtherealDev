@@ -53,6 +53,8 @@ int moveIsTactical(Board *board, uint16_t move);
 int moveEstimatedValue(Board *board, uint16_t move);
 int moveBestCaseValue(Board *board);
 int moveIsPsuedoLegal(Board *board, uint16_t move);
+int _moveIsPsuedoLegal(Board *board, uint16_t move);
+int moveIsPsuedoLegal2(Board *board, uint16_t move);
 int moveWasLegal(Board *board);
 void moveToString(uint16_t move, char *str);
 
