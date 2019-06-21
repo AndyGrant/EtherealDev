@@ -555,6 +555,8 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     // player. If one matches, we can then verify the psuedo legality
     // using the same code as from movegen.c
 
+    return 0;
+
     while (castles) {
 
         // Figure out which pieces are moving to which squares
