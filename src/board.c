@@ -124,8 +124,8 @@ void boardFromFEN(Board *board, const char *fen) {
         if (ch == 'Q') setBit(&board->castleRooks, getlsb(white & rooks));
         if (ch == 'k') setBit(&board->castleRooks, getmsb(black & rooks));
         if (ch == 'q') setBit(&board->castleRooks, getlsb(black & rooks));
-        if ('A' <= ch && ch <= 'H') setBit(&board->castleRooks, square(0, ch = 'A'));
-        if ('a' <= ch && ch <= 'h') setBit(&board->castleRooks, square(7, ch = 'a'));
+        if ('A' <= ch && ch <= 'H') setBit(&board->castleRooks, square(0, ch - 'A'));
+        if ('a' <= ch && ch <= 'h') setBit(&board->castleRooks, square(7, ch - 'a'));
     }
 
     for (sq = 0; sq < SQUARE_NB; sq++) {
