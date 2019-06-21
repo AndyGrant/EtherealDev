@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "movegen.h"
+
 #include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
@@ -554,6 +556,18 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     // attempt to generate the (two) possible castle moves for the given
     // player. If one matches, we can then verify the psuedo legality
     // using the same code as from movegen.c
+
+
+    int _size = 0;
+    uint16_t _moves[MAX_MOVES];
+    genAllQuietMoves(board, _moves, &_size);
+
+    for (int i = 0; i < _size; i++)
+        if (move == _moves[i])
+            return 1;
+    return 0;
+
+
 
     while (castles) {
 
