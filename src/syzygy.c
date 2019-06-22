@@ -149,7 +149,7 @@ int tablebasesProbeDTZ(Board *board, uint16_t *move) {
     genAllLegalMoves(board, moves, &size);
     for (i = 0; i < size; i++) {
         if (moves[i] == *move) {
-            uciReportTBRoot(*move, wdl, dtz);
+            uciReportTBRoot(board, *move, wdl, dtz);
             return 1;
         }
     }

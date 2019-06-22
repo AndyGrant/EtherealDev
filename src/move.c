@@ -591,23 +591,17 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     return 0;
 }
 
-void moveToString(uint16_t move, char *str, int chess960) {
+void moveToString(Board *board, uint16_t move, char *str) {
 
     int from = MoveFrom(move), to = MoveTo(move);
 
-    // When reporting a castle move during FRC we make
-    // sure the from square is shown as either e1 or e8
-    int _from = chess960 && MoveType(move) == CASTLE_MOVE
-              ? square(rankOf(from), 'e' - 'a') : from;
-
-    // When reporting a castle move during FRC we make sure
-    // the to square is shown as either a1, a8, h1, or h8
-    int _to = chess960 && MoveType(move) == CASTLE_MOVE
-            ? square(rankOf(from), MoveCastleSide(move) == CASTLE_KING_SIDE ? 7 : 0) : to;
+    // FRC reports using KxR notation
+    if (board->chess960 && MoveType(move) == CASTLE_MOVE)
+        to = castleRookFrom(board, move);
 
     // Encode squares (Long Algebraic Notation)
-    squareToString(_from, &str[0]);
-    squareToString(_to, &str[2]);
+    squareToString(from, &str[0]);
+    squareToString(to, &str[2]);
 
     // Add promotion piece label (Uppercase)
     if (MoveType(move) == PROMOTION_MOVE) {

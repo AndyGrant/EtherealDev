@@ -274,12 +274,12 @@ void* uciGo(void* vthreadsgo){
     while (IS_PONDERING);
 
     // Report best move (we should always have one)
-    moveToString(bestMove, bestMoveStr, board->chess960);
+    moveToString(board, bestMove, bestMoveStr);
     printf("bestmove %s ", bestMoveStr);
 
     // Report ponder move if we have one
     if (ponderMove != NONE_MOVE) {
-        moveToString(ponderMove, ponderMoveStr, board->chess960);
+        moveToString(board, ponderMove, ponderMoveStr);
         printf("ponder %s", ponderMoveStr);
     }
 
@@ -328,7 +328,7 @@ void uciPosition(char* str, Board* board, int chess960){
 
         // Find and apply the correct move
         for (size -= 1; size >= 0; size--){
-            moveToString(moves[size], test, board->chess960);
+            moveToString(board, moves[size], test);
             if (stringEquals(move, test)){
                 applyMove(board, moves[size], undo);
                 break;
@@ -376,7 +376,7 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     // Iterate over the PV and print each move
     for (int i = 0; i < pv->length; i++){
         char moveStr[6];
-        moveToString(pv->line[i], moveStr, threads->board.chess960);
+        moveToString(&threads->board, pv->line[i], moveStr);
         printf("%s ", moveStr);
     }
 
@@ -384,7 +384,7 @@ void uciReport(Thread* threads, int alpha, int beta, int value){
     fflush(stdout);
 }
 
-void uciReportTBRoot(uint16_t move, unsigned wdl, unsigned dtz){
+void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz){
 
     int score = wdl == TB_LOSS ? -MATE + MAX_PLY + dtz + 1
               : wdl == TB_WIN  ?  MATE - MAX_PLY - dtz - 1 : 0;
@@ -394,7 +394,7 @@ void uciReportTBRoot(uint16_t move, unsigned wdl, unsigned dtz){
            MAX_PLY - 1, MAX_PLY - 1, score, 0);
 
     char moveStr[6];
-    moveToString(move, moveStr, 0);
+    moveToString(board, move, moveStr);
     puts(moveStr);
     fflush(stdout);
 }
