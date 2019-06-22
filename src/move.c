@@ -32,10 +32,10 @@
 #include "types.h"
 #include "zobrist.h"
 
-static int castleRookFrom(Board *board, int from, int to) {
+static int castleRookFrom(Board *board, uint16_t move) {
     static const uint64_t FirstRank[COLOUR_NB] = {RANK_1, RANK_8};
     const uint64_t rooks = board->castleRooks & FirstRank[board->turn];
-    return to > from ? getmsb(rooks) : getlsb(rooks);
+    return MoveCastleSide(move) == CASTLE_KING_SIDE ? getmsb(rooks) : getlsb(rooks);
 }
 
 static void updateCastleZobrist(Board *board, uint64_t oldRooks, uint64_t newRooks) {
@@ -166,8 +166,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     const int from = MoveFrom(move);
     const int to = MoveTo(move);
 
-    const int rFrom = castleRookFrom(board, from, to);
-    const int rTo = to > from ? to - 1 : to + 1;
+    const int rFrom = castleRookFrom(board, move);
+    const int rTo = MoveCastleSide(move) == CASTLE_KING_SIDE ? to - 1 : to + 1;
 
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
@@ -353,8 +353,8 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
 
     else if (MoveType(move) == CASTLE_MOVE) {
 
-        const int rFrom = castleRookFrom(board, from, to);
-        const int rTo = to > from ? to - 1 : to + 1;
+        const int rFrom = castleRookFrom(board, move);
+        const int rTo = MoveCastleSide(move) == CASTLE_KING_SIDE ? to - 1 : to + 1;
 
         board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
         board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
@@ -487,11 +487,13 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     uint64_t occupied = friendly | enemy;
     uint64_t attacks, forward, mask;
 
-    // Quick check against obvious illegal moves, moving from an empty
-    // or enemy square, and moves with invalid promotion flags enabled
+    // Quick check against obvious illegal moves, such as our special move values,
+    // moving a piece that is not ours, normal move and enpass moves that have bits
+    // set which would otherwise indicate that the move is a castle or a promotion
     if (   (move == NONE_MOVE || move == NULL_MOVE)
         || (pieceColour(board->squares[from]) != board->turn)
-        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
+        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type == NORMAL_MOVE)
+        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type == ENPASS_MOVE))
         return 0;
 
     // Knight, Bishop, Rook, and Queen moves are legal so long as the
@@ -568,7 +570,7 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
         rookTo = rook > king ? kingTo - 1 : kingTo + 1;
 
         // Make sure we are generating the right move
-        if (move != MoveMake(king, kingTo, CASTLE_MOVE))
+        if (move != MoveMake(king, kingTo, rook > king ? CASTLE_KING_MOVE : CASTLE_QUEEN_MOVE))
             continue;
 
         // Castle is illegal if we would go over a piece
@@ -601,7 +603,7 @@ void moveToString(uint16_t move, char *str, int chess960) {
     // When reporting a castle move during FRC we make sure
     // the to square is shown as either a1, a8, h1, or h8
     int _to = chess960 && MoveType(move) == CASTLE_MOVE
-            ? square(rankOf(from), to > from ? 7 : 0) : to;
+            ? square(rankOf(from), MoveCastleSide(move) == CASTLE_KING_SIDE ? 7 : 0) : to;
 
     // Encode squares (Long Algebraic Notation)
     squareToString(_from, &str[0]);

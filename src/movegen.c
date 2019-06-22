@@ -241,6 +241,6 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
 
         // None of the passover squares are attacked
         if (!attacked)
-            moves[(*size)++] = MoveMake(king, kingTo, CASTLE_MOVE);
+            moves[(*size)++] = MoveMake(king, kingTo, rook > king ? CASTLE_KING_MOVE : CASTLE_QUEEN_MOVE);
     }
 }
