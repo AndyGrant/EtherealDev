@@ -181,9 +181,9 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
 
     board->squares[from]  = EMPTY;
-    board->squares[to]    = fromPiece;
-
     board->squares[rFrom] = EMPTY;
+
+    board->squares[to]    = fromPiece;
     board->squares[rTo]   = rFromPiece;
 
     board->castleRooks &= board->castleMasks[from];
@@ -363,9 +363,9 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
         board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
 
         board->squares[to] = EMPTY;
-        board->squares[from] = makePiece(KING, board->turn);
-
         board->squares[rTo] = EMPTY;
+
+        board->squares[from] = makePiece(KING, board->turn);
         board->squares[rFrom] = makePiece(ROOK, board->turn);
     }
 
