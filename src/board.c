@@ -133,7 +133,7 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
         if (ch == 'k') setBit(&board->castleRooks, getmsb(black & rooks & RANK_8));
         if (ch == 'q') setBit(&board->castleRooks, getlsb(black & rooks & RANK_8));
         if ('A' <= ch && ch <= 'H') setBit(&board->castleRooks, square(0, ch - 'A'));
-        if ('a' <= ch && ch <= 'h') setBit(&board->castleRooks, square(7, ch - 'h'));
+        if ('a' <= ch && ch <= 'h') setBit(&board->castleRooks, square(7, ch - 'a'));
     }
 
     for (sq = 0; sq < SQUARE_NB; sq++) {
@@ -269,7 +269,7 @@ uint64_t perft(Board *board, int depth){
     genAllMoves(board, moves, &size);
 
     // Recurse on all valid moves
-    for(size -= 1; size >= 0; size--){
+    for(size -= 1; size >= 0; size--) {
         applyMove(board, moves[size], undo);
         if (moveWasLegal(board)) found += perft(board, depth-1);
         revertMove(board, moves[size], undo);

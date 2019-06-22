@@ -362,11 +362,11 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
         board->pieces[ROOK]         ^= (1ull << rFrom) ^ (1ull << rTo);
         board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
 
-        board->squares[from] = board->squares[to];
         board->squares[to] = EMPTY;
+        board->squares[from] = makePiece(KING, board->turn);
 
-        board->squares[rFrom] = board->squares[rTo];
         board->squares[rTo] = EMPTY;
+        board->squares[from] = makePiece(ROOK, board->turn);
     }
 
     else if (MoveType(move) == PROMOTION_MOVE) {
@@ -572,8 +572,8 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
             continue;
 
         // Castle is illegal if we would go over a piece
-        mask  = bitsBetweenMasks(king, kingTo);
-        mask |= bitsBetweenMasks(rook, rookTo);
+        mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
+        mask |= bitsBetweenMasks(rook, rookTo) | (1ull << rookTo);
         mask &= ~((1ull << king) | (1ull << rook));
         if (occupied & mask) return 0;
 

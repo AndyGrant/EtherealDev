@@ -228,8 +228,8 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         attacked = 0;
 
         // Castle is illegal if we would go over a piece
-        mask  = bitsBetweenMasks(king, kingTo);
-        mask |= bitsBetweenMasks(rook, rookTo);
+        mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
+        mask |= bitsBetweenMasks(rook, rookTo) | (1ull << rookTo);
         mask &= ~((1ull << king) | (1ull << rook));
         if (occupied & mask) continue;
 
