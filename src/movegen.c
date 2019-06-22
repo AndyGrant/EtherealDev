@@ -238,9 +238,10 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         while (mask)
             if (squareIsAttacked(board, board->turn, poplsb(&mask)))
                 { attacked = 1; break; }
+        if (attacked) continue;
 
-        // None of the passover squares are attacked
-        if (!attacked)
-            moves[(*size)++] = MoveMake(king, kingTo, rook > king ? CASTLE_KING_MOVE : CASTLE_QUEEN_MOVE);
+        // All conditions have been met. Identify which side we are castling to
+        if (rook > king) moves[(*size)++] = MoveMake(king, kingTo, CASTLE_KING_MOVE);
+        if (rook < king) moves[(*size)++] = MoveMake(king, kingTo, CASTLE_QUEEN_MOVE);
     }
 }

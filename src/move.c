@@ -37,6 +37,10 @@ static int castleRookFrom(Board *board, uint16_t move) {
     return MoveCastleSide(move) == CASTLE_KING_SIDE ? getmsb(rooks) : getlsb(rooks);
 }
 
+static int castleRookTo(uint16_t move, int kingTo) {
+    return MoveCastleSide(move) == CASTLE_KING_SIDE ? kingTo - 1 : kingTo + 1;
+}
+
 static void updateCastleZobrist(Board *board, uint64_t oldRooks, uint64_t newRooks) {
     uint64_t diff = oldRooks ^ newRooks;
     while (diff)
@@ -166,7 +170,7 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     const int to = MoveTo(move);
 
     const int rFrom = castleRookFrom(board, move);
-    const int rTo = MoveCastleSide(move) == CASTLE_KING_SIDE ? to - 1 : to + 1;
+    const int rTo = castleRookTo(move, to);
 
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
@@ -353,7 +357,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     else if (MoveType(move) == CASTLE_MOVE) {
 
         const int rFrom = castleRookFrom(board, move);
-        const int rTo = MoveCastleSide(move) == CASTLE_KING_SIDE ? to - 1 : to + 1;
+        const int rTo = castleRookTo(move, to);
 
         board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
         board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
@@ -568,9 +572,9 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
         kingTo = square(rankOf(rook), rook > king ? 6 : 2);
         rookTo = rook > king ? kingTo - 1 : kingTo + 1;
 
-        // Make sure we are generating the right move
-        if (move != MoveMake(king, kingTo, rook > king ? CASTLE_KING_MOVE : CASTLE_QUEEN_MOVE))
-            continue;
+        // Make sure the move and castle side bits are matching
+        if (rook > king && move != MoveMake(king, kingTo, CASTLE_KING_MOVE)) continue;
+        if (rook < king && move != MoveMake(king, kingTo, CASTLE_QUEEN_MOVE)) continue;
 
         // Castle is illegal if we would go over a piece
         mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
