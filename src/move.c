@@ -366,7 +366,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
         board->squares[from] = makePiece(KING, board->turn);
 
         board->squares[rTo] = EMPTY;
-        board->squares[from] = makePiece(ROOK, board->turn);
+        board->squares[rFrom] = makePiece(ROOK, board->turn);
     }
 
     else if (MoveType(move) == PROMOTION_MOVE) {
