@@ -81,7 +81,7 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
 
 int tablebasesProbeDTZ(Board *board, uint16_t *move) {
 
-    int i, size = 0;
+    int size = 0;
     uint16_t moves[MAX_MOVES];
     unsigned wdl, dtz, to, from, ep, promo;
 
@@ -147,14 +147,11 @@ int tablebasesProbeDTZ(Board *board, uint16_t *move) {
 
     // Verify the legality of the parsed move as a final safety check
     genAllLegalMoves(board, moves, &size);
-    for (i = 0; i < size; i++) {
-        if (moves[i] == *move) {
-            uciReportTBRoot(board, *move, wdl, dtz);
-            return 1;
-        }
-    }
+    for (int i = 0; i < size; i++)
+        if (moves[i] == *move)
+            return uciReportTBRoot(board, *move, wdl, dtz), 1;
 
     // Something went wrong, but as long as we pretend
-    // we failed to probe then nothing is going to break
+    // we failed the probe then nothing is going to break
     assert(0); return 0;
 }
