@@ -33,8 +33,7 @@
 #include "zobrist.h"
 
 static int castleRookFrom(Board *board, uint16_t move) {
-    static const uint64_t FirstRank[COLOUR_NB] = {RANK_1, RANK_8};
-    const uint64_t rooks = board->castleRooks & FirstRank[board->turn];
+    const uint64_t rooks = board->castleRooks & Ranks[rankOf(MoveFrom(move))];
     return MoveCastleSide(move) == CASTLE_KING_SIDE ? getmsb(rooks) : getlsb(rooks);
 }
 
@@ -597,7 +596,7 @@ void moveToString(Board *board, uint16_t move, char *str) {
 
     // FRC reports using KxR notation
     if (board->chess960 && MoveType(move) == CASTLE_MOVE)
-        to = square(rankOf(from), castleRookFrom(board, move));
+        to = castleRookFrom(board, move);
 
     // Encode squares (Long Algebraic Notation)
     squareToString(from, &str[0]);
