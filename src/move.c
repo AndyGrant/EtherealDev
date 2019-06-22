@@ -597,7 +597,7 @@ void moveToString(Board *board, uint16_t move, char *str) {
 
     // FRC reports using KxR notation
     if (board->chess960 && MoveType(move) == CASTLE_MOVE)
-        to = castleRookFrom(board, move);
+        to = square(rankOf(from), castleRookFrom(board, move));
 
     // Encode squares (Long Algebraic Notation)
     squareToString(from, &str[0]);
