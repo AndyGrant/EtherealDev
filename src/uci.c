@@ -147,9 +147,9 @@ int main(int argc, char **argv) {
 
             if (stringStartsWith(str, "setoption name UCI_Chess960 value ")){
                 if (stringStartsWith(str, "setoption name UCI_Chess960 value true"))
-                    printf("info string set UCI_Chess960 to true"), chess960 = 1;
+                    printf("info string set UCI_Chess960 to true\n"), chess960 = 1;
                 if (stringStartsWith(str, "setoption name UCI_Chess960 value false"))
-                    printf("info string set UCI_Chess960 to false"), chess960 = 0;
+                    printf("info string set UCI_Chess960 to false\n"), chess960 = 0;
             }
 
             fflush(stdout);
