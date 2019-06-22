@@ -171,7 +171,9 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
 
 void boardToFEN(Board *board, char *fen) {
 
+    int sq;
     char str[3];
+    uint64_t castles;
 
     // Piece placement
     for (int r = RANK_NB-1; r >= 0; r--) {
@@ -201,17 +203,23 @@ void boardToFEN(Board *board, char *fen) {
     *fen++ = board->turn == WHITE ? 'w' : 'b';
     *fen++ = ' ';
 
-    // Castle rights
-    // if (board->castleRights & WHITE_OO_RIGHTS)
-    //     *fen++ = 'K';
-    // if (board->castleRights & WHITE_OOO_RIGHTS)
-    //     *fen++ = 'Q';
-    // if (board->castleRights & BLACK_OO_RIGHTS)
-    //     *fen++ = 'k';
-    // if (board->castleRights & BLACK_OOO_RIGHTS)
-    //     *fen++ = 'q';
-    // if (!board->castleRights)
-    //     *fen++ = '-';
+    // Castle rights for White
+    castles = board->colours[WHITE] & board->castleRooks;
+    while (castles) {
+        sq = popmsb(&castles);
+        if (board->chess960) *fen++ = 'A' + fileOf(sq);
+        else if (testBit(FILE_H, sq)) *fen++ = 'K';
+        else if (testBit(FILE_A, sq)) *fen++ = 'Q';
+    }
+
+    // Castle rights for Black
+    castles = board->colours[BLACK] & board->castleRooks;
+    while (castles) {
+        sq = popmsb(&castles);
+        if (board->chess960) *fen++ = 'a' + fileOf(sq);
+        else if (testBit(FILE_H, sq)) *fen++ = 'k';
+        else if (testBit(FILE_A, sq)) *fen++ = 'q';
+    }
 
     // En passant and Fifty move
     squareToString(board->epSquare, str);
