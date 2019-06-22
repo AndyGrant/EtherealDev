@@ -38,6 +38,12 @@ static int castleRookFrom(Board *board, int from, int to) {
     return to > from ? getmsb(rooks) : getlsb(rooks);
 }
 
+static void updateCastleZobrist(Board *board, uint64_t oldRooks, uint64_t newRooks) {
+    uint64_t diff = oldRooks ^ newRooks;
+    while (diff)
+        board->hash ^= ZobristCastleKeys[poplsb(&diff)];
+}
+
 int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
     // NULL moves are only tried when legal
@@ -65,8 +71,6 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
         applyEnpassMove, applyPromotionMove
     };
 
-    uint64_t diff;
-
     // Save information which is hard to recompute
     undo->hash          = board->hash;
     undo->pkhash        = board->pkhash;
@@ -79,23 +83,16 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // Store hash history for repetition checking
     board->history[board->numMoves++] = board->hash;
 
-    // Always update fifty move, functions will reset
-    board->fiftyMoveRule += 1;
-
-    // Update the hash for turn and changes to enpass square
-    board->hash ^= ZobristTurnKey;
+    // Update the hash for before changing the enpass square
     if (board->epSquare != -1)
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
 
     // Run the correct move application function
     table[MoveType(move) >> 12](board, move, undo);
 
-    // Update the hash for changes to castle rooks
-    diff = board->castleRooks ^ undo->castleRooks;
-    while (diff) board->hash ^= ZobristCastleKeys[poplsb(&diff)];
-
     // No function updated epsquare so we reset
-    if (board->epSquare == undo->epSquare) board->epSquare = -1;
+    if (board->epSquare == undo->epSquare)
+        board->epSquare = -1;
 
     // No function updates this so we do it here
     board->turn = !board->turn;
@@ -118,6 +115,8 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
 
     if (fromType == PAWN || toPiece != EMPTY)
         board->fiftyMoveRule = 0;
+    else
+        board->fiftyMoveRule += 1;
 
     board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
@@ -131,6 +130,7 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
 
     board->castleRooks &= board->castleMasks[from];
     board->castleRooks &= board->castleMasks[to];
+    updateCastleZobrist(board, undo->castleRooks, board->castleRooks);
 
     board->psqtmat += PSQT[fromPiece][to]
                    -  PSQT[fromPiece][from]
@@ -138,7 +138,8 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[toPiece][to];
+                   ^  ZobristKeys[toPiece][to]
+                   ^  ZobristTurnKey;
 
     if (fromType == PAWN || fromType == KING)
         board->pkhash ^= ZobristKeys[fromPiece][from]
@@ -171,6 +172,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
 
+    board->fiftyMoveRule += 1;
+
     board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
@@ -184,6 +187,7 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->squares[rTo]   = rFromPiece;
 
     board->castleRooks &= board->castleMasks[from];
+    updateCastleZobrist(board, undo->castleRooks, board->castleRooks);
 
     board->psqtmat += PSQT[fromPiece][to]
                    -  PSQT[fromPiece][from]
@@ -193,7 +197,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
                    ^  ZobristKeys[rFromPiece][rFrom]
-                   ^  ZobristKeys[rFromPiece][rTo];
+                   ^  ZobristKeys[rFromPiece][rTo]
+                   ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to];
@@ -231,7 +236,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[enpassPiece][ep];
+                   ^  ZobristKeys[enpassPiece][ep]
+                   ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
@@ -268,6 +274,7 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     undo->capturePiece   = toPiece;
 
     board->castleRooks &= board->castleMasks[to];
+    updateCastleZobrist(board, undo->castleRooks, board->castleRooks);
 
     board->psqtmat += PSQT[promoPiece][to]
                    -  PSQT[fromPiece][from]
@@ -275,7 +282,8 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
 
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[promoPiece][to]
-                   ^  ZobristKeys[toPiece][to];
+                   ^  ZobristKeys[toPiece][to]
+                   ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from];
 
@@ -559,7 +567,7 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
         kingTo = square(rankOf(rook), rook > king ? 6 : 2);
         rookTo = rook > king ? kingTo - 1 : kingTo + 1;
 
-        // Make sure we are generating the
+        // Make sure we are generating the right move
         if (move != MoveMake(king, kingTo, CASTLE_MOVE))
             continue;
 
@@ -581,11 +589,23 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     return 0;
 }
 
-void moveToString(uint16_t move, char *str) {
+void moveToString(uint16_t move, char *str, int chess960) {
+
+    int from = MoveFrom(move), to = MoveTo(move);
+
+    // When reporting a castle move during FRC we make
+    // sure the from square is shown as either e1 or e8
+    int _from = chess960 && MoveType(move) == CASTLE_MOVE
+              ? square(rankOf(from), 'e' - 'a') : from;
+
+    // When reporting a castle move during FRC we make sure
+    // the to square is shown as either a1, a8, h1, or h8
+    int _to = chess960 && MoveType(move) == CASTLE_MOVE
+            ? square(rankOf(from), to > from ? 7 : 0) : to;
 
     // Encode squares (Long Algebraic Notation)
-    squareToString(MoveFrom(move), &str[0]);
-    squareToString(MoveTo(move), &str[2]);
+    squareToString(_from, &str[0]);
+    squareToString(_to, &str[2]);
 
     // Add promotion piece label (Uppercase)
     if (MoveType(move) == PROMOTION_MOVE) {

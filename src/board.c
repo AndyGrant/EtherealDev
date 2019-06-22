@@ -86,7 +86,10 @@ void squareToString(int sq, char *str) {
     *str++ = '\0';
 }
 
-void boardFromFEN(Board *board, const char *fen) {
+void boardFromFEN(Board *board, const char *fen, int chess960) {
+
+    static const uint64_t StandardCastleRooks = (1ull <<  0) | (1ull <<  7)
+                                              | (1ull << 56) | (1ull << 63);
 
     int sq = 56;
     char ch;
@@ -156,6 +159,12 @@ void boardFromFEN(Board *board, const char *fen) {
 
     // Need king attackers for move generation
     board->kingAttackers = attackersToKingSquare(board);
+
+    // We save the game mode in order to comply with the UCI rules for printing
+    // moves. If chess960 is not enabled, but we have detected an unconventional
+    // castle setup, then we set chess960 to be true on our own. Currently, this
+    // is simply a hack so that FRC positions may be added to the bench.csv
+    board->chess960 = chess960 || (board->castleRooks & ~StandardCastleRooks);
 
     free(str);
 }
@@ -290,7 +299,7 @@ void runBenchmark(Thread *threads, int depth) {
     // Search each benchmark position
     for (int i = 0; strcmp(Benchmarks[i], ""); i++) {
         printf("\nPosition #%d: %s\n", i + 1, Benchmarks[i]);
-        boardFromFEN(&board, Benchmarks[i]);
+        boardFromFEN(&board, Benchmarks[i], 0);
 
         limits.start = getRealTime();
         getBestMove(threads, &board, &limits, &bestMove, &ponderMove);

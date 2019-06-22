@@ -36,6 +36,7 @@ struct Board {
     int fiftyMoveRule;
     int psqtmat;
     int numMoves;
+    int chess960;
     uint64_t history[512];
 };
 
@@ -52,7 +53,7 @@ struct Undo {
 
 void squareToString(int s, char *str);
 
-void boardFromFEN(Board *board, const char *fen);
+void boardFromFEN(Board *board, const char *fen, int chess960);
 void boardToFEN(Board *board, char *fen);
 
 void printBoard(Board *board);
