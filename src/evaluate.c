@@ -240,6 +240,7 @@ const int PassedSafePromotionPath = S( -27,  36);
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -14, -28);
+const int ThreatWeakPassedPawn       = S(  -7, -14);
 const int ThreatMinorAttackedByPawn  = S( -56, -47);
 const int ThreatMinorAttackedByMinor = S( -28, -35);
 const int ThreatMinorAttackedByMajor = S( -25, -44);
@@ -824,6 +825,11 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(pawns & ~attacksByPawns & poorlyDefended);
     eval += count * ThreatWeakPawn;
     if (TRACE) T.ThreatWeakPawn[US] += count;
+
+    // Penalty for each of our poorly supported passed pawns
+    count = popcount(pawns & poorlyDefended & ei->passedPawns);
+    eval += count * ThreatWeakPassedPawn;
+    // if (TRACE) T.ThreatWeakPawn[US] += count;
 
     // Penalty for pawn threats against our minors
     count = popcount((knights | bishops) & attacksByPawns);
