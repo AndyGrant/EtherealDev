@@ -775,6 +775,10 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         skipQuiets = quiets >= SingularQuietLimit;
     }
 
+    // Give a history bonus to the singular killer
+    if (value > rBeta && !moveIsTactical(board, move))
+        updateHistoryHeuristics(thread, &move, 1, height, depth*depth);
+
     // Reapply the table move we took off
     apply(thread, board, ttMove, height);
 
