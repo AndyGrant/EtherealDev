@@ -252,7 +252,11 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)){
+        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+
+            // Give a bonus when the TT move produces a quiet beta cutoff
+            if ((ttBound & BOUND_LOWER) && ttValue >= beta && !moveIsTactical(board, ttMove))
+                updateHistoryHeuristics(thread, &ttMove, 1, height, depth*depth);
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
