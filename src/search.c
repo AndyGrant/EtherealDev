@@ -448,7 +448,10 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Reduce for Killers and Counters
+            // Decrease when dealing with checks
+            R -= (PvNode || improving) && (inCheck || board->kingAttackers);
+
+            // Decrease for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
@@ -470,7 +473,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         // an early move has excellent continuation history, or when we have a move
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
-        extension =  (inCheck)
+        extension =  ((inCheck || board->kingAttackers) && (!isQuiet || depth <= 2 || played == 1))
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
