@@ -210,6 +210,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSMutualWeakness  =  -40;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -640,6 +641,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
+    uint64_t myQueens    = board->pieces[QUEEN] & board->colours[  US];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
@@ -693,14 +695,15 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+        count += KSAttackValue     *  scaledAttackCounts
+               + KSWeakSquares     *  popcount(weak & ei->kingAreas[US])
+               + KSFriendlyPawns   *  popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeQueenCheck  *  popcount(queenChecks)
+               + KSSafeRookCheck   *  popcount(rookChecks)
+               + KSSafeBishopCheck *  popcount(bishopChecks)
+               + KSSafeKnightCheck *  popcount(knightChecks)
+               + KSMutualWeakness  * (ei->kingAttackersCount[US] > 1 - popcount(myQueens));
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
