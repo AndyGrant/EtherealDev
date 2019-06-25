@@ -140,8 +140,8 @@ const int QueenMobility[28] = {
 /* King Evaluation Terms */
 
 const int KingDefenders[6] = {
-    S( -21,  -3), S(  -9,   0), S(   0,   2),
-    S(   7,   4), S(  16,   5), S(  27,   2)
+    S( -21,  -3), S(  -6,  -1), S(   1,   1),
+    S(   9,   4), S(  17,   5), S(  28,   2),
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
