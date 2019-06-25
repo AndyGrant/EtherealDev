@@ -139,10 +139,9 @@ const int QueenMobility[28] = {
 
 /* King Evaluation Terms */
 
-const int KingDefenders[12] = {
-    S( -21,  -3), S(  -9,   0), S(   0,   2), S(   7,   4),
-    S(  16,   5), S(  27,   2), S(  32,   0), S(  14,   0),
-    S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
+const int KingDefenders[6] = {
+    S( -21,  -3), S(  -9,   0), S(   0,   2),
+    S(   7,   4), S(  16,   5), S(  27,   2)
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
@@ -653,8 +652,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.KingValue[US]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
 
-    // Bonus for our pawns and minors sitting within our king area
-    count = popcount(myDefenders & ei->kingAreas[US]);
+    // Bonus for our pawns and minors sitting within our king area.
+    // Exclude defenders that are attacked twice and have no pawn support
+    myDefenders &= ei->pawnAttacks[US] | ~ei->attackedBy2[THEM];
+    count = MIN(5, popcount(myDefenders & ei->kingAreas[US]));
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
 

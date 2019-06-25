@@ -73,7 +73,7 @@ extern const int RookFile[2];
 extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
-extern const int KingDefenders[12];
+extern const int KingDefenders[6];
 extern const int KingShelter[2][8][8];
 extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
@@ -183,7 +183,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
         // Resolve FEN to a quiet position
-        boardFromFEN(&thread->board, line);
+        boardFromFEN(&thread->board, line, 0);
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
