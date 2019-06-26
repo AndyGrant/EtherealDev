@@ -437,18 +437,30 @@ int moveIsTactical(Board *board, uint16_t move) {
 
 int moveEstimatedValue(Board *board, uint16_t move) {
 
-    // Start with the value of the piece on the target square
-    int value = SEEPieceValues[pieceType(board->squares[MoveTo(move)])];
+    switch (MoveType(move)) {
 
-    // Factor in the new piece's value and remove our promoted pawn
-    if (MoveType(move) == PROMOTION_MOVE)
-        value += SEEPieceValues[MovePromoPiece(move)] - SEEPieceValues[PAWN];
+        // For normal moves we can just look at the piece that is on the "to"
+        // square. SEEPieceValues accounts for EMPTY with a zero value
+        case NORMAL_MOVE:
+            return SEEPieceValues[pieceType(board->squares[MoveTo(move)])];
 
-    // Target square is encoded as empty for enpass moves
-    if (MoveType(move) == ENPASS_MOVE)
-        value = SEEPieceValues[PAWN];
+        // Ethereal does not encode the captured pawn as the "to" square,
+        // so we must treat Enpassant as a special case for value estimation
+        case ENPASS_MOVE:
+            return SEEPieceValues[PAWN];
 
-    return value;
+        // Promotions are treated the same as normal moves, but we also gain
+        // the piece we are promoting to, and lose out on the converted pawn
+        case PROMOTION_MOVE:
+            return SEEPieceValues[pieceType(board->squares[MoveTo(move)])]
+                 + SEEPieceValues[MovePromoPiece(move)] - SEEPieceValues[PAWN];
+
+        // Otherwise, the move is a castle move. We cannot group this with the
+        // normal moves, because for FRC, we may "capture" our own piece
+        default:
+            assert(MoveType(move) == CASTLE_MOVE);
+            return 0;
+    }
 }
 
 int moveBestCaseValue(Board *board) {
