@@ -210,7 +210,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSAdjustment      =  -60;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -658,54 +658,49 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
 
-    // Perform King Safety when we have two attackers, or
-    // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    // Weak squares are attacked by the enemy, defended no more
+    // than once and only defended by our Queens or our King
+    uint64_t weak =   ei->attacked[THEM]
+                  &  ~ei->attackedBy2[US]
+                  & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
-        // Weak squares are attacked by the enemy, defended no more
-        // than once and only defended by our Queens or our King
-        uint64_t weak =   ei->attacked[THEM]
-                      &  ~ei->attackedBy2[US]
-                      & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
+    // Usually the King Area is 9 squares. Scale are attack counts to account for
+    // when the king is in an open area and expects more attacks, or the opposite
+    float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        // Usually the King Area is 9 squares. Scale are attack counts to account for
-        // when the king is in an open area and expects more attacks, or the opposite
-        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
+    // Safe target squares are defended or are weak and attacked by two.
+    // We exclude squares containing pieces which we cannot capture.
+    uint64_t safe =  ~board->colours[THEM]
+                  & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
-        // Safe target squares are defended or are weak and attacked by two.
-        // We exclude squares containing pieces which we cannot capture.
-        uint64_t safe =  ~board->colours[THEM]
-                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
+    // Find square and piece combinations which would check our King
+    uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
+    uint64_t knightThreats = knightAttacks(kingSq);
+    uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
+    uint64_t rookThreats   = rookAttacks(kingSq, occupied);
+    uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        // Find square and piece combinations which would check our King
-        uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
-        uint64_t knightThreats = knightAttacks(kingSq);
-        uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
-        uint64_t rookThreats   = rookAttacks(kingSq, occupied);
-        uint64_t queenThreats  = bishopThreats | rookThreats;
+    // Identify if there are pieces which can move to the checking squares safely.
+    // We consider forking a Queen to be a safe check, even with our own Queen.
+    uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
+    uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
+    uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
+    uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
-        // Identify if there are pieces which can move to the checking squares safely.
-        // We consider forking a Queen to be a safe check, even with our own Queen.
-        uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
+    count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
+    count += KSAttackValue     * scaledAttackCounts
+           + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
+           + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+           + KSNoEnemyQueens   * !enemyQueens
+           + KSSafeQueenCheck  * popcount(queenChecks)
+           + KSSafeRookCheck   * popcount(rookChecks)
+           + KSSafeBishopCheck * popcount(bishopChecks)
+           + KSSafeKnightCheck * popcount(knightChecks)
+           + KSAdjustment;
 
-        count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
-               + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
-               + KSAdjustment;
-
-        // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
-    }
+    // Convert safety to an MG and EG score, if we are unsafe
+    if (count > 0) eval -= MakeScore(count * count / 675, count / 18);
 
     // King Shelter & King Storm are stored in the Pawn King Table
     if (ei->pkentry != NULL) return eval;
