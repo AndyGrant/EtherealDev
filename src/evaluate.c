@@ -202,16 +202,16 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
+const int KSAttackValue     =   46;
+const int KSWeakSquares     =   40;
+const int KSFriendlyPawns   =  -24;
+const int KSNoEnemyQueens   = -280;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSMutualWeakness  =  -20;
-const int KSAdjustment      =  -18;
+const int KSSafeKnightCheck =  125;
+const int KSMutualWeakness  =  -15;
+const int KSAdjustment      =  -40;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -641,7 +641,6 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
-    uint64_t myQueens    = board->pieces[QUEEN] & board->colours[  US];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
@@ -649,9 +648,6 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                           | (board->pieces[BISHOP] & board->colours[US]);
 
     int kingSq = ei->kingSquare[US];
-    int kingFile = fileOf(kingSq);
-    int kingRank = rankOf(kingSq);
-
     if (TRACE) T.KingValue[US]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(kingSq, US)][US]++;
 
@@ -660,55 +656,50 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
 
-    // Perform King Safety when we have two attackers, or
-    // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    // Weak squares are attacked by the enemy, defended no more
+    // than once and only defended by our Queens or our King
+    uint64_t weak =   ei->attacked[THEM]
+                  &  ~ei->attackedBy2[US]
+                  & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
 
-        // Weak squares are attacked by the enemy, defended no more
-        // than once and only defended by our Queens or our King
-        uint64_t weak =   ei->attacked[THEM]
-                      &  ~ei->attackedBy2[US]
-                      & (~ei->attacked[US] | ei->attackedBy[US][QUEEN] | ei->attackedBy[US][KING]);
+    // Usually the King Area is 9 squares. Scale are attack counts to account for
+    // when the king is in an open area and expects more attacks, or the opposite
+    float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
 
-        // Usually the King Area is 9 squares. Scale are attack counts to account for
-        // when the king is in an open area and expects more attacks, or the opposite
-        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
+    // Safe target squares are defended or are weak and attacked by two.
+    // We exclude squares containing pieces which we cannot capture.
+    uint64_t safe =  ~board->colours[THEM]
+                  & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
-        // Safe target squares are defended or are weak and attacked by two.
-        // We exclude squares containing pieces which we cannot capture.
-        uint64_t safe =  ~board->colours[THEM]
-                      & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
+    // Find square and piece combinations which would check our King
+    uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
+    uint64_t knightThreats = knightAttacks(kingSq);
+    uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
+    uint64_t rookThreats   = rookAttacks(kingSq, occupied);
+    uint64_t queenThreats  = bishopThreats | rookThreats;
 
-        // Find square and piece combinations which would check our King
-        uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
-        uint64_t knightThreats = knightAttacks(kingSq);
-        uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
-        uint64_t rookThreats   = rookAttacks(kingSq, occupied);
-        uint64_t queenThreats  = bishopThreats | rookThreats;
+    // Identify if there are pieces which can move to the checking squares safely.
+    // We consider forking a Queen to be a safe check, even with our own Queen.
+    uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
+    uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
+    uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
+    uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
-        // Identify if there are pieces which can move to the checking squares safely.
-        // We consider forking a Queen to be a safe check, even with our own Queen.
-        uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
+    count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
+    count += KSAttackValue     * scaledAttackCounts
+           + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
+           + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+           + KSNoEnemyQueens   * !enemyQueens
+           + KSSafeQueenCheck  * popcount(queenChecks)
+           + KSSafeRookCheck   * popcount(rookChecks)
+           + KSSafeBishopCheck * popcount(bishopChecks)
+           + KSSafeKnightCheck * popcount(knightChecks)
+           + KSMutualWeakness  * ei->kingAttackersCount[US]
+           + KSAdjustment;
 
-        count += KSAttackValue     *  scaledAttackCounts
-               + KSWeakSquares     *  popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   *  popcount(myPawns & ei->kingAreas[US] & ~weak)
-               + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  *  popcount(queenChecks)
-               + KSSafeRookCheck   *  popcount(rookChecks)
-               + KSSafeBishopCheck *  popcount(bishopChecks)
-               + KSSafeKnightCheck *  popcount(knightChecks)
-               + KSMutualWeakness  * (ei->kingAttackersCount[US] > 1 - popcount(myQueens))
-               + KSAdjustment;
-
-        // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
-    }
+    // Convert safety to an MG and EG score, if we are unsafe
+    if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
 
     // King Shelter & King Storm are stored in the Pawn King Table
     if (ei->pkentry != NULL) return eval;
@@ -716,20 +707,20 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,
     // as well as the adjacent files. When looking at pawn distances, we will use a
     // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
-    for (int file = MAX(0, kingFile - 1); file <= MIN(FILE_NB - 1, kingFile + 1); file++) {
+    for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); file++) {
 
         // Find closest friendly pawn at or above our King on a given file
-        uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, kingRank);
-        int ourDist = !ours ? 7 : abs(kingRank - rankOf(backmost(US, ours)));
+        uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
+        int ourDist = !ours ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, ours)));
 
         // Find closest enemy pawn at or above our King on a given file
-        uint64_t theirs = enemyPawns & Files[file] & forwardRanksMasks(US, kingRank);
-        int theirDist = !theirs ? 7 : abs(kingRank - rankOf(backmost(US, theirs)));
+        uint64_t theirs = enemyPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
+        int theirDist = !theirs ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, theirs)));
 
         // Evaluate King Shelter using pawn distance. Use seperate evaluation
         // depending on the file, and if we are looking at the King's file
-        ei->pkeval[US] += KingShelter[file == kingFile][file][ourDist];
-        if (TRACE) T.KingShelter[file == kingFile][file][ourDist][US]++;
+        ei->pkeval[US] += KingShelter[file == fileOf(kingSq)][file][ourDist];
+        if (TRACE) T.KingShelter[file == fileOf(kingSq)][file][ourDist][US]++;
 
         // Evaluate King Storm using enemy pawn distance. Use a seperate evaluation
         // depending on the file, and if the opponent's pawn is blocked by our own
