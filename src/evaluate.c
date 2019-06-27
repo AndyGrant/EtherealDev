@@ -318,7 +318,7 @@ const int Tempo[COLOUR_NB] = { S(  25,  12), S( -25, -12) };
 
 #undef S
 
-int evaluateBoard(Board* board, PawnKingTable* pktable){
+int evaluateBoard(Board* board, PKTable* pktable){
 
     EvalInfo ei;
     int phase, factor, eval, pkeval;
@@ -345,7 +345,7 @@ int evaluateBoard(Board* board, PawnKingTable* pktable){
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
-        storePawnKingEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+        storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -942,7 +942,7 @@ int evaluateScaleFactor(Board *board) {
     return SCALE_NORMAL;
 }
 
-void initEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
+void initEvalInfo(EvalInfo* ei, Board* board, PKTable* pktable) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -986,7 +986,7 @@ void initEvalInfo(EvalInfo* ei, Board* board, PawnKingTable* pktable){
     ei->kingAttackersCount[WHITE]  = ei->kingAttackersCount[BLACK]  = 0;
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
-    ei->pkentry       =     pktable == NULL ? NULL : getPawnKingEntry(pktable, board->pkhash);
+    ei->pkentry       =     pktable == NULL ? NULL : getPKEntry(pktable, board->pkhash);
     ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
     ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;

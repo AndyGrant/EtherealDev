@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-#define VERSION_ID "11.46"
+#define VERSION_ID "11.48"
 
 #if defined(USE_PEXT)
     #define ETHEREAL_VERSION VERSION_ID" (PEXT)"
@@ -45,6 +45,7 @@ struct ThreadsGo {
 };
 
 void* uciGo(void *vthreadgo);
+void uciSetOption(char *str, int *megabytes, int *chess960, int *nthreads, Thread **threads);
 void uciPosition(char *str, Board *board, int chess960);
 void uciReport(Thread *threads, int alpha, int beta, int value);
 void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz);

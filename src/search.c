@@ -44,13 +44,9 @@
 #include "uci.h"
 #include "windows.h"
 
-
-int LMRTable[64][64]; // Late Move Reductions, LMRTable[depth][played]
-
+int LMRTable[64][64];      // Late Move Reductions
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
-
 volatile int IS_PONDERING; // Global PONDER flag for threads
-
 
 void initSearch(){
 

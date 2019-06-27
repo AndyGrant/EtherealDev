@@ -79,18 +79,18 @@
 #define TuneThreatOverloadedPieces      (1)
 #define TuneThreatByPawnPush            (1)
 
-struct TexelTuple {
+typedef struct TexelTuple {
     int index;
     int coeff;
-};
+} TexelTuple;
 
-struct TexelEntry {
+typedef struct TexelEntry {
     int ntuples;
     double result;
     double eval, phase;
     double factors[PHASE_NB];
     TexelTuple *tuples;
-};
+} TexelEntry;
 
 typedef double TexelVector[NTERMS][PHASE_NB];
 

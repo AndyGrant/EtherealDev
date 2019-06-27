@@ -51,7 +51,7 @@ const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 int main(int argc, char **argv) {
 
     Board board;
-    char *ptr, str[8192];
+    char str[8192];
     Thread *threads;
     ThreadsGo threadsgo;
     pthread_t pthreadsgo;
@@ -93,60 +93,20 @@ int main(int argc, char **argv) {
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
             printf("option name Ponder type check default false\n");
             printf("option name UCI_Chess960 type check default false\n");
-            printf("uciok\n");
-            fflush(stdout);
+            printf("uciok\n"), fflush(stdout);
         }
 
         else if (stringEquals(str, "isready")) {
             pthread_mutex_lock(&READYLOCK);
-            printf("readyok\n");
-            fflush(stdout);
+            printf("readyok\n"), fflush(stdout);
             pthread_mutex_unlock(&READYLOCK);
         }
 
-        else if (stringStartsWith(str, "setoption")) {
+        else if (stringEquals(str, "ucinewgame"))
+            resetThreadPool(threads), clearTT();
 
-            if (stringStartsWith(str, "setoption name Hash value ")) {
-                megabytes = atoi(str + strlen("setoption name Hash value "));
-                initTT(megabytes); printf("info string set Hash to %dMB\n", megabytes);
-            }
-
-            if (stringStartsWith(str, "setoption name Threads value ")) {
-                free(threads);
-                nthreads = atoi(str + strlen("setoption name Threads value "));
-                threads = createThreadPool(nthreads);
-                printf("info string set Threads to %d\n", nthreads);
-            }
-
-            if (stringStartsWith(str, "setoption name MoveOverhead value ")) {
-                MoveOverhead = atoi(str + strlen("setoption name MoveOverhead value "));
-                printf("info string set MoveOverhead to %d\n", MoveOverhead);
-            }
-
-            if (stringStartsWith(str, "setoption name SyzygyPath value ")) {
-                ptr = str + strlen("setoption name SyzygyPath value ");
-                tb_init(ptr); printf("info string set SyzygyPath to %s\n", ptr);
-            }
-
-            if (stringStartsWith(str, "setoption name SyzygyProbeDepth value ")) {
-                TB_PROBE_DEPTH = atoi(str + strlen("setoption name SyzygyProbeDepth value "));
-                printf("info string set SyzygyProbeDepth to %u\n", TB_PROBE_DEPTH);
-            }
-
-            if (stringStartsWith(str, "setoption name UCI_Chess960 value ")) {
-                if (stringStartsWith(str, "setoption name UCI_Chess960 value true"))
-                    printf("info string set UCI_Chess960 to true\n"), chess960 = 1;
-                if (stringStartsWith(str, "setoption name UCI_Chess960 value false"))
-                    printf("info string set UCI_Chess960 to false\n"), chess960 = 0;
-            }
-
-            fflush(stdout);
-        }
-
-        else if (stringEquals(str, "ucinewgame")) {
-            resetThreadPool(threads);
-            clearTT();
-        }
+        else if (stringStartsWith(str, "setoption"))
+            uciSetOption(str, &megabytes, &chess960, &nthreads, &threads);
 
         else if (stringStartsWith(str, "position"))
             uciPosition(str, &board, chess960);
@@ -162,23 +122,18 @@ int main(int argc, char **argv) {
             IS_PONDERING = 0;
 
         else if (stringEquals(str, "stop")) {
-            ABORT_SIGNAL = 1;
-            IS_PONDERING = 0;
+            ABORT_SIGNAL = 1, IS_PONDERING = 0;
             pthread_join(pthreadsgo, NULL);
         }
 
         else if (stringEquals(str, "quit"))
             break;
 
-        else if (stringStartsWith(str, "perft")) {
-            printf("%"PRIu64"\n", perft(&board, atoi(str + strlen("perft "))));
-            fflush(stdout);
-        }
+        else if (stringStartsWith(str, "perft"))
+            printf("%"PRIu64"\n", perft(&board, atoi(str + strlen("perft ")))), fflush(stdout);
 
-        else if (stringStartsWith(str, "print")) {
-            printBoard(&board);
-            fflush(stdout);
-        }
+        else if (stringStartsWith(str, "print"))
+            printBoard(&board), fflush(stdout);
     }
 
     return 0;
@@ -194,9 +149,9 @@ void *uciGo(void *vthreadsgo) {
     uint16_t bestMove, ponderMove;
     char moveStr[6];
 
-    int depth = -1, infinite = -1;
-    double wtime = -1, btime = -1, mtg = -1, movetime = -1;
-    double winc = 0, binc = 0;
+    int depth = 0, infinite = 0;
+    double wtime = 0, btime = 0, movetime = 0;
+    double winc = 0, binc = 0, mtg = -1;
 
     char *str       = ((ThreadsGo*)vthreadsgo)->str;
     Board *board    = ((ThreadsGo*)vthreadsgo)->board;
@@ -243,18 +198,18 @@ void *uciGo(void *vthreadsgo) {
     }
 
     // Initialize limits for the search
-    limits.limitedByNone  = infinite != -1;
-    limits.limitedByTime  = movetime != -1;
-    limits.limitedByDepth = depth    != -1;
-    limits.limitedBySelf  = depth == -1 && movetime == -1 && infinite == -1;
+    limits.limitedByNone  = infinite != 0;
+    limits.limitedByTime  = movetime != 0;
+    limits.limitedByDepth = depth    != 0;
+    limits.limitedBySelf  = !depth && !movetime && !infinite;
     limits.timeLimit      = movetime;
     limits.depthLimit     = depth;
 
     // Pick the time values for the colour we are playing as
     limits.start = (board->turn == WHITE) ? start : start;
     limits.time  = (board->turn == WHITE) ? wtime : btime;
-    limits.mtg   = (board->turn == WHITE) ?   mtg :   mtg;
     limits.inc   = (board->turn == WHITE) ?  winc :  binc;
+    limits.mtg   = (board->turn == WHITE) ?   mtg :   mtg;
 
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);
@@ -279,6 +234,53 @@ void *uciGo(void *vthreadsgo) {
     pthread_mutex_unlock(&READYLOCK);
 
     return NULL;
+}
+
+void uciSetOption(char *str, int *megabytes, int *chess960, int *nthreads, Thread **threads) {
+
+    // Handle setting UCI options in Ethereal. Options include:
+    //   Hash             : Size of the Transposition Table in Megabyes
+    //   Threads          : Number of search threads to use
+    //   MoveOverhead     : Overhead on time allocation to avoid time losses
+    //   SyzygyPath       : Path to Syzygy Tablebases
+    //   SyzygyProbeDepth : Minimal Depth to probe the highest cardinality Tablebase
+    //   UCI_Chess960     : Set when playing FRC, but not required in order to work
+
+    if (stringStartsWith(str, "setoption name Hash value ")) {
+        *megabytes = atoi(str + strlen("setoption name Hash value "));
+        initTT(*megabytes); printf("info string set Hash to %dMB\n", *megabytes);
+    }
+
+    if (stringStartsWith(str, "setoption name Threads value ")) {
+        free(*threads);
+        *nthreads = atoi(str + strlen("setoption name Threads value "));
+        *threads = createThreadPool(*nthreads);
+        printf("info string set Threads to %d\n", *nthreads);
+    }
+
+    if (stringStartsWith(str, "setoption name MoveOverhead value ")) {
+        MoveOverhead = atoi(str + strlen("setoption name MoveOverhead value "));
+        printf("info string set MoveOverhead to %d\n", MoveOverhead);
+    }
+
+    if (stringStartsWith(str, "setoption name SyzygyPath value ")) {
+        char *ptr = str + strlen("setoption name SyzygyPath value ");
+        tb_init(ptr); printf("info string set SyzygyPath to %s\n", ptr);
+    }
+
+    if (stringStartsWith(str, "setoption name SyzygyProbeDepth value ")) {
+        TB_PROBE_DEPTH = atoi(str + strlen("setoption name SyzygyProbeDepth value "));
+        printf("info string set SyzygyProbeDepth to %u\n", TB_PROBE_DEPTH);
+    }
+
+    if (stringStartsWith(str, "setoption name UCI_Chess960 value ")) {
+        if (stringStartsWith(str, "setoption name UCI_Chess960 value true"))
+            printf("info string set UCI_Chess960 to true\n"), *chess960 = 1;
+        if (stringStartsWith(str, "setoption name UCI_Chess960 value false"))
+            printf("info string set UCI_Chess960 to false\n"), *chess960 = 0;
+    }
+
+    fflush(stdout);
 }
 
 void uciPosition(char *str, Board *board, int chess960) {
@@ -314,9 +316,9 @@ void uciPosition(char *str, Board *board, int chess960) {
 
         // Find and apply the given move
         for (int i = 0; i < size; i++) {
-            moveToString(board, moves[size], testStr);
+            moveToString(board, moves[i], testStr);
             if (stringEquals(moveStr, testStr)) {
-                applyMove(board, moves[size], undo);
+                applyMove(board, moves[i], undo);
                 break;
             }
         }

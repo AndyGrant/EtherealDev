@@ -448,8 +448,13 @@ int moveEstimatedValue(Board *board, uint16_t move) {
         value += SEEPieceValues[MovePromoPiece(move)] - SEEPieceValues[PAWN];
 
     // Target square is encoded as empty for enpass moves
-    if (MoveType(move) == ENPASS_MOVE)
+    else if (MoveType(move) == ENPASS_MOVE)
         value = SEEPieceValues[PAWN];
+
+    // During FRC, we may encode a castle move as KxR, in which case the
+    // value set during the initial step in this function would be wrong
+    else if (MoveType(move) == CASTLE_MOVE)
+        value = 0;
 
     return value;
 }
