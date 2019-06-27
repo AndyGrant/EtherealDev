@@ -35,7 +35,6 @@
 #include "move.h"
 #include "movegen.h"
 #include "movepicker.h"
-#include "psqt.h"
 #include "search.h"
 #include "syzygy.h"
 #include "thread.h"

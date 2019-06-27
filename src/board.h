@@ -33,7 +33,8 @@ struct Board {
     uint64_t castleMasks[SQUARE_NB];
     int turn;
     int epSquare;
-    int fiftyMoveRule;
+    int halfMoveCounter;
+    int fullMoveCounter;
     int psqtmat;
     int numMoves;
     int chess960;
@@ -41,14 +42,8 @@ struct Board {
 };
 
 struct Undo {
-    uint64_t hash;
-    uint64_t pkhash;
-    uint64_t kingAttackers;
-    uint64_t castleRooks;
-    int epSquare;
-    int fiftyMoveRule;
-    int psqtmat;
-    int capturePiece;
+    uint64_t hash, pkhash, kingAttackers, castleRooks;
+    int epSquare, halfMoveCounter, psqtmat, capturePiece;
 };
 
 void squareToString(int s, char *str);

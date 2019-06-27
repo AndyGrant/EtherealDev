@@ -89,20 +89,18 @@ struct TexelEntry {
     double result;
     double eval, phase;
     double factors[PHASE_NB];
-    TexelTuple* tuples;
+    TexelTuple *tuples;
 };
 
 typedef double TexelVector[NTERMS][PHASE_NB];
 
-void runTexelTuning(Thread* thread);
-
+void runTexelTuning(Thread *thread);
 void initTexelEntries(TexelEntry *tes, Thread *thread);
 void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(TexelVector cparams);
 
 void updateMemory(TexelEntry *te, int size);
 void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, double K, int batch);
-
 void shuffleTexelEntries(TexelEntry *tes);
 
 double computeOptimalK(TexelEntry *tes);

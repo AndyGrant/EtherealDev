@@ -26,16 +26,16 @@
 #include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
+#include "evaluate.h"
 #include "masks.h"
-#include "psqt.h"
-#include "search.h"
-#include "time.h"
-#include "thread.h"
-#include "uci.h"
-#include "transposition.h"
-#include "types.h"
 #include "move.h"
 #include "movegen.h"
+#include "search.h"
+#include "thread.h"
+#include "time.h"
+#include "transposition.h"
+#include "types.h"
+#include "uci.h"
 #include "zobrist.h"
 
 const char *PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
@@ -146,13 +146,14 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     rooks = board->castleRooks;
     while (rooks) board->hash ^= ZobristCastleKeys[poplsb(&rooks)];
 
-    // En passant
+    // En passant square
     board->epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
     if (board->epSquare != -1)
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
 
-    // 50 move counter
-    board->fiftyMoveRule = atoi(strtok_r(NULL, " ", &strPos));
+    // Half & Full Move Counters
+    board->halfMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
+    board->fullMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
 
     // Move count: ignore and use zero, as we count since root
     board->numMoves = 0;
@@ -225,9 +226,9 @@ void boardToFEN(Board *board, char *fen) {
     if (!board->castleRooks)
         *fen++ = '-';
 
-    // En passant and Fifty move
+    // En passant square, Half Move Counter, and Full Move Counter
     squareToString(board->epSquare, str);
-    sprintf(fen, " %s %d", str, board->fiftyMoveRule);
+    sprintf(fen, " %s %d %d", str, board->halfMoveCounter, board->fullMoveCounter);
 }
 
 void printBoard(Board *board) {
@@ -278,7 +279,8 @@ uint64_t perft(Board *board, int depth){
 
     if (depth == 0) return 1ull;
 
-    genAllMoves(board, moves, &size);
+    genAllNoisyMoves(board, moves, &size);
+    genAllQuietMoves(board, moves, &size);
 
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
@@ -304,7 +306,7 @@ void runBenchmark(Thread *threads, int depth) {
     limits.limitedByDepth = 1;
     limits.limitedBySelf  = 0;
     limits.timeLimit      = 0;
-    limits.depthLimit     = depth == 0 ? 13 : depth;
+    limits.depthLimit     = depth;
 
     start = getRealTime();
 
@@ -341,7 +343,7 @@ int drawnByFiftyMoveRule(Board *board) {
     // Fifty move rule triggered. BUG: We do not account for the case
     // when the fifty move rule occurs as checkmate is delivered, which
     // should not be considered a drawn position, but a checkmated one.
-    return board->fiftyMoveRule > 99;
+    return board->halfMoveCounter > 99;
 }
 
 int drawnByRepetition(Board *board, int height) {
@@ -352,7 +354,7 @@ int drawnByRepetition(Board *board, int height) {
     for (int i = board->numMoves - 2; i >= 0; i -= 2) {
 
         // No draw can occur before a zeroing move
-        if (i < board->numMoves - board->fiftyMoveRule)
+        if (i < board->numMoves - board->halfMoveCounter)
             break;
 
         // Check for matching hash with a two fold after the root,
