@@ -182,7 +182,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
-    Board* const board = &thread->board;
+    Board *const board = &thread->board;
 
     unsigned tbresult;
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
@@ -242,7 +242,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)){
+        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
@@ -255,7 +255,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
     // the conditions about the board, the existance of tables, the probe depth,
     // as well as to not probe at the Root. The return is defined by the Fathom API
-    if ((tbresult = tablebasesProbeWDL(board, depth, height)) != TB_RESULT_FAILED){
+    if ((tbresult = tablebasesProbeWDL(board, depth, height)) != TB_RESULT_FAILED) {
 
         thread->tbhits++; // Increment tbhits counter for this thread
 
@@ -273,7 +273,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Check to see if the WDL value would cause a cutoff
         if (    ttBound == BOUND_EXACT
             || (ttBound == BOUND_LOWER && value >= beta)
-            || (ttBound == BOUND_UPPER && value <= alpha)){
+            || (ttBound == BOUND_UPPER && value <= alpha)) {
 
             storeTTEntry(board->hash, NONE_MOVE, value, VALUE_NONE, MAX_PLY-1, ttBound);
             return value;
@@ -373,11 +373,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
-    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE){
+    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
-        if ((isQuiet = !moveIsTactical(board, move))){
+        if ((isQuiet = !moveIsTactical(board, move))) {
             quietsTried[quiets++] = move;
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
         }
@@ -431,7 +431,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 14. Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1){
+        if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
@@ -495,12 +495,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 17. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
-        if (value > best){
+        if (value > best) {
 
             best = value;
             bestMove = move;
 
-            if (value > alpha){
+            if (value > alpha) {
                 alpha = value;
 
                 // Copy our child's PV and prepend this move to it
@@ -533,9 +533,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
-    Board* const board = &thread->board;
+    Board *const board = &thread->board;
 
     int eval, value, best, margin;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
@@ -566,7 +566,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         return evaluateBoard(board, &thread->pktable);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -610,11 +610,11 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
         revert(thread, board, move, height);
 
         // Improved current value
-        if (value > best){
+        if (value > best) {
             best = value;
 
             // Improved current lower bound
-            if (value > alpha){
+            if (value > alpha) {
                 alpha = value;
 
                 // Update the Principle Variation
@@ -632,7 +632,7 @@ int qsearch(Thread* thread, PVariation* pv, int alpha, int beta, int height){
     return best;
 }
 
-int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
+int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
     int from, to, type, colour, balance, nextVictim;
     uint64_t bishops, rooks, occupied, attackers, myAttackers;
@@ -642,7 +642,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     to    = MoveTo(move);
     type  = MoveType(move);
 
-    // Next victim is moved piece, or promotion type when promoting
+    // Next victim is moved piece or promotion type
     nextVictim = type != PROMOTION_MOVE
                ? pieceType(board->squares[from])
                : MovePromoPiece(move);
@@ -676,7 +676,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
     // Now our opponents turn to recapture
     colour = !board->turn;
 
-    while (1){
+    while (1) {
 
         // If we have no more attackers left we lose
         myAttackers = attackers & board->colours[colour];
@@ -708,7 +708,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
         balance = -balance - 1 - SEEPieceValues[nextVictim];
 
         // If the balance is non negative after giving away our piece then we win
-        if (balance >= 0){
+        if (balance >= 0) {
 
             // As a slide speed up for move legality checking, if our last attacking
             // piece is a king, and our opponent still has attackers, then we've
@@ -726,7 +726,7 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
 
 int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height) {
 
-    Board* const board = &thread->board;
+    Board *const board = &thread->board;
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0;
