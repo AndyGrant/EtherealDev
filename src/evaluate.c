@@ -266,15 +266,16 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
+const int KSAttackValue     =   47;
+const int KSWeakSquares     =   40;
 const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   95;
-const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSNoEnemyQueens   = -300;
+const int KSSafeQueenCheck  =  100;
+const int KSSafeRookCheck   =   95;
+const int KSSafeBishopCheck =   55;
+const int KSSafeKnightCheck =  125;
+const int KSMutualWeakness  =  -40;
+const int KSAdjustment      =  -20;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -709,7 +710,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    if (ei->kingAttackersCount[THEM]) {
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
@@ -750,6 +751,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
+               + KSMutualWeakness  * !!ei->kingAttackersCount[US]
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
