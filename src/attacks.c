@@ -173,6 +173,11 @@ uint64_t pawnRightAttacks(uint64_t pawns, uint64_t targets, int colour) {
                                       : (pawns >> 9) & ~FILE_H);
 }
 
+uint64_t pawnDoubleAttacks(uint64_t pawns, uint64_t targets, int colour) {
+    return pawnLeftAttacks(pawns, targets, colour)
+        & pawnRightAttacks(pawns, targets, colour);
+}
+
 uint64_t pawnAttackSpan(uint64_t pawns, uint64_t targets, int colour) {
     return pawnLeftAttacks(pawns, targets, colour)
         | pawnRightAttacks(pawns, targets, colour);
