@@ -274,6 +274,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSMutualWeakness  =  -40;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -709,7 +710,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    if (ei->kingAttackersCount[THEM] + popcount(enemyQueens) > 1) {
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
@@ -742,14 +743,15 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+        count += KSAttackValue     *  scaledAttackCounts
+               + KSWeakSquares     *  popcount(weak & ei->kingAreas[US])
+               + KSFriendlyPawns   *  popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeQueenCheck  *  popcount(queenChecks)
+               + KSSafeRookCheck   *  popcount(rookChecks)
+               + KSSafeBishopCheck *  popcount(bishopChecks)
+               + KSSafeKnightCheck *  popcount(knightChecks)
+               + KSMutualWeakness  * (ei->kingAttackersCount[THEM] + popcount(myQueens) > 1)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
