@@ -337,6 +337,13 @@ void runBenchmark(Thread *threads, int depth) {
     printf("NPS   : %d\n", (int)(nodes / ((end - start) / 1000.0)));
 }
 
+int boardHasNonPawnMaterial(Board *board, int turn) {
+    uint64_t friendly = board->colours[turn];
+    uint64_t kings = board->pieces[KING];
+    uint64_t pawns = board->pieces[PAWN];
+    return (friendly & (kings | pawns)) != friendly;
+}
+
 int boardIsDrawn(Board *board, int height) {
 
     // Drawn if any of the three possible cases

@@ -46,6 +46,8 @@ void printBoard(Board *board);
 uint64_t perft(Board *board, int depth);
 void runBenchmark(Thread *threads, int depth);
 
+int boardHasNonPawnMaterial(Board *board, int turn);
+
 int boardIsDrawn(Board *board, int height);
 int drawnByFiftyMoveRule(Board *board);
 int drawnByRepetition(Board *board, int height);

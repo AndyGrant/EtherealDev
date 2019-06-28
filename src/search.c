@@ -48,62 +48,62 @@ int LMRTable[64][64];      // Late Move Reductions
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
-void initSearch(){
+void initSearch() {
 
     // Init Late Move Reductions Table
-    for (int d = 1; d < 64; d++)
-        for (int p = 1; p < 64; p++)
-            LMRTable[d][p] = 0.75 + log(d) * log(p) / 2.25;
+    for (int depth = 1; depth < 64; depth++)
+        for (int played = 1; played < 64; played++)
+            LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
-void getBestMove(Thread* threads, Board* board, Limits* limits, uint16_t *best, uint16_t *ponder){
+void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
 
-    ABORT_SIGNAL = 0; // Clear the ABORT signal for the new search
+    SearchInfo info = {0};
+    pthread_t pthreads[threads->nthreads];
 
-    updateTT(); // Table is on a new search, thus a new generation
+    // If the root position can be found in the DTZ tablebases,
+    // then we simply return the move recommended by Syzygy/Fathom.
+    if (tablebasesProbeDTZ(board, best, ponder))
+        return;
 
-    // Before searching, check to see if we are in the Syzygy Tablebases. If so
-    // the probe will return 1, will initialize the best move, and will report
-    // a depth MAX_PLY - 1 search to the interface. If found, we are done here.
-    if (tablebasesProbeDTZ(board, best)) { *ponder = NONE_MOVE; return; }
-
-    // Initialize SearchInfo, used for reporting and time managment logic
-    SearchInfo info;
-    memset(&info, 0, sizeof(SearchInfo));
+    // Minor house keeping for starting a search
+    updateTT(); // Table has an age component
+    ABORT_SIGNAL = 0; // Otherwise Threads will exit
     initTimeManagment(&info, limits);
-
-    // Setup the thread pool for a new search
     newSearchThreadPool(threads, board, limits, &info);
 
-    // Launch all of the threads
-    pthread_t pthreads[threads->nthreads];
+    // Create a new thread for each of the helpers and reuse the current
+    // thread for the main thread, which avoids some overhead and saves
+    // us from having the current thread eating CPU time while waiting
     for (int i = 1; i < threads->nthreads; i++)
         pthread_create(&pthreads[i], NULL, &iterativeDeepening, &threads[i]);
     iterativeDeepening((void*) &threads[0]);
 
-    // Wait for all helper threads to finish
+    // When the main thread exits it should signal for the helpers to
+    // shutdown. Wait until all helpers have finished before moving on
+    ABORT_SIGNAL = 1;
     for (int i = 1; i < threads->nthreads; i++)
         pthread_join(pthreads[i], NULL);
 
-    // Save the best move and ponder move
+    // The main thread will update SearchInfo with results
     *best = info.bestMoves[info.depth];
     *ponder = info.ponderMoves[info.depth];
 }
 
-void* iterativeDeepening(void* vthread){
+void* iterativeDeepening(void *vthread) {
 
-    Thread* const thread   = (Thread*) vthread;
-    SearchInfo* const info = thread->info;
-    Limits* const limits   = thread->limits;
+    Thread *const thread   = (Thread*) vthread;
+    SearchInfo *const info = thread->info;
+    Limits *const limits   = thread->limits;
     const int mainThread   = thread->index == 0;
     const int cycle        = thread->index % SMPCycles;
 
-    // Bind when we expect to deal with Numa
+    // Bind when we expect to deal with NUMA
     if (thread->nthreads > 8)
         bindThisThread(thread->index);
 
     // Perform iterative deepening until exit conditions
-    for (thread->depth = 1; thread->depth < MAX_PLY; thread->depth++){
+    for (thread->depth = 1; thread->depth < MAX_PLY; thread->depth++) {
 
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
@@ -118,13 +118,11 @@ void* iterativeDeepening(void* vthread){
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
 
-        // Update the Search Info structure for the main thread
-        info->depth                      = thread->depth;
-        info->values[thread->depth]      = thread->value;
-        info->bestMoves[thread->depth]   = thread->pv.line[0];
-        info->ponderMoves[thread->depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
-
-        // Send information about this search to the interface
+        // Update SearchInfo and report some results
+        info->depth                    = thread->depth;
+        info->values[info->depth]      = thread->value;
+        info->bestMoves[info->depth]   = thread->pv.line[0];
+        info->ponderMoves[info->depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
         uciReport(thread->threads, -MATE, MATE, thread->value);
 
         // Update time allocation based on score and pv changes
@@ -141,13 +139,10 @@ void* iterativeDeepening(void* vthread){
             break;
     }
 
-    // Main thread should kill others when finishing
-    if (mainThread) ABORT_SIGNAL = 1;
-
     return NULL;
 }
 
-int aspirationWindow(Thread* thread, int depth, int lastValue){
+int aspirationWindow(Thread *thread, int depth, int lastValue) {
 
     const int mainThread = thread->index == 0;
     int alpha, beta, value, delta = WindowSize;
@@ -183,7 +178,7 @@ int aspirationWindow(Thread* thread, int depth, int lastValue){
     }
 }
 
-int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int height){
+int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
 
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (height == 0);
@@ -221,7 +216,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
 
     // Step 3. Check for early exit conditions. Don't take early exits in
     // the RootNode, since this would prevent us from having a best move
-    if (!RootNode){
+    if (!RootNode) {
 
         // Check for the fifty move rule, a draw by
         // repetition, or insufficient mating material
@@ -241,7 +236,7 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
     }
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))){
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -338,9 +333,9 @@ int search(Thread* thread, PVariation* pv, int alpha, int beta, int depth, int h
         && !inCheck
         &&  eval >= beta
         &&  depth >= NullMovePruningDepth
-        &&  hasNonPawnMaterial(board, board->turn)
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
+        &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
@@ -727,25 +722,6 @@ int staticExchangeEvaluation(Board* board, uint16_t move, int threshold){
 
     // Side to move after the loop loses
     return board->turn != colour;
-}
-
-int hasNonPawnMaterial(Board* board, int turn){
-    uint64_t friendly = board->colours[turn];
-    uint64_t kings = board->pieces[KING];
-    uint64_t pawns = board->pieces[PAWN];
-    return (friendly & (kings | pawns)) != friendly;
-}
-
-int valueFromTT(int value, int height){
-    return value >=  MATE_IN_MAX ? value - height
-         : value <= MATED_IN_MAX ? value + height
-         : value;
-}
-
-int valueToTT(int value, int height){
-    return value >=  MATE_IN_MAX ? value + height
-         : value <= MATED_IN_MAX ? value - height
-         : value;
 }
 
 int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height) {
