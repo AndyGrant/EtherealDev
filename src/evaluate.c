@@ -690,6 +690,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
+    uint64_t myQueens    = board->pieces[QUEEN] & board->colours[  US];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
     uint64_t myDefenders  = (board->pieces[PAWN  ] & board->colours[US])
