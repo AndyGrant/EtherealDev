@@ -55,15 +55,15 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
         return 1;
     }
 
+    // Track some move information for history lookups
+    thread->moveStack[height] = move;
+    thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
+
     // Apply the move and reject if illegal
     applyMove(board, move, &thread->undoStack[height]);
     if (!moveWasLegal(board))
         return revertMove(board, move, &thread->undoStack[height]), 0;
 
-    // Keep history on legal moves
-    thread->moveStack[height] = move;
-    thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
-    if (MoveType(move) == CASTLE_MOVE) thread->pieceStack[height] = KING;
     return 1;
 }
 
