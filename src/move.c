@@ -613,12 +613,12 @@ int moveIsPsuedoLegal(Board *board, uint16_t move) {
     return 0;
 }
 
-void moveToString(Board *board, uint16_t move, char *str) {
+void moveToString(uint16_t move, char *str, int chess960) {
 
     int from = MoveFrom(move), to = MoveTo(move);
 
     // FRC reports using KxR notation, but standard does not
-    if (!board->chess960 && MoveType(move) == CASTLE_MOVE)
+    if (MoveType(move) == CASTLE_MOVE && !chess960)
         to = castleKingTo(from, to);
 
     // Encode squares (Long Algebraic Notation)
