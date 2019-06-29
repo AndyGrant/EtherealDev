@@ -54,6 +54,8 @@ void revert(Thread *thread, Board *board, uint16_t move, int height);
 void revertMove(Board *board, uint16_t move, Undo *undo);
 void revertNullMove(Board *board, Undo *undo);
 
+uint64_t keyAfterNullMove(Board *board);
+
 int moveIsTactical(Board *board, uint16_t move);
 int moveEstimatedValue(Board *board, uint16_t move);
 int moveBestCaseValue(Board *board);

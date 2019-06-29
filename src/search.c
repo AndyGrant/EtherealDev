@@ -285,13 +285,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
-    // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
-    // can recompute the eval as `eval = -last_eval + 2 * Tempo`
+    // Save a history of the static evaluations. We have three possible ways to get an
+    // evaluation before we have to call the actual evaluation function. We can reuse
+    // an eval from the TT lookup, we can compute an eval with the knowledge that the
+    // previous move was NULL, or we can try to find an eval for applying a NULL move
     eval = thread->evalStack[height] =
            ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable)
-                                                    : -thread->evalStack[height-1] + 2 * Tempo;
+         : thread->moveStack[height-1] == NULL_MOVE ? -thread->evalStack[height-1] + 2 * Tempo
+         : probeTTForNullEval(board, &eval) ? eval  :  evaluateBoard(board, &thread->pktable);
 
     // Futility Pruning Margin
     futilityMargin = eval + FutilityMargin * depth;
@@ -577,13 +578,14 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
             return ttValue;
     }
 
-    // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
-    // can recompute the eval as `eval = -last_eval + 2 * Tempo`
+    // Save a history of the static evaluations. We have three possible ways to get an
+    // evaluation before we have to call the actual evaluation function. We can reuse
+    // an eval from the TT lookup, we can compute an eval with the knowledge that the
+    // previous move was NULL, or we can try to find an eval for applying a NULL move
     eval = thread->evalStack[height] =
            ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable)
-                                                    : -thread->evalStack[height-1] + 2 * Tempo;
+         : thread->moveStack[height-1] == NULL_MOVE ? -thread->evalStack[height-1] + 2 * Tempo
+         : probeTTForNullEval(board, &eval) ? eval  :  evaluateBoard(board, &thread->pktable);
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static

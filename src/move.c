@@ -424,6 +424,17 @@ void revertNullMove(Board *board, Undo *undo) {
     board->numMoves--;
 }
 
+uint64_t keyAfterNullMove(Board *board) {
+
+    uint64_t key = board->hash ^ ZobristTurnKey;
+
+    if (board->epSquare != -1)
+        key ^= ZobristEnpassKeys[fileOf(board->epSquare)];
+
+    return key;
+
+}
+
 int moveIsTactical(Board *board, uint16_t move) {
 
     // We can use a simple bit trick since we assert that only

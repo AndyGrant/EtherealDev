@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "evaluate.h"
+#include "move.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -129,6 +131,20 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     }
 
     return 0;
+}
+
+int probeTTForNullEval(Board *board, int *eval) {
+
+    const uint64_t hash = keyAfterNullMove(board);
+    const uint16_t hash16 = hash >> 48;
+    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+
+    for (int i = 0; i < TT_BUCKET_NB; i++)
+        if (slots[i].hash16 == hash16 && slots[i].eval != VALUE_NONE)
+            return *eval = -slots[i].eval + 2 * Tempo, 1;
+
+    return 0;
+
 }
 
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {
