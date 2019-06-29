@@ -188,7 +188,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, improving, extension, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
@@ -453,37 +453,45 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         } else R = 1;
 
-        // Identify moves which are candidate singular moves
-        singular =  !RootNode
-                 &&  depth >= 8
-                 &&  move == ttMove
-                 &&  ttDepth >= depth - 2
-                 && (ttBound & BOUND_LOWER);
+        // Step 15. MultiCut Pruning. Check for a singularity using the TT move. If
+        // the TT move is proved to not be singular and at the same time ttValue is
+        // large enough to suggest that the TT move would fail high, we prune.
+        if (   !RootNode
+            &&  depth >= 8
+            &&  move == ttMove
+            &&  ttDepth >= depth - 2
+            && (ttBound & BOUND_UPPER)) {
 
-        // Step 15. Extensions. Search an additional ply when we are in check, when
-        // an early move has excellent continuation history, or when we have a move
-        // from the transposition table which appears to beat all other moves by a
-        // relativly large margin,
-        extension =  (inCheck)
-                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
-                  || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
+            rBeta = MAX(ttValue - depth, -MATE);
+            extension = moveIsSingular(thread, ttMove, rBeta, depth, height);
+
+            // Both the TT and another move are assumed to fail high
+            if (!extension && ttValue >= beta && rBeta >= beta)
+                return revert(thread, board, move, height), rBeta;
+        }
+
+        // Step 16. Extensions. Search an additional ply when we are in check, when
+        // we have a singular move, or when we have a great continuation history. The
+        // MultiCut step will set the extension in the event there is a singularity
+        else
+            extension = inCheck || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000);
 
         // Factor the extension into the new depth. Do not extend at the root
         newDepth = depth + (extension && !RootNode);
 
-        // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
+        // Step 17A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
         if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
 
-        // Step 16B. There are two situations in which we will search again on a null window,
+        // Step 17B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
 
-        // Step 16C. Finally, if we are in a PvNode and a move beat alpha while being
+        // Step 17C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
@@ -493,7 +501,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Revert the board state
         revert(thread, board, move, height);
 
-        // Step 17. Update search stats for the best move and its value. Update
+        // Step 18. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
         if (value > best) {
 
@@ -514,18 +522,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         }
     }
 
-    // Step 18. Stalemate and Checkmate detection. If no moves were found to
+    // Step 19. Stalemate and Checkmate detection. If no moves were found to
     // be legal (search makes sure to play at least one legal move, if any),
     // then we are either mated or stalemated, which we can tell by the inCheck
     // flag. For mates, return a score based on the distance from root, so we
     // can differentiate between close mates and far away mates from the root
     if (played == 0) return inCheck ? -MATE + height : 0;
 
-    // Step 19. Update History counters on a fail high for a quiet move
+    // Step 20. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove))
         updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
 
-    // Step 20. Store results of search into the table
+    // Step 21. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
             : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
     storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
@@ -724,13 +732,12 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     return board->turn != colour;
 }
 
-int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height) {
+int moveIsSingular(Thread *thread, uint16_t ttMove, int singularBeta, int depth, int height) {
 
     Board *const board = &thread->board;
 
     uint16_t move;
-    int skipQuiets = 0, quiets = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int skipQuiets = 0, quiets = 0, value = -MATE;
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
@@ -744,13 +751,13 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         // Skip the table move
         if (move == ttMove) continue;
 
-        // Perform a reduced depth search on a null rbeta window
+        // Perform a reduced depth search on a null singularBeta window
         if (!apply(thread, board, move, height)) continue;
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+        value = -search(thread, &lpv, -singularBeta-1, -singularBeta, depth / 2 - 1, height+1);
         revert(thread, board, move, height);
 
         // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
+        if (value > singularBeta) break;
 
         // Start skipping quiets at a certain point
         quiets += !moveIsTactical(board, move);
@@ -761,5 +768,5 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
     apply(thread, board, ttMove, height);
 
     // Move is singular if all other moves failed low
-    return value <= rBeta;
+    return value <= singularBeta;
 }
