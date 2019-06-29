@@ -468,6 +468,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Both the TT and another move are assumed to fail high
             if (!extension && ttValue >= beta && rBeta >= beta)
                 return revert(thread, board, move, height), rBeta;
+
+            extension = extension || inCheck || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000);
+
         }
 
         // Step 16. Extensions. Search an additional ply when we are in check, when
