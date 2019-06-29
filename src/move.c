@@ -486,6 +486,22 @@ int moveWasLegal(Board *board) {
     return !squareIsAttacked(board, !board->turn, sq);
 }
 
+int moveIsLegal(Board *board, uint16_t move) {
+
+    // This implementation for moveIsLegal() is extremely slow, in that
+    // it verifies legality by first applying the move, then checking to
+    // see if we are still in check, and then reverting. This function
+    // is only called, currently, for a legality check for UCI reporting
+
+    Undo undo; int legal;
+
+    applyMove(board, move, &undo);
+    legal = moveWasLegal(board);
+    revertMove(board, move, &undo);
+
+    return legal;
+}
+
 int moveIsPsuedoLegal(Board *board, uint16_t move) {
 
     int from   = MoveFrom(move);

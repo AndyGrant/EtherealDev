@@ -396,6 +396,15 @@ void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
     fflush(stdout);
 }
 
+void uciReportCurrentMove(Board *board, uint16_t move, int currmove) {
+
+    char moveStr[6];
+    moveToString(board, move, moveStr);
+    printf("info currmove %s currmovenumber %d\n", moveStr, currmove);
+    fflush(stdout);
+
+}
+
 int stringEquals(char *str1, char *str2) {
     return strcmp(str1, str2) == 0;
 }

@@ -49,6 +49,7 @@ void uciSetOption(char *str, int *megabytes, int *chess960, int *nthreads, Threa
 void uciPosition(char *str, Board *board, int chess960);
 void uciReport(Thread *threads, int alpha, int beta, int value);
 void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz);
+void uciReportCurrentMove(Board *board, uint16_t move, int currmove);
 
 int stringEquals(char *str1, char *str2);
 int stringStartsWith(char *str, char *key);

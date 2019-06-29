@@ -185,7 +185,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     Board *const board = &thread->board;
 
     unsigned tbresult;
-    int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
+    int quiets = 0, played = 0, currmove = 0, hist = 0, cmhist = 0, fmhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -374,6 +374,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+
+        // The UCI spec allows us to output information about the current move
+        // we are searching. We will only do this from the Main thread, and we
+        // will also make sure to wait a few seconds before printing anything,
+        // in order to avoid flooding the output, and producing any slowdown
+        if (    RootNode
+            &&  thread->index == 0
+            &&  moveIsLegal(board, move)
+            &&  elapsedTime(thread->info) >= UCICurrMoveTimerMS)
+            uciReportCurrentMove(board, move, ++currmove);
 
         // If this move is quiet we will save it to a list of attemped quiets.
         // Also lookup the history score, as we will in most cases need it.
