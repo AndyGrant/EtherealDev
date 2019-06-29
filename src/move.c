@@ -63,6 +63,7 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
     // Keep history on legal moves
     thread->moveStack[height] = move;
     thread->pieceStack[height] = pieceType(board->squares[MoveTo(move)]);
+    if (MoveType(move) == CASTLE_MOVE) thread->pieceStack[height] = KING;
     return 1;
 }
 
