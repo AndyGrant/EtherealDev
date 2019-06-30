@@ -92,4 +92,4 @@ static const int QSEEMargin = 1;
 static const int QFutilityMargin = 100;
 
 static const int SingularQuietLimit = 6;
-static const int SingularTacticalLimit = 6;
+static const int SingularTacticalLimit = 3;
