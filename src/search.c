@@ -733,7 +733,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
     Board *const board = &thread->board;
 
     uint16_t move;
-    int skipQuiets = 0, quiets = 0;
+    int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
@@ -756,8 +756,11 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         if (value > rBeta) break;
 
         // Start skipping quiets at a certain point
-        quiets += !moveIsTactical(board, move);
+        moveIsTactical(board, move) ? tacticals++ : quiets++;
         skipQuiets = quiets >= SingularQuietLimit;
+
+        if (skipQuiets && tacticals >= SingularTacticalLimit)
+            break;
     }
 
     // Reapply the table move we took off
