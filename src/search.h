@@ -54,15 +54,15 @@ static const int WindowTimerMS = 5000;
 static const int CurrmoveTimerMS = 10000;
 
 static const int RazorDepth = 1;
-static const int RazorMargin = 325;
+static const int RazorMargin = 350;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 85;
+static const int BetaMargin = 95;
 
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 125;
 
 static const int FutilityMargin = 90;
 static const int FutilityPruningDepth = 8;
