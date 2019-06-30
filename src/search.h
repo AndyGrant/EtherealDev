@@ -66,7 +66,8 @@ static const int ProbCutMargin = 100;
 
 static const int FutilityMargin = 90;
 static const int FutilityPruningDepth = 8;
-static const int FutilityPruningLimit = 2000;
+static const int FutilityPruningOffset = 4000;
+static const int FutilityPruningLimit = 1000;
 
 static const int CounterMovePruningDepth[] = { 3, 2 };
 static const int CounterMoveHistoryLimit[] = { 0, -1000 };
