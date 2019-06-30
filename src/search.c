@@ -443,6 +443,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for non PV and non improving nodes
             R += !PvNode + !improving;
 
+            // Increase for taking back moves for no good reason
+            R += improving && !inCheck
+              && MoveTo(move) == MoveFrom(thread->moveStack[height-2])
+              && MoveFrom(move) == MoveTo(thread->moveStack[height-2])
+              && MoveType(move) == MoveType(thread->moveStack[height-2]);
+
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
