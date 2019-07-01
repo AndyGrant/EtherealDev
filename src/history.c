@@ -107,8 +107,8 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     int fmTo = MoveTo(follow);
 
     // Set basic Butterfly and Piece histories
-    *hist = thread->history[thread->board.turn][from][to]
-          + thread->phistory[thread->board.turn][piece][from][to];
+    *hist = (  thread->history[thread->board.turn][from][to]
+             + thread->phistory[thread->board.turn][piece][from][to]) / 2;
 
     // Set Counter Move History if it exists
     if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
@@ -139,8 +139,8 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         int piece = pieceType(thread->board.squares[from]);
 
         // Start with the basic Butterfly and Piece histories
-        scores[i] = thread->history[thread->board.turn][from][to]
-                  + thread->phistory[thread->board.turn][piece][from][to];
+        scores[i] = (  thread->history[thread->board.turn][from][to]
+                     + thread->phistory[thread->board.turn][piece][from][to]) / 2;
 
         // Add Counter Move History if it exists
         if (counter != NONE_MOVE && counter != NULL_MOVE)
