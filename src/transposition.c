@@ -134,25 +134,20 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {
 
     const uint16_t hash16 = hash >> 48;
-    TTEntry *replace = NULL, *slots = Table.buckets[hash & Table.hashMask].slots;
+    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+    TTEntry *replace = &slots[0];
 
-    for (int i = 0; i < TT_BUCKET_NB; i++) {
+    for (int i = 1; i < TT_BUCKET_NB; i++) {
 
-        // Found a matching hash or an unused entry
-        if (slots[i].hash16 == hash16 || (slots[i].generation & TT_MASK_BOUND) == 0u) {
+        // Found a matching hash
+        if (slots[i].hash16 == hash16) {
             replace = &slots[i];
             break;
          }
 
-        // Take the first entry as a starting point
-        if (i == 0) {
-            replace = &slots[i];
-            continue;
-        }
-
-        // Replace using MAX(x1, x2), where xN = depth - 8 * age difference
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE) * 2
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE) * 2)
+        // Replace using MAX(x1, x2), where xN = depth - 4 * age difference
+        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
+            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
             replace = &slots[i];
     }
 
