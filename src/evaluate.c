@@ -262,7 +262,6 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
 const int KSThreshold       =  256;
 
 /* Passed Pawn Evaluation Terms */
@@ -735,12 +734,11 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeQueenCheck  * popcount(queenChecks)
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
-               + KSAdjustment;
+               + KSSafeKnightCheck * popcount(knightChecks);
 
         // Convert safety to an S() score if we surpass the safety threshold
         if (count >= KSThreshold)
-            eval -= MakeScore(count * count / 700, count / 20);
+            eval -= MakeScore(count * count / 650, count / 18);
     }
 
     // King Shelter & King Storm are stored in the Pawn King Table
