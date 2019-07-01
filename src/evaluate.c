@@ -334,7 +334,8 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     // Factor in the Tempo after interpolation and scaling, so that
     // in the search we can assume that if a null move is made, then
     // then `eval = last_eval + 2 * Tempo`
-    eval += board->turn == WHITE ? Tempo : -Tempo;
+    if (!board->kingAttackers)
+        eval += board->turn == WHITE ? Tempo : -Tempo;
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
