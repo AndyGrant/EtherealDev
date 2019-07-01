@@ -523,15 +523,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // then we are either mated or stalemated, which we can tell by the inCheck
     // flag. For mates, return a score based on the distance from root, so we
     // can differentiate between close mates and far away mates from the root
-    if (played == 0) return inCheck ? -MATE + height : 0;
+    if (played == 0)
+        best = inCheck ? -MATE + height : 0;
 
     // Step 19. Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove))
+    else if (best >= beta && !moveIsTactical(board, bestMove))
         updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
 
-    // Step 20. Store results of search into the table
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+    // Step 20. Store results of search into the table. Checkmate and stalemate
+    // scores are exact. Otherwise, determine bound using [oldAlpha, beta]
+    ttBound = !played          ? BOUND_EXACT
+            :  best >= beta    ? BOUND_LOWER
+            :  best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
     storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
 
     return best;
