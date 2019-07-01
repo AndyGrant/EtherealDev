@@ -380,6 +380,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))) {
             quietsTried[quiets++] = move;
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
+            hist = hist + cmhist + fmhist;
         }
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
@@ -390,7 +391,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // don't expect anything from this move, we can skip all other quiets
             if (   futilityMargin <= alpha
                 && depth <= FutilityPruningDepth
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && hist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
             // Step 12B. Late Move Pruning / Move Count Pruning. If we have
@@ -450,7 +451,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+            R -= MAX(-2, MIN(2, (hist + 2500) / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
