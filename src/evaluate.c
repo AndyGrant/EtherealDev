@@ -659,7 +659,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenMobility[count][US]++;
 
         // Update King Safety calculations
-        if ((attacks &= ei->kingAreas[THEM])) {
+        if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnDoubleAttacks[THEM])) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
@@ -947,6 +947,10 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->rammedPawns[BLACK]  = pawnAdvance(white & pawns, ~(black & pawns), WHITE);
     ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~(white & pawns), BLACK);
     ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~(black & pawns), WHITE);
+
+    // For some slight King safety modifications
+    ei->pawnDoubleAttacks[WHITE] = pawnDoubleAttacks(white & pawns, ~0ull, WHITE);
+    ei->pawnDoubleAttacks[BLACK] = pawnDoubleAttacks(black & pawns, ~0ull, BLACK);
 
     // Compute an area for evaluating our King's safety.
     // The definition of the King Area can be found in masks.c
