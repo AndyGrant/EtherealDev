@@ -58,6 +58,11 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
         thread->history[colour][from][to] = entry;
 
+        // Update Piece History
+        entry = thread->phistory[colour][piece][from][to];
+        entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+        thread->phistory[colour][piece][from][to] = entry;
+
         // Update Counter Move History
         if (counter != NONE_MOVE && counter != NULL_MOVE) {
             entry = thread->continuation[0][cmPiece][cmTo][piece][to];
@@ -101,8 +106,9 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    // Set basic Butterfly history
-    *hist = thread->history[thread->board.turn][from][to];
+    // Set basic Butterfly and Piece histories
+    *hist = thread->history[thread->board.turn][from][to]
+          + thread->phistory[thread->board.turn][piece][from][to];
 
     // Set Counter Move History if it exists
     if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
@@ -132,8 +138,9 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         int from = MoveFrom(moves[i]);
         int piece = pieceType(thread->board.squares[from]);
 
-        // Start with the basic Butterfly history
-        scores[i] = thread->history[thread->board.turn][from][to];
+        // Start with the basic Butterfly and Piece histories
+        scores[i] = thread->history[thread->board.turn][from][to]
+                  + thread->phistory[thread->board.turn][piece][from][to];
 
         // Add Counter Move History if it exists
         if (counter != NONE_MOVE && counter != NULL_MOVE)

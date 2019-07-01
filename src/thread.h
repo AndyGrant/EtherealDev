@@ -55,6 +55,7 @@ struct Thread {
     KillerTable killers;
     CounterMoveTable cmtable;
     HistoryTable history;
+    PieceHistoryTable phistory;
     ContinuationTable continuation;
 };
 
