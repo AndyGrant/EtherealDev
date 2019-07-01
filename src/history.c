@@ -101,6 +101,22 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
+    // If we won't have a Counter Move History, counter
+    // the move from three plies back, as a substitute
+    if (counter == NULL_MOVE) {
+        counter = thread->moveStack[height-3];
+        cmPiece = thread->pieceStack[height-3];
+        cmTo = MoveTo(counter);
+    }
+
+    // If we won't have a Followup Move History, follow
+    // the move from three plies back, as a substitute
+    if (follow == NULL_MOVE) {
+        follow = thread->moveStack[height-4];
+        fmPiece = thread->pieceStack[height-4];
+        fmTo = MoveTo(follow);
+    }
+
     // Set basic Butterfly history
     *hist = thread->history[thread->board.turn][from][to];
 
