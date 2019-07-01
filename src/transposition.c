@@ -26,6 +26,15 @@
 
 TTable Table; // Global Transposition Table
 
+static int entryWeight(TTEntry *entry) {
+
+    int depth   = entry->depth;
+    int bound   = TT_MASK_BOUND & entry->generation;
+    int agediff = TT_MASK_AGE & (259 + Table.generation - entry->generation);
+
+    return depth + bound - agediff;
+}
+
 void initTT(uint64_t megabytes) {
 
     uint64_t keySize = 16ull;
@@ -134,27 +143,14 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {
 
     const uint16_t hash16 = hash >> 48;
-    TTEntry *replace = NULL, *slots = Table.buckets[hash & Table.hashMask].slots;
+    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+    TTEntry *replace = &slots[0];
+    int weight = entryWeight(replace), temp, i;
 
-    for (int i = 0; i < TT_BUCKET_NB; i++) {
-
-        // Found a matching hash or an unused entry
-        if (slots[i].hash16 == hash16 || (slots[i].generation & TT_MASK_BOUND) == 0u) {
-            replace = &slots[i];
-            break;
-         }
-
-        // Take the first entry as a starting point
-        if (i == 0) {
-            replace = &slots[i];
-            continue;
-        }
-
-        // Replace using MAX(x1, x2), where xN = depth - 8 * age difference
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE) * 2
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE) * 2)
-            replace = &slots[i];
-    }
+    for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
+        if ((temp = entryWeight(&slots[i]) <= weight))
+            replace = &slots[i], weight = temp;
+    replace = (i == TT_BUCKET_NB) ? replace : &slots[i];
 
     // Don't overwrite an entry from the same position, unless we have
     // an exact bound or depth that is nearly as good as the old one
