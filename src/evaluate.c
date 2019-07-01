@@ -374,7 +374,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     ei->attackedBy[US][PAWN] = ei->pawnAttacks[US];
 
     // Update King Safety calculations
-    attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
+    attacks = ei->pawnAttacks[US] & ei->kingZones[THEM];
     ei->kingAttacksCount[US] += popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
@@ -489,7 +489,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.KnightMobility[count][US]++;
 
         // Update King Safety calculations
-        if ((attacks &= ei->kingAreas[THEM])) {
+        if ((attacks &= ei->kingZones[THEM])) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
@@ -558,7 +558,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.BishopMobility[count][US]++;
 
         // Update King Safety calculations
-        if ((attacks &= ei->kingAreas[THEM])) {
+        if ((attacks &= ei->kingZones[THEM])) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
@@ -617,7 +617,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.RookMobility[count][US]++;
 
         // Update King Safety calculations
-        if ((attacks &= ei->kingAreas[THEM])) {
+        if ((attacks &= ei->kingZones[THEM])) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[ROOK];
@@ -659,7 +659,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenMobility[count][US]++;
 
         // Update King Safety calculations
-        if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnDoubleAttacks[THEM])) {
+        if ((attacks &= ei->kingZones[THEM])) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
@@ -948,16 +948,13 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~(white & pawns), BLACK);
     ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~(black & pawns), WHITE);
 
-    // For some slight King safety modifications
-    ei->pawnDoubleAttacks[WHITE] = pawnDoubleAttacks(white & pawns, ~0ull, WHITE);
-    ei->pawnDoubleAttacks[BLACK] = pawnDoubleAttacks(black & pawns, ~0ull, BLACK);
-
-    // Compute an area for evaluating our King's safety.
-    // The definition of the King Area can be found in masks.c
+    // TODO
     ei->kingSquare[WHITE] = getlsb(white & kings);
     ei->kingSquare[BLACK] = getlsb(black & kings);
     ei->kingAreas[WHITE] = kingAreaMasks(WHITE, ei->kingSquare[WHITE]);
     ei->kingAreas[BLACK] = kingAreaMasks(BLACK, ei->kingSquare[BLACK]);
+    ei->kingZones[WHITE] = ei->kingAreas[WHITE] & ~pawnDoubleAttacks(black & pawns, ~0ull, BLACK);
+    ei->kingZones[BLACK] = ei->kingAreas[BLACK] & ~pawnDoubleAttacks(white & pawns, ~0ull, WHITE);
 
     // Exclude squares attacked by our opponents, our blocked pawns, and our own King
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
