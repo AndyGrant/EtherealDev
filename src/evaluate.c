@@ -254,7 +254,7 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSDefenderValue   =   -6;
+const int KSDefenderValue   =  -20;
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
 const int KSFriendlyPawns   =  -22;
@@ -679,22 +679,17 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
     uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
 
-    uint64_t defenders  = (board->pieces[PAWN  ] & board->colours[US])
-                        | (board->pieces[KNIGHT] & board->colours[US])
-                        | (board->pieces[BISHOP] & board->colours[US]);
-
     int kingSq = ei->kingSquare[US];
     if (TRACE) T.KingValue[US]++;
     if (TRACE) T.KingPSQT32[relativeSquare32(US, kingSq)][US]++;
 
-    // Bonus for our pawns and minors sitting within our king area
-    count = popcount(defenders & ei->kingAreas[US]);
-    eval += KingDefenders[count];
-    if (TRACE) T.KingDefenders[count][US]++;
-
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+
+        uint64_t defenders  = (board->pieces[PAWN  ] & board->colours[US])
+                            | (board->pieces[KNIGHT] & board->colours[US])
+                            | (board->pieces[BISHOP] & board->colours[US]);
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
@@ -725,16 +720,16 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
-        count += KSDefenderValue   * count
-               + KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
-               + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
-               + ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
+        count = KSDefenderValue   * popcount(defenders & ei->kingAreas[US])
+              + KSAttackValue     * scaledAttackCounts
+              + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
+              + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+              + KSNoEnemyQueens   * !enemyQueens
+              + KSSafeQueenCheck  * popcount(queenChecks)
+              + KSSafeRookCheck   * popcount(rookChecks)
+              + KSSafeBishopCheck * popcount(bishopChecks)
+              + KSSafeKnightCheck * popcount(knightChecks)
+              + ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
         // Convert safety to an MG and EG score, if we are unsafe
         if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
