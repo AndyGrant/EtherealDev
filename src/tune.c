@@ -152,7 +152,15 @@ void runTexelTuning(Thread *thread) {
             // printParameters(cparams, lparams, ksparams);
             printf("\nIteration [%d] Error = %g\n", iterations, error);
             best = error;
+
+            for (int i = 0; i < NSAFETYTERMS; i++)
+                printf(" %d ", (int)round(ksparams[i]));
+            printf("\n");
         }
+
+        // Update Linear & Safety Parameters using mini-batches
+        for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++)
+            updateParameters(tes, lparams, ksparams, K, rate, batch);
     }
 }
 
@@ -306,6 +314,60 @@ double initOptimalKValue(TuningEntry *tes) {
 
 }
 
+void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector ksparams, double K, double rate, int batch) {
+
+    int start = batch * BATCHSIZE;
+    int end   = start + BATCHSIZE;
+
+    double linearGradient[NLINEARTERMS][PHASE_NB] = {0};
+    double safetyGradient[NSAFETYTERMS] = {0};
+
+    #pragma omp parallel shared(linearGradient, safetyGradient)
+    {
+        double localLinearGradient[NLINEARTERMS][PHASE_NB] = {0};
+        double localSafetyGradient[NSAFETYTERMS] = {0};
+
+        #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
+        for (int i = start; i < end; i++) {
+
+            double error = singleEvaluationError(&tes[i], lparams, ksparams, K);
+            double kswhite = safetyEvaluation(&tes[i], ksparams, WHITE);
+            double ksblack = safetyEvaluation(&tes[i], ksparams, BLACK);
+
+            // Compute Linear Gradients
+            for (int j = 0; j < tes[i].ntuples; j++)
+                for (int k = MG; k <= EG; k++)
+                    localLinearGradient[tes[i].linear[j].index][k] +=
+                        error * tes[i].phaseFactors[k] * tes[i].linear[j].coeff;
+
+            // Compute Safety Gradients
+            for (int j = 0; j < NSAFETYTERMS; j++) {
+                int coeff = (kswhite * tes[i].safety[j][WHITE]) - (ksblack * tes[i].safety[j][BLACK]);
+                localSafetyGradient[j] += 2 * error * coeff;
+            }
+        }
+
+
+        // Collapse Linear Gradients
+        for (int i = 0; i < NLINEARTERMS; i++)
+            for (int j = MG; j <= EG; j++)
+                linearGradient[i][j] += localLinearGradient[i][j];
+
+        // Collapse Safety Gradients
+        for (int i = 0; i < NSAFETYTERMS; i++)
+            safetyGradient[i] += localSafetyGradient[i];
+    }
+
+    // Update Linear Parameters
+    for (int i = 0; i < NLINEARTERMS; i++)
+        for (int j = MG; j <= EG; j++)
+            lparams[i][j] += (2.0 / BATCHSIZE) * rate * linearGradient[i][j];
+
+    // Update Safety Parameters
+    for (int i = 0; i < NSAFETYTERMS; i++)
+        ksparams[i] += (2.0 / BATCHSIZE) * rate * safetyGradient[i];
+}
+
 double linearEvaluation(TuningEntry *te, LinearVector lparams) {
 
     double mg = 0, eg = 0;
@@ -367,6 +429,12 @@ double fullEvaluationError(TuningEntry *tes, LinearVector lparams, SafetyVector 
     }
 
     return total / (double)NPOSITIONS;
+}
+
+double singleEvaluationError(TuningEntry *te, LinearVector lparams, SafetyVector ksparams, double K) {
+    double sigm  = sigmoid(K, evaluate(te, lparams, ksparams));
+    double sigmp = sigm * (1 - sigm);
+    return (te->result - sigm) * sigmp;
 }
 
 double sigmoid(double K, double eval) {
