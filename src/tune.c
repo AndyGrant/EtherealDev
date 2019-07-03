@@ -331,9 +331,12 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
         for (int i = start; i < end; i++) {
 
             double error = singleEvaluationError(&tes[i], lparams, ksparams, K);
-            double kswhite = safetyEvaluation(&tes[i], ksparams, WHITE);
-            double ksblack = safetyEvaluation(&tes[i], ksparams, BLACK);
 
+            double wcount = 0, bcount = 0;
+            for (int j = 0; j < NSAFETYTERMS; j++) {
+                wcount += tes[i].safety[j][WHITE] * ksparams[j];
+                bcount += tes[i].safety[j][BLACK] * ksparams[j];
+            }
 
             // Update the Gradients for the used Linear terms
             for (int j = 0; j < tes[i].ntuples; j++) {
@@ -354,8 +357,8 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
             // Update the Gradients for the (USED) Safety Terms
             for (int j = 0; j < NSAFETYTERMS; j++) {
 
-                int mgcoeff = -2 * (  (kswhite * tes[i].safety[j][WHITE])
-                                   - (ksblack * tes[i].safety[j][BLACK])) / 720;
+                int mgcoeff = -2 * ( (wcount * tes[i].safety[j][WHITE])
+                                   - (bcount * tes[i].safety[j][BLACK])) / 720;
                 int egcoeff = -1 * (tes[i].safety[j][WHITE] - tes[i].safety[j][BLACK]) / 20;
 
                 int mgfactor = tes[i].phaseFactors[MG];
