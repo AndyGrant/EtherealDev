@@ -526,7 +526,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.BishopPSQT32[relativeSquare32(US, sq)][US]++;
 
         // Compute possible attacks and store off information for king safety
-        attacks = bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+        attacks = bishopAttacks(sq, board->colours[WHITE] | board->colours[BLACK]);
         ei->attackedBy2[US]        |= attacks & ei->attacked[US];
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][BISHOP] |= attacks;
@@ -590,7 +590,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.RookPSQT32[relativeSquare32(US, sq)][US]++;
 
         // Compute possible attacks and store off information for king safety
-        attacks = rookAttacks(sq, ei->occupiedMinusRooks[US]);
+        attacks = rookAttacks(sq, board->colours[WHITE] | board->colours[BLACK]);
         ei->attackedBy2[US]      |= attacks & ei->attacked[US];
         ei->attacked[US]         |= attacks;
         ei->attackedBy[US][ROOK] |= attacks;
@@ -934,10 +934,8 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
 
-    uint64_t pawns   = board->pieces[PAWN  ];
-    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
-    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
-    uint64_t kings   = board->pieces[KING  ];
+    uint64_t pawns   = board->pieces[PAWN];
+    uint64_t kings   = board->pieces[KING];
 
     // Save some general information about the pawn structure for later
     ei->pawnAttacks[WHITE]  = pawnAttackSpan(white & pawns, ~0ull, WHITE);
@@ -962,14 +960,6 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     // can start by setting up the attackedBy2 table, since King attacks are resolved
     ei->attacked[WHITE] = ei->attackedBy[WHITE][KING] = kingAttacks(ei->kingSquare[WHITE]);
     ei->attacked[BLACK] = ei->attackedBy[BLACK][KING] = kingAttacks(ei->kingSquare[BLACK]);
-
-    // For mobility, we allow bishops to attack through eachother
-    ei->occupiedMinusBishops[WHITE] = (white | black) ^ (white & bishops);
-    ei->occupiedMinusBishops[BLACK] = (white | black) ^ (black & bishops);
-
-    // For mobility, we allow rooks to attack through eachother
-    ei->occupiedMinusRooks[WHITE] = (white | black) ^ (white & rooks);
-    ei->occupiedMinusRooks[BLACK] = (white | black) ^ (black & rooks);
 
     // Init all of the King Safety information
     ei->kingAttacksCount[WHITE]    = ei->kingAttacksCount[BLACK]    = 0;

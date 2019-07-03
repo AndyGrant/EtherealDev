@@ -91,8 +91,6 @@ struct EvalInfo {
     uint64_t attacked[COLOUR_NB];
     uint64_t attackedBy2[COLOUR_NB];
     uint64_t attackedBy[COLOUR_NB][PIECE_NB];
-    uint64_t occupiedMinusBishops[COLOUR_NB];
-    uint64_t occupiedMinusRooks[COLOUR_NB];
     uint64_t passedPawns;
     int kingSquare[COLOUR_NB];
     int kingAttacksCount[COLOUR_NB];
