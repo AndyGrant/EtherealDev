@@ -334,16 +334,34 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
             double kswhite = safetyEvaluation(&tes[i], ksparams, WHITE);
             double ksblack = safetyEvaluation(&tes[i], ksparams, BLACK);
 
-            // Compute Linear Gradients
-            for (int j = 0; j < tes[i].ntuples; j++)
-                for (int k = MG; k <= EG; k++)
-                    localLinearGradient[tes[i].linear[j].index][k] +=
-                        error * tes[i].phaseFactors[k] * tes[i].linear[j].coeff;
 
-            // Compute Safety Gradients
+            // Update the Gradients for the used Linear terms
+            for (int j = 0; j < tes[i].ntuples; j++) {
+
+                // Read out the Linear Tuple
+                int index = tes[i].linear[j].index;
+                int coeff = tes[i].linear[j].coeff;
+
+                // Adjust for game phase. EG is scaled with a factor
+                int mgfactor = tes[i].phaseFactors[MG];
+                int egfactor = tes[i].phaseFactors[EG] * tes[i].scaleFactor / SCALE_NORMAL;
+
+                // Update the actual gradients
+                localLinearGradient[index][MG] += error * coeff * mgfactor;
+                localLinearGradient[index][EG] += error * coeff * egfactor;
+            }
+
+            // Update the Gradients for the (USED) Safety Terms
             for (int j = 0; j < NSAFETYTERMS; j++) {
-                int coeff = (kswhite * tes[i].safety[j][WHITE]) - (ksblack * tes[i].safety[j][BLACK]);
-                localSafetyGradient[j] += 2 * error * coeff;
+
+                int mgcoeff = -2 * (  (kswhite * tes[i].safety[j][WHITE])
+                                   - (ksblack * tes[i].safety[j][BLACK])) / 720;
+                int egcoeff = -1 * (tes[i].safety[j][WHITE] - tes[i].safety[j][BLACK]) / 20;
+
+                int mgfactor = tes[i].phaseFactors[MG];
+                int egfactor = tes[i].phaseFactors[EG] * tes[i].scaleFactor / SCALE_NORMAL;
+
+                localSafetyGradient[j] += error * (mgcoeff * mgfactor + egcoeff * egfactor);
             }
         }
 
