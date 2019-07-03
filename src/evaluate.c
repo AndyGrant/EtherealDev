@@ -754,7 +754,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.KSAdjustment[US]      +=  1;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count < 0) eval += MakeScore(count * count / 720, count / 20);
+        if (count < 0) eval += MakeScore(count * abs(count) / 720, count / 20);
     }
 
     // King Shelter & King Storm are stored in the Pawn King Table
