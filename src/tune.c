@@ -359,9 +359,9 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
             // Update the Gradients for the (USED) Safety Terms
             for (int j = 0; j < NSAFETYTERMS; j++) {
 
-                int mgcoeff = -2 * ( (wcount * tes[i].safety[j][WHITE])
+                int mgcoeff = 2 * (  (wcount * tes[i].safety[j][WHITE])
                                    - (bcount * tes[i].safety[j][BLACK])) / 720;
-                int egcoeff = -1 * (tes[i].safety[j][WHITE] - tes[i].safety[j][BLACK]) / 20;
+                int egcoeff = 1 * (tes[i].safety[j][WHITE] - tes[i].safety[j][BLACK]) / 20;
 
                 int mgfactor = tes[i].phaseFactors[MG];
                 int egfactor = tes[i].phaseFactors[EG] * tes[i].scaleFactor / SCALE_NORMAL;
