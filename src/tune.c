@@ -31,6 +31,7 @@
 #include "tune.h"
 #include "types.h"
 #include "uci.h"
+#include "zobrist.h"
 
 // In-house Memory Allocation
 int TupleStackSize = TUPLESTACKSIZE;
@@ -99,7 +100,7 @@ extern const int KSAdjustment;
 void runTexelTuning(Thread *thread) {
 
     TuningEntry *tes;
-    int iteration = -1;
+    int iterations = -1;
     double K, error, best = 1e6, rate = LEARNINGRATE;
     LinearVector lparams = {0}, cparams = {0};
     SafetyVector ksparams = {0};
@@ -123,6 +124,36 @@ void runTexelTuning(Thread *thread) {
 
     printf("\nInitializing Tuning Entries");
     initTuningEntries(thread, tes, ksparams);
+
+    printf("\n\nComputing an Optimal K Value\n");
+    K = initOptimalKValue(tes);
+
+    while (1) {
+
+        // Shuffle up the Tuning Entries
+       for (int i = 0; i < NPOSITIONS; i++) {
+
+            int A = rand64() % NPOSITIONS;
+            int B = rand64() % NPOSITIONS;
+
+            TuningEntry temp = tes[A];
+            tes[A] = tes[B];
+            tes[B] = temp;
+        }
+
+        // Report every REPORTRATE iterations
+        if (++iterations % REPORTRATE == 0) {
+
+            // Check for a regression in tuning
+            error = fullEvaluationError(tes, lparams, ksparams, K);
+            if (error > best) rate = rate / LRDROPRATE;
+
+            // Report the most recent parameters
+            // printParameters(cparams, lparams, ksparams);
+            printf("\nIteration [%d] Error = %g\n", iterations, error);
+            best = error;
+        }
+    }
 }
 
 void initCurrentParameters(LinearVector cparams, SafetyVector ksparams) {
@@ -147,8 +178,6 @@ void initTuningEntries(Thread *thread, TuningEntry *tes, SafetyVector ksparams) 
     Limits limits;
     char line[128];
     FILE *fin = fopen(FENFILENAME, "r");
-
-    LinearVector params = {0};
 
     // Make sure we don't kill the search
     thread->limits = &limits; thread->depth = 0;
@@ -251,13 +280,39 @@ void initCoefficientTuples(TuningEntry *te) {
     }
 }
 
-double linearEvaluation(TuningEntry *te, LinearVector params) {
+double initOptimalKValue(TuningEntry *tes) {
+
+    double start = -10.0, end = 10.0, delta = 1.0;
+    double curr = start, error, best = fastFullEvaluationError(tes, start);
+
+    for (int i = 0; i < KITERATIONS; i++) {
+
+        curr = start - delta;
+        while (curr < end) {
+            curr = curr + delta;
+            error = fastFullEvaluationError(tes, curr);
+            if (error <= best)
+                best = error, start = curr;
+        }
+
+        printf("Iteration [%d] K = %f E = %f\n", i, start, best);
+
+        end = start + delta;
+        start = start - delta;
+        delta = delta / 10.0;
+    }
+
+    return start;
+
+}
+
+double linearEvaluation(TuningEntry *te, LinearVector lparams) {
 
     double mg = 0, eg = 0;
 
     for (int i = 0; i < te->ntuples; i++) {
-        mg += te->linear[i].coeff * params[te->linear[i].index][MG];
-        eg += te->linear[i].coeff * params[te->linear[i].index][EG];
+        mg += te->linear[i].coeff * lparams[te->linear[i].index][MG];
+        eg += te->linear[i].coeff * lparams[te->linear[i].index][EG];
     }
 
     return ((mg * (256 - te->phase) + eg * te->phase * te->scaleFactor / SCALE_NORMAL) / 256.0);
@@ -277,13 +332,45 @@ double safetyEvaluation(TuningEntry *te, SafetyVector ksparams, int colour) {
     return ((mg * (256 - te->phase) + eg * te->phase * te->scaleFactor / SCALE_NORMAL) / 256.0);
 }
 
-double evaluate(TuningEntry *te, LinearVector params, SafetyVector ksparams) {
+double evaluate(TuningEntry *te, LinearVector lparams, SafetyVector ksparams) {
 
     return te->linearEval
-        +  linearEvaluation(te, params)
+        +  linearEvaluation(te, lparams)
         + (te->turn == WHITE ? Tempo : -Tempo)
         +  safetyEvaluation(te, ksparams, WHITE)
         -  safetyEvaluation(te, ksparams, BLACK);
+}
+
+double fastFullEvaluationError(TuningEntry *tes, double K) {
+
+    double total = 0.0;
+
+    #pragma omp parallel shared(total)
+    {
+        #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
+        for (int i = 0; i < NPOSITIONS; i++)
+            total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
+    }
+
+    return total / (double)NPOSITIONS;
+}
+
+double fullEvaluationError(TuningEntry *tes, LinearVector lparams, SafetyVector ksparams, double K) {
+
+    double total = 0.0;
+
+    #pragma omp parallel shared(total)
+    {
+        #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
+        for (int i = 0; i < NPOSITIONS; i++)
+            total += pow(tes[i].result - sigmoid(K, evaluate(&tes[i], lparams, ksparams)), 2);
+    }
+
+    return total / (double)NPOSITIONS;
+}
+
+double sigmoid(double K, double eval) {
+    return 1.0 / (1.0 + pow(10.0, -K * eval / 400.0));
 }
 
 #endif

@@ -30,9 +30,9 @@
 #define NLINEARTERMS   (    588) // Number of linear terms to be tuned (Total is 588)
 #define NSAFETYTERMS   (     15) // Number of King Safety terms (Total is 15)
 #define LEARNINGRATE   (    1.0) // Learning rate for each epoch's update
-#define LRDROPDRATE    (   1.25) // Cut the learning rate by this after each regression
+#define LRDROPRATE     (   1.25) // Cut the learning rate by this after each regression
 #define BATCHSIZE      (   8192) // Number of positions to work with per mini-batch
-#define NPOSITIONS     (7500000) // Total number of FENS provided in FENFILENAME
+#define NPOSITIONS     ( 750000) // Total number of FENS provided in FENFILENAME
 #define FENFILENAME    ( "FENS") // Name of the file containing the FENs & Results
 #define TUPLESTACKSIZE ((int)((double) NPOSITIONS * NLINEARTERMS / 64))
 
@@ -303,10 +303,16 @@ void runTexelTuning(Thread *thread);
 void initCurrentParameters(LinearVector cparams, SafetyVector ksparams);
 void initTuningEntries(Thread *thread, TuningEntry *tes, SafetyVector ksparams);
 void initCoefficientTuples(TuningEntry *te);
+double initOptimalKValue(TuningEntry *tes);
 
-double linearEvaluation(TuningEntry *te, LinearVector params);
+
+double linearEvaluation(TuningEntry *te, LinearVector lparams);
 double safetyEvaluation(TuningEntry *te, SafetyVector ksparams, int colour);
-double evaluate(TuningEntry *te, LinearVector params, SafetyVector ksparams);
+double evaluate(TuningEntry *te, LinearVector lparams, SafetyVector ksparams);
+
+double fastFullEvaluationError(TuningEntry *tes, double K);
+double fullEvaluationError(TuningEntry *tes, LinearVector lparams, SafetyVector ksparams, double K);
+double sigmoid(double K, double eval);
 
 
 
