@@ -338,7 +338,7 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
                 bcount += tes[i].safety[j][BLACK] * ksparams[j];
             }
 
-            wcount = MAX(0, wcount); bcount = MAX(0, bcount);
+            wcount = MIN(0, wcount); bcount = MIN(0, bcount);
 
             // Update the Gradients for the used Linear terms
             for (int j = 0; j < tes[i].ntuples; j++) {
