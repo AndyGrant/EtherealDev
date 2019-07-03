@@ -32,7 +32,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "search.h"
-#include "texel.h"
+#include "tune.h"
 #include "thread.h"
 #include "time.h"
 #include "transposition.h"

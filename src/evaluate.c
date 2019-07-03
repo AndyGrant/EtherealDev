@@ -317,12 +317,8 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
     eval  += pkeval + board->psqtmat;
 
-    // Calcuate the game phase based on remaining material (Fruit Method)
-    phase = 24 - 4 * popcount(board->pieces[QUEEN ])
-               - 2 * popcount(board->pieces[ROOK  ])
-               - 1 * popcount(board->pieces[KNIGHT]
-                             |board->pieces[BISHOP]);
-    phase = (phase * 256 + 12) / 24;
+    // Interpolate between game phases
+    phase = evaluatePhase(board);
 
     // Scale evaluation based on remaining material
     factor = evaluateScaleFactor(board);
@@ -493,6 +489,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
+            if (TRACE) T.KSAttackWeight[KNIGHT][US]++;
         }
     }
 
@@ -562,6 +559,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
+            if (TRACE) T.KSAttackWeight[BISHOP][US]++;
         }
     }
 
@@ -621,6 +619,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[ROOK];
+            if (TRACE) T.KSAttackWeight[ROOK][US]++;
         }
     }
 
@@ -662,6 +661,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
             ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
+            if (TRACE) T.KSAttackWeight[QUEEN][US]++;
         }
     }
 
@@ -726,15 +726,32 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+        count += KSAttackValue     *  scaledAttackCounts
+               + KSWeakSquares     *  popcount(weak & ei->kingAreas[US])
+               + KSFriendlyPawns   *  popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeQueenCheck  *  popcount(queenChecks)
+               + KSSafeRookCheck   *  popcount(rookChecks)
+               + KSSafeBishopCheck *  popcount(bishopChecks)
+               + KSSafeKnightCheck *  popcount(knightChecks)
                + KSAdjustment;
+
+        if (TRACE) T.KSAttackWeight[PAWN  ][US] *= ei->kingAttackersCount[THEM];
+        if (TRACE) T.KSAttackWeight[KNIGHT][US] *= ei->kingAttackersCount[THEM];
+        if (TRACE) T.KSAttackWeight[BISHOP][US] *= ei->kingAttackersCount[THEM];
+        if (TRACE) T.KSAttackWeight[ROOK  ][US] *= ei->kingAttackersCount[THEM];
+        if (TRACE) T.KSAttackWeight[QUEEN ][US] *= ei->kingAttackersCount[THEM];
+        if (TRACE) T.KSAttackWeight[KING  ][US] *= ei->kingAttackersCount[THEM];
+
+        if (TRACE) T.KSAttackValue[US]     +=  scaledAttackCounts;
+        if (TRACE) T.KSWeakSquares[US]     +=  popcount(weak & ei->kingAreas[US]);
+        if (TRACE) T.KSFriendlyPawns[US]   +=  popcount(myPawns & ei->kingAreas[US] & ~weak);
+        if (TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens;
+        if (TRACE) T.KSSafeQueenCheck[US]  +=  popcount(queenChecks);
+        if (TRACE) T.KSSafeRookCheck[US]   +=  popcount(rookChecks);
+        if (TRACE) T.KSSafeBishopCheck[US] +=  popcount(bishopChecks);
+        if (TRACE) T.KSSafeKnightCheck[US] +=  popcount(knightChecks);
+        if (TRACE) T.KSAdjustment[US]      +=  1;
 
         // Convert safety to an MG and EG score, if we are unsafe
         if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
@@ -927,6 +944,16 @@ int evaluateScaleFactor(Board *board) {
     }
 
     return SCALE_NORMAL;
+}
+
+int evaluatePhase(Board *board) {
+
+    // Calcuate the game phase based on remaining material (Fruit Method)
+    int phase = 24 - 4 * popcount(board->pieces[QUEEN ])
+                   - 2 * popcount(board->pieces[ROOK  ])
+                   - 1 * popcount(board->pieces[KNIGHT]
+                                 |board->pieces[BISHOP]);
+    return (phase * 256 + 12) / 24;
 }
 
 void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
