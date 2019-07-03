@@ -253,16 +253,16 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   95;
+const int KSAttackWeight[]  = { 0, 13, 3, 19, 3, 0 };
+const int KSAttackValue     =   34;
+const int KSWeakSquares     =   29;
+const int KSFriendlyPawns   =  -19;
+const int KSNoEnemyQueens   = -234;
+const int KSSafeQueenCheck  =   55;
 const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSSafeBishopCheck =   60;
+const int KSSafeKnightCheck =   81;
+const int KSAdjustment      =  -19;
 
 /* Passed Pawn Evaluation Terms */
 
