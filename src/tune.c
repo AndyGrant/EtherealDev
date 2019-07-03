@@ -347,7 +347,6 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
             }
         }
 
-
         // Collapse Linear Gradients
         for (int i = 0; i < NLINEARTERMS; i++)
             for (int j = MG; j <= EG; j++)
@@ -364,7 +363,7 @@ void updateParameters(TuningEntry *tes, LinearVector lparams, SafetyVector kspar
             lparams[i][j] += (2.0 / BATCHSIZE) * rate * linearGradient[i][j];
 
     // Update Safety Parameters
-    for (int i = 0; i < NSAFETYTERMS; i++)
+    for (int i = 6; i < NSAFETYTERMS; i++)
         ksparams[i] += (2.0 / BATCHSIZE) * rate * safetyGradient[i];
 }
 

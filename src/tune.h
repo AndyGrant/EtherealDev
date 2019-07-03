@@ -26,12 +26,12 @@
 
 #define KITERATIONS    (     10) // Decimal places to take computeOptimalK() to
 #define NPARTITIONS    (     64) // How many split points to make for OpenMP
-#define REPORTRATE     (     25) // Number of tuning epochs between each report
+#define REPORTRATE     (      1) // Number of tuning epochs between each report
 #define NLINEARTERMS   (      1) // Number of linear terms to be tuned (Total is 588)
 #define NSAFETYTERMS   (     15) // Number of King Safety terms (Total is 15)
 #define LEARNINGRATE   (    1.0) // Learning rate for each epoch's update
 #define LRDROPRATE     (   1.25) // Cut the learning rate by this after each regression
-#define BATCHSIZE      (  16384) // Number of positions to work with per mini-batch
+#define BATCHSIZE      (7500000) // Number of positions to work with per mini-batch
 #define NPOSITIONS     (7500000) // Total number of FENS provided in FENFILENAME
 #define FENFILENAME    ( "FENS") // Name of the file containing the FENs & Results
 #define TUPLESTACKSIZE ((int)((double) NPOSITIONS * NLINEARTERMS / 64))
