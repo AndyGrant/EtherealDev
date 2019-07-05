@@ -176,13 +176,13 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
             printf("\rInitializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV depth 10 search score
-        eval = MAX(-250, MIN(250, atoi(strstr(line, "] ") + 2)));
+        eval = atoi(strstr(line, "] ") + 2);
         if (strstr(line, " b ")) eval *= -1;
 
         // Determine the result of the game
-        if      (strstr(line, "[1.0]")) tes[i].result = 0.9 + (eval / 2500.0);
-        else if (strstr(line, "[0.0]")) tes[i].result = 0.1 + (eval / 2500.0);
-        else if (strstr(line, "[0.5]")) tes[i].result = 0.5 + (eval / 5000.0);
+        if      (strstr(line, "[1.0]")) tes[i].result = 1.0;
+        else if (strstr(line, "[0.0]")) tes[i].result = 0.0;
+        else if (strstr(line, "[0.5]")) tes[i].result = 0.5;
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
         // Resolve FEN to a quiet position
@@ -210,6 +210,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         tes[i].eval = evaluateBoard(&thread->board, NULL);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
+
+        tes[i].eval = (tes[i].eval + eval) / 2;
 
         // Count up the non zero coefficients
         for (k = 0, j = 0; j < NTERMS; j++)
