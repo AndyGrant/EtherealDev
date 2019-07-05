@@ -156,7 +156,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     Undo undo[1];
     Limits limits;
     char line[128];
-    int i, j, k, coeffs[NTERMS];
+    int i, j, k, eval, coeffs[NTERMS];
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
@@ -175,10 +175,14 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
             printf("\rInitializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
+        // Fetch and cap a white POV depth 10 search score
+        eval = MAX(-250, MIN(250, atoi(strstr(line, "] ") + 2)));
+        if (strstr(line, " b ")) eval *= -1;
+
         // Determine the result of the game
-        if      (strstr(line, "1-0")) tes[i].result = 1.0;
-        else if (strstr(line, "0-1")) tes[i].result = 0.0;
-        else if (strstr(line, "1/2")) tes[i].result = 0.5;
+        if      (strstr(line, "[1.0]")) tes[i].result = 0.9 + (eval / 2500.0);
+        else if (strstr(line, "[0.0]")) tes[i].result = 0.1 + (eval / 2500.0);
+        else if (strstr(line, "[0.5]")) tes[i].result = 0.5 + (eval / 5000.0);
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
         // Resolve FEN to a quiet position
