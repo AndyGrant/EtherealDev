@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
         ptr = strchr(line, '\r');
         if (ptr != NULL) *ptr = '\0';
         boardFromFEN(&board, line, 0);
+        if (perft(&board, 1) == 0) continue;
         printf("%s", line);
         strcpy(threadsgo.str, "go depth 10\n");
         threadsgo.threads = threads;
@@ -93,7 +94,7 @@ int main(int argc, char **argv) {
         pthread_join(pthreadsgo, NULL);
     }
 
-
+    return 1;
 
 
     // Allow the tuner to be run when compiled
