@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     // By default use 1 thread, 16MB hash, and Standard chess.
     // Usage ./Ethereal bench <depth=13> <threads=1> <hash=16>
     int depth     = argc > 2 ? atoi(argv[2]) : 13;
-    int nthreads  = argc > 3 ? atoi(argv[3]) : 1;
+    int nthreads  = argc > 3 ? atoi(argv[3]) : 16;
     int megabytes = argc > 4 ? atoi(argv[4]) : 16;
     int chess960  = 0;
 
@@ -74,6 +74,23 @@ int main(int argc, char **argv) {
         runBenchmark(threads, depth);
         return 0;
     }
+
+    FILE *fin = fopen("Ethereal.fens", "r");
+
+    for (int i = 0; i < 7500000; i++) {
+        char line[256];
+        fgets(line, 256, fin);
+        boardFromFEN(&board, line, 0);
+        strcpy(threadsgo.str, "go depth 10\n");
+        threadsgo.threads = threads;
+        threadsgo.board = &board;
+        pthread_create(&pthreadsgo, NULL, &uciGo, &threadsgo);
+        pthread_join(pthreadsgo, NULL);
+        printf("%s", line);
+    }
+
+
+
 
     // Allow the tuner to be run when compiled
     #ifdef TUNE
@@ -217,19 +234,6 @@ void *uciGo(void *vthreadsgo) {
     // UCI spec does not want reports until out of pondering
     while (IS_PONDERING);
 
-    // Report best move ( we should always have one )
-    moveToString(bestMove, moveStr, board->chess960);
-    printf("bestmove %s ", moveStr);
-
-    // Report ponder move ( if we have one )
-    if (ponderMove != NONE_MOVE) {
-        moveToString(ponderMove, moveStr, board->chess960);
-        printf("ponder %s", moveStr);
-    }
-
-    // Make sure this all gets reported
-    printf("\n"); fflush(stdout);
-
     // Drop the ready lock, as we are prepared to handle a new search
     pthread_mutex_unlock(&READYLOCK);
 
@@ -336,72 +340,15 @@ void uciPosition(char *str, Board *board, int chess960) {
 
 void uciReport(Thread *threads, int alpha, int beta, int value) {
 
-    // Gather all of the statistics that the UCI protocol would be
-    // interested in. Also, bound the value passed by alpha and
-    // beta, since Ethereal uses a mix of fail-hard and fail-soft
-
-    int hashfull    = hashfullTT();
-    int depth       = threads->depth;
-    int seldepth    = threads->seldepth;
-    int elapsed     = elapsedTime(threads->info);
-    int bounded     = value = MAX(alpha, MIN(value, beta));
-    uint64_t nodes  = nodesSearchedThreadPool(threads);
-    uint64_t tbhits = tbhitsThreadPool(threads);
-    int nps         = (int)(1000 * (nodes / (1 + elapsed)));
-
-    // If the score is MATE or MATED in X, convert to X
-    int score   = bounded >=  MATE_IN_MAX ?  (MATE - bounded + 1) / 2
-                : bounded <= MATED_IN_MAX ? -(bounded + MATE)     / 2 : bounded;
-
-    // Two possible score types, mate and cp = centipawns
-    char *type  = bounded >=  MATE_IN_MAX ? "mate"
-                : bounded <= MATED_IN_MAX ? "mate" : "cp";
-
-    // Partial results from a windowed search have bounds
-    char *bound = bounded >=  beta ? " lowerbound "
-                : bounded <= alpha ? " upperbound " : " ";
-
-    printf("info depth %d seldepth %d score %s %d%stime %d "
-           "nodes %"PRIu64" nps %d tbhits %"PRIu64" hashfull %d pv ",
-           depth, seldepth, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
-
-    // Iterate over the PV and print each move
-    for (int i = 0; i < threads->pv.length; i++) {
-        char moveStr[6];
-        moveToString(threads->pv.line[i], moveStr, threads->board.chess960);
-        printf("%s ", moveStr);
-    }
-
-    // Send out a newline and flush
-    puts(""); fflush(stdout);
+    if (threads->depth == 10 && alpha <= value && value <= beta)
+        printf("%d ", value);
 }
 
 void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
 
-    char moveStr[6];
-
-    // Convert result to a score. We place wins and losses just outside
-    // the range of possible mate scores, and move further from them
-    // as the depth to zero increases. Draws are of course, zero.
-    int score = wdl == TB_LOSS ? -MATE + MAX_PLY + dtz + 1
-              : wdl == TB_WIN  ?  MATE - MAX_PLY - dtz - 1 : 0;
-
-    printf("info depth %d seldepth %d score cp %d time 0 "
-           "nodes 0 tbhits 1 nps 0 hashfull %d pv ",
-           MAX_PLY - 1, MAX_PLY - 1, score, 0);
-
-    // Print out the given move
-    moveToString(move, moveStr, board->chess960);
-    puts(moveStr);
-    fflush(stdout);
 }
 
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) {
-
-    char moveStr[6];
-    moveToString(move, moveStr, board->chess960);
-    printf("info depth %d currmove %s currmovenumber %d\n", depth, moveStr, currmove);
-    fflush(stdout);
 
 }
 
