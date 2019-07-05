@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     // By default use 1 thread, 16MB hash, and Standard chess.
     // Usage ./Ethereal bench <depth=13> <threads=1> <hash=16>
     int depth     = argc > 2 ? atoi(argv[2]) : 13;
-    int nthreads  = argc > 3 ? atoi(argv[3]) : 16;
+    int nthreads  = argc > 3 ? atoi(argv[3]) :  1;
     int megabytes = argc > 4 ? atoi(argv[4]) : 16;
     int chess960  = 0;
 
@@ -75,18 +75,22 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    FILE *fin = fopen("Ethereal.fens", "r");
+    FILE *fin = fopen(argv[1], "r");
 
     for (int i = 0; i < 7500000; i++) {
-        char line[256];
+        char line[256], *ptr;
         fgets(line, 256, fin);
+        ptr = strchr(line, '\n');
+        if (ptr != NULL) *ptr = '\0';
+        ptr = strchr(line, '\r');
+        if (ptr != NULL) *ptr = '\0';
         boardFromFEN(&board, line, 0);
+        printf("%s", line);
         strcpy(threadsgo.str, "go depth 10\n");
         threadsgo.threads = threads;
         threadsgo.board = &board;
         pthread_create(&pthreadsgo, NULL, &uciGo, &threadsgo);
         pthread_join(pthreadsgo, NULL);
-        printf("%s", line);
     }
 
 
@@ -341,7 +345,7 @@ void uciPosition(char *str, Board *board, int chess960) {
 void uciReport(Thread *threads, int alpha, int beta, int value) {
 
     if (threads->depth == 10 && alpha <= value && value <= beta)
-        printf("%d ", value);
+        printf(" %d\n", value);
 }
 
 void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
