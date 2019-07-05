@@ -77,9 +77,9 @@ int main(int argc, char **argv) {
 
     FILE *fin = fopen(argv[1], "r");
 
-    for (int i = 0; i < 7500000; i++) {
+    while (1) {
         char line[256], *ptr;
-        fgets(line, 256, fin);
+        if (fgets(line, 256, fin) == NULL) return 1;
         ptr = strchr(line, '\n');
         if (ptr != NULL) *ptr = '\0';
         ptr = strchr(line, '\r');
