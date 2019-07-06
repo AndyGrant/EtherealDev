@@ -156,7 +156,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     Undo undo[1];
     Limits limits;
     char line[128];
-    int i, j, k, eval, coeffs[NTERMS];
+    int i, j, k, searchEval, qsearchEval, coeffs[NTERMS];
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
@@ -175,9 +175,9 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
             printf("\rInitializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
-        // Fetch and cap a white POV search
-        eval = atoi(strstr(line, "] ") + 2);
-        if (strstr(line, " b ")) eval *= -1;
+        // Get a search evaluation ( depth 10 )
+        searchEval = atoi(strstr(line, "] ") + 2);
+        if (strstr(line, " b ")) searchEval *= -1;
 
         // Determine the result of the game
         if      (strstr(line, "[1.0]")) tes[i].result = 1.0;
@@ -185,9 +185,12 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         else if (strstr(line, "[0.5]")) tes[i].result = 0.5;
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
-        // Resolve FEN to a quiet position
+        // Get a qsearch evaluation
         boardFromFEN(&thread->board, line, 0);
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        qsearchEval = qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        if (thread->board.turn == BLAK) qsearchEval *= -1;
+
+        // Resolve FEN to a quiet position
         for (j = 0; j < thread->pv.length; j++)
             applyMove(&thread->board, thread->pv.line[j], undo);
 
@@ -211,8 +214,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 
-        // Use 50% eval, 50% search score
-        tes[i].eval = (tes[i].eval + eval) / 2;
+        // Use 33% eval, 33% search score, 33% qsearch score
+        tes[i].eval = (tes[i].eval + searchEval + qsearchEval) / 3;
 
         // Count up the non zero coefficients
         for (k = 0, j = 0; j < NTERMS; j++)
