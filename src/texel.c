@@ -188,7 +188,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Get a qsearch evaluation
         boardFromFEN(&thread->board, line, 0);
         qsearchEval = qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        if (thread->board.turn == BLAK) qsearchEval *= -1;
+        if (thread->board.turn == BLACK) qsearchEval *= -1;
 
         // Resolve FEN to a quiet position
         for (j = 0; j < thread->pv.length; j++)
