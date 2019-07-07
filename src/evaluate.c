@@ -231,6 +231,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(  12, -38), S(  19, -27), S( -18,  -4),
     S( -17,  18), S(  -5,  20), S(-228, -55), S( -22,   1)}},
 };
+
 const int KingStorm[2][FILE_NB/2][RANK_NB] = {
   {{S(  -4,  28), S( 117,  -8), S( -25,  26), S( -19,   8),
     S( -14,   2), S(  -8,  -4), S( -17,   5), S( -22,  -2)},
@@ -255,13 +256,13 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
+const int KSFriendlyPieces  =  -18;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSAdjustment      =  -40;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -727,7 +728,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+               + KSFriendlyPieces  * popcount(defenders & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * popcount(queenChecks)
                + KSSafeRookCheck   * popcount(rookChecks)
