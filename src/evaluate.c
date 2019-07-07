@@ -261,7 +261,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSAdjustment      =  -60;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -690,9 +690,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
 
-    // Perform King Safety when we have two attackers, or
-    // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    // Perform King Safety when we have an attacker
+    if (ei->kingAttackersCount[THEM]) {
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
@@ -736,7 +735,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        if (count > 0) eval -= MakeScore(count * count / 650, count / 18);
     }
 
     // King Shelter & King Storm are stored in the Pawn King Table
