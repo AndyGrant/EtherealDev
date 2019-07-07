@@ -122,15 +122,15 @@ const int PawnIsolated = S(  -7, -11);
 
 const int PawnStacked = S( -18, -23);
 
-const int PawnBackwards = S(  -7, -19);
+const int PawnBackwards = S(  -2, -17);
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(  -2,  -8), S(  11,   1), S(   3,   1), S(   5,  16),
-    S(  14,  -1), S(  29,  -2), S(  21,   7), S(  24,  15),
-    S(   9,   0), S(  23,   4), S(  10,  11), S(  15,  20),
-    S(  13,   8), S(  22,  14), S(  27,  21), S(  32,  20),
-    S(  57,  25), S(  51,  48), S(  68,  54), S(  84,  58),
+    S(  -3,  -9), S(  10,  -1), S(   2,  -2), S(   6,  16),
+    S(  13,  -1), S(  27,  -5), S(  20,   4), S(  24,  12),
+    S(   9,  -2), S(  21,   1), S(   9,   9), S(  13,  17),
+    S(  10,   4), S(  18,   9), S(  22,  17), S(  26,  17),
+    S(  56,  23), S(  49,  46), S(  66,  52), S(  82,  56),
     S( 112,   1), S( 204,  11), S( 228,  31), S( 240,  51),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
@@ -425,7 +425,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // on this and adjacent files, our stop square is not occupied
         // by an opposing pawn, and our stop square is attacked by a pawn
         if (    !testBit(enemyPawns, sq + Forward)
-            &&   testBit(ei->pawnAttack[THEM], sq + Forward)
+            &&   testBit(ei->pawnAttacks[THEM], sq + Forward)
             && !(passedPawnMasks(THEM, sq) & myPawns)) {
             pkeval += PawnBackwards;
             if (TRACE) T.PawnBackwards[US]++;
