@@ -409,8 +409,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
         }
 
-        // Apply a penalty if the pawn is isolated
-        if (!(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
+        // Apply a penalty if the pawn is isolated, and there is not an
+        // immediate possible pawn capture to remedy the isolation
+        if (!threats && !(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
