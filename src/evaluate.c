@@ -261,6 +261,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSNearbyOpenFiles =   20;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -694,6 +695,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
 
+        int openFilesNearKing = !(Files[       fileOf(kingSq)   ] & board->pieces[PAWN])
+                              + !(Files[MIN(7, fileOf(kingSq)+1)] & board->pieces[PAWN])
+                              + !(Files[MAX(0, fileOf(kingSq)-1)] & board->pieces[PAWN]);
+
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
         uint64_t weak =   ei->attacked[THEM]
@@ -733,6 +738,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
+               + KSNearbyOpenFiles * openFilesNearKing
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
