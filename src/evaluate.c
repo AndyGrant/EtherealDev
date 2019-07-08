@@ -231,6 +231,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
    {S(   0,   0), S(  12, -38), S(  19, -27), S( -18,  -4),
     S( -17,  18), S(  -5,  20), S(-228, -55), S( -22,   1)}},
 };
+
 const int KingStorm[2][FILE_NB/2][RANK_NB] = {
   {{S(  -4,  28), S( 117,  -8), S( -25,  26), S( -19,   8),
     S( -14,   2), S(  -8,  -4), S( -17,   5), S( -22,  -2)},
@@ -261,8 +262,8 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSNearbyOpenFiles =   20;
-const int KSAdjustment      =  -18;
+const int KSNearbyOpenFiles =   10;
+const int KSAdjustment      =  -25;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -287,7 +288,7 @@ const int PassedEnemyDistance[8] = {
     S(   1,  21), S(   7,  30), S(  24,  28), S(   0,   0),
 };
 
-const int PassedSafePromotionPath = S( -29, 37);
+const int PassedSafePromotionPath = S( -29,  37);
 
 /* Threat Evaluation Terms */
 
