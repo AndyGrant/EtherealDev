@@ -39,7 +39,7 @@ struct Thread {
     Board board;
     PVariation pv;
 
-    int value, depth, seldepth;
+    int value, depth, seldepth, failures;
     uint64_t nodes, tbhits;
 
     int *evalStack, _evalStack[STACK_SIZE];

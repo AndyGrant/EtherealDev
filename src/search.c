@@ -147,6 +147,9 @@ int aspirationWindow(Thread *thread, int depth, int lastValue) {
     const int mainThread = thread->index == 0;
     int alpha, beta, value, delta = WindowSize;
 
+    // Reset the tracker for failed Aspiration Windows
+    thread->failures = 0;
+
     // Create an aspiration window, unless still below the starting depth
     alpha = depth >= WindowDepth ? MAX(-MATE, lastValue - delta) : -MATE;
     beta  = depth >= WindowDepth ? MIN( MATE, lastValue + delta) :  MATE;
@@ -175,6 +178,9 @@ int aspirationWindow(Thread *thread, int depth, int lastValue) {
 
         // Expand the search window
         delta = delta + delta / 2;
+
+        // Track failure counts
+        thread->failures++;
     }
 }
 
@@ -442,6 +448,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Increase for non PV and non improving nodes
             R += !PvNode + !improving;
+
+            // Increase if we've been on this depth for a while
+            R += thread->failures >= 4;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
