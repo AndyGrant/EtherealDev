@@ -53,6 +53,11 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         int from = MoveFrom(moves[i]);
         int piece = pieceType(thread->board.squares[from]);
 
+        // Slight increase to the update for previous Killer Moves
+        if (   moves[i] == thread->killers[height][0]
+            || moves[i] == thread->killers[height][1])
+            delta += delta / 4;
+
         // Update Butterfly History
         entry = thread->history[colour][from][to];
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
