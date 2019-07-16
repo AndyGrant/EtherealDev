@@ -73,11 +73,8 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         }
     }
 
-    // Update Killer Moves (Avoid duplicates)
-    if (thread->killers[height][0] != bestMove) {
-        thread->killers[height][1] = thread->killers[height][0];
-        thread->killers[height][0] = bestMove;
-    }
+    // Update Killer Moves
+    updateKillerMoves(thread, height, bestMove);
 
     // Update Counter Moves (BestMove refutes the previous move)
     if (counter != NONE_MOVE && counter != NULL_MOVE)
@@ -159,4 +156,15 @@ void getRefutationMoves(Thread *thread, int height, uint16_t *killer1, uint16_t 
     // Set Counter Move if one exists
     if (previous == NONE_MOVE || previous == NULL_MOVE) *counter = NONE_MOVE;
     else *counter = thread->cmtable[!thread->board.turn][cmPiece][cmTo];
+}
+
+void updateKillerMoves(Thread *thread, int height, uint16_t move) {
+
+    // Don't store duplicate Killer Moves
+    if (thread->killers[height][0] == move)
+        return;
+
+    // Shift out the oldest Killer Move for the new one
+    thread->killers[height][1] = thread->killers[height][0];
+    thread->killers[height][0] = move;
 }
