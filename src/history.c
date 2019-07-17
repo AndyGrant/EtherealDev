@@ -25,7 +25,7 @@
 #include "thread.h"
 #include "types.h"
 
-void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
+void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus, int skipRefutations) {
 
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
@@ -72,6 +72,10 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
             thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
         }
     }
+
+    // Sometimes we only want to update the History scores
+    if (skipRefutations)
+        return;
 
     // Update Killer Moves (Avoid duplicates)
     if (thread->killers[height][0] != bestMove) {

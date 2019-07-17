@@ -247,8 +247,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
                 || (ttBound == BOUND_LOWER && ttValue >= beta)
-                || (ttBound == BOUND_UPPER && ttValue <= alpha))
+                || (ttBound == BOUND_UPPER && ttValue <= alpha)) {
+
+                if (ttValue >= beta && !moveIsTactical(board, ttMove))
+                    updateHistoryHeuristics(thread, &ttMove, 1, height, depth*depth, 1);
+
                 return ttValue;
+            }
         }
     }
 
@@ -527,7 +532,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 19. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove))
-        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
+        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth, 0);
 
     // Step 20. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
