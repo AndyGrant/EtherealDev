@@ -33,15 +33,16 @@ extern unsigned TB_LARGEST; // Set by Fathom in tb_init()
 
 unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
 
-    const int cardinality;
-
     // The basic rules for Syzygy assume that the last move was a zero'ing move,
     // there are no potential castling moves, and there is not an enpass square.
-    if (board->halfMoveCounter || board->castleRights || board->epSquare != 0)
+    if (board->halfMoveCounter || board->castleRooks || board->epSquare != 0)
         return TB_RESULT_FAILED;
 
+    // Root Nodes cannot take early exits, as we need a best move
+    if (height == 0) return TB_RESULT_FAILED;
+
     // Count the remaining pieces to see if we fall into the scope of the Tables
-    cardinality = popcount(board->colours[WHITE] | board->colours[BLACK]);
+    int cardinality = popcount(board->colours[WHITE] | board->colours[BLACK]);
 
     // Check to see if we are within the scope of the Tables. Also check the UCI
     // option TB_PROBE_DEPTH. We only probe when below TB_PROBE_DEPTH or when
