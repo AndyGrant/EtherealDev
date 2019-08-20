@@ -35,7 +35,7 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
 
     // The basic rules for Syzygy assume that the last move was a zero'ing move,
     // there are no potential castling moves, and there is not an enpass square.
-    if (board->halfMoveCounter || board->castleRooks || board->epSquare != 0)
+    if (board->halfMoveCounter || board->castleRooks || board->epSquare != -1)
         return TB_RESULT_FAILED;
 
     // Root Nodes cannot take early exits, as we need a best move
