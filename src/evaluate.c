@@ -660,7 +660,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
+            ei->kingAttacksCount[US] += popcount(attacks & ~ei->pawnAttacks[THEM]);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
         }
