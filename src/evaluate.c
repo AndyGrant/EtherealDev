@@ -660,7 +660,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks & ~ei->pawnAttacks[THEM]);
+            ei->kingAttacksCount[US] += popcount(attacks & ~ei->pawnAttacks2[THEM]);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
         }
@@ -943,6 +943,8 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     // Save some general information about the pawn structure for later
     ei->pawnAttacks[WHITE]  = pawnAttackSpan(white & pawns, ~0ull, WHITE);
     ei->pawnAttacks[BLACK]  = pawnAttackSpan(black & pawns, ~0ull, BLACK);
+    ei->pawnAttacks2[WHITE] = pawnDoubleAttacks(white & pawns, ~0ull, WHITE);
+    ei->pawnAttacks2[BLACK] = pawnDoubleAttacks(black & pawns, ~0ull, BLACK);
     ei->rammedPawns[WHITE]  = pawnAdvance(black & pawns, ~(white & pawns), BLACK);
     ei->rammedPawns[BLACK]  = pawnAdvance(white & pawns, ~(black & pawns), WHITE);
     ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~(white & pawns), BLACK);
