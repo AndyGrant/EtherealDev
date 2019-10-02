@@ -45,6 +45,8 @@
 #include "windows.h"
 
 int LMRTable[64][64];      // Late Move Reductions
+int SEETable[16][2];       // SEE Pruning Values
+int FutilityTable[16];     // Futility Pruning Values
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
@@ -54,6 +56,16 @@ void initSearch() {
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
+
+    // Init Static Exchange Evaluation Pruning Table
+    for (int depth = 0; depth <= SEEPruningDepth; depth++) {
+        SEETable[depth][0] = SEENoisyMargin * depth * depth;
+        SEETable[depth][1] = SEEQuietMargin * depth;
+    }
+
+    // Init Futility Pruning Table
+    for (int depth = 0; depth <= FutilityPruningDepth; depth++)
+        FutilityTable[depth] = FutilityMargin * depth;
 }
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
@@ -189,7 +201,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
@@ -293,13 +305,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
-    // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * depth;
-
-    // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
-
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
@@ -388,8 +393,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 12A. Futility Pruning. If our score is far below alpha, and we
             // don't expect anything from this move, we can skip all other quiets
-            if (   futilityMargin <= alpha
-                && depth <= FutilityPruningDepth
+            if (   depth <= FutilityPruningDepth
+                && eval + FutilityTable[depth] <= alpha
                 && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
@@ -419,7 +424,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (    best > MATED_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
+            && !staticExchangeEvaluation(board, move, SEETable[depth][isQuiet]))
             continue;
 
         // Apply move, skip if move is illegal
@@ -429,7 +434,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
-        // and we wait a few seconds in order to avoid floiding the output
+        // and we wait a few seconds in order to avoid flooding the output
         if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played, depth);
 
@@ -735,6 +740,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
