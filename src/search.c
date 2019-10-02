@@ -303,9 +303,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
-    // Reset Killer moves for our children
-    thread->killers[height+1][0] = NONE_MOVE;
-    thread->killers[height+1][1] = NONE_MOVE;
+    // Reset Killer moves for our children and grand children
+    thread->killers[height+1][0] = thread->killers[height+1][1] = NONE_MOVE;
+    thread->killers[height+2][0] = thread->killers[height+2][1] = NONE_MOVE;
 
     // Step 7. Razoring. Allow depth one nodes to jump directly into a
     // Quiescence Search when the eval plus a margin cannot beat alpha
