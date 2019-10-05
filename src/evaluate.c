@@ -256,14 +256,14 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
 const int KSAttackValue     =   44;
 const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -18;
-const int KSStrongBlockage  =  -18;
+const int KSFriendlyPawns   =  -22;
+const int KSDefendedAttack  =  -10;
 const int KSNoEnemyQueens   = -276;
 const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =    0;
+const int KSAdjustment      =   10;
 
 /* Passed Pawn Evaluation Terms */
 
@@ -731,7 +731,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
-               + KSStrongBlockage  * popcount(defenders & ei->kingAreas[US] & ei->pawnAttacks2[US])
+               + KSDefendedAttack  * popcount(ei->attacked[THEM] & ei->kingAreas[US] & ei->pawnAttacks2[US])
                + KSNoEnemyQueens   * !enemyQueens
                + KSSafeQueenCheck  * popcount(queenChecks)
                + KSSafeRookCheck   * popcount(rookChecks)
