@@ -491,7 +491,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
+            ei->kingAttacksCount[US] += popcount(attacks & ei->kingZones[THEM]);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
         }
@@ -560,7 +560,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
+            ei->kingAttacksCount[US] += popcount(attacks & ei->kingZones[THEM]);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
         }
@@ -619,7 +619,7 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
+            ei->kingAttacksCount[US] += popcount(attacks & ei->kingZones[THEM]);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[ROOK];
         }
@@ -660,7 +660,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
+            ei->kingAttacksCount[US] += popcount(attacks & ei->kingZones[THEM]);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
         }
@@ -956,8 +956,8 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->kingSquare[BLACK] = getlsb(black & kings);
     ei->kingAreas[WHITE]  = kingAreaMasks(WHITE, ei->kingSquare[WHITE]);
     ei->kingAreas[BLACK]  = kingAreaMasks(BLACK, ei->kingSquare[BLACK]);
-    ei->kingAreas[WHITE] &= ~(ei->pawnAttacks2[WHITE] & pawns & white);
-    ei->kingAreas[BLACK] &= ~(ei->pawnAttacks2[BLACK] & pawns & black);
+    ei->kingZones[WHITE]  = ei->kingAreas[WHITE] & ~(ei->pawnAttacks2[WHITE] & pawns & white);
+    ei->kingZones[BLACK]  = ei->kingAreas[BLACK] & ~(ei->pawnAttacks2[BLACK] & pawns & black);
 
     // Exclude squares attacked by our opponents, our blocked pawns, and our own King
     ei->mobilityAreas[WHITE] = ~(ei->pawnAttacks[BLACK] | (white & kings) | ei->blockedPawns[WHITE]);
