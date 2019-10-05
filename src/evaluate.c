@@ -660,7 +660,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks & ~ei->pawnAttacks2[THEM]);
+            ei->kingAttacksCount[US] += popcount(attacks);
             ei->kingAttackersCount[US] += 1;
             ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
         }
@@ -865,7 +865,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
 
     // Penalty for any minor threat against minor pieces
-    count = popcount((knights | bishops) & attacksByMinors);
+    count = popcount((knights | bishops) & attacksByMinors & ~ei->pawnAttacks2[US]);
     eval += count * ThreatMinorAttackedByMinor;
     if (TRACE) T.ThreatMinorAttackedByMinor[US] += count;
 
