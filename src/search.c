@@ -188,7 +188,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, improving, extension, singular, ttExtended = 0, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
@@ -443,6 +443,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for non PV and non improving nodes
             R += !PvNode + !improving;
 
+            //
+            R -= ttExtended && bestMove != ttMove;
+
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
@@ -471,6 +474,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         extension =  (inCheck)
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
+
+        // Track extensions of the TT move for LMR decisions
+        ttExtended |= extension && move == ttMove;
 
         // Factor the extension into the new depth. Do not extend at the root
         newDepth = depth + (extension && !RootNode);
