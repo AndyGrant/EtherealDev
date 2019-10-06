@@ -58,7 +58,8 @@ void initMasks() {
 
     // Init a table for the King Areas. Use the King's square, the King's target
     // squares, and the squares within the pawn shield. When on the A/H files, extend
-    // the King Area to include an additional file, namely the C and F file respectively
+    // the King Area to include an additional file, namely the C and F file respectively.
+    // We also exclude the King's square from the King Area, as checks are already unsafe.
     for (int sq = 0; sq < SQUARE_NB; sq++) {
 
         KingAreaMasks[WHITE][sq] = kingAttacks(sq) | (1ull << sq) | (kingAttacks(sq) << 8);
@@ -69,6 +70,9 @@ void initMasks() {
 
         KingAreaMasks[WHITE][sq] |= fileOf(sq) != 7 ? 0ull : KingAreaMasks[WHITE][sq] >> 1;
         KingAreaMasks[BLACK][sq] |= fileOf(sq) != 7 ? 0ull : KingAreaMasks[BLACK][sq] >> 1;
+
+        KingAreaMasks[WHITE][sq] &= ~(1ull << sq);
+        KingAreaMasks[BLACK][sq] &= ~(1ull << sq);
     }
 
     // Init a table of bitmasks for the ranks at or above a given rank, by colour
