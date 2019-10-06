@@ -483,14 +483,15 @@ int moveBestCaseValue(Board *board) {
     // Assume the opponent has at least a pawn target if not promoting
     int value = promote ? 0 : SEEPieceValues[PAWN];
 
-    // Filter our targets to our enemies. If a promotion may exist
-    // then we will further refine the targets to the promotion rank
+    // As a baseline look to capture opposing pieces. We can then
+    // refine the targets when a promotion may be possible, so that
+    // we will only consider potential promotion capture combinations.
     uint64_t targets = board->colours[!board->turn];
-    targets &= promote ? (board->turn == WHITE ? RANK_8 : RANK_1) : ~0ull;
+    if (promote) targets = pawnAttackSpan(promote, targets, board->turn);
 
     // Check for a higher value target
     for (int piece = QUEEN; piece > PAWN; piece--)
-        if (board->pieces[piece] & board->colours[!board->turn])
+        if (board->pieces[piece] & targets)
           { value = SEEPieceValues[piece]; break; }
 
     // Capturing a queen could be more valuable than promoting
