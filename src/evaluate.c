@@ -170,6 +170,8 @@ const int RookFile[2] = { S(  15,   4), S(  35,   3) };
 
 const int RookOnSeventh = S(  -2,  26);
 
+const int RookAttackSupported;
+
 const int RookMobility[15] = {
     S(-148,-113), S( -52,-113), S( -15, -61), S(  -7, -21),
     S(  -7,  -1), S(  -8,  14), S(  -7,  24), S(  -1,  27),
@@ -580,6 +582,8 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
     uint64_t enemyPawns = board->pieces[PAWN] & board->colours[THEM];
     uint64_t tempRooks  = board->pieces[ROOK] & board->colours[  US];
 
+    uint64_t supporters = board->colours[US] & (tempRooks | board->pieces[QUEEN]);
+
     ei->attackedBy[US][ROOK] = 0ull;
 
     // Evaluate each rook
@@ -610,6 +614,14 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             && relativeRankOf(US, ei->kingSquare[THEM]) >= 6) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[US]++;
+        }
+
+        // Apply a bonus when our Rook is a threat to our opponent's King's
+        // safety and the Rook is supported by another of our Rooks or Queens
+        if (   (attacks & supporters)
+            && (attacks & ei->kingAreas[THEM])) {
+            eval += RookAttackSupported;
+            if (TRACE) T.RookAttackSupported[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
