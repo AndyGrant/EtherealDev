@@ -472,21 +472,34 @@ int moveEstimatedValue(Board *board, uint16_t move) {
 
 int moveBestCaseValue(Board *board) {
 
-    // Assume the opponent has at least a pawn
-    int value = SEEPieceValues[PAWN];
+    // Constant value of trading a pawn for a queen
+    const int PromoValue = SEEPieceValues[QUEEN] - SEEPieceValues[PAWN];
+
+    // Check to see if a promotion may be possible
+    uint64_t promote =  board->pieces[PAWN]
+                     &  board->colours[board->turn]
+                     & (board->turn == WHITE ? RANK_7 : RANK_2);
+
+    // Assume the opponent has at least a pawn target if not promoting
+    int value = promote ? 0 : SEEPieceValues[PAWN];
+
+    // Filter our targets to our enemies. If a promotion may exist
+    // then we will further refine the targets to the promotion rank
+    uint64_t targets = board->colours[!board->turn];
+    targets &= promote ? (board->turn == WHITE ? RANK_8 : RANK_1) : ~0ull;
 
     // Check for a higher value target
     for (int piece = QUEEN; piece > PAWN; piece--)
         if (board->pieces[piece] & board->colours[!board->turn])
           { value = SEEPieceValues[piece]; break; }
 
-    // Check for a potential pawn promotion
-    if (   board->pieces[PAWN]
-        &  board->colours[board->turn]
-        & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += SEEPieceValues[QUEEN] - SEEPieceValues[PAWN];
+    // Capturing a queen could be more valuable than promoting
+    if (    promote
+        &&  value + PromoValue < SEEPieceValues[QUEEN]
+        && (board->colours[!board->turn] & board->pieces[QUEEN]))
+        value = SEEPieceValues[QUEEN] - PromoValue;
 
-    return value;
+    return value + (promote ? PromoValue : 0);
 }
 
 int moveWasLegal(Board *board) {
