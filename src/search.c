@@ -476,7 +476,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
         // Track extensions of the TT move for LMR decisions
-        ttExtended |= extension && move == ttMove;
+        ttExtended |= extension && move == ttMove && !inCheck;
 
         // Factor the extension into the new depth. Do not extend at the root
         newDepth = depth + (extension && !RootNode);
