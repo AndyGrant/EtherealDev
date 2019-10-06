@@ -719,9 +719,9 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
         // If the balance is non negative after giving away our piece then we win
         if (balance >= 0) {
 
-            // As a slide speed up for move legality checking, if our last attacking
+            // As a slight speed up for move legality checking, if our last attacking
             // piece is a king, and our opponent still has attackers, then we've
-            // lost as the move we followed would be illegal
+            // lost as the move we would follow would have been illegal
             if (nextVictim == KING && (attackers & board->colours[colour]))
                 colour = !colour;
 
