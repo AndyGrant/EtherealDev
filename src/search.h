@@ -48,7 +48,7 @@ static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2,
 static const int SkipDepths[16] = { 1, 2, 2, 4, 4, 3, 2, 5, 4, 3, 2, 6, 5, 4, 3, 2 };
 
 static const int WindowDepth   = 5;
-static const int WindowSize    = 14;
+static const int WindowSize    = 12;
 static const int WindowTimerMS = 2500;
 
 static const int CurrmoveTimerMS = 2500;
