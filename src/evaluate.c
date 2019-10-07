@@ -170,7 +170,7 @@ const int RookFile[2] = { S(  15,   4), S(  35,   3) };
 
 const int RookOnSeventh = S(  -2,  26);
 
-const int RookSupportsIsolated;
+const int RookSupportsIsolated = S(   4,  -4);
 
 const int RookMobility[15] = {
     S(-148,-113), S( -52,-113), S( -15, -61), S(  -7, -21),
