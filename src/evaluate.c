@@ -170,6 +170,8 @@ const int RookFile[2] = { S(  15,   4), S(  35,   3) };
 
 const int RookOnSeventh = S(  -2,  26);
 
+const int RookSupportsIsolated;
+
 const int RookMobility[15] = {
     S(-148,-113), S( -52,-113), S( -15, -61), S(  -7, -21),
     S(  -7,  -1), S(  -8,  14), S(  -7,  24), S(  -1,  27),
@@ -610,6 +612,13 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             && relativeRankOf(US, ei->kingSquare[THEM]) >= 6) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[US]++;
+        }
+
+        //
+        if (    attacks & myPawns & Files[fileOf(sq)]
+            && !(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
+            eval += RookSupportsIsolated;
+            if (TRACE) T.RookSupportsIsolated[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
