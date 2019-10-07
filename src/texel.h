@@ -69,6 +69,7 @@
 #define TunePassedPawn                  (1)
 #define TunePassedFriendlyDistance      (1)
 #define TunePassedEnemyDistance         (1)
+#define TunePassedClosestKing           (1)
 #define TunePassedSafePromotionPath     (1)
 #define TuneThreatWeakPawn              (1)
 #define TuneThreatMinorAttackedByPawn   (1)
@@ -226,6 +227,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_3(fname, PassedPawn, 2, 2, 8);                       \
     ENABLE_1(fname, PassedFriendlyDistance, 8);                 \
     ENABLE_1(fname, PassedEnemyDistance, 8);                    \
+    ENABLE_0(fname, PassedClosestKing);                         \
     ENABLE_0(fname, PassedSafePromotionPath);                   \
     ENABLE_0(fname, ThreatWeakPawn);                            \
     ENABLE_0(fname, ThreatMinorAttackedByPawn);                 \

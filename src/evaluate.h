@@ -71,6 +71,7 @@ struct EvalTrace {
     int PassedPawn[2][2][8][COLOUR_NB];
     int PassedFriendlyDistance[8][COLOUR_NB];
     int PassedEnemyDistance[8][COLOUR_NB];
+    int PassedClosestKing[COLOUR_NB];
     int PassedSafePromotionPath[COLOUR_NB];
     int ThreatWeakPawn[COLOUR_NB];
     int ThreatMinorAttackedByPawn[COLOUR_NB];

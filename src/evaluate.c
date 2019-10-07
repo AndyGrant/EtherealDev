@@ -287,6 +287,8 @@ const int PassedEnemyDistance[8] = {
     S(   1,  21), S(   7,  30), S(  24,  28), S(   0,   0),
 };
 
+const int PassedClosestKing;
+
 const int PassedSafePromotionPath = S( -29,  37);
 
 /* Threat Evaluation Terms */
@@ -776,7 +778,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
+    int sq, rank, distUs, distThem, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
     uint64_t tempPawns = board->colours[US] & ei->passedPawns;
@@ -797,14 +799,19 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
         // Evaluate based on distance from our king
-        dist = distanceBetween(sq, ei->kingSquare[US]);
-        eval += dist * PassedFriendlyDistance[rank];
-        if (TRACE) T.PassedFriendlyDistance[rank][US] += dist;
+        distUs = distanceBetween(sq, ei->kingSquare[US]);
+        eval += distUs * PassedFriendlyDistance[rank];
+        if (TRACE) T.PassedFriendlyDistance[rank][US] += distUs;
 
         // Evaluate based on distance from their king
-        dist = distanceBetween(sq, ei->kingSquare[THEM]);
-        eval += dist * PassedEnemyDistance[rank];
-        if (TRACE) T.PassedEnemyDistance[rank][US] += dist;
+        distThem = distanceBetween(sq, ei->kingSquare[THEM]);
+        eval += distThem * PassedEnemyDistance[rank];
+        if (TRACE) T.PassedEnemyDistance[rank][US] += distThem;
+
+        // Evaluate based on which king is closest
+        flag = MIN(1, MAX(-1, distThem - distUs));
+        eval += flag * PassedClosestKing;
+        if (TRACE) T.PassedClosestKing[US] += flag;
 
         // Apply a bonus when the path to promoting is uncontested
         bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
