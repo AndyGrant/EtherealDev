@@ -298,6 +298,7 @@ const int ThreatMinorAttackedByMajor = S( -23, -44);
 const int ThreatRookAttackedByLesser = S( -49, -19);
 const int ThreatQueenAttackedByOne   = S( -39, -29);
 const int ThreatOverloadedPieces     = S(  -8, -13);
+const int ThreatOverloadedInKingArea = S(   0,   0);
 const int ThreatByPawnPush           = S(  15,  21);
 
 /* General Evaluation Terms */
@@ -888,6 +889,11 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(overloaded);
     eval += count * ThreatOverloadedPieces;
     if (TRACE) T.ThreatOverloadedPieces[US] += count;
+
+    // Penalty for any overloaded minors or majors in the King Area
+    count = popcount(overloaded & ei->kingAreas[US]);
+    eval += count * ThreatOverloadedInKingArea;
+    if (TRACE) T.ThreatOverloadedInKingArea[US] += count;
 
     // Bonus for giving threats by safe pawn pushes
     count = popcount(pushThreat);
