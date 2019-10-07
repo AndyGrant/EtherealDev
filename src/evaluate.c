@@ -841,10 +841,11 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
                             | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
 
-    // A friendly minor or major is overloaded if attacked and defended by exactly one
-    uint64_t overloaded = (knights | bishops | rooks | queens)
-                        & ei->attacked[  US] & ~ei->attackedBy2[  US]
-                        & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
+    //
+    uint64_t overloaded =  (knights | bishops | rooks | queens)
+                        &   ei->attacked[  US] & ~ei->attackedBy2[  US]
+                        &   ei->attacked[THEM] & ~ei->attackedBy2[THEM]
+                        & ~(ei->attackedBy[THEM][KING] | ei->attackedBy[US][KING]);
 
     // Look for enemy non-pawn pieces which we may threaten with a pawn advance.
     // Don't consider pieces we already threaten, pawn moves which would be countered
