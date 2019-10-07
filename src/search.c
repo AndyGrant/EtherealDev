@@ -145,7 +145,9 @@ void* iterativeDeepening(void *vthread) {
 int aspirationWindow(Thread *thread, int depth, int lastValue) {
 
     const int mainThread = thread->index == 0;
-    int alpha, beta, value, delta = WindowSize;
+    int alpha, beta, value;
+
+    int delta = WindowSize + MIN(40, abs(lastValue) / 16);
 
     // Create an aspiration window, unless still below the starting depth
     alpha = depth >= WindowDepth ? MAX(-MATE, lastValue - delta) : -MATE;
