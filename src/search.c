@@ -470,6 +470,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // relativly large margin,
         extension =  (inCheck)
                   || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (MoveType(move) == CASTLE_MOVE && hist + cmhist + fmhist >= 20000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
         // Factor the extension into the new depth. Do not extend at the root
