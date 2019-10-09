@@ -122,7 +122,7 @@ const int PawnIsolated = S(  -7, -11);
 
 const int PawnStacked = S( -18, -23);
 
-const int PawnBackwards[2] = { S(   7,   0), S(  -7, -19) };
+const int PawnBackwards = S(  -7, -19);
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
@@ -424,11 +424,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the pawn is backward
-        if (   !(passedPawnMasks(THEM, sq) & myPawns)
-            &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
-            flag = !(Files[fileOf(sq)] & enemyPawns);
-            pkeval += PawnBackwards[flag];
-            if (TRACE) T.PawnBackwards[flag][US]++;
+        if (  !(passedPawnMasks(THEM, sq) & myPawns)
+            && !testBit(ei->rammedPawns[US], sq + Forward)
+            &&  testBit(ei->pawnAttacks[THEM], sq + Forward)) {
+            pkeval += PawnBackwards;
+            if (TRACE) T.PawnBackwards[US]++;
         }
 
         // Apply a bonus if the pawn is connected and not backward
