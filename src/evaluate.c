@@ -807,10 +807,19 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PassedEnemyDistance[rank][US] += dist;
 
         // Apply a bonus when the path to promoting is uncontested
-        bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
-        flag = !(bitboard & (board->colours[THEM] | ei->attacked[THEM]));
+        // bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
+        // flag = !(bitboard & (board->colours[THEM] | ei->attacked[THEM]));
+        // eval += flag * PassedSafePromotionPath;
+        // if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        uint64_t path      = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
+        uint64_t blockers  = board->colours[THEM] & ~board->pieces[KING];
+        uint64_t attacks = ei->attackedBy2[THEM] | (ei->attacked[THEM] & ~ei->attackedBy[THEM][KING]);
+
+        flag = !(path & (blockers | attacks));
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
     }
 
     return eval;
