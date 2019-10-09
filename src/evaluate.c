@@ -418,8 +418,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the pawn is stacked
-        if (     several(Files[fileOf(sq)] & myPawns)
-            && !(ei->pawnAttacks[THEM] & Files[fileOf(sq)] & myPawns)) {
+        if (   !testBit(ei->pawnAttacks[THEM], sq)
+            &&  several(Files[fileOf(sq)] & myPawns)) {
             pkeval += PawnStacked;
             if (TRACE) T.PawnStacked[US]++;
         }
