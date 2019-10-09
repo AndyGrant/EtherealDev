@@ -293,15 +293,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
+    // Improving if our static eval increased in the last move
+    improving = height >= 2 && eval > thread->evalStack[height-2];
+
     // Futility Pruning Margin
     futilityMargin = eval + FutilityMargin * (depth + improving);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
     seeMargin[1] = SEEQuietMargin * depth;
-
-    // Improving if our static eval increased in the last move
-    improving = height >= 2 && eval > thread->evalStack[height-2];
 
     // Reset Killer moves for our children
     thread->killers[height+1][0] = NONE_MOVE;
