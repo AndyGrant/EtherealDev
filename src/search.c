@@ -294,7 +294,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
     // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = eval + FutilityMargin * (depth + improving);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -390,7 +390,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // don't expect anything from this move, we can skip all other quiets
             if (   futilityMargin <= alpha
                 && depth <= FutilityPruningDepth
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && hist + cmhist + fmhist < FutilityPruningHistoryLimit)
                 skipQuiets = 1;
 
             // Step 12B. Late Move Pruning / Move Count Pruning. If we have
