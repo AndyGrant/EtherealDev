@@ -153,7 +153,7 @@ const int BishopPair = S(  22,  69);
 
 const int BishopRammedPawns = S( -10, -15);
 
-const int BishopOutpost[2] = { S(  10, -12), S(  40,   0) };
+const int BishopOutpost[2] = { S(   0,   0), S(  40,   0) };
 
 const int BishopBehindPawn = S(   3,  18);
 
