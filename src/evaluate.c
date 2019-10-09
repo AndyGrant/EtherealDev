@@ -287,7 +287,7 @@ const int PassedEnemyDistance[8] = {
     S(   1,  21), S(   7,  30), S(  24,  28), S(   0,   0),
 };
 
-const int PassedSafePromotionPath = S( -29,  37);
+const int PassedSafePromotionPath = S( -28,  24);
 
 /* Threat Evaluation Terms */
 
