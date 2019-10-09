@@ -297,7 +297,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
     // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * (depth + improving);
+    futilityMargin = eval + FutilityMargin * (depth + 2 * improving);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
