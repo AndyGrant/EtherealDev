@@ -423,10 +423,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnStacked[US]++;
         }
 
+
         // Apply a penalty if the pawn is backward
-        if (   !(passedPawnMasks(THEM, sq) & myPawns)
-            &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
-            flag = !(Files[fileOf(sq)] & enemyPawns);
+        if (  !(passedPawnMasks(THEM, sq) & myPawns)
+            &&  testBit(ei->pawnAttacks[THEM], sq + Forward)) {
+            flag = testBit(enemyPawns, sq + Forward);
             pkeval += PawnBackwards[flag];
             if (TRACE) T.PawnBackwards[flag][US]++;
         }
