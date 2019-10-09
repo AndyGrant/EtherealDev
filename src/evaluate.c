@@ -122,7 +122,7 @@ const int PawnIsolated = S(  -7, -11);
 
 const int PawnStacked = S( -18, -23);
 
-const int PawnBackwards = S(  -7, -19);
+const int PawnBackwards = S(  -1, -12);
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
