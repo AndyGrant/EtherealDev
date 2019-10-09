@@ -392,7 +392,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(US, sq)][US]++;
 
-        uint64_t neighbors   = adjacentFilesMasks(fileOf(sq)) & myPawns);
+        uint64_t neighbors   = adjacentFilesMasks(fileOf(sq)) & myPawns;
         uint64_t stoppers    = enemyPawns & passedPawnMasks(US, sq);
         uint64_t threats     = enemyPawns & pawnAttacks(US, sq);
         uint64_t support     = myPawns    & pawnAttacks(THEM, sq);
