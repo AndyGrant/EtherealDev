@@ -300,6 +300,14 @@ const int ThreatQueenAttackedByOne   = S( -39, -29);
 const int ThreatOverloadedPieces     = S(  -8, -13);
 const int ThreatByPawnPush           = S(  15,  21);
 
+/* Complexity Evaluation Terms */
+
+const int ComplexityPassedPawns = S(   0,   4);
+const int ComplexityTotalPawns  = S(   0,   4);
+const int ComplexityPawnFlanks  = S(   0,   8);
+const int ComplexityPawnEndgame = S(   0,  24);
+const int ComplexityAdjustment  = S(   0, -35);
+
 /* General Evaluation Terms */
 
 const int Tempo = 20;
@@ -316,6 +324,7 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     eval   = evaluatePieces(&ei, board);
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
     eval  += pkeval + board->psqtmat;
+    eval  += evaluateComplexity(&ei, board, eval);
 
     // Calcuate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
@@ -928,6 +937,42 @@ int evaluateScaleFactor(Board *board) {
     }
 
     return SCALE_NORMAL;
+}
+
+int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
+
+    // Adjust endgame evaluation based on features related to how
+    // likely the stronger side is to convert the position.
+
+    int complexity;
+    int eg = ScoreEG(eval);
+    int sign = (eg > 0) - (eg < 0);
+
+    int pawnsOnBothFlanks = (board->pieces[PAWN] & LEFT_FLANK )
+                         && (board->pieces[PAWN] & RIGHT_FLANK);
+
+    uint64_t knights = board->pieces[KNIGHT];
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t queens  = board->pieces[QUEEN ];
+
+    // Compute the initiative bonus for the attacking side
+    complexity =  ComplexityPassedPawns * popcount(ei->passedPawns)
+               +  ComplexityTotalPawns  * popcount(board->pieces[PAWN])
+               +  ComplexityPawnFlanks  * pawnsOnBothFlanks
+               +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
+               +  ComplexityAdjustment;
+
+    if (TRACE) T.ComplexityPassedPawns[WHITE] += sign * popcount(ei->passedPawns);
+    if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
+    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
+    if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
+    if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
+
+    // Avoid changing which side has the advantage
+    int v = sign * MAX(ScoreEG(complexity), -abs(eg));
+
+    return MakeScore(0, v);
 }
 
 void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {

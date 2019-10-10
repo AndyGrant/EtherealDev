@@ -87,6 +87,11 @@ extern const int ThreatRookAttackedByLesser;
 extern const int ThreatQueenAttackedByOne;
 extern const int ThreatOverloadedPieces;
 extern const int ThreatByPawnPush;
+extern const int ComplexityPassedPawns;
+extern const int ComplexityTotalPawns;
+extern const int ComplexityPawnFlanks;
+extern const int ComplexityPawnEndgame;
+extern const int ComplexityAdjustment;
 
 void runTexelTuning(Thread *thread) {
 
@@ -145,7 +150,7 @@ void runTexelTuning(Thread *thread) {
             // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
-                for (int j = MG; j <= EG; j++)
+                for (int j = EG; j <= EG; j++) // SKIP MG! DONT EVALUTE COMPLEXITY AT MG!
                     params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
