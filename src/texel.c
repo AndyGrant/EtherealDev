@@ -386,6 +386,12 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
         eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
     }
 
+    int intEval = (int)te->eval;
+    int originalEG = ScoreEG(intEval);
+
+    if (originalEG > 0) eg = MAX(eg, -originalEG);
+    if (originalEG < 0) eg = MIN(eg,  originalEG);
+
     // int originalEG = ScoreEG((int)te->eval);
     // int sign = (originalEG > 0) - (originalEG < 0);
     // eg = sign * MAX(eg, -abs(originalEG));
