@@ -388,7 +388,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 
     int originalEG = ScoreEG(te->eval);
     int sign = (originalEG > 0) - (originalEG < 0);
-    eg = sign * MAX(ScoreEG(eg), -abs(originalEG));
+    eg = sign * MAX(eg, -abs(originalEG));
 
     return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
 }
