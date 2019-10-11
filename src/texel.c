@@ -89,7 +89,6 @@ extern const int ThreatOverloadedPieces;
 extern const int ThreatByPawnPush;
 extern const int ComplexityPassedPawns;
 extern const int ComplexityTotalPawns;
-extern const int ComplexityPawnFlanks;
 extern const int ComplexityPawnEndgame;
 extern const int ComplexityAdjustment;
 

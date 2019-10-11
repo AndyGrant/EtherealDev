@@ -304,9 +304,9 @@ const int ThreatByPawnPush           = S(  15,  21);
 
 const int ComplexityPassedPawns = S(   0,   2);
 const int ComplexityTotalPawns  = S(   0,   7);
-const int ComplexityPawnFlanks  = S(   0,  49);
+// const int ComplexityPawnFlanks  = S(   0,  49);
 const int ComplexityPawnEndgame = S(   0,  34);
-const int ComplexityAdjustment  = S(   0,-110);
+const int ComplexityAdjustment  = S(   0,-110+49);
 
 /* General Evaluation Terms */
 
@@ -949,9 +949,6 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     int eg = ScoreEG(eval);
     int sign = (eg > 0) - (eg < 0);
 
-    int pawnsOnBothFlanks = (board->pieces[PAWN] & LEFT_FLANK )
-                         && (board->pieces[PAWN] & RIGHT_FLANK);
-
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
@@ -960,13 +957,11 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     // Compute the initiative bonus or malus for the attacking side
     complexity =  ComplexityPassedPawns * popcount(ei->passedPawns)
                +  ComplexityTotalPawns  * popcount(board->pieces[PAWN])
-               +  ComplexityPawnFlanks  * pawnsOnBothFlanks
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
     if (TRACE) T.ComplexityPassedPawns[WHITE] += sign * popcount(ei->passedPawns);
     if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
-    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
     if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
     if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
 
