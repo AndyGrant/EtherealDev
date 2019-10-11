@@ -946,6 +946,7 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     // More often than not, this is a penalty for drawish positions.
 
     int complexity;
+    int mg = ScoreMG(eval);
     int eg = ScoreEG(eval);
     int sign = (eg > 0) - (eg < 0);
 
@@ -971,9 +972,9 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
 
     // Avoid changing which side has the advantage
-    int v = sign * MAX(ScoreEG(complexity), -abs(eg));
-
-    return MakeScore(0, v);
+    int vmg = sign * MAX(ScoreEG(complexity), -abs(mg));
+    int veg = sign * MAX(ScoreEG(complexity), -abs(eg));
+    return MakeScore(vmg, veg);
 }
 
 void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
