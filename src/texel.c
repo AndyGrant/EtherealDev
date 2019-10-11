@@ -150,7 +150,7 @@ void runTexelTuning(Thread *thread) {
             // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
-                for (int j = MG; j <= EG; j++)
+                for (int j = MG; j <= MG; j++) // DONT DO EG!
                     params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
