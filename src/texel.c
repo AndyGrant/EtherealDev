@@ -40,6 +40,9 @@
 TexelTuple* TupleStack;
 int TupleStackSize = STACKSIZE;
 
+// Enable/Disable MG/EG per term
+int PhaseManager[NTERMS][2];
+
 // Tap into evaluate()
 extern EvalTrace T, EmptyTrace;
 
@@ -104,6 +107,9 @@ void runTexelTuning(Thread *thread) {
 
     printf("\nTuner Will Be Tuning %d Terms...", NTERMS);
 
+    printf("\nSetting Term types ( MG, EG, or Both )...");
+    initPhaseManager();
+
     printf("\n\nSetting Table size to 1MB for speed...");
     initTT(1);
 
@@ -153,6 +159,18 @@ void runTexelTuning(Thread *thread) {
                 for (int j = MG; j <= EG; j++)
                     params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
         }
+    }
+}
+
+void initPhaseManager() {
+
+    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
+
+    EXECUTE_ON_TERMS(INIT_PHASE);
+
+    if (i != NTERMS){
+        printf("Error in initPhaseManager(): i = %d ; NTERMS = %d\n", i, NTERMS);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -301,7 +319,8 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, d
 
         for (int i = 0; i < NTERMS; i++)
             for (int j = MG; j <= EG; j++)
-                gradient[i][j] += local[i][j];
+                if (PhaseManager[i][j])
+                    gradient[i][j] += local[i][j];
     }
 }
 
