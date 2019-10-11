@@ -302,11 +302,11 @@ const int ThreatByPawnPush           = S(  15,  21);
 
 /* Complexity Evaluation Terms */
 
-const int ComplexityPassedPawns = S(   0,   2);
-const int ComplexityTotalPawns  = S(   0,   7);
-const int ComplexityPawnFlanks  = S(   0,  49);
+const int ComplexityPassedPawns = S(  -3,   2);
+const int ComplexityTotalPawns  = S(   2,   7);
+const int ComplexityPawnFlanks  = S(  21,  49);
 const int ComplexityPawnEndgame = S(   0,  34);
-const int ComplexityAdjustment  = S(   0,-110);
+const int ComplexityAdjustment  = S( -57,-110);
 
 /* General Evaluation Terms */
 
@@ -966,11 +966,11 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
-    if (TRACE) T.ComplexityPassedPawns[WHITE] += signMG * popcount(ei->passedPawns);
-    if (TRACE) T.ComplexityTotalPawns[WHITE]  += signMG * popcount(board->pieces[PAWN]);
-    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += signMG * pawnsOnBothFlanks;
-    if (TRACE) T.ComplexityPawnEndgame[WHITE] += signMG * !(knights | bishops | rooks | queens);
-    if (TRACE) T.ComplexityAdjustment[WHITE]  += signMG;
+    // if (TRACE) T.ComplexityPassedPawns[WHITE] += signMG * popcount(ei->passedPawns);
+    // if (TRACE) T.ComplexityTotalPawns[WHITE]  += signMG * popcount(board->pieces[PAWN]);
+    // if (TRACE) T.ComplexityPawnFlanks[WHITE]  += signMG * pawnsOnBothFlanks;
+    // if (TRACE) T.ComplexityPawnEndgame[WHITE] += signMG * !(knights | bishops | rooks | queens);
+    // if (TRACE) T.ComplexityAdjustment[WHITE]  += signMG;
 
     // Avoid changing which side has the advantage
     int vmg = signMG * MAX(ScoreMG(complexity), -abs(mg));
