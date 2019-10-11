@@ -302,11 +302,11 @@ const int ThreatByPawnPush           = S(  15,  21);
 
 /* Complexity Evaluation Terms */
 
-const int ComplexityPassedPawns = S(   0,   2);
-const int ComplexityTotalPawns  = S(   0,   7);
-const int ComplexityPawnFlanks  = S(   0,  49);
-const int ComplexityPawnEndgame = S(   0,  34);
-const int ComplexityAdjustment  = S(   0,-110);
+const int ComplexityPassedPawns = S(  -3,   3);
+const int ComplexityTotalPawns  = S(  -4,  10);
+const int ComplexityPawnFlanks  = S(  19,  79);
+const int ComplexityPawnEndgame = S(   0,  49);
+const int ComplexityAdjustment  = S(  17,-167);
 
 /* General Evaluation Terms */
 
