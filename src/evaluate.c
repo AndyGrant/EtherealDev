@@ -759,8 +759,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     if (ei->pkentry != NULL) return eval;
 
     // Evaluate based on the number of files between our King and the nearest
-    // file-wise pawn. If we have no pawn, kingPawnFileDistance() returns 0.
-    dist = kingPawnFileDistance(myPawns, kingSq);
+    // file-wise pawn. If there is no pawn, kingPawnFileDistance() returns 0.
+    dist = kingPawnFileDistance(board->pieces[PAWN], kingSq);
     ei->pkeval[US] += KingPawnFileProximity[dist];
 
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,

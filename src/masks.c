@@ -137,7 +137,7 @@ int distanceBetween(int s1, int s2) {
 }
 
 int kingPawnFileDistance(uint64_t pawns, int ksq) {
-    pawns |= pawns >> 1; pawns |= pawns >> 2; pawns |= pawns >> 4;
+    pawns |= pawns >> 8; pawns |= pawns >> 16; pawns |= pawns >> 32;
     assert(0 <= fileOf(ksq) && fileOf(ksq) < FILE_NB);
     assert((pawns & 0xFF) < (1ull << FILE_NB));
     return KingPawnFileDistance[fileOf(ksq)][pawns & 0xFF];
