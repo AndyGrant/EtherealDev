@@ -945,9 +945,15 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     // likely the stronger side is to convert the position.
     // More often than not, this is a penalty for drawish positions.
 
+    const uint64_t WHITE_CAMP = RANK_1 | RANK_2 | RANK_3 | RANK_4;
+    const uint64_t BLACK_CAMP = RANK_8 | RANK_7 | RANK_6 | RANK_5;
+
     int complexity;
     int eg = ScoreEG(eval);
     int sign = (eg > 0) - (eg < 0);
+
+    uint64_t deepPassers = (ei->passedPawns & board->colours[WHITE] & BLACK_CAMP)
+                         | (ei->passedPawns & board->colours[BLACK] & WHITE_CAMP);
 
     int pawnsOnBothFlanks = (board->pieces[PAWN] & LEFT_FLANK )
                          && (board->pieces[PAWN] & RIGHT_FLANK);
@@ -958,13 +964,13 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     uint64_t queens  = board->pieces[QUEEN ];
 
     // Compute the initiative bonus or malus for the attacking side
-    complexity =  ComplexityPassedPawns * popcount(ei->passedPawns)
+    complexity =  ComplexityPassedPawns * popcount(deepPassers)
                +  ComplexityTotalPawns  * popcount(board->pieces[PAWN])
                +  ComplexityPawnFlanks  * pawnsOnBothFlanks
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
-    if (TRACE) T.ComplexityPassedPawns[WHITE] += sign * popcount(ei->passedPawns);
+    if (TRACE) T.ComplexityPassedPawns[WHITE] += sign * popcount(deepPassers);
     if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
     if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
     if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
