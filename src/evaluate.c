@@ -191,9 +191,9 @@ const int QueenMobility[28] = {
 
 /* King Evaluation Terms */
 
-const int KingPawnFileProximity[FILE_NB]  = {
-    S(   0,   0), S(   0,   0), S(  -1,  -6), S(  -2, -15),
-    S(  -4, -26), S(  -6, -38), S(  -8, -52), S( -10, -70),
+const int KingPawnFileProximity[FILE_NB] = {
+    S(  27,  19), S(  15,  15), S(   3,  10), S( -13, -12),
+    S( -15, -40), S( -14, -56), S( -14, -65), S( -11, -70),
 };
 
 const int KingDefenders[12] = {
