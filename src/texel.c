@@ -130,8 +130,9 @@ void runTexelTuning(Thread *thread) {
 
     while (1) {
 
-        // Shuffle the dataset before each epoch
-        shuffleTexelEntries(tes);
+        // Shuffle the dataset before each epoch when batching
+        if (BATCHSIZE != NPOSITIONS)
+            shuffleTexelEntries(tes);
 
         // Report every REPORTING iterations
         if (++iteration % REPORTING == 0) {
