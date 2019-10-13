@@ -197,6 +197,11 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
+const int KingPawnFileProximity[FILE_NB]  = {
+    S(  27,  19), S(  15,  15), S(   3,  10), S( -13, -12),
+    S( -15, -40), S( -14, -56), S( -14, -65), S( -11, -70),
+};
+
 const int KingShelter[2][FILE_NB][RANK_NB] = {
   {{S( -11,   3), S(  15, -26), S(  20,  -9), S(  12,   4),
     S(   6,   4), S(   1,   2), S(  -3, -33), S( -49,  18)},
@@ -682,7 +687,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int count, eval = 0;
+    int count, dist, blocked, eval = 0;
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
@@ -750,8 +755,15 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
     }
 
-    // King Shelter & King Storm are stored in the Pawn King Table
+    // Everything else is stored in the Pawn King Table
     if (ei->pkentry != NULL) return eval;
+
+    // Evaluate based on the number of files between our King and the nearest
+    // file-wise pawn. If there is no pawn, kingPawnFileDistance() returns the
+    // same distance for both sides causing this evaluation term to be neutral
+    dist = kingPawnFileDistance(board->pieces[PAWN], kingSq);
+    ei->pkeval[US] += KingPawnFileProximity[dist];
+    if (TRACE) T.KingPawnFileProximity[dist][US]++;
 
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,
     // as well as the adjacent files. When looking at pawn distances, we will use a
@@ -773,7 +785,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Evaluate King Storm using enemy pawn distance. Use a seperate evaluation
         // depending on the file, and if the opponent's pawn is blocked by our own
-        int blocked = (ourDist != 7 && (ourDist == theirDist - 1));
+        blocked = (ourDist != 7 && (ourDist == theirDist - 1));
         ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirDist];
         if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDist][US]++;
     }
