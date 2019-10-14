@@ -25,11 +25,11 @@
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (     25) // How often to report progress
-#define NTERMS      (      0) // Total terms in the Tuner (600)
+#define NTERMS      (     16) // Total terms in the Tuner (612)
 
 #define LEARNING    (    1.0) // Learning rate
 #define LRDROPRATE  (   1.25) // Cut LR by this each failure
-#define BATCHSIZE   (  16384) // FENs per mini-batch
+#define BATCHSIZE   (7400000) // FENs per mini-batch
 #define NPOSITIONS  (7400000) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
@@ -51,12 +51,12 @@
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
 #define TunePawnConnected32             (0)
-#define TuneKnightOutpost               (0)
+#define TuneKnightOutpost               (1)
 #define TuneKnightBehindPawn            (0)
 #define TuneKnightMobility              (0)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
-#define TuneBishopOutpost               (0)
+#define TuneBishopOutpost               (1)
 #define TuneBishopBehindPawn            (0)
 #define TuneBishopMobility              (0)
 #define TuneRookFile                    (0)
@@ -239,12 +239,12 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_0(fname, PawnStacked, NORMAL);                       \
     ENABLE_1(fname, PawnBackwards, 2, NORMAL);                  \
     ENABLE_1(fname, PawnConnected32, 32, NORMAL);               \
-    ENABLE_1(fname, KnightOutpost, 2, NORMAL);                  \
+    ENABLE_2(fname, KnightOutpost, 2, 4, NORMAL);               \
     ENABLE_0(fname, KnightBehindPawn, NORMAL);                  \
     ENABLE_1(fname, KnightMobility, 9, NORMAL);                 \
     ENABLE_0(fname, BishopPair, NORMAL);                        \
     ENABLE_0(fname, BishopRammedPawns, NORMAL);                 \
-    ENABLE_1(fname, BishopOutpost, 2, NORMAL);                  \
+    ENABLE_2(fname, BishopOutpost, 2, 4, NORMAL);               \
     ENABLE_0(fname, BishopBehindPawn, NORMAL);                  \
     ENABLE_1(fname, BishopMobility, 14, NORMAL);                \
     ENABLE_1(fname, RookFile, 2, NORMAL);                       \
