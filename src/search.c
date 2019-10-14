@@ -384,8 +384,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        // Additionally, we avoid early pruning on pushes by our deep passers
-        if (isQuiet && best > MATED_IN_MAX && !moveIsDeepPasserPush(board, move)) {
+        if (isQuiet && best > MATED_IN_MAX) {
 
             // Step 12A. Futility Pruning. If our score is far below alpha, and we
             // don't expect anything from this move, we can skip all other quiets
@@ -423,6 +422,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
+
+        deepPasserPush = moveIsDeepPasserPush(board, move);
+
+
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
             continue;
@@ -449,6 +452,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
+
+            R -= deepPasserPush && improving;
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
