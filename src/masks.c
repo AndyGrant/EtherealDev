@@ -30,11 +30,13 @@ int KingPawnFileDistance[FILE_NB][1 << FILE_NB];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t ForwardRanksMasks[COLOUR_NB][RANK_NB];
+uint64_t ForwardFileMasks[COLOUR_NB][SQUARE_NB];
 uint64_t AdjacentFilesMasks[FILE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostRanksMasks[COLOUR_NB];
+uint64_t DeepOutpostMasks[COLOUR_NB];
 
 void initMasks() {
 
@@ -100,6 +102,12 @@ void initMasks() {
         ForwardRanksMasks[BLACK][rank] = ~ForwardRanksMasks[WHITE][rank] | Ranks[rank];
     }
 
+    // Init a table of bitmasks for the squares on a file above a given square, by colour
+    for (int sq = 0; sq < SQUARE_NB; sq++) {
+        ForwardFileMasks[WHITE][sq] = Files[fileOf(sq)] & ForwardRanksMasks[WHITE][rankOf(sq)];
+        ForwardFileMasks[BLACK][sq] = Files[fileOf(sq)] & ForwardRanksMasks[BLACK][rankOf(sq)];
+    }
+
     // Init a table of bitmasks containing the files next to a given file
     for (int file = 0; file < FILE_NB; file++) {
         AdjacentFilesMasks[file]  = Files[MAX(0, file-1)];
@@ -113,6 +121,12 @@ void initMasks() {
             PassedPawnMasks[colour][sq] = ~forwardRanksMasks(!colour, rankOf(sq))
                                         & (adjacentFilesMasks(fileOf(sq)) | Files[fileOf(sq)]);
 
+    // Init a table of bitmasks to check for supports for a given pawn
+    for (int sq = 8 ; sq < 56; sq++) {
+        PawnConnectedMasks[WHITE][sq] = pawnAttacks(BLACK, sq) | pawnAttacks(BLACK, sq + 8);
+        PawnConnectedMasks[BLACK][sq] = pawnAttacks(WHITE, sq) | pawnAttacks(WHITE, sq - 8);
+    }
+
     // Init a table of bitmasks to check if a square is an outpost relative
     // to opposing pawns, such that no enemy pawn may attack the square with ease
     for (int colour = WHITE; colour <= BLACK; colour++)
@@ -123,11 +137,11 @@ void initMasks() {
     OutpostRanksMasks[WHITE] = RANK_4 | RANK_5 | RANK_6;
     OutpostRanksMasks[BLACK] = RANK_3 | RANK_4 | RANK_5;
 
-    // Init a table of bitmasks to check for supports for a given pawn
-    for (int sq = 8 ; sq < 56; sq++) {
-        PawnConnectedMasks[WHITE][sq] = pawnAttacks(BLACK, sq) | pawnAttacks(BLACK, sq + 8);
-        PawnConnectedMasks[BLACK][sq] = pawnAttacks(WHITE, sq) | pawnAttacks(WHITE, sq - 8);
-    }
+    // Init a pair of bitmasks to check if a square is a deep outpost, by colour
+    DeepOutpostMasks[WHITE] = (FILE_C | FILE_D | FILE_E | FILE_F)
+                            & (RANK_5 | RANK_6 | RANK_7 | RANK_8);
+    DeepOutpostMasks[BLACK] = (FILE_C | FILE_D | FILE_E | FILE_F)
+                            & (RANK_4 | RANK_3 | RANK_2 | RANK_1);
 }
 
 int distanceBetween(int s1, int s2) {
@@ -161,6 +175,12 @@ uint64_t forwardRanksMasks(int colour, int rank) {
     return ForwardRanksMasks[colour][rank];
 }
 
+uint64_t forwardFileMasks(int colour, int sq) {
+    assert(0 <= colour && colour < COLOUR_NB);
+    assert(0 <= sq && sq < SQUARE_NB);
+    return ForwardFileMasks[colour][sq];
+}
+
 uint64_t adjacentFilesMasks(int file) {
     assert(0 <= file && file < FILE_NB);
     return AdjacentFilesMasks[file];
@@ -187,4 +207,9 @@ uint64_t outpostSquareMasks(int colour, int sq) {
 uint64_t outpostRanksMasks(int colour) {
     assert(0 <= colour && colour < COLOUR_NB);
     return OutpostRanksMasks[colour];
+}
+
+uint64_t deepOutpostMasks(int colour) {
+    assert(0 <= colour && colour < COLOUR_NB);
+    return DeepOutpostMasks[colour];
 }

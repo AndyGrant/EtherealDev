@@ -137,7 +137,10 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2] = { S(   7, -26), S(  31,  -4) };
+const int KnightOutpost[2][3] = {
+    { S(   7, -26), S(  31,  -4), S(  31,  -4) },
+    { S(   7, -26), S(  31,  -4), S(  31,  -4) },
+};
 
 const int KnightBehindPawn = S(   4,  19);
 
@@ -460,7 +463,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, defended, count, eval = 0;
+    int sq, defended, deep, passer, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -486,9 +489,11 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
+            deep     = testBit(deepOutpostMasks(US), sq);
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[defended];
-            if (TRACE) T.KnightOutpost[defended][US]++;
+            passer   = defended && !(enemyPawns & forwardFileMasks(US, sq));
+            eval += KnightOutpost[deep][defended + passer];
+            if (TRACE) T.KnightOutpost[deep][defended + passer][US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -951,6 +956,8 @@ int evaluateScaleFactor(Board *board) {
 }
 
 int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
+
+    (void) ei; // Supress warning, we will want ei later
 
     // Adjust endgame evaluation based on features related to how
     // likely the stronger side is to convert the position.
