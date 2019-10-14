@@ -25,7 +25,7 @@
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (     25) // How often to report progress
-#define NTERMS      (      0) // Total terms in the Tuner (600)
+#define NTERMS      (      2) // Total terms in the Tuner (601)
 
 #define LEARNING    (    1.0) // Learning rate
 #define LRDROPRATE  (   1.25) // Cut LR by this each failure
@@ -35,7 +35,7 @@
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
 #define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
+#define TuneKnightValue                 (1)
 #define TuneBishopValue                 (0)
 #define TuneRookValue                   (0)
 #define TuneQueenValue                  (0)
@@ -53,6 +53,7 @@
 #define TunePawnConnected32             (0)
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
+#define TuneKnightDistantPawns          (1)
 #define TuneKnightMobility              (0)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
@@ -241,6 +242,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, PawnConnected32, 32, NORMAL);               \
     ENABLE_1(fname, KnightOutpost, 2, NORMAL);                  \
     ENABLE_0(fname, KnightBehindPawn, NORMAL);                  \
+    ENABLE_0(fname, KnightDistantPawns, NORMAL);                \
     ENABLE_1(fname, KnightMobility, 9, NORMAL);                 \
     ENABLE_0(fname, BishopPair, NORMAL);                        \
     ENABLE_0(fname, BishopRammedPawns, NORMAL);                 \

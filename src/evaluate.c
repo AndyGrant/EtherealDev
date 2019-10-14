@@ -141,6 +141,8 @@ const int KnightOutpost[2] = { S(   7, -26), S(  31,  -4) };
 
 const int KnightBehindPawn = S(   4,  19);
 
+const int KnightDistantPawns;
+
 const int KnightMobility[9] = {
     S( -77,-104), S( -32,-100), S( -18, -43), S(  -5, -18),
     S(   6,  -8), S(  12,   9), S(  21,  11), S(  30,  11),
@@ -495,6 +497,12 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (testBit(pawnAdvance(board->pieces[PAWN], 0ull, THEM), sq)) {
             eval += KnightBehindPawn;
             if (TRACE) T.KnightBehindPawn[US]++;
+        }
+
+        //
+        if (distanceBetweenOutermostPawns(board->pieces[PAWN] >= 5)) {
+            eval += KnightDistantPawns;
+            if (TRACE) T.KnightDistantPawns[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the knight
