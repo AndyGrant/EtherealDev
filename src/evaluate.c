@@ -138,8 +138,8 @@ const int PawnConnected32[32] = {
 /* Knight Evaluation Terms */
 
 const int KnightOutpost[2][FILE_NB/2] = {
-  { S(   7, -26), S(   7, -26), S(   7, -26), S(   7, -26) },
-  { S(  31,  -4), S(  31,  -4), S(  31,  -4), S(  31,  -4) },
+   {S(   0, -24), S(   8, -28), S(   3, -29), S(   8, -31)},
+   {S(  21,  -8), S(  31, -11), S(  22,  -4), S(  34,  -7)},
 };
 
 const int KnightBehindPawn = S(   4,  19);
@@ -157,8 +157,8 @@ const int BishopPair = S(  22,  69);
 const int BishopRammedPawns = S( -10, -15);
 
 const int BishopOutpost[2][FILE_NB/2] = {
-  { S(  10, -12), S(  10, -12), S(  10, -12), S(  10, -12) },
-  { S(  40,   0), S(  40,   0), S(  40,   0), S(  40,   0) },
+   {S(   6,  -9), S(   9, -13), S(  11, -14), S(   9, -13)},
+   {S(   7,  -4), S(  37,   1), S(  35,  -2), S(  46,  -4)},
 };
 
 const int BishopBehindPawn = S(   3,  18);
