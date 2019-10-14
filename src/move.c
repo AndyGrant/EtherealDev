@@ -450,6 +450,16 @@ int moveIsTactical(Board *board, uint16_t move) {
         || (move & ENPASS_MOVE & PROMOTION_MOVE);
 }
 
+int moveIsDeepPasserPush(Board *board, uint16_t move) {
+
+    const int US = board->turn, THEM = !board->turn;
+    const int from = MoveFrom(move), to = MoveTo(move);
+
+    return   pieceType(board->squares[from]) == PAWN
+        &&   relativeRankOf(board->turn, to) >= 5
+        && !(passedPawnMasks(US, to) & board->pieces[PAWN] & board->colours[THEM]);
+}
+
 int moveEstimatedValue(Board *board, uint16_t move) {
 
     // Start with the value of the piece on the target square
