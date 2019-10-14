@@ -138,8 +138,8 @@ const int PawnConnected32[32] = {
 /* Knight Evaluation Terms */
 
 const int KnightOutpost[2][3] = {
-    { S(   7, -26), S(  31,  -4), S(  31,  -4) },
-    { S(   7, -26), S(  31,  -4), S(  31,  -4) },
+   {S(   4, -26), S(  29,  -8), S(  23,  -6)},
+   {S(   4, -31), S(  28,  -3), S(  36,  -6)},
 };
 
 const int KnightBehindPawn = S(   4,  19);
