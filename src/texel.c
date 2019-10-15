@@ -411,6 +411,8 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
         eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
     }
 
+    eg = eg / 20.0;
+
     return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
 }
 
