@@ -76,6 +76,15 @@ extern const int KingDefenders[12];
 extern const int KingPawnFileProximity[8];
 extern const int KingShelter[2][8][8];
 extern const int KingStorm[2][4][8];
+extern const int KSAttackValue;
+extern const int KSWeakSquares;
+extern const int KSFriendlyPawns;
+extern const int KSNoEnemyQueens;
+extern const int KSSafeQueenCheck;
+extern const int KSSafeRookCheck;
+extern const int KSSafeBishopCheck;
+extern const int KSSafeKnightCheck;
+extern const int KSAdjustment;
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
 extern const int PassedEnemyDistance[8];
@@ -130,7 +139,7 @@ void runTexelTuning(Thread *thread) {
     while (1) {
 
         // Shuffle the dataset before each epoch
-        shuffleTexelEntries(tes);
+        if (NPOSITIONS != BATCHSIZE) shuffleTexelEntries(tes);
 
         // Report every REPORTING iterations
         if (++iteration % REPORTING == 0) {
@@ -401,6 +410,8 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
         mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
         eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
     }
+
+    eg = eg / 20.0; // KS divides counts by 20.
 
     return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
 }

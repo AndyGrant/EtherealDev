@@ -69,6 +69,15 @@ struct EvalTrace {
     int KingDefenders[12][COLOUR_NB];
     int KingShelter[2][8][8][COLOUR_NB];
     int KingStorm[2][4][8][COLOUR_NB];
+    int KSAttackValue[COLOUR_NB];
+    int KSWeakSquares[COLOUR_NB];
+    int KSFriendlyPawns[COLOUR_NB];
+    int KSNoEnemyQueens[COLOUR_NB];
+    int KSSafeQueenCheck[COLOUR_NB];
+    int KSSafeRookCheck[COLOUR_NB];
+    int KSSafeBishopCheck[COLOUR_NB];
+    int KSSafeKnightCheck[COLOUR_NB];
+    int KSAdjustment[COLOUR_NB];
     int PassedPawn[2][2][8][COLOUR_NB];
     int PassedFriendlyDistance[8][COLOUR_NB];
     int PassedEnemyDistance[8][COLOUR_NB];

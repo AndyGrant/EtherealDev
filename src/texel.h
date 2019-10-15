@@ -25,11 +25,11 @@
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (     25) // How often to report progress
-#define NTERMS      (      0) // Total terms in the Tuner (600)
+#define NTERMS      (      9) // Total terms in the Tuner (609)
 
 #define LEARNING    (    1.0) // Learning rate
 #define LRDROPRATE  (   1.25) // Cut LR by this each failure
-#define BATCHSIZE   (  16384) // FENs per mini-batch
+#define BATCHSIZE   (7400000) // FENs per mini-batch
 #define NPOSITIONS  (7400000) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
@@ -67,6 +67,15 @@
 #define TuneKingPawnFileProximity       (0)
 #define TuneKingShelter                 (0)
 #define TuneKingStorm                   (0)
+#define TuneKSAttackValue               (1)
+#define TuneKSWeakSquares               (1)
+#define TuneKSFriendlyPawns             (1)
+#define TuneKSNoEnemyQueens             (1)
+#define TuneKSSafeQueenCheck            (1)
+#define TuneKSSafeRookCheck             (1)
+#define TuneKSSafeBishopCheck           (1)
+#define TuneKSSafeKnightCheck           (1)
+#define TuneKSAdjustment                (1)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
@@ -255,6 +264,15 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, KingPawnFileProximity, 8, NORMAL);          \
     ENABLE_3(fname, KingShelter, 2, 8, 8, NORMAL);              \
     ENABLE_3(fname, KingStorm, 2, 4, 8, NORMAL);                \
+    ENABLE_0(fname, KSAttackValue, EGONLY);                     \
+    ENABLE_0(fname, KSWeakSquares, EGONLY);                     \
+    ENABLE_0(fname, KSFriendlyPawns, EGONLY);                   \
+    ENABLE_0(fname, KSNoEnemyQueens, EGONLY);                   \
+    ENABLE_0(fname, KSSafeQueenCheck, EGONLY);                  \
+    ENABLE_0(fname, KSSafeRookCheck, EGONLY);                   \
+    ENABLE_0(fname, KSSafeBishopCheck, EGONLY);                 \
+    ENABLE_0(fname, KSSafeKnightCheck, EGONLY);                 \
+    ENABLE_0(fname, KSAdjustment, EGONLY);                      \
     ENABLE_3(fname, PassedPawn, 2, 2, 8, NORMAL);               \
     ENABLE_1(fname, PassedFriendlyDistance, 8, NORMAL);         \
     ENABLE_1(fname, PassedEnemyDistance, 8, NORMAL);            \
