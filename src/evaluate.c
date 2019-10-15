@@ -752,15 +752,15 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeKnightCheck * popcount(knightChecks)
                + KSAdjustment;
 
-        if (TRACE) T.KSAttackValue[US]     += scaledAttackCounts                            / -20;
-        if (TRACE) T.KSWeakSquares[US]     += popcount(weak & ei->kingAreas[US])            / -20;
-        if (TRACE) T.KSFriendlyPawns[US]   += popcount(myPawns & ei->kingAreas[US] & ~weak) / -20;
-        if (TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens                                  / -20;
-        if (TRACE) T.KSSafeQueenCheck[US]  += popcount(queenChecks)                         / -20;
-        if (TRACE) T.KSSafeRookCheck[US]   += popcount(rookChecks)                          / -20;
-        if (TRACE) T.KSSafeBishopCheck[US] += popcount(bishopChecks)                        / -20;
-        if (TRACE) T.KSSafeKnightCheck[US] += popcount(knightChecks)                        / -20;
-        if (TRACE) T.KSAdjustment[US]      += 1                                             / -20;
+        if (TRACE) T.KSAttackValue[US]     += scaledAttackCounts                            / -20.0;
+        if (TRACE) T.KSWeakSquares[US]     += popcount(weak & ei->kingAreas[US])            / -20.0;
+        if (TRACE) T.KSFriendlyPawns[US]   += popcount(myPawns & ei->kingAreas[US] & ~weak) / -20.0;
+        if (TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens                                  / -20.0;
+        if (TRACE) T.KSSafeQueenCheck[US]  += popcount(queenChecks)                         / -20.0;
+        if (TRACE) T.KSSafeRookCheck[US]   += popcount(rookChecks)                          / -20.0;
+        if (TRACE) T.KSSafeBishopCheck[US] += popcount(bishopChecks)                        / -20.0;
+        if (TRACE) T.KSSafeKnightCheck[US] += popcount(knightChecks)                        / -20.0;
+        if (TRACE) T.KSAdjustment[US]      += 1                                             / -20.0;
 
         // Convert safety to an MG and EG score, if we are unsafe
         int _mg = ScoreMG(count), _eg = ScoreEG(count);
