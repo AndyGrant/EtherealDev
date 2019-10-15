@@ -751,20 +751,20 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeKnightCheck * popcount(knightChecks)
                + KSAdjustment;
 
-        if (ScoreEG(count) > 0 && TRACE) T.KSAttackValue[US]     += scaledAttackCounts;
-        if (ScoreEG(count) > 0 && TRACE) T.KSWeakSquares[US]     += popcount(weak & ei->kingAreas[US]);
-        if (ScoreEG(count) > 0 && TRACE) T.KSFriendlyPawns[US]   += popcount(myPawns & ei->kingAreas[US] & ~weak);
-        if (ScoreEG(count) > 0 && TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens;
-        if (ScoreEG(count) > 0 && TRACE) T.KSSafeQueenCheck[US]  += popcount(queenChecks);
-        if (ScoreEG(count) > 0 && TRACE) T.KSSafeRookCheck[US]   += popcount(rookChecks);
-        if (ScoreEG(count) > 0 && TRACE) T.KSSafeBishopCheck[US] += popcount(bishopChecks);
-        if (ScoreEG(count) > 0 && TRACE) T.KSSafeKnightCheck[US] += popcount(knightChecks);
-        if (ScoreEG(count) > 0 && TRACE) T.KSAdjustment[US]      += 1;
+        if (TRACE) T.KSAttackValue[US]     += scaledAttackCounts;
+        if (TRACE) T.KSWeakSquares[US]     += popcount(weak & ei->kingAreas[US]);
+        if (TRACE) T.KSFriendlyPawns[US]   += popcount(myPawns & ei->kingAreas[US] & ~weak);
+        if (TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens;
+        if (TRACE) T.KSSafeQueenCheck[US]  += popcount(queenChecks);
+        if (TRACE) T.KSSafeRookCheck[US]   += popcount(rookChecks);
+        if (TRACE) T.KSSafeBishopCheck[US] += popcount(bishopChecks);
+        if (TRACE) T.KSSafeKnightCheck[US] += popcount(knightChecks);
+        if (TRACE) T.KSAdjustment[US]      += 1;
 
         // Convert safety to an MG and EG score, if we are unsafe
         int _mg = ScoreMG(count), _eg = ScoreEG(count);
-        if (_mg > 0) eval -= MakeScore(_mg * _mg / 720, 0);
-        if (_eg > 0) eval -= MakeScore(0, _eg / 20);
+        if (_mg > 0) eval += MakeScore(_mg * _mg / -720, 0);
+        if (_eg > 0) eval += MakeScore(0, _eg / -20);
     }
 
     // Everything else is stored in the Pawn King Table
