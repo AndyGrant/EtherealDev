@@ -320,7 +320,7 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
 
             for (int j = 0; j < tes[i].ntuples; j++)
                 for (int k = MG; k <= EG; k++)
-                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * tes[i].tuples[j].coeff;
+                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * (tes[i].tuples[j].coeff / 20.0);
         }
 
         for (int i = 0; i < NTERMS; i++)
@@ -407,11 +407,9 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
     double mg = 0, eg = 0;
 
     for (int i = 0; i < te->ntuples; i++) {
-        mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
-        eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
+        mg += (te->tuples[i].coeff / 20.0) * params[te->tuples[i].index][MG];
+        eg += (te->tuples[i].coeff / 20.0) * params[te->tuples[i].index][EG];
     }
-
-    eg = eg / 20.0; // KS divides counts by 20.
 
     return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
 }
