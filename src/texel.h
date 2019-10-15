@@ -27,7 +27,7 @@
 #define REPORTING   (     25) // How often to report progress
 #define NTERMS      (      9) // Total terms in the Tuner (609)
 
-#define LEARNING    (    1.0) // Learning rate
+#define LEARNING    (   10.0) // Learning rate
 #define LRDROPRATE  (   1.25) // Cut LR by this each failure
 #define BATCHSIZE   (7400000) // FENs per mini-batch
 #define NPOSITIONS  (7400000) // Total FENS in the book
@@ -97,7 +97,7 @@ enum { NORMAL, MGONLY, EGONLY };
 
 typedef struct TexelTuple {
     int index;
-    int coeff;
+    double coeff;
 } TexelTuple;
 
 typedef struct TexelEntry {
@@ -112,7 +112,7 @@ typedef double TexelVector[NTERMS][PHASE_NB];
 
 void runTexelTuning(Thread *thread);
 void initTexelEntries(TexelEntry *tes, Thread *thread);
-void initCoefficients(int coeffs[NTERMS]);
+void initCoefficients(double coeffs[NTERMS]);
 void initCurrentParameters(TexelVector cparams);
 void initPhaseManager(TexelVector phases);
 

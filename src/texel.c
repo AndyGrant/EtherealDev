@@ -173,7 +173,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     Undo undo[1];
     Limits limits;
     char line[128];
-    int i, j, k, eval, coeffs[NTERMS];
+    int i, j, k, eval;
+    double coeffs[NTERMS];
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
@@ -250,7 +251,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     fclose(fin);
 }
 
-void initCoefficients(int coeffs[NTERMS]) {
+void initCoefficients(double coeffs[NTERMS]) {
 
     int i = 0; // EXECUTE_ON_TERMS will update i accordingly
 
@@ -410,8 +411,6 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
         mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
         eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
     }
-
-    eg = eg / 20.0; // KS divides counts by 20.
 
     return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
 }
