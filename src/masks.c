@@ -136,6 +136,11 @@ int distanceBetween(int s1, int s2) {
     return DistanceBetween[s1][s2];
 }
 
+int distanceBetweenOuterPawns(uint64_t pawns) {
+    pawns |= pawns >> 8;  pawns |= pawns >> 16; pawns |= pawns >> 32;
+    return pawns ? getmsb(pawns & 0xFFull) - getlsb(pawns & 0xFFull) : 0;
+}
+
 int kingPawnFileDistance(uint64_t pawns, int ksq) {
     pawns |= pawns >> 8; pawns |= pawns >> 16; pawns |= pawns >> 32;
     assert(0 <= fileOf(ksq) && fileOf(ksq) < FILE_NB);
