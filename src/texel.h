@@ -80,7 +80,7 @@
 #define TuneThreatOverloadedPieces      (0)
 #define TuneThreatByPawnPush            (0)
 #define TuneComplexityTotalPawns        (0)
-#define TuneComplexityPawnFlanks        (0)
+#define TuneComplexityPawnFlanks        (1)
 #define TuneComplexityPawnEndgame       (0)
 #define TuneComplexityAdjustment        (0)
 
