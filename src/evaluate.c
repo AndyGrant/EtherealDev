@@ -259,15 +259,16 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 /* King Safety Evaluation Terms */
 
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     = S(  44,  44);
-const int KSWeakSquares     = S(  38,  38);
-const int KSFriendlyPawns   = S( -22, -22);
-const int KSNoEnemyQueens   = S(-276,-276);
-const int KSSafeQueenCheck  = S(  95,  95);
-const int KSSafeRookCheck   = S(  94,  94);
-const int KSSafeBishopCheck = S(  51,  51);
-const int KSSafeKnightCheck = S( 123, 123);
-const int KSAdjustment      = S( -18, -18);
+const int KSAttackValue     = S(  44,  92);
+const int KSWeakSquares     = S(  38,  74);
+const int KSFriendlyPawns   = S( -22, -42);
+const int KSNoEnemyQueens   = S(-276,-288);
+const int KSSafeQueenCheck  = S(  95, 137);
+const int KSSafeRookCheck   = S(  94,  95);
+const int KSSafeBishopCheck = S(  51,  48);
+const int KSSafeKnightCheck = S( 123, 127);
+const int KSAdjustment      = S( -18, -19);
+
 
 /* Passed Pawn Evaluation Terms */
 
@@ -750,20 +751,20 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeKnightCheck * popcount(knightChecks)
                + KSAdjustment;
 
-        count = ScoreMG(count);
-
-        if (count > 0 && TRACE) T.KSAttackValue[US]     += scaledAttackCounts;
-        if (count > 0 && TRACE) T.KSWeakSquares[US]     += popcount(weak & ei->kingAreas[US]);
-        if (count > 0 && TRACE) T.KSFriendlyPawns[US]   += popcount(myPawns & ei->kingAreas[US] & ~weak);
-        if (count > 0 && TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens;
-        if (count > 0 && TRACE) T.KSSafeQueenCheck[US]  += popcount(queenChecks);
-        if (count > 0 && TRACE) T.KSSafeRookCheck[US]   += popcount(rookChecks);
-        if (count > 0 && TRACE) T.KSSafeBishopCheck[US] += popcount(bishopChecks);
-        if (count > 0 && TRACE) T.KSSafeKnightCheck[US] += popcount(knightChecks);
-        if (count > 0 && TRACE) T.KSAdjustment[US]      += 1;
+        if (ScoreEG(count) > 0 && TRACE) T.KSAttackValue[US]     += scaledAttackCounts;
+        if (ScoreEG(count) > 0 && TRACE) T.KSWeakSquares[US]     += popcount(weak & ei->kingAreas[US]);
+        if (ScoreEG(count) > 0 && TRACE) T.KSFriendlyPawns[US]   += popcount(myPawns & ei->kingAreas[US] & ~weak);
+        if (ScoreEG(count) > 0 && TRACE) T.KSNoEnemyQueens[US]   += !enemyQueens;
+        if (ScoreEG(count) > 0 && TRACE) T.KSSafeQueenCheck[US]  += popcount(queenChecks);
+        if (ScoreEG(count) > 0 && TRACE) T.KSSafeRookCheck[US]   += popcount(rookChecks);
+        if (ScoreEG(count) > 0 && TRACE) T.KSSafeBishopCheck[US] += popcount(bishopChecks);
+        if (ScoreEG(count) > 0 && TRACE) T.KSSafeKnightCheck[US] += popcount(knightChecks);
+        if (ScoreEG(count) > 0 && TRACE) T.KSAdjustment[US]      += 1;
 
         // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        int _mg = ScoreMG(count), _eg = ScoreEG(count);
+        if (_mg > 0) eval -= MakeScore(_mg * _mg / 720, 0);
+        if (_eg > 0) eval -= MakeScore(0, _eg / 20);
     }
 
     // Everything else is stored in the Pawn King Table
