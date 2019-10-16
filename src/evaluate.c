@@ -258,20 +258,30 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[PIECE_NB]  = {
-    S(   0,   0), S( -16, -16), S(  -6,  -6),
-    S( -10, -10), S(  -8,  -8), S(   0,   0),
+const int KSAttackWeight[6] = {
+    S(   0,   0), S( -47, -18), S( -18, -12), S( -10,  -3),
+    S( -17,  -8), S(   0,   0),
 };
 
-const int KSAttackValue     = S( -44, -44);
-const int KSWeakSquares     = S( -38, -38);
-const int KSFriendlyPawns   = S(  22,  22);
-const int KSNoEnemyQueens   = S( 276, 276);
-const int KSSafeQueenCheck  = S( -95, -95);
-const int KSSafeRookCheck   = S( -94, -94);
-const int KSSafeBishopCheck = S( -51, -51);
-const int KSSafeKnightCheck = S(-123,-123);
-const int KSAdjustment      = S(  18,  18);
+const int KSAttackValue = S( -71, -35);
+
+const int KSWeakSquares = S( -72, -15);
+
+const int KSFriendlyPawns = S(  51,  24);
+
+const int KSNoEnemyQueens = S( 276, 280);
+
+const int KSSafeQueenCheck = S(-114, -94);
+
+const int KSSafeRookCheck = S(-102, -94);
+
+const int KSSafeBishopCheck = S( -56, -53);
+
+const int KSSafeKnightCheck = S(-128,-121);
+
+const int KSAdjustment = S(  26,  25);
+
+
 
 /* Passed Pawn Evaluation Terms */
 
@@ -777,8 +787,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Convert safety to an MG & EG score when unsafe
         mg = ScoreMG(count), eg = ScoreEG(count);
-        // if (mg < 0) eval += MakeScore(mg / 16, 0);
-        // if (eg < 0) eval += MakeScore(0, eg / 20);
+        if (mg < 0) eval += MakeScore(mg / 16, 0);
+        if (eg < 0) eval += MakeScore(0, eg / 20);
     }
 
     // Everything else is stored in the Pawn King Table
