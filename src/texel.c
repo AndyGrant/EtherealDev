@@ -325,8 +325,8 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
 
             for (int j = 0; j < tes[i].ntuples; j++) {
                 for (int k = MG; k <= EG; k++) {
-                    double whiteCoeff = WhiteCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[WHITE][k];
-                    double blackCoeff = BlackCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[BLACK][k];
+                    double whiteCoeff = WhiteCoeff(tes[i].tuples[j].coeff); // * tes[i].dynamicCoeffs[WHITE][k];
+                    double blackCoeff = BlackCoeff(tes[i].tuples[j].coeff); // * tes[i].dynamicCoeffs[BLACK][k];
                     local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * (whiteCoeff - blackCoeff);
 
                 }
@@ -424,12 +424,12 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
     }
 
     // Update "Dynamic Polynomial Coefficients"
-    te->dynamicCoeffs[WHITE][MG] = (wmg < 0) ? -wmg / 720.0 : 0;
-    te->dynamicCoeffs[BLACK][MG] = (bmg < 0) ? -bmg / 720.0 : 0;
-
-    // Update "Dynamic Linear Coefficients"
-    te->dynamicCoeffs[WHITE][EG] = (weg < 0) ? 1.0 / 20.0 : 0;
-    te->dynamicCoeffs[BLACK][EG] = (beg < 0) ? 1.0 / 20.0 : 0;
+    // te->dynamicCoeffs[WHITE][MG] = (wmg < 0) ? -wmg / 720.0 : 0;
+    // te->dynamicCoeffs[BLACK][MG] = (bmg < 0) ? -bmg / 720.0 : 0;
+    //
+    // // Update "Dynamic Linear Coefficients"
+    // te->dynamicCoeffs[WHITE][EG] = (weg < 0) ? 1.0 / 20.0 : 0;
+    // te->dynamicCoeffs[BLACK][EG] = (beg < 0) ? 1.0 / 20.0 : 0;
 
     // Perform the KS transformation found in evaluate() for WHITE
     wmg = (wmg < 0) ? -wmg * wmg / 720.0 : 0; weg = (weg < 0) ? weg / 20.0 : 0;
