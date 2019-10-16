@@ -85,6 +85,16 @@ struct EvalTrace {
     int ComplexityPawnFlanks[COLOUR_NB];
     int ComplexityPawnEndgame[COLOUR_NB];
     int ComplexityAdjustment[COLOUR_NB];
+    int KSAttackWeight[6][COLOUR_NB];
+    int KSAttackValue[COLOUR_NB];
+    int KSWeakSquares[COLOUR_NB];
+    int KSFriendlyPawns[COLOUR_NB];
+    int KSNoEnemyQueens[COLOUR_NB];
+    int KSSafeQueenCheck[COLOUR_NB];
+    int KSSafeRookCheck[COLOUR_NB];
+    int KSSafeBishopCheck[COLOUR_NB];
+    int KSSafeKnightCheck[COLOUR_NB];
+    int KSAdjustment[COLOUR_NB];
 };
 
 struct EvalInfo {

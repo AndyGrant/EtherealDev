@@ -25,11 +25,11 @@
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (     25) // How often to report progress
-#define NTERMS      (      0) // Total terms in the Tuner (600)
+#define NTERMS      (     15) // Total terms in the Tuner (615)
 
 #define LEARNING    (    1.0) // Learning rate
 #define LRDROPRATE  (   1.25) // Cut LR by this each failure
-#define BATCHSIZE   (  16384) // FENs per mini-batch
+#define BATCHSIZE   (7400000) // FENs per mini-batch
 #define NPOSITIONS  (7400000) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
@@ -83,6 +83,16 @@
 #define TuneComplexityPawnFlanks        (0)
 #define TuneComplexityPawnEndgame       (0)
 #define TuneComplexityAdjustment        (0)
+#define TuneKSAttackWeight              (1)
+#define TuneKSAttackValue               (1)
+#define TuneKSWeakSquares               (1)
+#define TuneKSFriendlyPawns             (1)
+#define TuneKSNoEnemyQueens             (1)
+#define TuneKSSafeQueenCheck            (1)
+#define TuneKSSafeRookCheck             (1)
+#define TuneKSSafeBishopCheck           (1)
+#define TuneKSSafeKnightCheck           (1)
+#define TuneKSAdjustment                (1)
 
 enum { NORMAL, MGONLY, EGONLY };
 
@@ -96,6 +106,7 @@ typedef struct TexelEntry {
     double result;
     double eval, phase;
     double factors[PHASE_NB];
+    int dynamicCoeffs[COLOUR_NB][PHASE_NB];
     TexelTuple *tuples;
 } TexelEntry;
 
@@ -124,71 +135,76 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A);
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B);
 void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C);
 
+// The same as MakeScore() / ScoreMG() / ScoreEG(), to pack ints
+#define PackCoeffs(w, b) ((int)((unsigned int)(b) << 16) + (w))
+#define WhiteCoeff(c) ((int16_t)((uint16_t)((unsigned)((c)))))
+#define BlackCoeff(c) ((int16_t)((uint16_t)((unsigned)((c) + 0x8000) >> 16)))
+
 // Initalize the Phase Manger which tracks the Term type
 
-#define INIT_PHASE_0(term, P) do {                              \
-    phases[i  ][MG] = (P == NORMAL || P == MGONLY);             \
-    phases[i++][EG] = (P == NORMAL || P == EGONLY);             \
+#define INIT_PHASE_0(term, P) do {                                      \
+    phases[i  ][MG] = (P == NORMAL || P == MGONLY);                     \
+    phases[i++][EG] = (P == NORMAL || P == EGONLY);                     \
 } while (0)
 
-#define INIT_PHASE_1(term, A, P) do {                           \
-    for (int _a = 0; _a < A; _a++)                              \
-       {phases[i  ][MG] = (P == NORMAL || P == MGONLY);         \
-        phases[i++][EG] = (P == NORMAL || P == EGONLY);}        \
+#define INIT_PHASE_1(term, A, P) do {                                   \
+    for (int _a = 0; _a < A; _a++)                                      \
+       {phases[i  ][MG] = (P == NORMAL || P == MGONLY);                 \
+        phases[i++][EG] = (P == NORMAL || P == EGONLY);}                \
 } while (0)
 
-#define INIT_PHASE_2(term, A, B, P) do {                        \
-    for (int _b = 0; _b < A; _b++)                              \
-        INIT_PHASE_1(term[_b], B, P);                           \
+#define INIT_PHASE_2(term, A, B, P) do {                                \
+    for (int _b = 0; _b < A; _b++)                                      \
+        INIT_PHASE_1(term[_b], B, P);                                   \
 } while (0)
 
-#define INIT_PHASE_3(term, A, B, C, P) do {                     \
-    for (int _c = 0; _c < A; _c++)                              \
-        INIT_PHASE_2(term[_c], B, C, P);                        \
+#define INIT_PHASE_3(term, A, B, C, P) do {                             \
+    for (int _c = 0; _c < A; _c++)                                      \
+        INIT_PHASE_2(term[_c], B, C, P);                                \
 } while (0)
 
 // Initalize Parameters of an N dimensional array
 
-#define INIT_PARAM_0(term, P) do {                              \
-     cparams[i  ][MG] = ScoreMG(term);                          \
-     cparams[i++][EG] = ScoreEG(term);                          \
+#define INIT_PARAM_0(term, P) do {                                      \
+     cparams[i  ][MG] = ScoreMG(term);                                  \
+     cparams[i++][EG] = ScoreEG(term);                                  \
 } while (0)
 
-#define INIT_PARAM_1(term, A, P) do {                           \
-    for (int _a = 0; _a < A; _a++)                              \
-       {cparams[i  ][MG] = ScoreMG(term[_a]);                   \
-        cparams[i++][EG] = ScoreEG(term[_a]);}                  \
+#define INIT_PARAM_1(term, A, P) do {                                   \
+    for (int _a = 0; _a < A; _a++)                                      \
+       {cparams[i  ][MG] = ScoreMG(term[_a]);                           \
+        cparams[i++][EG] = ScoreEG(term[_a]);}                          \
 } while (0)
 
-#define INIT_PARAM_2(term, A, B, P) do {                        \
-    for (int _b = 0; _b < A; _b++)                              \
-        INIT_PARAM_1(term[_b], B, P);                           \
+#define INIT_PARAM_2(term, A, B, P) do {                                \
+    for (int _b = 0; _b < A; _b++)                                      \
+        INIT_PARAM_1(term[_b], B, P);                                   \
 } while (0)
 
-#define INIT_PARAM_3(term, A, B, C, P) do {                     \
-    for (int _c = 0; _c < A; _c++)                              \
-        INIT_PARAM_2(term[_c], B, C, P);                        \
+#define INIT_PARAM_3(term, A, B, C, P) do {                             \
+    for (int _c = 0; _c < A; _c++)                                      \
+        INIT_PARAM_2(term[_c], B, C, P);                                \
 } while (0)
 
 // Initalize Coefficients from an N dimensional array
 
-#define INIT_COEFF_0(term, P) do {                              \
-    coeffs[i++] = T.term[WHITE] - T.term[BLACK];                \
+#define INIT_COEFF_0(term, P) do {                                      \
+    coeffs[i++] = PackCoeffs(T.term[WHITE], T.term[BLACK]);             \
 } while (0)
 
-#define INIT_COEFF_1(term, A, P) do {                           \
-    for (int _a = 0; _a < A; _a++)                              \
-        coeffs[i++] = T.term[_a][WHITE] - T.term[_a][BLACK];    \
+#define INIT_COEFF_1(term, A, P) do {                                   \
+    for (int _a = 0; _a < A; _a++)                                      \
+        coeffs[i++] = PackCoeffs(T.term[_a][WHITE], T.term[_a][BLACK]); \
 } while (0)
 
-#define INIT_COEFF_2(term, A, B, P) do {                        \
-    for (int _b = 0; _b < A; _b++)                              \
-        INIT_COEFF_1(term[_b], B, P);                           \
+#define INIT_COEFF_2(term, A, B, P) do {                                \
+    for (int _b = 0; _b < A; _b++)                                      \
+        INIT_COEFF_1(term[_b], B, P);                                   \
 } while (0)
 
-#define INIT_COEFF_3(term, A, B, C, P) do {                     \
-    for (int _c = 0; _c < A; _c++)                              \
-        INIT_COEFF_2(term[_c], B, C, P);                        \
+#define INIT_COEFF_3(term, A, B, C, P) do {                             \
+    for (int _c = 0; _c < A; _c++)                                      \
+        INIT_COEFF_2(term[_c], B, C, P);                                \
 } while (0)
 
 // Print Parameters of an N dimensional array
@@ -271,6 +287,16 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_0(fname, ComplexityPawnFlanks, EGONLY);              \
     ENABLE_0(fname, ComplexityPawnEndgame, EGONLY);             \
     ENABLE_0(fname, ComplexityAdjustment, EGONLY);              \
+    ENABLE_1(fname, KSAttackWeight, 6, NORMAL);                 \
+    ENABLE_0(fname, KSAttackValue, NORMAL);                     \
+    ENABLE_0(fname, KSWeakSquares, NORMAL);                     \
+    ENABLE_0(fname, KSFriendlyPawns, NORMAL);                   \
+    ENABLE_0(fname, KSNoEnemyQueens, NORMAL);                   \
+    ENABLE_0(fname, KSSafeQueenCheck, NORMAL);                  \
+    ENABLE_0(fname, KSSafeRookCheck, NORMAL);                   \
+    ENABLE_0(fname, KSSafeBishopCheck, NORMAL);                 \
+    ENABLE_0(fname, KSSafeKnightCheck, NORMAL);                 \
+    ENABLE_0(fname, KSAdjustment, NORMAL);                      \
 } while (0)
 
 #endif

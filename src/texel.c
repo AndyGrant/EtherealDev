@@ -92,6 +92,16 @@ extern const int ComplexityTotalPawns;
 extern const int ComplexityPawnFlanks;
 extern const int ComplexityPawnEndgame;
 extern const int ComplexityAdjustment;
+extern const int KSAttackWeight[6];
+extern const int KSAttackValue;
+extern const int KSWeakSquares;
+extern const int KSFriendlyPawns;
+extern const int KSNoEnemyQueens;
+extern const int KSSafeQueenCheck;
+extern const int KSSafeRookCheck;
+extern const int KSSafeBishopCheck;
+extern const int KSSafeKnightCheck;
+extern const int KSAdjustment;
 
 void runTexelTuning(Thread *thread) {
 
@@ -118,19 +128,23 @@ void runTexelTuning(Thread *thread) {
     printf("\n\nInitializing Texel Entries from FENS...");
     initTexelEntries(tes, thread);
 
+    // Hack by setting params instead of cparams, because we "disable"
+    // King Safety in the eval, so that all King Safety computations are
+    // done during the tuning, and we get proper starting values.
     printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
-    initCurrentParameters(cparams);
+    initCurrentParameters(params); //initCurrentParameters(cparams);
 
-    printf("\nSetting Term Phases ( MG, EG, or Both ) ...");
+    printf("\n\nSetting Term Phases ( MG, EG, or Both ) ...");
     initPhaseManager(phases);
 
+    // K precomputed before cutting all KS evals to 0
     printf("\n\nComputing Optimal K Value...\n");
-    K = computeOptimalK(tes);
+    K = 1.473592; //computeOptimalK(tes);
 
     while (1) {
 
         // Shuffle the dataset before each epoch
-        shuffleTexelEntries(tes);
+        if (NPOSITIONS != BATCHSIZE) shuffleTexelEntries(tes);
 
         // Report every REPORTING iterations
         if (++iteration % REPORTING == 0) {
@@ -224,14 +238,14 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Count up the non zero coefficients
         for (k = 0, j = 0; j < NTERMS; j++)
-            k += coeffs[j] != 0;
+            k += WhiteCoeff(coeffs[j]) || BlackCoeff(coeffs[j]);
 
         // Allocate Tuples
         updateMemory(&tes[i], k);
 
         // Initialize the Texel Tuples
         for (k = 0, j = 0; j < NTERMS; j++) {
-            if (coeffs[j] != 0){
+            if (WhiteCoeff(coeffs[j]) || BlackCoeff(coeffs[j])){
                 tes[i].tuples[k].index = j;
                 tes[i].tuples[k++].coeff = coeffs[j];
             }
@@ -309,9 +323,14 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
 
             double error = singleLinearError(&tes[i], params, K);
 
-            for (int j = 0; j < tes[i].ntuples; j++)
-                for (int k = MG; k <= EG; k++)
-                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * tes[i].tuples[j].coeff;
+            for (int j = 0; j < tes[i].ntuples; j++) {
+                for (int k = MG; k <= EG; k++) {
+                    int whiteCoeff = WhiteCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[WHITE][k];
+                    int blackCoeff = BlackCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[BLACK][k];
+                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * (whiteCoeff - blackCoeff);
+
+                }
+            }
         }
 
         for (int i = 0; i < NTERMS; i++)
@@ -395,14 +414,31 @@ double singleLinearError(TexelEntry *te, TexelVector params, double K) {
 
 double linearEvaluation(TexelEntry *te, TexelVector params) {
 
-    double mg = 0, eg = 0;
+    double wmg = 0, weg = 0, bmg = 0, beg = 0;
 
     for (int i = 0; i < te->ntuples; i++) {
-        mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
-        eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
+        wmg += WhiteCoeff(te->tuples[i].coeff) * params[te->tuples[i].index][MG];
+        weg += WhiteCoeff(te->tuples[i].coeff) * params[te->tuples[i].index][EG];
+        bmg += BlackCoeff(te->tuples[i].coeff) * params[te->tuples[i].index][MG];
+        beg += BlackCoeff(te->tuples[i].coeff) * params[te->tuples[i].index][EG];
     }
 
-    return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
+    // Update "Dynamic Polynomial Coefficients"
+    te->dynamicCoeffs[WHITE][MG] = (wmg < 0) ? wmg / 720.0 : 0;
+    te->dynamicCoeffs[BLACK][MG] = (bmg < 0) ? bmg / 720.0 : 0;
+
+    // Update "Dynamic Linear Coefficients"
+    te->dynamicCoeffs[WHITE][EG] = (weg < 0) ? 1.0 / 20.0 : 0;
+    te->dynamicCoeffs[BLACK][EG] = (beg < 0) ? 1.0 / 20.0 : 0;
+
+    // Perform the KS transformation found in evaluate() for WHITE
+    wmg = (wmg < 0) ? -wmg * wmg / 720.0 : 0; weg = (weg < 0) ? weg / 20.0 : 0;
+
+    // Perform the KS transformation found in evaluate() for BLACK
+    bmg = (bmg < 0) ? -bmg * bmg / 720.0 : 0; beg = (beg < 0) ? beg / 20.0 : 0;
+
+    // Combine the base eval with our King Safety evaluation
+    return te->eval + (((wmg - bmg) * (256 - te->phase) + (weg - beg) * te->phase) / 256.0);
 }
 
 double sigmoid(double K, double S) {
