@@ -220,8 +220,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         initCoefficients(coeffs);
 
         // Use 50% eval, 50% search score
-        tes[i].eval = tes[i].eval * EVALWEIGHTSTATIC
-                    +  searchEval * EVALWEIGHTSEARCH;
+        tes[i].eval = tes[i].eval * WEIGHTSTATIC
+                    +  searchEval * WEIGHTSEARCH;
 
         // Count up the non zero coefficients
         for (k = 0, j = 0; j < NTERMS; j++)

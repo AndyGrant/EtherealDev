@@ -22,18 +22,18 @@
 
 #include "types.h"
 
-#EVALWEIGHTSTATIC   (   0.75) // Eval portion from Static Evaluation
-#EVALWEIGHTSEARCH   (   0.25) // Eval portion from Search of Depth 10
+#define WEIGHTSTATIC (   0.75) // Eval portion from Static Evaluation
+#define WEIGHTSEARCH (   0.25) // Eval portion from Search of Depth 10
 
-#define KPRECISION  (     10) // Iterations for computing K
-#define NPARTITIONS (     64) // Total thread partitions
-#define REPORTING   (    250) // How often to report progress
-#define NTERMS      (      4) // Total terms in the Tuner (600)
+#define KPRECISION   (     10) // Iterations for computing K
+#define NPARTITIONS  (     64) // Total thread partitions
+#define REPORTING    (    250) // How often to report progress
+#define NTERMS       (      4) // Total terms in the Tuner (600)
 
-#define LEARNING    (    5.0) // Learning rate
-#define LRDROPRATE  (   1.25) // Cut LR by this each failure
-#define BATCHSIZE   (7400000) // FENs per mini-batch
-#define NPOSITIONS  (7400000) // Total FENS in the book
+#define LEARNING     (    5.0) // Learning rate
+#define LRDROPRATE   (   1.25) // Cut LR by this each failure
+#define BATCHSIZE    (7400000) // FENs per mini-batch
+#define NPOSITIONS   (7400000) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
