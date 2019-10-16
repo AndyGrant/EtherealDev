@@ -22,8 +22,8 @@
 
 #include "types.h"
 
-#define WEIGHTSTATIC (   0.75) // Eval portion from Static Evaluation
-#define WEIGHTSEARCH (   0.25) // Eval portion from Search of Depth 10
+#define WEIGHTSTATIC (   1.00) // Eval portion from Static Evaluation
+#define WEIGHTSEARCH (   0.00) // Eval portion from Search of Depth 10
 
 #define KPRECISION   (     10) // Iterations for computing K
 #define NPARTITIONS  (     64) // Total thread partitions
