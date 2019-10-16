@@ -432,8 +432,8 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
     te->dynamicCoeffs[BLACK][EG] = 1.0 / 20.0;
 
     // Perform the KS transformation roughly found in evaluate()
-    wmg = (wmg < 0) ? -wmg * wmg / 720.0 : wmg * wmg / 720.0; weg = weg / 20.0 : 0;
-    bmg = (bmg < 0) ? -bmg * bmg / 720.0 : bmg * bmg / 720.0; beg = beg / 20.0 : 0;
+    wmg = (wmg < 0) ? -wmg * wmg / 720.0 : wmg * wmg / 720.0; weg = weg / 20.0;
+    bmg = (bmg < 0) ? -bmg * bmg / 720.0 : bmg * bmg / 720.0; beg = beg / 20.0;
 
     // Combine the base eval with our King Safety evaluation
     return te->eval + (((wmg - bmg) * (256 - te->phase) + (weg - beg) * te->phase) / 256.0);
