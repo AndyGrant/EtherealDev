@@ -106,7 +106,7 @@ typedef struct TexelEntry {
     double result;
     double eval, phase;
     double factors[PHASE_NB];
-    int dynamicCoeffs[COLOUR_NB][PHASE_NB];
+    double dynamicCoeffs[COLOUR_NB][PHASE_NB];
     TexelTuple *tuples;
 } TexelEntry;
 
