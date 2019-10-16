@@ -424,8 +424,8 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
     }
 
     // Update "Dynamic Polynomial Coefficients"
-    te->dynamicCoeffs[WHITE][MG] = (wmg < 0) ? wmg / 720.0 : 0;
-    te->dynamicCoeffs[BLACK][MG] = (bmg < 0) ? bmg / 720.0 : 0;
+    te->dynamicCoeffs[WHITE][MG] = (wmg < 0) ? -wmg / 720.0 : 0;
+    te->dynamicCoeffs[BLACK][MG] = (bmg < 0) ? -bmg / 720.0 : 0;
 
     // Update "Dynamic Linear Coefficients"
     te->dynamicCoeffs[WHITE][EG] = (weg < 0) ? 1.0 / 20.0 : 0;
