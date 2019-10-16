@@ -325,8 +325,8 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
 
             for (int j = 0; j < tes[i].ntuples; j++) {
                 for (int k = MG; k <= EG; k++) {
-                    int whiteCoeff = WhiteCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[WHITE][k];
-                    int blackCoeff = BlackCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[BLACK][k];
+                    double whiteCoeff = WhiteCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[WHITE][k];
+                    double blackCoeff = BlackCoeff(tes[i].tuples[j].coeff) * tes[i].dynamicCoeffs[BLACK][k];
                     local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * (whiteCoeff - blackCoeff);
 
                 }
