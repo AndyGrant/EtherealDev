@@ -22,6 +22,9 @@
 
 #include "types.h"
 
+#EVALWEIGHTSTATIC   (   0.75) // Eval portion from Static Evaluation
+#EVALWEIGHTSEARCH   (   0.25) // Eval portion from Search of Depth 10
+
 #define KPRECISION  (     10) // Iterations for computing K
 #define NPARTITIONS (     64) // Total thread partitions
 #define REPORTING   (    250) // How often to report progress

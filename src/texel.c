@@ -164,7 +164,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     Undo undo[1];
     Limits limits;
     char line[128];
-    int i, j, k, eval, coeffs[NTERMS];
+    int i, j, k, searchEval, coeffs[NTERMS];
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
@@ -184,8 +184,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
             printf("\rInitializing Texel Entries from FENS...  [%7d of %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV search
-        eval = atoi(strstr(line, "] ") + 2);
-        if (strstr(line, " b ")) eval *= -1;
+        searchEval = atoi(strstr(line, "] ") + 2);
+        if (strstr(line, " b ")) searchEval *= -1;
 
         // Determine the result of the game
         if      (strstr(line, "[1.0]")) tes[i].result = 1.0;
@@ -220,7 +220,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         initCoefficients(coeffs);
 
         // Use 50% eval, 50% search score
-        // tes[i].eval = (tes[i].eval + eval) / 2;
+        tes[i].eval = tes[i].eval * EVALWEIGHTSTATIC
+                    +  searchEval * EVALWEIGHTSEARCH;
 
         // Count up the non zero coefficients
         for (k = 0, j = 0; j < NTERMS; j++)
