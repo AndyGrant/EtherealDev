@@ -30,6 +30,9 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
 
+    // We index the Counter Move table by check status
+    int inCheck = !!thread->board.kingAttackers;
+
     // Extract information from last move
     uint16_t counter = thread->moveStack[height-1];
     int cmPiece = thread->pieceStack[height-1];
@@ -81,7 +84,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
 
     // Update Counter Moves (BestMove refutes the previous move)
     if (counter != NONE_MOVE && counter != NULL_MOVE)
-        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
+        thread->cmtable[inCheck][!colour][cmPiece][cmTo] = bestMove;
 }
 
 void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhist, int *fmhist) {
@@ -147,6 +150,9 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
 
 void getRefutationMoves(Thread *thread, int height, uint16_t *killer1, uint16_t *killer2, uint16_t *counter) {
 
+    // We index the Counter Move table by check status
+    int inCheck = !!thread->board.kingAttackers;
+
     // Extract information from last move
     uint16_t previous = thread->moveStack[height-1];
     int cmPiece = thread->pieceStack[height-1];
@@ -158,5 +164,5 @@ void getRefutationMoves(Thread *thread, int height, uint16_t *killer1, uint16_t 
 
     // Set Counter Move if one exists
     if (previous == NONE_MOVE || previous == NULL_MOVE) *counter = NONE_MOVE;
-    else *counter = thread->cmtable[!thread->board.turn][cmPiece][cmTo];
+    else *counter = thread->cmtable[inCheck][!thread->board.turn][cmPiece][cmTo];
 }
