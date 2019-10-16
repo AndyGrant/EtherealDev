@@ -777,8 +777,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Convert safety to an MG & EG score when unsafe
         mg = ScoreMG(count), eg = ScoreEG(count);
-        if (mg < 0) eval += MakeScore(-mg * mg / 720, 0);
-        if (eg < 0) eval += MakeScore(0, eg / 20);
+        // if (mg < 0) eval += MakeScore(-mg * mg / 720, 0);
+        // if (eg < 0) eval += MakeScore(0, eg / 20);
     }
 
     // Everything else is stored in the Pawn King Table
