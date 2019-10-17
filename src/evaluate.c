@@ -120,7 +120,7 @@ const int PawnCandidatePasser[2][RANK_NB] = {
 
 const int PawnIsolated = S(  -7, -11);
 
-const int PawnStacked = S( -18, -23);
+const int PawnStacked[2] = { S( -18, -23), S( -18, -23) };
 
 const int PawnBackwards[2] = { S(   7,   0), S(  -7, -19) };
 
@@ -405,6 +405,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(US, sq)][US]++;
 
+        uint64_t neighbors   = myPawns    & adjacentFilesMasks(fileOf(sq));
         uint64_t stoppers    = enemyPawns & passedPawnMasks(US, sq);
         uint64_t threats     = enemyPawns & pawnAttacks(US, sq);
         uint64_t support     = myPawns    & pawnAttacks(THEM, sq);
@@ -425,15 +426,17 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is isolated, and there is not an
         // immediate pawn capture to potentially remedy the isolation
-        if (!threats && !(adjacentFilesMasks(fileOf(sq)) & myPawns)) {
+        if (!threats && !neighbors) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
 
         // Apply a penalty if the pawn is stacked
         if (Files[fileOf(sq)] & tempPawns) {
-            pkeval += PawnStacked;
-            if (TRACE) T.PawnStacked[US]++;
+            flag = (stoppers && (threats || neighbors))
+                || (stoppers &  !forwardFileMasks(US, sq));
+            pkeval += PawnStacked[flag];
+            if (TRACE) T.PawnStacked[flag][US]++;
         }
 
         // Apply a penalty if the pawn is backward
