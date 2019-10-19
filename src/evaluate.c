@@ -1003,8 +1003,10 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     // Save some general information about the pawn structure for later
     ei->pawnAttacks[WHITE]  = pawnAttackSpan(white & pawns, ~0ull, WHITE);
     ei->pawnAttacks[BLACK]  = pawnAttackSpan(black & pawns, ~0ull, BLACK);
-    ei->rammedPawns[WHITE]  = pawnAdvance(black & pawns, ~(white & pawns), BLACK);
-    ei->rammedPawns[BLACK]  = pawnAdvance(white & pawns, ~(black & pawns), WHITE);
+    ei->rammedPawns[WHITE]  = pawnAdvance(black & pawns, ~(white & pawns), BLACK)
+                            | pawnAdvance(black & pawns, ~(black & pawns), WHITE);
+    ei->rammedPawns[BLACK]  = pawnAdvance(white & pawns, ~(black & pawns), WHITE)
+                            | pawnAdvance(white & pawns, ~(white & pawns), BLACK);
     ei->blockedPawns[WHITE] = pawnAdvance(white | black, ~(white & pawns), BLACK);
     ei->blockedPawns[BLACK] = pawnAdvance(white | black, ~(black & pawns), WHITE);
 
