@@ -440,7 +440,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the pawn is backward
-        if (   !(passedPawnMasks(THEM, sq) & myPawns)
+        if (     neighbors
+            && !(passedPawnMasks(THEM, sq) & myPawns)
             &&  (testBit(ei->pawnAttacks[THEM], sq + Forward))) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag];
