@@ -412,6 +412,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         uint64_t pushThreats = enemyPawns & pawnAttacks(US, sq + Forward);
         uint64_t pushSupport = myPawns    & pawnAttacks(THEM, sq + Forward);
         uint64_t leftovers   = stoppers ^ threats ^ pushThreats;
+        int blocked          = testBit(enemyPawns, sq + Forward);
 
         // Save passed pawn information for later evaluation
         if (!stoppers) setBit(&ei->passedPawns, sq);
@@ -426,7 +427,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a penalty if the pawn is isolated, and there is not an
         // immediate pawn capture to potentially remedy the isolation
-        if (!threats && !neighbors) {
+        if (!neighbors && !threats && (blocked || !pushThreats)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
