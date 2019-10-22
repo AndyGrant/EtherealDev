@@ -82,6 +82,7 @@ struct EvalTrace {
     int ThreatOverloadedPieces[COLOUR_NB];
     int ThreatByPawnPush[COLOUR_NB];
     int ComplexityTotalPawns[COLOUR_NB];
+    int ComplexityImbalance[COLOUR_NB];
     int ComplexityPawnFlanks[COLOUR_NB];
     int ComplexityPawnEndgame[COLOUR_NB];
     int ComplexityAdjustment[COLOUR_NB];
