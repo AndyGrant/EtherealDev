@@ -455,7 +455,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus if the pawn is connected and not backwards. We consider a
         // pawn to be connected when there is a pawn lever or the pawn is supported
-        else if (pawnConnectedMasks(US, sq) & myPawns) {
+        if (pawnConnectedMasks(US, sq) & myPawns) {
             pkeval += PawnConnected32[relativeSquare32(US, sq)];
             if (TRACE) T.PawnConnected32[relativeSquare32(US, sq)][US]++;
         }
