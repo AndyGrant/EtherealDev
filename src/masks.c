@@ -33,7 +33,7 @@ uint64_t ForwardRanksMasks[COLOUR_NB][RANK_NB];
 uint64_t ForwardFileMasks[COLOUR_NB][SQUARE_NB];
 uint64_t AdjacentFilesMasks[FILE_NB];
 uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
-uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
+uint64_t PawnConnectedMasks[SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostRanksMasks[COLOUR_NB];
 
@@ -130,11 +130,9 @@ void initMasks() {
     OutpostRanksMasks[WHITE] = RANK_4 | RANK_5 | RANK_6;
     OutpostRanksMasks[BLACK] = RANK_3 | RANK_4 | RANK_5;
 
-    // Init a table of bitmasks to check for supports for a given pawn
-    for (int sq = 8 ; sq < 56; sq++) {
-        PawnConnectedMasks[WHITE][sq] = pawnAttacks(BLACK, sq) | pawnAttacks(BLACK, sq + 8);
-        PawnConnectedMasks[BLACK][sq] = pawnAttacks(WHITE, sq) | pawnAttacks(WHITE, sq - 8);
-    }
+    // Init a table of bitmasks to check for support for or by a given pawn
+    for (int sq = 0 ; sq < SQUARE; sq++)
+        PawnConnectedMasks[sq] = kingAttacks(sq) & ~Files[fileOf(sq)];
 }
 
 int distanceBetween(int s1, int s2) {
@@ -185,10 +183,9 @@ uint64_t passedPawnMasks(int colour, int sq) {
     return PassedPawnMasks[colour][sq];
 }
 
-uint64_t pawnConnectedMasks(int colour, int sq) {
-    assert(0 <= colour && colour < COLOUR_NB);
+uint64_t pawnConnectedMasks(int sq) {
     assert(0 <= sq && sq < SQUARE_NB);
-    return PawnConnectedMasks[colour][sq];
+    return PawnConnectedMasks[sq];
 }
 
 uint64_t outpostSquareMasks(int colour, int sq) {
