@@ -26,7 +26,7 @@ struct SearchInfo {
     int depth, values[MAX_PLY];
     uint16_t bestMoves[MAX_PLY], ponderMoves[MAX_PLY];
     double startTime, idealUsage, maxAlloc, maxUsage;
-    int pvFactor;
+    int pvFactor, scoreFactor;
 };
 
 struct PVariation {

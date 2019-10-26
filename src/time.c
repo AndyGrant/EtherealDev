@@ -47,9 +47,11 @@ double elapsedTime(SearchInfo *info) {
 
 void initTimeManagment(SearchInfo *info, Limits *limits) {
 
-    info->startTime = limits->start; // Save off the start time of the search
+    // Save off the start time
+    info->startTime = limits->start;
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    // Clear our stability time usage heuristics
+    info->pvFactor = info->scoreFactor = 0;
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf) {
@@ -75,7 +77,7 @@ void initTimeManagment(SearchInfo *info, Limits *limits) {
     }
 
     // Interface told us to search for a predefined duration
-    if (limits->limitedByTime) {
+    else if (limits->limitedByTime) {
         info->idealUsage = limits->timeLimit;
         info->maxAlloc   = limits->timeLimit;
         info->maxUsage   = limits->timeLimit;
@@ -86,36 +88,38 @@ void updateTimeManagment(SearchInfo *info, Limits *limits) {
 
     const int thisValue = info->values[info->depth];
     const int lastValue = info->values[info->depth-1];
+    const int scoreDiff = thisValue - lastValue;
 
     // Don't adjust time when we are at low depths, or if
     // we simply are not in control of our own time usage
     if (!limits->limitedBySelf || info->depth < 4) return;
 
-    // Increase our time if the score suddenly dropped
-    if (lastValue > thisValue + 10) info->idealUsage *= 1.050;
-    if (lastValue > thisValue + 20) info->idealUsage *= 1.050;
-    if (lastValue > thisValue + 40) info->idealUsage *= 1.050;
+    // Scale back the Score Factor when the scale is stable
+    if (abs(scoreDiff) < ScoreFactorVariance)
+        info->scoreFactor = MAX(0, info->scoreFactor - 1);
 
-    // Increase our time if the score suddenly jumped
-    if (lastValue + 15 < thisValue) info->idealUsage *= 1.025;
-    if (lastValue + 30 < thisValue) info->idealUsage *= 1.050;
+    // Adjust the Score Factor on score jumps and drops
+    info->scoreFactor += BOUND(0, ScoreFactorMax, -scoreDiff / ScoreFactorJump);
+                       + BOUND(0, ScoreFactorMax,  scoreDiff / ScoreFactorDrop);
 
-    // Always scale back the PV time factor, but also look
-    // to reset the PV time factor if the best move changed
+    // Always scale back the PV Factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
+
+    // Reset the PV Factor if the best move changed
     if (info->bestMoves[info->depth] != info->bestMoves[info->depth-1])
         info->pvFactor = PVFactorCount;
 }
 
 int terminateTimeManagment(SearchInfo *info) {
 
-    // Adjust our ideal usage based on variance in the best move
-    // between iterations of the search. We won't allow the new
-    // usage value to exceed our maximum allocation. The cutoff
-    // is reached if the elapsed time exceeds the ideal usage
+    // Adjust our ideal usage based on variance in the best move and
+    // scores between iterations of the search. We won't allow the new
+    // usage value to exceed our maximum allocation. The cutoff is hit
+    // elapsed time exceeds our initially computed ideal usage
 
-    double cutoff = info->idealUsage;
-    cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
+    double cutoff = (info->idealUsage * 1.00)
+                  + (info->idealUsage * info->pvFactor * PVFactorWeight)
+                  + (info->idealUsage * info->scoreFactor * ScoreFactorWeight);
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
 }
 

@@ -35,3 +35,9 @@ int terminateSearchEarly(Thread *thread);
 
 static const double PVFactorCount  = 8;
 static const double PVFactorWeight = 0.085;
+
+static const double ScoreFactorWeight = 0.025;
+static const int ScoreFactorVariance = 10;
+static const int ScoreFactorMax = 4;
+static const int ScoreFactorJump = 8;
+static const int ScoreFactorDrop = 16;
