@@ -99,7 +99,7 @@ void updateTimeManagment(SearchInfo *info, Limits *limits) {
         info->scoreFactor = MAX(0, info->scoreFactor - 1);
 
     // Adjust the Score Factor on score jumps and drops
-    info->scoreFactor += BOUND(0, ScoreFactorMax, -scoreDiff / ScoreFactorJump);
+    info->scoreFactor += BOUND(0, ScoreFactorMax, -scoreDiff / ScoreFactorJump)
                        + BOUND(0, ScoreFactorMax,  scoreDiff / ScoreFactorDrop);
 
     // Always scale back the PV Factor
