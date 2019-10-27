@@ -96,7 +96,7 @@ void updateTimeManagment(SearchInfo *info, Limits *limits) {
 
     // Always scale the Score Factor torwards zero
     if (info->scoreFactor > 0) info->scoreFactor--;
-    else if (info->scoreFactor < 0) info->scoreFactor++
+    else if (info->scoreFactor < 0) info->scoreFactor++;
 
     // Adjust the Score Factor on score jumps and drops
     info->scoreFactor += BOUND(-ScoreFactorMax, ScoreFactorMax, scoreDiff / ScoreFactorDivisor);
