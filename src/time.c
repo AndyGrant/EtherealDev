@@ -94,17 +94,12 @@ void updateTimeManagment(SearchInfo *info, Limits *limits) {
     // we simply are not in control of our own time usage
     if (!limits->limitedBySelf || info->depth < 4) return;
 
-    // For each consecutive score difference that falls within the variance
-    // window, reduce the Score Factor by one. Stop once a variance is found.
-    for (int i = info->depth; i > ScoreFactorMinDepth; i--) {
-        if (abs(info->values[i] - info->values[i-1]) > ScoreFactorVariance)
-            break;
-        info->scoreFactor = MAX(0, info->scoreFactor - 1);
-    }
+    // Always scale the Score Factor torwards zero
+    if (info->scoreFactor > 0) info->scoreFactor--;
+    else if (info->scoreFactor < 0) info->scoreFactor++
 
     // Adjust the Score Factor on score jumps and drops
-    info->scoreFactor += BOUND(0, ScoreFactorMax, scoreDiff / ScoreFactorJump);
-    info->scoreFactor += BOUND(0, ScoreFactorMax, scoreDiff / ScoreFactorDrop);
+    info->scoreFactor += BOUND(-ScoreFactorMax, ScoreFactorMax, scoreDiff / ScoreFactorDivisor);
 
     // Always scale back the PV Factor
     info->pvFactor = MAX(0, info->pvFactor - 1);
@@ -123,7 +118,7 @@ int terminateTimeManagment(SearchInfo *info) {
 
     double cutoff = (info->idealUsage * 1.00)
                   + (info->idealUsage * info->pvFactor * PVFactorWeight)
-                  + (info->idealUsage * info->scoreFactor * ScoreFactorWeight);
+                  + (info->idealUsage * info->scoreFactor * abs(ScoreFactorWeight));
     return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
 }
 
