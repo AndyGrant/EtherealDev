@@ -273,6 +273,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSSafeMultiCheck  =   24;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -749,6 +750,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
         uint64_t queenThreats  = bishopThreats | rookThreats;
 
+        uint64_t multiThreats = ( knightThreats & bishopThreats )
+                              | ( knightThreats & rookThreats   )
+                              | ( knightThreats & bishopThreats )
+                              | ( bishopThreats & rookThreats   )
+                              | ( bishopThreats & queenThreats  )
+                              | ( rookThreats   & queenThreats  );
+
         // Identify if there are pieces which can move to the checking squares safely.
         // We consider forking a Queen to be a safe check, even with our own Queen.
         uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
@@ -766,6 +774,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeRookCheck   * popcount(rookChecks)
                + KSSafeBishopCheck * popcount(bishopChecks)
                + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeMultiCheck  * popcount(multiThreats)
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
