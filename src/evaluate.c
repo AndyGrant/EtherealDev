@@ -759,7 +759,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         uint64_t multiChecks = (knightChecks & (bishopChecks | rookChecks | queenChecks))
                              | (bishopChecks & (rookChecks & queenChecks))
-                             | (rookChecks   & (queenAttacks));
+                             | (rookChecks   & (queenChecks));
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
