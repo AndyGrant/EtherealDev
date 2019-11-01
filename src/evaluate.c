@@ -937,7 +937,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateScaleFactor(Board *board, int eval) {
 
-    int imbalance, factor = SCALE_NORMAL;
+    int imbalance;
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -968,21 +968,21 @@ int evaluateScaleFactor(Board *board, int eval) {
 
     // Scaling for a true OCB case
     if (!(knights | rooks | queens))
-        return MIN(SCALE_NORMAL, SCALE_OCB_BISHOPS_ONLY + imbalance)
+        return MIN(SCALE_NORMAL, SCALE_OCB_BISHOPS_ONLY + imbalance);
 
     // Scaling for OCB + one Knight each
     if (   !(rooks | queens)
         &&  onlyOne(white & knights)
         &&  onlyOne(black & knights))
-        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_KNIGHT + imbalance)
+        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_KNIGHT + imbalance);
 
     // Scaling for OCB + one Rook each
     if (   !(knights | queens)
         && onlyOne(white & rooks)
         && onlyOne(black & rooks))
-        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_ROOK + imbalance)
+        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_ROOK + imbalance);
 
-    return SCALE_NORMAL
+    return SCALE_NORMAL;
 }
 
 int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
