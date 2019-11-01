@@ -29,10 +29,11 @@
 #endif
 
 enum {
-    SCALE_OCB_BISHOPS_ONLY =  64,
-    SCALE_OCB_ONE_KNIGHT   = 106,
-    SCALE_OCB_ONE_ROOK     =  96,
     SCALE_DRAW             =   0,
+    SCALE_STRONG_PAWN      =   4,
+    SCALE_OCB_BISHOPS_ONLY =  56,
+    SCALE_OCB_ONE_KNIGHT   =  98,
+    SCALE_OCB_ONE_ROOK     =  90,
     SCALE_NORMAL           = 128,
 };
 
