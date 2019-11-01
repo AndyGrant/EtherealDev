@@ -964,6 +964,7 @@ int evaluateScaleFactor(Board *board, int eval) {
     // If the strong side has a sufficient pawn advantage,
     // we slightly decrease the drawishness of a position
     imbalance = MAX(0, popcount(strong & pawns) - popcount(weak & pawns));
+    imbalance = imbalance * imbalance * SCALE_STRONG_PAWN;
 
 
     // Scaling for a true OCB case
