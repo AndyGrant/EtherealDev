@@ -120,7 +120,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassed(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
-int evaluateScaleFactor(Board *board, int eval);
+int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval);
 int evaluateComplexity(EvalInfo *ei, Board *board, int eval);
 void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable);
 void initEval();

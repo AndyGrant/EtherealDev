@@ -344,7 +344,7 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board, eval);
+    factor = evaluateScaleFactor(&ei, board, eval);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -935,7 +935,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board, int eval) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
 
     int imbalance;
 
