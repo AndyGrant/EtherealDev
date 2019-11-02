@@ -30,8 +30,8 @@
 
 enum {
     SCALE_DRAW             =   0,
-    SCALE_PAWN_ADVANTAGE   =   4,
-    SCALE_PASSED_PAWN      =   8,
+    SCALE_PAWN_ADVANTAGE   =   8,
+    SCALE_PASSED_PAWN      =  16,
     SCALE_OCB_BISHOPS_ONLY =  50,
     SCALE_OCB_ONE_KNIGHT   =  92,
     SCALE_OCB_ONE_ROOK     =  84,
