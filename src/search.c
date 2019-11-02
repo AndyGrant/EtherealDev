@@ -413,9 +413,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 continue;
         }
 
-        if (isQuiet)
-            quietsTried[quietsPlayed++] = move;
-
         // Step 13. Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
@@ -428,6 +425,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
             continue;
+
+        if (isQuiet)
+            quietsTried[quietsPlayed++] = move;
         played += 1;
 
         // The UCI spec allows us to output information about the current move
