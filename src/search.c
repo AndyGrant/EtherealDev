@@ -185,7 +185,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     Board *const board = &thread->board;
 
     unsigned tbresult;
-    int quiets = 0, played = 0, hist = 0, cmhist = 0, fmhist = 0;
+    int hist = 0, cmhist = 0, fmhist = 0;
+    int quietsSeen = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -375,11 +376,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     initMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
-        // If this move is quiet we will save it to a list of attemped quiets.
-        // Also lookup the history score, as we will in most cases need it.
+        // Fetch history scores for Quiet moves
         if ((isQuiet = !moveIsTactical(board, move))) {
-            quietsTried[quiets++] = move;
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
+            quietsSeen += 1;
         }
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
@@ -397,7 +397,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quiets >= LateMovePruningCounts[improving][depth])
+                && quietsSeen >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
             // Step 12C. Counter Move Pruning. Moves with poor counter
@@ -412,6 +412,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && fmhist < FollowUpMoveHistoryLimit[improving])
                 continue;
         }
+
+        if (isQuiet)
+            quietsTried[quietsPlayed++] = move;
 
         // Step 13. Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
@@ -469,7 +472,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
         extension =  (inCheck)
-                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
         // Factor the extension into the new depth. Do not extend at the root
@@ -527,7 +530,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 19. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove))
-        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
+        updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, depth*depth);
 
     // Step 20. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
