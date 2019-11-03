@@ -464,11 +464,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                  && (ttBound & BOUND_LOWER);
 
         // Step 15. Extensions. Search an additional ply when we are in check, when
-        // an early move has excellent continuation history, or when we have a move
-        // from the transposition table which appears to beat all other moves by a
-        // relativly large margin,
+        // the first move has excellent continuation history, or when we have a move
+        // from the transposition table which appears to beat all other moves easily
         extension =  (inCheck)
-                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (isQuiet && quiets == 1 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
         // Factor the extension into the new depth. Do not extend at the root
