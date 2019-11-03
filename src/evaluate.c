@@ -937,8 +937,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
 
-    uint64_t passers;
-    int imbalance, pawnEdge, passerEdge;
+    int imbalance;
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -968,10 +967,7 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
     if (!(knights | rooks | queens))
         return SCALE_OCB_BISHOPS_ONLY;
 
-    passers = ei->passedPawns;
-    pawnEdge = popcount(strong & pawns) - popcount(weak & pawns);
-    passerEdge = popcount(strong & passers) - popcount(weak & passers);
-    imbalance = SCALE_PAWN_EDGE * abs(pawnEdge) + SCALE_PASSER_EDGE * abs(passerEdge);
+    imbalance = SCALE_PAWN_EDGE * (popcount(strong & pawns) - popcount(weak & pawns));
 
     // Scale for OCB + NvN or RvR or QvQ
     if (   (onlyOne(white & knights) && onlyOne(black & knights))
