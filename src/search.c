@@ -295,7 +295,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
     // Futility Pruning Margin
-    futilityMargin = eval + FutilityMargin * depth;
+    futilityMargin = FutilityMargin * depth;
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -379,6 +379,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // For quiet moves we fetch various history scores
         if ((isQuiet = !moveIsTactical(board, move))) {
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
+            hist = hist + cmhist + fmhist;
             quietsSeen++;
         }
 
@@ -388,25 +389,32 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 12A. Futility Pruning. If our score is far below alpha, and we
             // don't expect anything from this move, we can skip all other quiets
-            if (   futilityMargin <= alpha
-                && depth <= FutilityPruningDepth
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+            if (   depth <= FutilityPruningDepth
+                && eval + futilityMargin <= alpha
+                && hist  < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
-            // Step 12B. Late Move Pruning / Move Count Pruning. If we have
+            // Step 12B. Futility Pruning. If our score is not only far below
+            // alpha but still far below alpha after adding the FutilityMargin,
+            // we can somewhat safely skip all quiet moves after this one
+            if (   depth <= FutilityPruningDepth
+                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
+                skipQuiets = 1;
+
+            // Step 12C. Late Move Pruning / Move Count Pruning. If we have
             // tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
                 && quietsSeen >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
-            // Step 12C. Counter Move Pruning. Moves with poor counter
+            // Step 12D. Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
             if (   depth <= CounterMovePruningDepth[improving]
                 && cmhist < CounterMoveHistoryLimit[improving])
                 continue;
 
-            // Step 12D. Follow Up Move Pruning. Moves with poor follow up
+            // Step 12E. Follow Up Move Pruning. Moves with poor follow up
             // move history are pruned at near leaf nodes of the search.
             if (   depth <= FollowUpMovePruningDepth[improving]
                 && fmhist < FollowUpMoveHistoryLimit[improving])
@@ -453,7 +461,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+            R -= MAX(-2, MIN(2, hist / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
