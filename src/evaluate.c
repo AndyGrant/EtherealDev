@@ -344,7 +344,7 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board, eval);
+    factor = evaluateScaleFactor(&ei, board, eval);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -935,43 +935,49 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateScaleFactor(Board *board, int eval) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
 
-    // Scale endgames based on remaining material. Currently, we only
-    // look for OCB endgames that include only one Knight or one Rook
+    uint64_t passers;
+    int imbalance, pawnEdge, passerEdge;
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
+
+    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
 
-    if (   onlyOne(white & bishops)
-        && onlyOne(black & bishops)
-        && onlyOne(bishops & WHITE_SQUARES)) {
+    uint64_t strong  = (ScoreEG(eval) > 0) ? white : black;
+    uint64_t weak    = (ScoreEG(eval) > 0) ? black : white;
 
-        if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
-
-        if (   !(rooks | queens)
-            &&  onlyOne(white & knights)
-            &&  onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
-
-        if (   !(knights | queens)
-            && onlyOne(white & rooks)
-            && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
-    }
-
-    int eg = ScoreEG(eval);
-
-    // Lone minor vs king and pawns, never give the advantage to the side with the minor
-    if ( (eg > 0) && popcount(white) == 2 && (white & (knights | bishops)))
+    // A lone Minor & King are virtually never able to win
+    if (popcount(strong) == 2 && (strong & (knights | bishops)))
         return SCALE_DRAW;
-    else if ( (eg < 0) && popcount(black) == 2 && (black & (knights | bishops)))
-        return SCALE_DRAW;
+
+    // Position is not OCB so just use SCALE_NORMAL
+    if (   !onlyOne(bishops & white)
+        || !onlyOne(bishops & black)
+        || !onlyOne(bishops & WHITE_SQUARES)
+        ||  several(white & (knights | rooks | queens))
+        ||  several(black & (knights | rooks | queens)))
+        return SCALE_NORMAL;
+
+    // Scaling for a true OCB case
+    if (!(knights | rooks | queens))
+        return SCALE_OCB_BISHOPS_ONLY;
+
+    passers = ei->passedPawns;
+    pawnEdge = popcount(strong & pawns) - popcount(weak & pawns);
+    passerEdge = popcount(strong & passers) - popcount(weak & passers);
+    imbalance = SCALE_PAWN_EDGE * abs(pawnEdge) + SCALE_PASSER_EDGE * abs(passerEdge);
+
+    // Scale for OCB + NvN or RvR or QvQ
+    if (   (onlyOne(white & knights) && onlyOne(black & knights))
+        || (onlyOne(white & rooks  ) && onlyOne(black & rooks  ))
+        || (onlyOne(white & queens ) && onlyOne(black & queens)))
+        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_OTHER + imbalance);
 
     return SCALE_NORMAL;
 }
