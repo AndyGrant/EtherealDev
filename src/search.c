@@ -185,8 +185,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     Board *const board = &thread->board;
 
     unsigned tbresult;
-    int hist = 0, cmhist = 0, fmhist = 0;
-    int quietsSeen = 0, quietsPlayed = 0, played = 0;
+    int hist = 0, cmhist = 0, fmhist = 0, quiets = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -377,10 +376,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // For quiet moves we fetch various history scores
-        if ((isQuiet = !moveIsTactical(board, move))) {
+        if ((isQuiet = !moveIsTactical(board, move)))
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
-            quietsSeen++;
-        }
 
         // Step 12. Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
@@ -397,7 +394,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quietsSeen >= LateMovePruningCounts[improving][depth])
+                && quiets >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
             // Step 12C. Counter Move Pruning. Moves with poor counter
@@ -427,8 +424,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             continue;
 
         played += 1;
-        if (isQuiet)
-            quietsTried[quietsPlayed++] = move;
+        if (isQuiet) quietsTried[quiets++] = move;
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
@@ -472,7 +468,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
         extension =  (inCheck)
-                  || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (isQuiet && quiets <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height));
 
         // Factor the extension into the new depth. Do not extend at the root
@@ -530,7 +526,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 19. Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove))
-        updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, depth*depth);
+        updateHistoryHeuristics(thread, quietsTried, quiets, height, depth*depth);
 
     // Step 20. Store results of search into the table
     ttBound = best >= beta    ? BOUND_LOWER
