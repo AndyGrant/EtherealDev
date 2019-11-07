@@ -123,7 +123,6 @@ void* iterativeDeepening(void *vthread) {
         info->values[info->depth]      = thread->value;
         info->bestMoves[info->depth]   = thread->pv.line[0];
         info->ponderMoves[info->depth] = thread->pv.length >= 2 ? thread->pv.line[1] : NONE_MOVE;
-        uciReport(thread->threads, -MATE, MATE, thread->value);
 
         // Update time allocation based on score and pv changes
         updateTimeManagment(info, limits);
@@ -151,17 +150,19 @@ int aspirationWindow(Thread *thread, int depth, int lastValue) {
     alpha = depth >= WindowDepth ? MAX(-MATE, lastValue - delta) : -MATE;
     beta  = depth >= WindowDepth ? MIN( MATE, lastValue + delta) :  MATE;
 
-    // Keep trying larger windows until one works
     while (1) {
 
-        // Perform a search on the window, return if inside the window
+        // Perform a full search on the window
         value = search(thread, &thread->pv, alpha, beta, depth, 0);
+
+        // Report completed searches as well as bounded searches
+        if (   (mainThread && value > alpha && value < beta)
+            || (mainThread && elapsedTime(thread->info) >= WindowTimerMS))
+            uciReport(thread->threads, alpha, beta, value);
+
+        // Search returned a result within our window
         if (value > alpha && value < beta)
             return value;
-
-        // Report lower and upper bounds after at a certain time
-        if (mainThread && elapsedTime(thread->info) >= WindowTimerMS)
-            uciReport(thread->threads, alpha, beta, value);
 
         // Search failed low
         if (value <= alpha) {
@@ -170,7 +171,7 @@ int aspirationWindow(Thread *thread, int depth, int lastValue) {
         }
 
         // Search failed high
-        if (value >= beta)
+        else if (value >= beta)
             beta = MIN(MATE, beta + delta);
 
         // Expand the search window
