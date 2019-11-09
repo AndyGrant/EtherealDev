@@ -357,13 +357,22 @@ uint64_t perft(Board *board, int depth) {
     return found;
 }
 
-void runBenchmark(Thread *threads, int depth) {
+void runBenchmark(int argc, char **argv) {
 
     Board board;
     Limits limits;
-    double start, end;
-    uint16_t bestMove, ponderMove;
+    Thread *threads;
+
+    double start;
     uint64_t nodes = 0ull;
+    uint16_t bestMove, ponderMove;
+
+    int depth     = argc > 2 ? atoi(argv[2]) : 13;
+    int nthreads  = argc > 3 ? atoi(argv[3]) : 1;
+    int megabytes = argc > 4 ? atoi(argv[4]) : 16;
+
+    initTT(megabytes);
+    threads = createThreadPool(nthreads);
 
     // Initialize a "go depth <x>" search
     limits.limitedByNone  = 0;
@@ -384,9 +393,9 @@ void runBenchmark(Thread *threads, int depth) {
         clearTT(); // Reset TT for new search
     }
 
-    end = getRealTime();
-
-    printf("Time  : %dms\n", (int)(end - start));
+    printf("Time  : %dms\n", (int)(getRealTime() - start));
     printf("Nodes : %"PRIu64"\n", nodes);
-    printf("NPS   : %d\n", (int)(nodes / ((end - start) / 1000.0)));
+    printf("NPS   : %d\n", (int)(nodes / ((getRealTime() - start) / 1000.0)));
+
+    free(threads);
 }

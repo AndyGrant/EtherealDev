@@ -33,29 +33,49 @@ enum {
 
 struct Thread {
 
+    Board board;
     Limits *limits;
     SearchInfo *info;
 
-    Board board;
-    PVariation pv;
+    int value;     // TODO: Delete
+    PVariation pv; // TODO: Delete
 
-    int value, depth, seldepth;
+    int values[256];
+    PVariation pvs[256];
+
+    int depth, seldepth;
     uint64_t nodes, tbhits;
+
+    // As we go down the search tree we track an evaluation at each
+    // node, as well as the moves and the pieces moved in order to
+    // get to that position. STACK_SIZE is greater than MAX_PLY, in
+    // order to index "negative" values to look before the root node
 
     int *evalStack, _evalStack[STACK_SIZE];
     uint16_t *moveStack, _moveStack[STACK_SIZE];
     int *pieceStack, _pieceStack[STACK_SIZE];
     Undo undoStack[STACK_SIZE];
 
-    int index, nthreads;
-    Thread *threads;
-    jmp_buf jbuffer;
+    // Evaluation Tables, Move Tables, and History Counters.
+    // Each thread manages their own set of these tables.
 
     PKTable pktable;
     KillerTable killers;
     CounterMoveTable cmtable;
     HistoryTable history;
     ContinuationTable continuation;
+
+    // We retain a reference to the other threads as well as the number
+    // of threads in total. We know our place in the thread pool.
+
+    int index, nthreads;
+    Thread *threads;
+
+    // In order to quickly exit a search and return to the main loop
+    // we have a jmp_buf. This is used when search time has expired,
+    // or when the main thread has signaled the helper threads to stop.
+
+    jmp_buf jbuffer;
 };
 
 
