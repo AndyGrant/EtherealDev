@@ -381,6 +381,7 @@ void runBenchmark(int argc, char **argv) {
     limits.limitedBySelf  = 0;
     limits.timeLimit      = 0;
     limits.depthLimit     = depth;
+    limits.multiPV        = 1;
 
     start = getRealTime();
 
