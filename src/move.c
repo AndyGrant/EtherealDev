@@ -450,7 +450,9 @@ int legalMoveCount(Board * board) {
 
 int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
 
-    // Check if move was selected in a previous multi PV
+    // Check to see if this move was already selected as the
+    // best move in a previous iteration of this search depth
+
     for (int i = 0; i < thread->multiPV; i++)
         if (thread->bestMoves[i] == move)
             return 1;
