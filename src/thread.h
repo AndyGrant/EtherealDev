@@ -34,14 +34,14 @@ enum {
 struct Thread {
 
     Board board;
+    PVariation pv;
     Limits *limits;
     SearchInfo *info;
 
-    int value;     // TODO: Delete
-    PVariation pv; // TODO: Delete
-
-    int values[256];
-    PVariation pvs[256];
+    int multiPV;
+    int values[MAX_MOVES];
+    uint16_t bestMoves[MAX_MOVES];
+    uint16_t ponderMoves[MAX_MOVES];
 
     int depth, seldepth;
     uint64_t nodes, tbhits;

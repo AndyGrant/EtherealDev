@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
     UCIGoStruct uciGoStruct;
 
     int chess960 = 0;
-    int multiPV  = 1;
+    int multiPV  = 256;
 
     // Initialize core components of Ethereal
     initAttacks(); initMasks(); initEval();
@@ -182,13 +182,15 @@ void *uciGo(void *cargo) {
     limits.limitedBySelf  = !depth && !movetime && !infinite;
     limits.timeLimit      = movetime;
     limits.depthLimit     = depth;
-    limits.multiPV        = multiPV;
 
     // Pick the time values for the colour we are playing as
     limits.start = (board->turn == WHITE) ? start : start;
     limits.time  = (board->turn == WHITE) ? wtime : btime;
     limits.inc   = (board->turn == WHITE) ?  winc :  binc;
     limits.mtg   = (board->turn == WHITE) ?   mtg :   mtg;
+
+    // Limit MultiPV to the number of legal moves
+    limits.multiPV = MIN(multiPV, legalMoveCount(board));
 
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);
@@ -327,6 +329,7 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
     int hashfull    = hashfullTT();
     int depth       = threads->depth;
     int seldepth    = threads->seldepth;
+    int multiPV     = threads->multiPV + 1;
     int elapsed     = elapsedTime(threads->info);
     int bounded     = MAX(alpha, MIN(value, beta));
     uint64_t nodes  = nodesSearchedThreadPool(threads);
@@ -345,9 +348,9 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
     char *bound = bounded >=  beta ? " lowerbound "
                 : bounded <= alpha ? " upperbound " : " ";
 
-    printf("info depth %d seldepth %d score %s %d%stime %d "
+    printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
            "nodes %"PRIu64" nps %d tbhits %"PRIu64" hashfull %d pv ",
-           depth, seldepth, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
+           depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
 
     // Iterate over the PV and print each move
     for (int i = 0; i < threads->pv.length; i++) {
@@ -370,7 +373,7 @@ void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
     int score = wdl == TB_LOSS ? -MATE + MAX_PLY + dtz + 1
               : wdl == TB_WIN  ?  MATE - MAX_PLY - dtz - 1 : 0;
 
-    printf("info depth %d seldepth %d score cp %d time 0 "
+    printf("info depth %d seldepth %d multipv 1 score cp %d time 0 "
            "nodes 0 tbhits 1 nps 0 hashfull %d pv ",
            MAX_PLY - 1, MAX_PLY - 1, score, 0);
 
