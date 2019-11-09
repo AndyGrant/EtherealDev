@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
     UCIGoStruct uciGoStruct;
 
     int chess960 = 0;
-    int multiPV  = 256;
+    int multiPV  = 1;
 
     // Initialize core components of Ethereal
     initAttacks(); initMasks(); initEval();
