@@ -148,7 +148,11 @@ void aspirationWindow(Thread *thread) {
     const int multiPV    = thread->multiPV;
     const int mainThread = thread->index == 0;
 
-    int value, alpha = -MATE, beta = MATE, delta = WindowSize;
+    int alpha = -MATE, beta = MATE;
+    int value, delta = WindowSize + 4 * thread->failures;
+
+    // Reset the fail-high / fail-low failure counter
+    thread->failures = 0;
 
     // Create an aspiration window after a few depths using
     // the eval from the bestline from the previous iteration
@@ -187,6 +191,8 @@ void aspirationWindow(Thread *thread) {
 
         // Expand the search window
         delta = delta + delta / 2;
+
+        thread->failures += 1;
     }
 }
 
