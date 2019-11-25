@@ -777,7 +777,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         uint64_t filtered = occupied & ~queenAttacks(kingSq, occupied);
         uint64_t enemyBishops = board->colours[THEM] & board->pieces[BISHOP];
-        uint64_t enemyRooks   = board->colours[THEM] & board->pieces[BISHOP];
+        uint64_t enemyRooks   = board->colours[THEM] & board->pieces[  ROOK];
         uint64_t xrays = (bishopAttacks(kingSq, filtered) & (enemyQueens | enemyBishops))
                        | (  rookAttacks(kingSq, filtered) & (enemyQueens |   enemyRooks));
 
