@@ -173,7 +173,7 @@ void aspirationWindow(Thread *thread) {
 
         else if (value >= beta) {
             beta = MIN(MATE, beta + delta);
-            depth = MIN(thread->depth, depth + 1);
+            depth = thread->depth;
         }
 
         else if (value <= alpha) {
