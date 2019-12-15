@@ -148,7 +148,8 @@ void aspirationWindow(Thread *thread) {
     const int multiPV    = thread->multiPV;
     const int mainThread = thread->index == 0;
 
-    int value, alpha = -MATE, beta = MATE, delta = WindowSize;
+    int value, depth, report;
+    int alpha = -MATE, beta = MATE, delta = WindowSize;
 
     // Create an aspiration window after a few depths using
     // the eval from the bestline from the previous iteration
@@ -157,37 +158,33 @@ void aspirationWindow(Thread *thread) {
         beta  = MIN( MATE, thread->values[0] + delta);
     }
 
-    while (1) {
+    // Loop until we complete a search at the requested depth
+    for (depth = thread->depth; depth <= thread->depth; delta += delta / 2) {
 
-        // Perform a search and consider reporting results
-        value = search(thread, pv, alpha, beta, thread->depth, 0);
-        if (   (mainThread && value > alpha && value < beta)
-            || (mainThread && elapsedTime(thread->info) >= WindowTimerMS))
+        value = search(thread, pv, alpha, beta, depth, 0);
+
+        report = mainThread && depth == thread->depth;
+        if (   (report && value > alpha && value < beta)
+            || (report && elapsedTime(thread->info) >= WindowTimerMS))
             uciReport(thread->threads, alpha, beta, value);
 
-        // Search returned a result within our window. Save the eval as well
-        // as the best and ponder moves. If we do not have a ponder move in
-        // the PV, we set to NONE_MOVE to avoid printing an illegal PV line
-        if (value > alpha && value < beta) {
-            thread->values[multiPV]      = value;
-            thread->bestMoves[multiPV]   = pv->line[0];
-            thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : NONE_MOVE;
-            return;
-        }
+        if (alpha < value && value < beta)
+            depth = depth + 1;
 
-        // Search failed low
-        if (value <= alpha) {
-            beta  = (alpha + beta) / 2;
-            alpha = MAX(-MATE, alpha - delta);
-        }
-
-        // Search failed high
         else if (value >= beta)
             beta = MIN(MATE, beta + delta);
 
-        // Expand the search window
-        delta = delta + delta / 2;
+        else if (value <= alpha) {
+            beta  = (alpha + beta) / 2;
+            alpha = MAX(-MATE, alpha - delta);
+            depth = MAX(1, depth - 1);
+        }
     }
+
+    // We are expected to return a value, a best move, and a ponder move
+    thread->values[multiPV]      = value;
+    thread->bestMoves[multiPV]   = pv->line[0];
+    thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : NONE_MOVE;
 }
 
 int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
