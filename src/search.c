@@ -487,7 +487,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         singular =  !RootNode
                  &&  depth >= 8
                  &&  move == ttMove
-                 &&  ttDepth >= depth - 2
+                 &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER);
 
         // Step 15. Extensions. Search an additional ply when we are in check, when
@@ -763,7 +763,8 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int value = -MATE, rBeta = MAX(ttValue - depth - thread->nthreads, -MATE);
+
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
 
