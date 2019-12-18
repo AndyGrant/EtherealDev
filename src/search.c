@@ -763,7 +763,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth - thread->nthreads, -MATE);
+    int value = -MATE, rBeta = MAX(ttValue - depth - thread->nthreads,  -MATE);
 
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
