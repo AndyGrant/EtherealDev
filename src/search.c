@@ -491,7 +491,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                  && (ttBound & BOUND_LOWER)
                  &&  moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut);
 
-        if (singular && multiCut) {
+        if (singular && multiCut && !inCheck) {
             revert(thread, board, move, height);
             return MAX(ttValue - depth, -MATE);
         }
