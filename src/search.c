@@ -499,7 +499,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000)
                   || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut));
 
-        if (multiCut) {
+        if (multiCut && !PvNode) {
             revert(thread, board, move, height);
             return MAX(ttValue - depth, -MATE);
         }
