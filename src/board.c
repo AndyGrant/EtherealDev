@@ -370,7 +370,7 @@ void runBenchmark(int argc, char **argv) {
     uint16_t ponderMoves[256];
 
     double time;
-    uint64_t totalNodes;
+    uint64_t totalNodes = 0ull;
 
     int depth     = argc > 2 ? atoi(argv[2]) : 14;
     int nthreads  = argc > 3 ? atoi(argv[3]) : 1;
