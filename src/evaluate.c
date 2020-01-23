@@ -839,7 +839,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
-    uint64_t myPawns   = board->colours[US]& board->pieces[PAWN]
+    uint64_t myPawns   = board->colours[US] & board->pieces[PAWN];
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
     uint64_t tempPawns = myPawns & ei->passedPawns;
 
