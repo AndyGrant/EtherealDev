@@ -873,8 +873,8 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
 
-        // Apply an extra penalty for stacked passers
-        if(several(forwardFileMasks(US, sq) & myPawns)) {
+        // Apply an extra penalty for foremost stacked passer
+        if(several(forwardFileMasks(THEM, sq) & myPawns & ei->passedPawns)) {
             eval += PassedStacked[rank];
             if (TRACE) T.PassedStacked[rank][US]++;
         }
