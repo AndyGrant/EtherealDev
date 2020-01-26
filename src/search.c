@@ -48,6 +48,8 @@ int LMRTable[64][64];      // Late Move Reductions
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
+static void insanePsuedoLegalTest(Board *board);
+
 void initSearch() {
 
     // Init Late Move Reductions Table
@@ -206,6 +208,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
+
+
+
+    // ------------------------------------------------------------------------
+    // Test every single possible uint16_t value through moveIsPsuedoLegal
+    // ------------------------------------------------------------------------
+    insanePsuedoLegalTest(board);
+
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
@@ -804,4 +814,52 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
+}
+
+
+static void insanePsuedoLegalTest(Board *board) {
+
+    int i, j, nmoves = 0;
+    uint16_t moves[MAX_MOVES];
+    uint64_t castleRooks, kingAttackers;
+
+    // Save the board state members
+    castleRooks = board->castleRooks;
+    kingAttackers = board->kingAttackers;
+
+    // Disable the tricks we use to reduce bad pseudo-legal moves
+    // by looking at potential king checkers. By zero'ing out the
+    // king checkers, we break the castling code. We can fix this
+    // by turning off all valid castle rooks when we are checked.
+    board->kingAttackers = 0ull;
+    if (kingAttackers) board->castleRooks = 0ull;
+
+    // Generate all moves we consider to be pseudo legal
+    genAllNoisyMoves(board, moves, &nmoves);
+    genAllQuietMoves(board, moves, &nmoves);
+
+    // Fix the board state since we broke our tricks
+    board->castleRooks = castleRooks;
+    board->kingAttackers = kingAttackers;
+
+    // Verify all psuedo legal moves appear as psuedo legal
+    for (i = 0; i < nmoves; i++)
+        if (!moveIsPseudoLegal(board, moves[i]))
+            exit(EXIT_FAILURE);
+
+    for (i = 0; i < 0x10000; i++) {
+
+        // Move is marked illegal correctly
+        if (!moveIsPseudoLegal(board, (uint16_t)i))
+            continue;
+
+        // Move is marked legal, verify that it was found already
+        for (j = 0; j < nmoves; j++)
+            if (moves[j] == (uint16_t)i)
+                break;
+
+        // This move has been falsly marked as legal
+        if (j == nmoves && nmoves)
+            exit(EXIT_FAILURE);
+    }
 }
