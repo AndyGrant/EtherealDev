@@ -171,7 +171,7 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
                             &  adjacentFilesMasks(fileOf(from))
                             & (board->turn == WHITE ? RANK_4 : RANK_5);
         if (enemyPawns) {
-            board->epSquare = from ^ 8;
+            board->epSquare = board->turn == WHITE ? from + 8 : from - 8;
             board->hash ^= ZobristEnpassKeys[fileOf(from)];
         }
     }
