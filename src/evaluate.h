@@ -52,15 +52,17 @@ struct EvalTrace {
     int PawnCandidatePasser[2][8][COLOUR_NB];
     int PawnIsolated[COLOUR_NB];
     int PawnStacked[2][COLOUR_NB];
-    int PawnBackwards[2][COLOUR_NB];
+    int PawnBackwards[2][8][COLOUR_NB];
     int PawnConnected32[32][COLOUR_NB];
     int KnightOutpost[2][2][COLOUR_NB];
     int KnightBehindPawn[COLOUR_NB];
+    int KnightInSiberia[4][COLOUR_NB];
     int KnightMobility[9][COLOUR_NB];
     int BishopPair[COLOUR_NB];
     int BishopRammedPawns[COLOUR_NB];
     int BishopOutpost[2][2][COLOUR_NB];
     int BishopBehindPawn[COLOUR_NB];
+    int BishopLongDiagonal[COLOUR_NB];
     int BishopMobility[14][COLOUR_NB];
     int RookFile[2][COLOUR_NB];
     int RookOnSeventh[COLOUR_NB];
@@ -77,6 +79,7 @@ struct EvalTrace {
     int PassedStacked[8][COLOUR_NB];
     int ThreatRestrictPiece[COLOUR_NB];
     int ThreatRestrictEmpty[COLOUR_NB];
+    int ThreatCenterControl[COLOUR_NB];
     int ThreatWeakPawn[COLOUR_NB];
     int ThreatMinorAttackedByPawn[COLOUR_NB];
     int ThreatMinorAttackedByMinor[COLOUR_NB];

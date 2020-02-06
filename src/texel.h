@@ -25,11 +25,11 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (     25) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (635)
+#define NTERMS       (      0) // Total terms in the Tuner (655)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
-#define BATCHSIZE    (7400000) // FENs per mini-batch
+#define BATCHSIZE    (  16384) // FENs per mini-batch
 #define NPOSITIONS   (7400000) // Total FENS in the book
 
 #define STATICWEIGHT (   0.50) // Weight of the Static Evaluation
@@ -56,11 +56,13 @@
 #define TunePawnConnected32             (0)
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
+#define TuneKnightInSiberia             (0)
 #define TuneKnightMobility              (0)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
 #define TuneBishopOutpost               (0)
 #define TuneBishopBehindPawn            (0)
+#define TuneBishopLongDiagonal          (0)
 #define TuneBishopMobility              (0)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
@@ -77,6 +79,7 @@
 #define TunePassedStacked               (0)
 #define TuneThreatRestrictPiece         (0)
 #define TuneThreatRestrictEmpty         (0)
+#define TuneThreatCenterControl         (0)
 #define TuneThreatWeakPawn              (0)
 #define TuneThreatMinorAttackedByPawn   (0)
 #define TuneThreatMinorAttackedByMinor  (0)
@@ -247,15 +250,17 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_2(fname, PawnCandidatePasser, 2, 8, NORMAL);         \
     ENABLE_0(fname, PawnIsolated, NORMAL);                      \
     ENABLE_1(fname, PawnStacked, 2, NORMAL);                    \
-    ENABLE_1(fname, PawnBackwards, 2, NORMAL);                  \
+    ENABLE_2(fname, PawnBackwards, 2, 8, NORMAL);               \
     ENABLE_1(fname, PawnConnected32, 32, NORMAL);               \
     ENABLE_2(fname, KnightOutpost, 2, 2, NORMAL);               \
     ENABLE_0(fname, KnightBehindPawn, NORMAL);                  \
+    ENABLE_1(fname, KnightInSiberia, 4, NORMAL);                \
     ENABLE_1(fname, KnightMobility, 9, NORMAL);                 \
     ENABLE_0(fname, BishopPair, NORMAL);                        \
     ENABLE_0(fname, BishopRammedPawns, NORMAL);                 \
     ENABLE_2(fname, BishopOutpost, 2, 2, NORMAL);               \
     ENABLE_0(fname, BishopBehindPawn, NORMAL);                  \
+    ENABLE_0(fname, BishopLongDiagonal, NORMAL);                \
     ENABLE_1(fname, BishopMobility, 14, NORMAL);                \
     ENABLE_1(fname, RookFile, 2, NORMAL);                       \
     ENABLE_0(fname, RookOnSeventh, NORMAL);                     \
@@ -272,6 +277,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, PassedStacked, 8, NORMAL);                  \
     ENABLE_0(fname, ThreatRestrictPiece, NORMAL);               \
     ENABLE_0(fname, ThreatRestrictEmpty, NORMAL);               \
+    ENABLE_0(fname, ThreatCenterControl, NORMAL);               \
     ENABLE_0(fname, ThreatWeakPawn, NORMAL);                    \
     ENABLE_0(fname, ThreatMinorAttackedByPawn, NORMAL);         \
     ENABLE_0(fname, ThreatMinorAttackedByMinor, NORMAL);        \

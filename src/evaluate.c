@@ -44,36 +44,36 @@ const int KingValue   = S(   0,   0);
 /* Piece Square Evaluation Terms */
 
 const int PawnPSQT32[32] = {
-    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S( -19,   9), S(   6,   4), S( -11,   7), S(  -6,  -1),
-    S( -21,   4), S( -11,   3), S(  -8,  -5), S(  -2, -13),
-    S( -16,  12), S( -10,  11), S(  14, -13), S(  12, -24),
-    S(  -4,  16), S(   4,  11), S(   0,  -2), S(  14, -21),
-    S(  -4,  32), S(   1,  30), S(  10,  19), S(  38,  -8),
-    S( -17, -40), S( -65,  -9), S(   3, -23), S(  40, -37),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), 
+    S( -20,   5), S(   2,   1), S( -13,   4), S(  -8,  -2), 
+    S( -23,   2), S( -16,   2), S( -10,  -7), S(  -5, -15), 
+    S( -18,   8), S( -14,   8), S(  10, -14), S(   8, -27), 
+    S(  -9,  10), S(  -5,   6), S(  -7,  -8), S(   2, -24), 
+    S(  -8,  23), S(  -5,  21), S(   2,  10), S(  29, -17), 
+    S( -19, -48), S( -67, -15), S(   1, -29), S(  38, -43), 
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 const int KnightPSQT32[32] = {
-    S( -50, -26), S(  -8, -40), S( -16, -29), S(  -1, -19),
-    S(  -6, -22), S(   3, -13), S(   1, -31), S(  11, -20),
-    S(   3, -25), S(  20, -25), S(  14, -18), S(  25,  -5),
-    S(  15,   4), S(  23,   6), S(  29,  17), S(  30,  22),
-    S(  24,  17), S(  26,  11), S(  39,  26), S(  30,  39),
-    S( -14,  15), S(   6,  13), S(  32,  27), S(  33,  29),
-    S(   7, -11), S(  -5,   2), S(  36, -20), S(  43,   0),
-    S(-168, -17), S( -81,  -2), S(-110,  19), S( -30,   1),
+    S( -49, -26), S(  -8, -34), S( -13, -27), S(   1, -17), 
+    S(  -2, -21), S(   4, -12), S(   4, -29), S(  10, -18), 
+    S(   9, -25), S(  22, -24), S(  14, -18), S(  23,  -6), 
+    S(  19,   4), S(  23,   6), S(  31,  14), S(  30,  21), 
+    S(  25,  17), S(  28,  10), S(  39,  24), S(  31,  36), 
+    S( -14,  15), S(   6,  12), S(  31,  25), S(  30,  27), 
+    S(   8, -11), S(  -7,   1), S(  33, -21), S(  42,  -1), 
+    S(-170, -18), S( -81,  -2), S(-110,  19), S( -30,   0), 
 };
 
 const int BishopPSQT32[32] = {
-    S(  18, -18), S(  15, -20), S( -10,  -9), S(   9, -13),
-    S(  31, -34), S(  24, -32), S(  23, -22), S(  11, -12),
-    S(  16, -14), S(  29, -16), S(  17,  -7), S(  21,  -6),
-    S(  16, -10), S(  18,  -3), S(  16,   4), S(  21,   8),
-    S( -11,  10), S(  18,   4), S(   6,  12), S(  11,  19),
-    S(   1,   6), S(   0,  15), S(  16,  12), S(  20,  10),
-    S( -45,  15), S( -36,  12), S(  -4,   5), S( -20,   8),
-    S( -40,   2), S( -48,   8), S( -87,  16), S( -91,  24),
+    S(   8, -24), S(  13, -18), S( -10,  -6), S(  10, -10), 
+    S(  30, -33), S(  12, -36), S(  20, -19), S(  12, -11), 
+    S(  16, -12), S(  29, -15), S(   5, -17), S(  21,  -5), 
+    S(  15,  -8), S(  19,  -3), S(  17,   3), S(  23,   6), 
+    S( -11,  12), S(  19,   4), S(   6,  12), S(  13,  17), 
+    S(   1,   7), S(  -1,  15), S(   0,   4), S(  18,  11), 
+    S( -45,  16), S( -53,   4), S(  -7,   6), S( -21,  10), 
+    S( -50,  -5), S( -47,   9), S( -87,  16), S( -90,  26), 
 };
 
 const int RookPSQT32[32] = {
@@ -122,7 +122,12 @@ const int PawnIsolated = S(  -7, -11);
 
 const int PawnStacked[2] = { S(  -9, -14), S(  -9,  -9) };
 
-const int PawnBackwards[2] = { S(   7,   0), S(  -7, -19) };
+const int PawnBackwards[2][8] = {
+   {S(   0,   0), S(   3,  -7), S(   9,  -5), S(   7,  -9),
+    S(   9,  -9), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -10, -30), S(  -5, -26), S(   2, -26),
+    S(   5, -23), S(   0,   0), S(   0,   0), S(   0,   0)},
+};
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
@@ -144,6 +149,10 @@ const int KnightOutpost[2][2] = {
 
 const int KnightBehindPawn = S(   4,  19);
 
+const int KnightInSiberia[4] = {
+    S(  -7,   0), S(  -9,  -4), S( -17,  -3), S( -17,  -1), 
+};
+
 const int KnightMobility[9] = {
     S( -74,-104), S( -31, -96), S( -16, -41), S(  -5, -16),
     S(   6,  -8), S(  11,   8), S(  19,  11), S(  28,  11),
@@ -162,6 +171,8 @@ const int BishopOutpost[2][2] = {
 };
 
 const int BishopBehindPawn = S(   3,  18);
+
+const int BishopLongDiagonal = S(  20,  11);
 
 const int BishopMobility[14] = {
     S( -65,-147), S( -30, -95), S( -11, -56), S(  -1, -30),
@@ -301,14 +312,15 @@ const int PassedEnemyDistance[8] = {
 const int PassedSafePromotionPath = S( -29,  37);
 
 const int PassedStacked[RANK_NB] = {
-    S(   0,   0), S(   0,  -3), S(   0,  -6), S(   0, -10),
+    S(   0,   0), S(   0,   0), S(   0,  -6), S(   0, -10),
     S(  -4, -12), S(  -8, -16), S(   0,   0), S(   0,   0),
 };
 
 /* Threat Evaluation Terms */
 
-const int ThreatRestrictPiece        = S(  -1,  -1);
-const int ThreatRestrictEmpty        = S(  -3,  -1);
+const int ThreatRestrictPiece        = S(  -3,  -1);
+const int ThreatRestrictEmpty        = S(  -4,  -2);
+const int ThreatCenterControl        = S(   5,  -5);
 const int ThreatWeakPawn             = S( -13, -26);
 const int ThreatMinorAttackedByPawn  = S( -51, -53);
 const int ThreatMinorAttackedByMinor = S( -26, -36);
@@ -479,8 +491,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // backwards at the same time. We don't give backward pawns a connected bonus
         if (neighbors && pushThreats && !backup) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
-            pkeval += PawnBackwards[flag];
-            if (TRACE) T.PawnBackwards[flag][US]++;
+            pkeval += PawnBackwards[flag][relativeRankOf(US, sq)];
+            if (TRACE) T.PawnBackwards[flag][relativeRankOf(US, sq)][US]++;
         }
 
         // Apply a bonus if the pawn is connected and not backwards. We consider a
@@ -500,7 +512,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, outside, defended, count, eval = 0;
+    int sq, outside, kingDistance, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -536,6 +548,13 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (testBit(pawnAdvance(board->pieces[PAWN], 0ull, THEM), sq)) {
             eval += KnightBehindPawn;
             if (TRACE) T.KnightBehindPawn[US]++;
+        }
+
+        // Apply a penalty if the knight is far from both kings
+        kingDistance = MIN(distanceBetween(sq, ei->kingSquare[THEM]), distanceBetween(sq, ei->kingSquare[US]));
+        if (kingDistance >= 4) {
+            eval += KnightInSiberia[kingDistance - 4];
+            if (TRACE) T.KnightInSiberia[kingDistance - 4][US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the knight
@@ -606,6 +625,13 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (testBit(pawnAdvance(board->pieces[PAWN], 0ull, THEM), sq)) {
             eval += BishopBehindPawn;
             if (TRACE) T.BishopBehindPawn[US]++;
+        }
+
+        // Apply a bonus when controlling both central squares on a long diagonal
+        if (   testBit(LONG_DIAGONALS & ~CENTER_SQUARES, sq)
+            && several(bishopAttacks(sq, board->pieces[PAWN]) & CENTER_SQUARES)) {
+            eval += BishopLongDiagonal;
+            if (TRACE) T.BishopLongDiagonal[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the bishop
@@ -936,6 +962,17 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(uncontrolled & ~friendly & ~enemy);
     eval += count * ThreatRestrictEmpty;
     if (TRACE) T.ThreatRestrictEmpty[US] += count;
+
+    // Bonus for uncontested central squares
+    // This is mostly relevant in the opening and the early middlegame, while rarely correct
+    // in the endgame where one rook or queen could control many uncontested squares.
+    // Thus we don't apply this term when below a threshold of minors/majors count.
+    if (      popcount(board->pieces[KNIGHT] | board->pieces[BISHOP])
+        + 2 * popcount(board->pieces[ROOK  ] | board->pieces[QUEEN ]) > 12) {
+        count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
+        eval += count * ThreatCenterControl;
+        if (TRACE) T.ThreatCenterControl[US] += count;
+    }
 
     // Penalty for each of our poorly supported pawns
     count = popcount(pawns & ~attacksByPawns & poorlyDefended);
