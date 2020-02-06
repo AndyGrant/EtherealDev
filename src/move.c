@@ -171,7 +171,7 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
                             &  adjacentFilesMasks(fileOf(from))
                             & (board->turn == WHITE ? RANK_4 : RANK_5);
         if (enemyPawns) {
-            board->epSquare = board->turn == WHITE ? from + 8 : from - 8;
+            board->epSquare = from ^ 8;
             board->hash ^= ZobristEnpassKeys[fileOf(from)];
         }
     }
@@ -228,7 +228,7 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
 
     const int from = MoveFrom(move);
     const int to = MoveTo(move);
-    const int ep = to - 8 + (board->turn << 4);
+    const int ep = to ^ 8;
 
     const int fromPiece = makePiece(PAWN, board->turn);
     const int enpassPiece = makePiece(PAWN, !board->turn);
@@ -409,7 +409,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
 
         assert(MoveType(move) == ENPASS_MOVE);
 
-        const int ep = to - 8 + (board->turn << 4);
+        const int ep = to ^ 8;
 
         board->pieces[PAWN]         ^= (1ull << from) ^ (1ull << to);
         board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
