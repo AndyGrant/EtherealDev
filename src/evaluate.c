@@ -1150,7 +1150,7 @@ int evaluateScaleFactor(Board *board, int eval) {
     if (   !queens
         && !several(pieces & white)
         && !several(pieces & black)
-        &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
+        &&  popcount(strong & pawns) - popcount(weak & pawns) > 1)
         return SCALE_LARGE_PAWN_ADV;
 
     return SCALE_NORMAL;
