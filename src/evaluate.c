@@ -333,7 +333,6 @@ const int ThreatByPawnPush           = S(  15,  21);
 
 const int SpaceRestrictPiece = S(  -3,  -1);
 const int SpaceRestrictEmpty = S(  -4,  -2);
-const int SpaceCenterControl = S(   5,  -5);
 
 /* Closedness Evaluation Terms */
 
@@ -1015,6 +1014,7 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
 
     int count, eval = 0;
 
+    uint64_t bitboard;
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
 
@@ -1022,25 +1022,17 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     uint64_t uncontrolled =   ei->attackedBy2[THEM] & ei->attacked[US]
                            & ~ei->attackedBy2[US  ] & ~ei->attackedBy[US][PAWN];
 
-    // Penalty for restricted piece moves
-    count = popcount(uncontrolled & (friendly | enemy));
+    // Malus for occupied squares we have little control over
+    bitboard = uncontrolled & (friendly | enemy);
+    count = popcount(bitboard) + popcount(bitboard & CENTER_BIG);
     eval += count * SpaceRestrictPiece;
     if (TRACE) T.SpaceRestrictPiece[US] += count;
 
-    count = popcount(uncontrolled & ~friendly & ~enemy);
+    // Malus for unoccupied squares we have little control over
+    bitboard = uncontrolled & ~(friendly | enemy);
+    count = popcount(bitboard) + popcount(bitboard & CENTER_BIG);
     eval += count * SpaceRestrictEmpty;
     if (TRACE) T.SpaceRestrictEmpty[US] += count;
-
-    // Bonus for uncontested central squares
-    // This is mostly relevant in the opening and the early middlegame, while rarely correct
-    // in the endgame where one rook or queen could control many uncontested squares.
-    // Thus we don't apply this term when below a threshold of minors/majors count.
-    if (      popcount(board->pieces[KNIGHT] | board->pieces[BISHOP])
-        + 2 * popcount(board->pieces[ROOK  ] | board->pieces[QUEEN ]) > 12) {
-        count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
-        eval += count * SpaceCenterControl;
-        if (TRACE) T.SpaceCenterControl[US] += count;
-    }
 
     return eval;
 }
