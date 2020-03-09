@@ -149,8 +149,9 @@ const int KnightOutpost[2][2] = {
 
 const int KnightBehindPawn = S(   4,  19);
 
-const int KnightInSiberia[4] = {
-    S(  -7,   0), S(  -9,  -4), S( -17,  -3), S( -17,  -1),
+const int KnightDistance[8] = {
+    S(   0,   0), S(  -2,  -1), S(   1,   0), S(   1,  -1),
+    S(  -8,  -1), S(  -8,  -7), S( -17,  -8), S( -23,  -5),
 };
 
 const int KnightMobility[9] = {
@@ -517,7 +518,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, outside, kingDistance, defended, count, eval = 0;
+    int sq, outside, distance, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -556,11 +557,10 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a penalty if the knight is far from both kings
-        kingDistance = MIN(distanceBetween(sq, ei->kingSquare[THEM]), distanceBetween(sq, ei->kingSquare[US]));
-        if (kingDistance >= 4) {
-            eval += KnightInSiberia[kingDistance - 4];
-            if (TRACE) T.KnightInSiberia[kingDistance - 4][US]++;
-        }
+        distance = distanceBetween(sq, ei->kingSquare[THEM]);
+        distance = MIN(distance, distanceBetween(sq, ei->kingSquare[US]));
+        eval += KnightDistance[distance];
+        if (TRACE) T.KnightDistance[distance][US]++;
 
         // Apply a bonus (or penalty) based on the mobility of the knight
         count = popcount(ei->mobilityAreas[US] & attacks);
