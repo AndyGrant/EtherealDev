@@ -1022,12 +1022,15 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     uint64_t uncontrolled =   ei->attackedBy2[THEM] & ei->attacked[US]
                            & ~ei->attackedBy2[US  ] & ~ei->attackedBy[US][PAWN];
 
-    // Penalty for restricted piece moves
-    count = popcount(uncontrolled & (friendly | enemy));
+    // Malus for occupied squares we have little control over
+    bitboard = uncontrolled & (friendly | enemy);
+    count = popcount(bitboard) + popcount(bitboard & CENTER_BIG);
     eval += count * SpaceRestrictPiece;
     if (TRACE) T.SpaceRestrictPiece[US] += count;
 
-    count = popcount(uncontrolled & ~friendly & ~enemy);
+    // Malus for unoccupied squares we have little control over
+    bitboard = uncontrolled & ~(friendly | enemy);
+    count = popcount(bitboard) + popcount(bitboard & CENTER_BIG);
     eval += count * SpaceRestrictEmpty;
     if (TRACE) T.SpaceRestrictEmpty[US] += count;
 
