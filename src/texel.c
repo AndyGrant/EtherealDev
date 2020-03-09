@@ -99,7 +99,6 @@ extern const int SpaceCenterControl;
 extern const int ClosednessKnightAdjustment[9];
 extern const int ClosednessRookAdjustment[9];
 extern const int ComplexityTotalPawns;
-extern const int ComplexityPawnFlanks;
 extern const int ComplexityPawnEndgame;
 extern const int ComplexityAdjustment;
 

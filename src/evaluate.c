@@ -352,9 +352,8 @@ const int ClosednessRookAdjustment[9] = {
 /* Complexity Evaluation Terms */
 
 const int ComplexityTotalPawns  = S(   0,   7);
-const int ComplexityPawnFlanks  = S(   0,  49);
 const int ComplexityPawnEndgame = S(   0,  34);
-const int ComplexityAdjustment  = S(   0,-110);
+const int ComplexityAdjustment  = S(   0,- 60);
 
 /* General Evaluation Terms */
 
@@ -1096,12 +1095,10 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
 
     // Compute the initiative bonus or malus for the attacking side
     complexity =  ComplexityTotalPawns  * popcount(board->pieces[PAWN])
-               +  ComplexityPawnFlanks  * pawnsOnBothFlanks
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
     if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
-    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
     if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
     if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
 
