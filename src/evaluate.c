@@ -1032,15 +1032,9 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.SpaceRestrictEmpty[US] += count;
 
     // Bonus for uncontested central squares
-    // This is mostly relevant in the opening and the early middlegame, while rarely correct
-    // in the endgame where one rook or queen could control many uncontested squares.
-    // Thus we don't apply this term when below a threshold of minors/majors count.
-    if (      popcount(board->pieces[KNIGHT] | board->pieces[BISHOP])
-        + 2 * popcount(board->pieces[ROOK  ] | board->pieces[QUEEN ]) > 12) {
-        count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
-        eval += count * SpaceCenterControl;
-        if (TRACE) T.SpaceCenterControl[US] += count;
-    }
+    count = popcount(~ei->attackedBy2[THEM] & ei->attacked[US] & friendly & CENTER_BIG);
+    eval += count * SpaceCenterControl;
+    if (TRACE) T.SpaceCenterControl[US] += count;
 
     return eval;
 }
