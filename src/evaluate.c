@@ -1015,6 +1015,7 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
 
     int count, eval = 0;
 
+    uint64_t bitboard;
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
 
