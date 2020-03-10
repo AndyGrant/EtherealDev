@@ -890,6 +890,9 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
+        // Short-circuit evaluation for additional passers on a file
+        if (several(forwardFileMasks(US, sq) & myPassers)) continue;
+
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ei->kingSquare[US]);
         eval += dist * PassedFriendlyDistance[rank];
