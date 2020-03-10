@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef USE_PEXT
 #include <immintrin.h>
@@ -30,9 +31,10 @@
 
 uint64_t PawnAttacks[COLOUR_NB][SQUARE_NB];
 uint64_t KnightAttacks[SQUARE_NB];
-uint64_t BishopAttacks[0x1480];
-uint64_t RookAttacks[0x19000];
 uint64_t KingAttacks[SQUARE_NB];
+
+uint64_t *BishopAttacks;
+uint64_t *RookAttacks;
 
 Magic BishopTable[SQUARE_NB];
 Magic RookTable[SQUARE_NB];
@@ -106,9 +108,9 @@ void initAttacks() {
     const int RookDelta[][2]      = {{-1, 0}, { 0,-1}, { 0, 1}, { 1, 0}};
     const int KingDelta[][2]      = {{-1,-1}, {-1, 0}, {-1, 1}, { 0,-1}, { 0, 1}, { 1,-1}, { 1, 0}, { 1, 1}};
 
-    // First square has initial offset
-    BishopTable[0].offset = BishopAttacks;
-    RookTable[0].offset = RookAttacks;
+    // First square has initial offset and mallocs the tables
+    BishopTable[0].offset = malloc(sizeof(uint64_t) * 0x01480);
+    RookTable[0].offset   = malloc(sizeof(uint64_t) * 0x19000);
 
     // Init attack tables for white Pawns
     for (int sq = 0; sq < SQUARE_NB; sq++)
