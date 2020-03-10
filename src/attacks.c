@@ -42,9 +42,9 @@ static int validCoordinate(int rank, int file) {
         && 0 <= file && file < FILE_NB;
 }
 
-static void setSquare(uint64_t *bb, int rank, int file) {
-    if (validCoordinate(rank, file))
-        *bb |= 1ull << square(rank, file);
+static void setSquare(uint64_t *bb, int sq, const int delta[2]) {
+    if (validCoordinate(rankOf(sq) + delta[0], fileOf(sq) + delta[1]))
+        *bb |= 1ull << square(rankOf(sq) + delta[0], fileOf(sq) + delta[1]);
 }
 
 static int sliderIndex(uint64_t occupied, Magic *table) {
@@ -99,34 +99,37 @@ static void initSliderAttacks(int sq, Magic *table, uint64_t magic, const int de
 
 void initAttacks() {
 
-    const int PawnDelta[2][2]   = {{ 1,-1}, { 1, 1}};
-    const int KnightDelta[8][2] = {{-2,-1}, {-2, 1}, {-1,-2}, {-1, 2},{ 1,-2}, { 1, 2}, { 2,-1}, { 2, 1}};
-    const int KingDelta[8][2]   = {{-1,-1}, {-1, 0}, {-1, 1}, { 0,-1},{ 0, 1}, { 1,-1}, { 1, 0}, { 1, 1}};
-    const int BishopDelta[4][2] = {{-1,-1}, {-1, 1}, { 1,-1}, { 1, 1}};
-    const int RookDelta[4][2]   = {{-1, 0}, { 0,-1}, { 0, 1}, { 1, 0}};
+    const int PawnWhiteDelta[][2] = {{ 1,-1}, { 1, 1}};
+    const int PawnBlackDelta[][2] = {{-1,-1}, {-1, 1}};
+    const int KnightDelta[][2]    = {{-2,-1}, {-2, 1}, {-1,-2}, {-1, 2}, { 1,-2}, { 1, 2}, { 2,-1}, { 2, 1}};
+    const int BishopDelta[][2]    = {{-1,-1}, {-1, 1}, { 1,-1}, { 1, 1}};
+    const int RookDelta[][2]      = {{-1, 0}, { 0,-1}, { 0, 1}, { 1, 0}};
+    const int KingDelta[][2]      = {{-1,-1}, {-1, 0}, {-1, 1}, { 0,-1}, { 0, 1}, { 1,-1}, { 1, 0}, { 1, 1}};
 
     // First square has initial offset
     BishopTable[0].offset = BishopAttacks;
     RookTable[0].offset = RookAttacks;
 
-    // Init attack tables for Pawns
-    for (int sq = 0; sq < 64; sq++) {
-        for (int dir = 0; dir < 2; dir++) {
-            setSquare(&PawnAttacks[WHITE][sq], rankOf(sq) + PawnDelta[dir][0], fileOf(sq) + PawnDelta[dir][1]);
-            setSquare(&PawnAttacks[BLACK][sq], rankOf(sq) - PawnDelta[dir][0], fileOf(sq) - PawnDelta[dir][1]);
-        }
-    }
+    // Init attack tables for white Pawns
+    for (int sq = 0; sq < SQUARE_NB; sq++)
+        for (int d = 0; d < 2; d++)
+            setSquare(&PawnAttacks[WHITE][sq], sq, PawnWhiteDelta[d]);
+
+    // Init attack tables for black Pawns
+    for (int sq = 0; sq < SQUARE_NB; sq++)
+        for (int d = 0; d < 2; d++)
+            setSquare(&PawnAttacks[BLACK][sq], sq, PawnBlackDelta[d]);
 
     // Init attack tables for Knights & Kings
-    for (int sq = 0; sq < 64; sq++) {
-        for (int dir = 0; dir < 8; dir++) {
-            setSquare(&KnightAttacks[sq], rankOf(sq) + KnightDelta[dir][0], fileOf(sq) + KnightDelta[dir][1]);
-            setSquare(  &KingAttacks[sq], rankOf(sq) +   KingDelta[dir][0], fileOf(sq) +   KingDelta[dir][1]);
+    for (int sq = 0; sq < SQUARE_NB; sq++) {
+        for (int d = 0; d < 8; d++) {
+            setSquare(&KnightAttacks[sq], sq, KnightDelta[d]);
+            setSquare(  &KingAttacks[sq], sq,   KingDelta[d]);
         }
     }
 
     // Init attack tables for sliding pieces
-    for (int sq = 0; sq < 64; sq++) {
+    for (int sq = 0; sq < SQUARE_NB; sq++) {
         initSliderAttacks(sq, BishopTable, BishopMagics[sq], BishopDelta);
         initSliderAttacks(sq,   RookTable,   RookMagics[sq],   RookDelta);
     }
