@@ -237,7 +237,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // the RootNode, since this would prevent us from having a best move
     if (!RootNode) {
 
-        // Draw Detection. Check for the fifty move rule, repetition, or insufficient 
+        // Draw Detection. Check for the fifty move rule, repetition, or insufficient
         // material. Add variance to the draw score, to avoid blindness to 3-fold lines
         if (boardIsDrawn(board, height)) return 1 - (thread->nodes & 2);
 
@@ -496,9 +496,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
         int multiCut = 0;
-        extension =  (inCheck)
-                  || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000)
-                  || (singular && moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut));
+        extension =  (singular && moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut));
+                  || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000) || inCheck;
 
         if (multiCut) {
             revert(thread, board, move, height);
@@ -601,7 +600,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     if (ABORT_SIGNAL || (terminateSearchEarly(thread) && !IS_PONDERING))
         longjmp(thread->jbuffer, 1);
 
-    // Step 2. Draw Detection. Check for the fifty move rule, repetition, or insufficient 
+    // Step 2. Draw Detection. Check for the fifty move rule, repetition, or insufficient
     // material. Add variance to the draw score, to avoid blindness to 3-fold lines
     if (boardIsDrawn(board, height)) return 1 - (thread->nodes & 2);
 
