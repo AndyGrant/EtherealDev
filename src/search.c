@@ -477,7 +477,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= movePicker.stage < STAGE_QUIET;
 
             R -= (hist >  5000) && (cmhist >  5000) & (fmhist >  5000);
-            R += (hist < -5000) && (cmhist < -5000) & (fmhist < -5000);
+            // R += (hist < -5000) && (cmhist < -5000) & (fmhist < -5000);
 
 
             // Adjust based on history scores
