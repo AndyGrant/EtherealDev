@@ -496,7 +496,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // from the transposition table which appears to beat all other moves by a
         // relativly large margin,
         int multiCut = 0;
-        extension =  (singular && moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut));
+        extension =  (singular && moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut))
                   || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000) || inCheck;
 
         if (multiCut) {
