@@ -497,7 +497,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // relativly large margin,
         int multiCut = 0;
         extension =  (singular && moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut))
-                  || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000) || inCheck;
+                  || (!singular && isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000)
+                  || (!singular && inCheck);
 
         if (multiCut) {
             revert(thread, board, move, height);
