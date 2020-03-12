@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (     25) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (      1) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -88,7 +88,7 @@
 #define TuneThreatByPawnPush            (0)
 #define TuneSpaceRestrictPiece          (0)
 #define TuneSpaceRestrictEmpty          (0)
-#define TuneSpaceCenterControl          (0)
+#define TuneSpaceCenterControl          (1)
 #define TuneClosednessKnightAdjustment  (0)
 #define TuneClosednessRookAdjustment    (0)
 #define TuneComplexityTotalPawns        (0)
