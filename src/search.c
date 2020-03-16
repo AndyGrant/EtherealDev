@@ -403,11 +403,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > MATED_IN_MAX) {
 
+            int hmm = improving || movePicker.stage < STAGE_QUIET;
+
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
                 && eval + futilityMargin <= alpha
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[hmm])
                 skipQuiets = 1;
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
@@ -421,19 +423,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quietsSeen >= LateMovePruningCounts[improving][depth])
+                && quietsSeen >= LateMovePruningCounts[hmm][depth])
                 skipQuiets = 1;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   depth <= CounterMovePruningDepth[improving]
-                && cmhist < CounterMoveHistoryLimit[improving])
+            if (   depth <= CounterMovePruningDepth[hmm]
+                && cmhist < CounterMoveHistoryLimit[hmm])
                 continue;
 
             // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
-            if (   depth <= FollowUpMovePruningDepth[improving]
-                && fmhist < FollowUpMoveHistoryLimit[improving])
+            if (   depth <= FollowUpMovePruningDepth[hmm]
+                && fmhist < FollowUpMoveHistoryLimit[hmm])
                 continue;
         }
 
