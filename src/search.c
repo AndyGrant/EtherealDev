@@ -54,7 +54,7 @@ void initSearch() {
     for (int depth = 1; depth < 64; depth++) {
         for (int played = 1; played < 64; played++) {
             LMRTable[depth][played][0] = 0.75 + log(depth) * log(played) / 2.25;
-            LMRTable[depth][played][1] = 0.25 + log(depth) * log(played) / 2.25;
+            LMRTable[depth][played][1] = 1.25 + log(depth) * log(played) / 2.25;
         }
     }
 }
