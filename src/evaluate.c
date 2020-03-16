@@ -461,10 +461,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus for pawns which will become passers by advancing a
         // square then exchanging our supporters with the remaining stoppers
-        else if (!leftovers
-            && !several(forwardFileMasks(US, sq) & myPawns)
-            &&  popcount(pushSupport) >= popcount(pushThreats)) {
-            flag = popcount(support) >= popcount(threats);
+        else if (!leftovers && popcount(pushSupport) >= popcount(pushThreats)) {
+            flag =  popcount(support) >= popcount(threats)
+                && !several(forwardFileMasks(US, sq) & myPawns);
             pkeval += PawnCandidatePasser[flag][relativeRankOf(US, sq)];
             if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
         }
