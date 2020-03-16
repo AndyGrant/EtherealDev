@@ -44,16 +44,19 @@
 #include "uci.h"
 #include "windows.h"
 
-int LMRTable[64][64];      // Late Move Reductions
+int LMRTable[64][64][2];   // Late Move Reductions
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
 void initSearch() {
 
     // Init Late Move Reductions Table
-    for (int depth = 1; depth < 64; depth++)
-        for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
+    for (int depth = 1; depth < 64; depth++) {
+        for (int played = 1; played < 64; played++) {
+            LMRTable[depth][played][0] = 0.75 + log(depth) * log(played) / 2.25;
+            LMRTable[depth][played][1] = 0.25 + log(depth) * log(played) / 2.25;
+        }
+    }
 }
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
@@ -465,7 +468,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)][inCheck];
 
             // Increase for non PV and non improving nodes
             R += !PvNode + !improving;
