@@ -112,9 +112,10 @@ void* iterativeDeepening(void *vthread) {
         for (thread->multiPV = 0; thread->multiPV < limits->multiPV; thread->multiPV++)
             aspirationWindow(thread);
 
-        // Occasionally skip depths using Laser's method
-        if (!mainThread && (thread->depth + cycle) % SkipDepths[cycle] == 0)
-            thread->depth += SkipSize[cycle];
+        // Occasionally skip depths on the helper threads
+        if (   !mainThread && thread->depth > SMPSplitDepth
+            && !((thread->depth + cycle) % SkipDepths[cycle]))
+            continue;
 
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;

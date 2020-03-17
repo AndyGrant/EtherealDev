@@ -43,9 +43,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height);
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold);
 int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height, int beta, int *multiCut);
 
-static const int SMPCycles      = 16;
-static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2, 1 };
-static const int SkipDepths[16] = { 1, 2, 2, 4, 4, 3, 2, 5, 4, 3, 2, 6, 5, 4, 3, 2 };
+static const int SMPCycles     = 8;
+static const int SMPSplitDepth = 6;
+static const int SkipDepths[8] = { 3, 2, 4, 2, 4, 1, 5, 3};
 
 static const int WindowDepth   = 5;
 static const int WindowSize    = 14;
