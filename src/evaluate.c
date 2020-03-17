@@ -1027,7 +1027,7 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     // This is mostly relevant in the opening and the early middlegame, while rarely correct
     // in the endgame where one rook or queen could control many uncontested squares.
     // Thus we don't apply this term when below a threshold of minors/majors count.
-    count = popcount(~ei->attacked[THEM] & ei->attacked[US] & friendly & CENTER_BIG);
+    count = popcount(~ei->attacked[THEM] & friendly & CENTER_BIG);
     eval += count * SpaceCenterControl;
     if (TRACE) T.SpaceCenterControl[US] += count;
 
