@@ -460,7 +460,32 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, depth);
 
-        // Step 13 (~249 elo). Late Move Reductions. Compute the reduction,
+        // Identify moves which are candidate singular moves
+        singular =  !RootNode
+                 &&  depth >= 8
+                 &&  move == ttMove
+                 &&  ttDepth >= depth - 2
+                 && (ttBound & BOUND_LOWER);
+
+        // Step 13 (~60 elo). Extensions. Search an additional ply when the move comes from the
+        // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
+        // extend moves which were not candidates for singularity, but are for positions that
+        // are in check, as well as moves which have excellent continuation history scores
+
+        extension = singular
+                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
+                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
+
+        // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
+        // If this happens, and the rBeta used for that proof is greater than beta, then we
+        // have multiple moves which appear to beat beta at a reduced depth.
+
+        if (singular && multiCut) {
+            revert(thread, board, move, height);
+            return MAX(ttValue - depth, -MATE);
+        }
+
+        // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
         if (isQuiet && depth > 2 && played > 1) {
 
@@ -476,6 +501,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
 
+            R += extension; // Terrible?
+
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
 
@@ -483,31 +510,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R  = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
-
-        // Identify moves which are candidate singular moves
-        singular =  !RootNode
-                 &&  depth >= 8
-                 &&  move == ttMove
-                 &&  ttDepth >= depth - 2
-                 && (ttBound & BOUND_LOWER);
-
-        // Step 14 (~60 elo). Extensions. Search an additional ply when the move comes from the
-        // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
-        // extend moves which were not candidates for singularity, but are for positions that
-        // are in check, as well as moves which have excellent continuation history scores
-
-        extension = singular
-                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
-                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
-
-        // Step 15. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
-        // If this happens, and the rBeta used for that proof is greater than beta, then we
-        // have multiple moves which appear to beat beta at a reduced depth.
-
-        if (singular && multiCut) {
-            revert(thread, board, move, height);
-            return MAX(ttValue - depth, -MATE);
-        }
 
         // Factor the extension into the new depth. Do not extend at the root
         newDepth = depth + (extension && !RootNode);
