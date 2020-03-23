@@ -284,6 +284,7 @@ const int KSSafeQueenCheck  =   95;
 const int KSSafeRookCheck   =   94;
 const int KSSafeBishopCheck =   51;
 const int KSSafeKnightCheck =  123;
+const int KSPieceImbalance  =   16;
 const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
@@ -806,16 +807,21 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
+        uint64_t us = board->colours[US], them = board->colours[THEM];
+        uint64_t pieces = board->pieces[KNIGHT] | board->pieces[BISHOP]
+                        | board->pieces[ROOK  ] | board->pieces[QUEEN ];
+
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
-        count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+        count += KSAttackValue     *  scaledAttackCounts
+               + KSWeakSquares     *  popcount(weak & ei->kingAreas[US])
+               + KSFriendlyPawns   *  popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeQueenCheck  *  popcount(queenChecks)
+               + KSSafeRookCheck   *  popcount(rookChecks)
+               + KSSafeBishopCheck *  popcount(bishopChecks)
+               + KSSafeKnightCheck *  popcount(knightChecks)
+               + KSPieceImbalance  * (popcount(pieces & them) - popcount(pieces & us))
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
