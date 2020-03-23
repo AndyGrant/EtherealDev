@@ -1163,6 +1163,16 @@ int evaluateScaleFactor(Board *board, int eval) {
         &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
         return SCALE_LARGE_PAWN_ADV;
 
+    uint64_t wpawns = white & pawns, bpawns = black & pawns;
+    wpawns |= wpawns >> 8; wpawns |= wpawns >> 16; wpawns |= wpawns >> 32; wpawns &= 0xFF;
+    bpawns |= bpawns >> 8; bpawns |= bpawns >> 16; bpawns |= bpawns >> 32; bpawns &= 0xFF;
+
+    if (bpawns == wpawns && !(pawns & (FILE_C | FILE_D)))
+        return SCALE_DRAGON_MIST;
+
+    if (bpawns == wpawns && !(pawns & (FILE_D | FILE_E)))
+        return SCALE_DRAGON_MIST;
+
     return SCALE_NORMAL;
 }
 
