@@ -359,7 +359,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         revert(thread, board, NULL_MOVE, height);
 
         if (value >= beta)
-            value = search(thread, pv, alpha, beta, MAX(1, depth-R), height);
+            value = search(thread, pv, alpha, beta, depth-R, height);
 
         if (value >= beta)
             return beta;
