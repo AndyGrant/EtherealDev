@@ -348,11 +348,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  eval >= beta
         &&  depth >= NullMovePruningDepth
         &&  thread->moveStack[height-1] != NULL_MOVE
-        &&  thread->moveStack[height-2] != NULL_MOVE
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200)
+          + 2 * thread->moveStack[height-2] == NULL_MOVE
+          + 2 * thread->moveStack[height-4] == NULL_MOVE;
 
         apply(thread, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
