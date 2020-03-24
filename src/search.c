@@ -358,7 +358,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
         revert(thread, board, NULL_MOVE, height);
 
-        if (value >= beta) return beta;
+        if (value >= beta)
+            value = search(thread, pv, alpha, beta, MAX(1, depth-R), height);
+
+        if (value >= beta)
+            return beta;
     }
 
     // Step 9 (~9 elo). Probcut Pruning. If we have a good capture that causes a cutoff
