@@ -367,7 +367,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
+        &&  eval + moveBestCaseValue(board) >= beta + 2 * ProbCutMargin) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
@@ -376,7 +376,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Perform a reduced depth verification search
             if (!apply(thread, board, move, height)) continue;
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-5, height+1);
             revert(thread, board, move, height);
 
             // Probcut failed high
