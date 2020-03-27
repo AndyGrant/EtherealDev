@@ -311,7 +311,7 @@ const int PassedEnemyDistance[8] = {
 
 const int PassedSafePromotionPath = S( -29,  37);
 
-const int PassedOpposingBishop = S(   0,   0);
+const int PassedOpposingBishop = S(   0,  -7);
 
 /* Threat Evaluation Terms */
 
