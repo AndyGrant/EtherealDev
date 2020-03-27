@@ -311,7 +311,7 @@ const int PassedEnemyDistance[8] = {
 
 const int PassedSafePromotionPath = S( -29,  37);
 
-const int PassedNoOpposingBishop = S(   0,   0);
+const int PassedOpposingBishop = S(   0,   0);
 
 /* Threat Evaluation Terms */
 
@@ -910,8 +910,8 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus when no enemy bishops exist to deny promotion
         sq = getlsb(bitboard & PROMOTION_RANKS);
         flag = !!(enemyBishops & squaresOfMatchingColour(sq));
-        eval += flag * PassedNoOpposingBishop;
-        if (TRACE) T.PassedNoOpposingBishop[US] += flag;
+        eval += flag * PassedOpposingBishop;
+        if (TRACE) T.PassedOpposingBishop[US] += flag;
     }
 
     return eval;
