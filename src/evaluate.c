@@ -311,6 +311,8 @@ const int PassedEnemyDistance[8] = {
 
 const int PassedSafePromotionPath = S( -29,  37);
 
+const int PassedNoOpposingBishop = S(   0,   0);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -13, -26);
@@ -867,9 +869,10 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
-    uint64_t myPassers = board->colours[US] & ei->passedPawns;
-    uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
-    uint64_t tempPawns = myPassers;
+    uint64_t myPassers    = board->colours[US] & ei->passedPawns;
+    uint64_t occupied     = board->colours[WHITE] | board->colours[BLACK];
+    uint64_t enemyBishops = board->colours[THEM] & board->pieces[BISHOP];
+    uint64_t tempPawns    = myPassers;
 
     // Evaluate each passed pawn
     while (tempPawns) {
@@ -903,6 +906,12 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         flag = !(bitboard & (board->colours[THEM] | ei->attacked[THEM]));
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus when no enemy bishops exist to deny promotion
+        sq = getlsb(bitboard & PROMOTION_RANKS);
+        flag = !!(enemyBishops & squaresOfMatchingColour(sq));
+        eval += flag * PassedNoOpposingBishop;
+        if (TRACE) T.PassedNoOpposingBishop[US] += flag;
     }
 
     return eval;
