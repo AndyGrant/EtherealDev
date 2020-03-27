@@ -61,6 +61,9 @@ static const int NullMovePruningDepth = 2;
 static const int ProbCutDepth = 5;
 static const int ProbCutMargin = 100;
 
+static const int HyperProbCutDepth = 10;
+static const int HyperProbCutMargin = 300;
+
 static const int FutilityMargin = 90;
 static const int FutilityMarginNoHistory = 256;
 static const int FutilityPruningDepth = 8;

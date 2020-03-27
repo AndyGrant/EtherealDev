@@ -365,6 +365,29 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // with an adjusted beta value at a reduced search depth, we expect that it
     // will cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
+        &&  abs(beta) < MATE_IN_MAX
+        &&  depth >= HyperProbCutDepth
+        &&  eval >= beta + HyperProbCutMargin) {
+
+        // Try tactical moves which maintain rBeta
+        rBeta = MIN(beta + HyperProbCutMargin, MATE - MAX_PLY - 1);
+        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+        while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+
+            // Perform a reduced depth verification search
+            if (!apply(thread, board, move, height)) continue;
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-6, height+1);
+            revert(thread, board, move, height);
+
+            // Probcut failed high
+            if (value >= rBeta) return value;
+        }
+    }
+
+    // Step 9 (~9 elo). Probcut Pruning. If we have a good capture that causes a cutoff
+    // with an adjusted beta value at a reduced search depth, we expect that it
+    // will cause a similar cutoff at this search depth, with a normal beta value
+    if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
