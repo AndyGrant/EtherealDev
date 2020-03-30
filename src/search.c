@@ -321,6 +321,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
+    int mybool = improving && height + depth <= 2 * thread->depth;
+
     // Reset Killer moves for our children
     thread->killers[height+1][0] = NONE_MOVE;
     thread->killers[height+1][1] = NONE_MOVE;
@@ -407,7 +409,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
                 && eval + futilityMargin <= alpha
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[mybool])
                 skipQuiets = 1;
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
@@ -421,19 +423,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quietsSeen >= LateMovePruningCounts[improving][depth])
+                && quietsSeen >= LateMovePruningCounts[mybool][depth])
                 skipQuiets = 1;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   depth <= CounterMovePruningDepth[improving]
-                && cmhist < CounterMoveHistoryLimit[improving])
+            if (   depth <= CounterMovePruningDepth[mybool]
+                && cmhist < CounterMoveHistoryLimit[mybool])
                 continue;
 
             // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
-            if (   depth <= FollowUpMovePruningDepth[improving]
-                && fmhist < FollowUpMoveHistoryLimit[improving])
+            if (   depth <= FollowUpMovePruningDepth[mybool]
+                && fmhist < FollowUpMoveHistoryLimit[mybool])
                 continue;
         }
 
