@@ -53,8 +53,8 @@ void initSearch() {
     // Init Late Move Reductions Table
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
-            LMRTable[0][depth][played] = 0.75 + log(depth) * log(played) / 2.55,
-            LMRTable[1][depth][played] = 0.75 + log(depth) * log(played) / 1.95;
+            LMRTable[0][depth][played] = 0.75 + log(depth) * log(played) / 2.25,
+            LMRTable[1][depth][played] = 0.75 + log(depth) * log(played) / 1.50;
 }
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
@@ -491,7 +491,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[depth + height > thread->depth][MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[depth + height > 2 * thread->depth][MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
