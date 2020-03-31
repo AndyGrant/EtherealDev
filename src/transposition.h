@@ -42,7 +42,7 @@ enum {
 };
 
 struct TTEntry {
-    int8_t depth;
+    uint8_t depth;
     uint8_t generation;
     int16_t eval, value;
     uint16_t move, hash16;

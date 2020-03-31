@@ -160,8 +160,8 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
+        if (   (int)(replace->depth & 0x7F) - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
+            >= (int)(slots[i].depth & 0x7F) - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
