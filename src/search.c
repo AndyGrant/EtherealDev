@@ -421,7 +421,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quietsSeen >= LateMovePruningCounts[improving][depth])
+                && (inCheck ? played : quietsSeen) >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
