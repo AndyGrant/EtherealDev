@@ -424,6 +424,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && quietsSeen >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
+            // SCAM pruning
+            if (   inCheck
+                && depth <= LateMovePruningDepth
+                && played >= LateMovePruningCounts[improving][depth])
+                skipQuiets = 1;
+
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
             if (   depth <= CounterMovePruningDepth[improving]
