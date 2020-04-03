@@ -57,6 +57,7 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
     }
 
     // Track some move information for history lookups
+    thread->extended[height] = 0;
     thread->moveStack[height] = move;
     thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 

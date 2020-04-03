@@ -476,6 +476,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
                   : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
 
+        extension &= singular || !thread->extended[height-1];
+
+        thread->extended[height] = extension;
+
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
         // have multiple moves which appear to beat beta at a reduced depth.

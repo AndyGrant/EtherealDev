@@ -38,11 +38,13 @@ Thread* createThreadPool(int nthreads) {
     for (int i = 0; i < nthreads; i++) {
 
         // Offset stacks so the root position may look backwards
+        threads[i].extended = &(threads[i]._extended[STACK_OFFSET]);
         threads[i].evalStack = &(threads[i]._evalStack[STACK_OFFSET]);
         threads[i].moveStack = &(threads[i]._moveStack[STACK_OFFSET]);
         threads[i].pieceStack = &(threads[i]._pieceStack[STACK_OFFSET]);
 
         // Zero out the stacks, most importantly the first four slots
+        memset(&threads[i]._extended, 0, sizeof(int) * STACK_SIZE);
         memset(&threads[i]._evalStack, 0, sizeof(int) * STACK_SIZE);
         memset(&threads[i]._moveStack, 0, sizeof(uint16_t) * STACK_SIZE);
         memset(&threads[i]._pieceStack, 0, sizeof(int) * STACK_SIZE);
