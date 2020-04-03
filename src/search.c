@@ -472,9 +472,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // extend moves which were not candidates for singularity, but are for positions that
         // are in check, as well as moves which have excellent continuation history scores
 
-        extension = singular
-                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
-                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
+        extension = !singular ? inCheck
+                  :  moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut);
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
@@ -500,6 +499,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
+
+
+            R -= quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000;
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
