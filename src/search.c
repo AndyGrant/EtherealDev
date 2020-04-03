@@ -495,6 +495,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
 
+            // Reduce for good continuation histories
+            R -= (cmhist >= 10000) + (fmhist >= 10000);
+
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
