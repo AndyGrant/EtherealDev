@@ -51,6 +51,7 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
+        thread->extended[height] = 0;
         thread->moveStack[height] = NULL_MOVE;
         applyNullMove(board, &thread->undoStack[height]);
         return 1;
