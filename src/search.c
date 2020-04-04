@@ -476,7 +476,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
                   : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
 
-        extension &= singular || !thread->extended[height-1];
+        extension &= singular || !thread->extended[height-1] || !thread->extended[height-2];
 
         thread->extended[height] = extension;
 
