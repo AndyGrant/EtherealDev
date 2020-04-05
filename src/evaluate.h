@@ -56,6 +56,9 @@ struct EvalTrace {
     int PawnStacked[2][COLOUR_NB];
     int PawnBackwards[2][8][COLOUR_NB];
     int PawnConnected32[32][COLOUR_NB];
+    int PawnKingFileProximity[8][COLOUR_NB];
+    int PawnKingShelter[2][8][8][COLOUR_NB];
+    int PawnKingStorm[2][4][8][COLOUR_NB];
     int KnightOutpost[2][2][COLOUR_NB];
     int KnightBehindPawn[COLOUR_NB];
     int KnightInSiberia[4][COLOUR_NB];
@@ -70,10 +73,7 @@ struct EvalTrace {
     int RookOnSeventh[COLOUR_NB];
     int RookMobility[15][COLOUR_NB];
     int QueenMobility[28][COLOUR_NB];
-    int KingPawnFileProximity[8][COLOUR_NB];
     int KingDefenders[12][COLOUR_NB];
-    int KingShelter[2][8][8][COLOUR_NB];
-    int KingStorm[2][4][8][COLOUR_NB];
     int PassedPawn[2][2][8][COLOUR_NB];
     int PassedFriendlyDistance[8][COLOUR_NB];
     int PassedEnemyDistance[8][COLOUR_NB];
@@ -121,8 +121,7 @@ struct EvalInfo {
     PKEntry *pkentry;
 };
 
-int evaluateBoard(Board *board, PKTable *pktable, int contempt);
-int evaluatePieces(EvalInfo *ei, Board *board);
+int evaluate(Thread *thread);
 int evaluatePawns(EvalInfo *ei, Board *board, int colour);
 int evaluateKnights(EvalInfo *ei, Board *board, int colour);
 int evaluateBishops(EvalInfo *ei, Board *board, int colour);

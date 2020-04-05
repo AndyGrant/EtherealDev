@@ -60,6 +60,9 @@ extern const int PawnIsolated;
 extern const int PawnStacked[2];
 extern const int PawnBackwards[2][8];
 extern const int PawnConnected32[32];
+extern const int PawnKingFileProximity[8];
+extern const int PawnKingShelter[2][8][8];
+extern const int PawnKingStorm[2][4][8];
 extern const int KnightOutpost[2][2];
 extern const int KnightBehindPawn;
 extern const int KnightInSiberia[4];
@@ -75,9 +78,6 @@ extern const int RookOnSeventh;
 extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingPawnFileProximity[8];
-extern const int KingShelter[2][8][8];
-extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
 extern const int PassedEnemyDistance[8];
@@ -171,7 +171,6 @@ void runTexelTuning(Thread *thread) {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
-    Undo undo[1];
     Limits limits;
     char line[128];
     int i, j, k, searchEval, coeffs[NTERMS];
@@ -207,7 +206,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         boardFromFEN(&thread->board, line, 0);
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; j++)
-            applyMove(&thread->board, thread->pv.line[j], undo);
+            apply(thread, &thread->board, thread->pv.line[j], j);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -225,7 +224,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Vectorize the evaluation coefficients and save the eval
         // relative to WHITE. We must first clear the coeff vector.
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
+        tes[i].eval = evaluate(thread);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 

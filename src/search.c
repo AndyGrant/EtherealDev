@@ -242,8 +242,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (boardIsDrawn(board, height)) return 1 - (thread->nodes & 2);
 
         // Check to see if we have exceeded the maxiumum search draft
-        if (height >= MAX_PLY)
-            return evaluateBoard(board, &thread->pktable, thread->contempt);
+        if (height >= MAX_PLY) return evaluate(thread);
 
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in
@@ -308,7 +307,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // can recompute the eval as `eval = -last_eval + 2 * Tempo`
     eval = thread->evalStack[height] =
            ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
+         : thread->moveStack[height-1] != NULL_MOVE ?  evaluate(thread)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
     // Futility Pruning Margin
@@ -611,8 +610,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     // Step 3. Max Draft Cutoff. If we are at the maximum search draft,
     // then end the search here with a static eval of the current board
-    if (height >= MAX_PLY)
-        return evaluateBoard(board, &thread->pktable, thread->contempt);
+    if (height >= MAX_PLY) return evaluate(thread);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
@@ -631,7 +629,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // can recompute the eval as `eval = -last_eval + 2 * Tempo`
     eval = thread->evalStack[height] =
            ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
+         : thread->moveStack[height-1] != NULL_MOVE ?  evaluate(thread)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
     // Step 5. Eval Pruning. If a static evaluation of the board will

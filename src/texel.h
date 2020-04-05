@@ -25,11 +25,11 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (     25) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (      5) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
-#define BATCHSIZE    (  16384) // FENs per mini-batch
+#define BATCHSIZE    (7400000) // FENs per mini-batch
 #define NPOSITIONS   (7400000) // Total FENS in the book
 
 #define STATICWEIGHT (   0.50) // Weight of the Static Evaluation
@@ -37,11 +37,11 @@
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 8))
 
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
-#define TuneRookValue                   (0)
-#define TuneQueenValue                  (0)
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
+#define TuneRookValue                   (1)
+#define TuneQueenValue                  (1)
 #define TuneKingValue                   (0)
 #define TunePawnPSQT32                  (0)
 #define TuneKnightPSQT32                (0)
@@ -54,6 +54,9 @@
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
 #define TunePawnConnected32             (0)
+#define TunePawnKingFileProximity       (0)
+#define TunePawnKingShelter             (0)
+#define TunePawnKingStorm               (0)
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
 #define TuneKnightInSiberia             (0)
@@ -69,9 +72,6 @@
 #define TuneRookMobility                (0)
 #define TuneQueenMobility               (0)
 #define TuneKingDefenders               (0)
-#define TuneKingPawnFileProximity       (0)
-#define TuneKingShelter                 (0)
-#define TuneKingStorm                   (0)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
@@ -251,6 +251,9 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, PawnStacked, 2, NORMAL);                    \
     ENABLE_2(fname, PawnBackwards, 2, 8, NORMAL);               \
     ENABLE_1(fname, PawnConnected32, 32, NORMAL);               \
+    ENABLE_1(fname, PawnKingFileProximity, 8, NORMAL);          \
+    ENABLE_3(fname, PawnKingShelter, 2, 8, 8, NORMAL);          \
+    ENABLE_3(fname, PawnKingStorm, 2, 4, 8, NORMAL);            \
     ENABLE_2(fname, KnightOutpost, 2, 2, NORMAL);               \
     ENABLE_0(fname, KnightBehindPawn, NORMAL);                  \
     ENABLE_1(fname, KnightInSiberia, 4, NORMAL);                \
@@ -266,9 +269,6 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
     ENABLE_1(fname, RookMobility, 15, NORMAL);                  \
     ENABLE_1(fname, QueenMobility, 28, NORMAL);                 \
     ENABLE_1(fname, KingDefenders, 12, NORMAL);                 \
-    ENABLE_1(fname, KingPawnFileProximity, 8, NORMAL);          \
-    ENABLE_3(fname, KingShelter, 2, 8, 8, NORMAL);              \
-    ENABLE_3(fname, KingStorm, 2, 4, 8, NORMAL);                \
     ENABLE_3(fname, PassedPawn, 2, 2, 8, NORMAL);               \
     ENABLE_1(fname, PassedFriendlyDistance, 8, NORMAL);         \
     ENABLE_1(fname, PassedEnemyDistance, 8, NORMAL);            \
