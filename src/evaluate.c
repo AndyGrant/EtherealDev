@@ -1211,7 +1211,7 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
     // Try to read a hashed Pawn King Eval. Otherwise, start from scratch
-    ei->pkentry       =     pktable == NULL ? NULL : getPKEntry(pktable, board->pkhash);
+    ei->pkentry       = getPKEntry(pktable, board->pkhash);
     ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
     ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;

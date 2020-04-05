@@ -184,8 +184,15 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
 }
 
 PKEntry* getPKEntry(PKTable *pktable, uint64_t pkhash) {
+#ifndef TUNE
+    // When not tuning, compute a hash and check for a match
     PKEntry *pkentry = &pktable->entries[pkhash >> PKT_HASH_SHIFT];
     return pkentry->pkhash == pkhash ? pkentry : NULL;
+#else
+    // When tuning, surpress warnings and return NULL
+    (void) pktable; (void) pkhash;
+    return NULL;
+#endif
 }
 
 void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, int eval) {
