@@ -38,10 +38,10 @@ void initSearch();
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder);
 void* iterativeDeepening(void *vthread);
 void aspirationWindow(Thread *thread);
-int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height);
-int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height);
+int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth);
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta);
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold);
-int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height, int beta, int *multiCut);
+int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int beta, int *multiCut);
 
 static const int SMPCycles      = 16;
 static const int SkipSize[16]   = { 1, 1, 1, 2, 2, 2, 1, 3, 2, 2, 1, 3, 3, 2, 2, 1 };

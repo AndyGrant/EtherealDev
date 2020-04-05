@@ -81,9 +81,13 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
     // our own copy of the board. Also, we reset the seach statistics
 
     for (int i = 0; i < threads->nthreads; i++) {
+
         threads[i].limits = limits;
         threads[i].info = info;
+
+        threads[i].height = threads[i].depth = 0;
         threads[i].nodes = threads[i].tbhits = 0ull;
+
         memcpy(&threads[i].board, board, sizeof(Board));
 
         // Build contempt score for the side to move using UCI settings

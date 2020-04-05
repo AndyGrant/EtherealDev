@@ -47,36 +47,39 @@ int castleRookTo(int king, int rook) {
     return square(rankOf(king), (rook > king) ? 5 : 3);
 }
 
-int apply(Thread *thread, Board *board, uint16_t move, int height) {
+int apply(Thread *thread, Board *board, uint16_t move) {
 
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
-        thread->moveStack[height] = NULL_MOVE;
-        applyNullMove(board, &thread->undoStack[height]);
+        thread->moveStack[thread->height] = NULL_MOVE;
+        applyNullMove(board, &thread->undoStack[thread->height]);
+        thread->height++;
         return 1;
     }
 
     // Track some move information for history lookups
-    thread->moveStack[height] = move;
-    thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
+    thread->moveStack[thread->height] = move;
+    thread->pieceStack[thread->height] = pieceType(board->squares[MoveFrom(move)]);
 
     // Apply the move and reject if illegal
-    applyMove(board, move, &thread->undoStack[height]);
+    applyMove(board, move, &thread->undoStack[thread->height]);
     if (!moveWasLegal(board))
-        return revertMove(board, move, &thread->undoStack[height]), 0;
+        return revertMove(board, move, &thread->undoStack[thread->height]), 0;
 
+    thread->height++;
     return 1;
 }
 
-void applyLegal(Thread *thread, Board *board, uint16_t move, int height) {
+void applyLegal(Thread *thread, Board *board, uint16_t move) {
 
     // Track some move information for history lookups
-    thread->moveStack[height] = move;
-    thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
+    thread->moveStack[thread->height] = move;
+    thread->pieceStack[thread->height] = pieceType(board->squares[MoveFrom(move)]);
 
     // Assumed that this move is legal
-    applyMove(board, move, &thread->undoStack[height]);
+    applyMove(board, move, &thread->undoStack[thread->height]);
     assert(moveWasLegal(board));
+    thread->height++;
 }
 
 void applyMove(Board *board, uint16_t move, Undo *undo) {
@@ -329,9 +332,9 @@ void applyNullMove(Board *board, Undo *undo) {
     }
 }
 
-void revert(Thread *thread, Board *board, uint16_t move, int height) {
-    if (move == NULL_MOVE) revertNullMove(board, &thread->undoStack[height]);
-    else revertMove(board, move, &thread->undoStack[height]);
+void revert(Thread *thread, Board *board, uint16_t move) {
+    if (move == NULL_MOVE) revertNullMove(board, &thread->undoStack[--thread->height]);
+    else revertMove(board, move, &thread->undoStack[--thread->height]);
 }
 
 void revertMove(Board *board, uint16_t move, Undo *undo) {
