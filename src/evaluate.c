@@ -24,6 +24,7 @@
 #include "board.h"
 #include "evaluate.h"
 #include "masks.h"
+#include "move.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
@@ -364,6 +365,10 @@ int evaluate(Thread *thread) {
     EvalInfo ei;
     int phase, factor, eval;
     Board *const board = &thread->board;
+
+    // If the last move was NULL, the only difference is Tempo
+    if (thread->moveStack[thread->height-1] == NULL_MOVE)
+        return -thread->evalStack[thread->height-1] + 2 * Tempo;
 
     // Setup some internal tracking for the evaluation
     initEvalInfo(&ei, board, &thread->pktable);

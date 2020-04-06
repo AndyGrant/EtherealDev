@@ -302,13 +302,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
-    // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
-    // can recompute the eval as `eval = -last_eval + 2 * Tempo`
-    eval = thread->evalStack[thread->height] =
-           ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[thread->height-1] != NULL_MOVE ?  evaluate(thread)
-                                                    : -thread->evalStack[thread->height-1] + 2 * Tempo;
+    // Save a history of static evals. Use the TT's eval if possible
+    eval = ttHit && ttEval != VALUE_NONE ? ttEval : evaluate(thread);
+    thread->evalStack[thread->height] = eval;
 
     // Futility Pruning Margin
     futilityMargin = FutilityMargin * depth;
@@ -624,13 +620,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             return ttValue;
     }
 
-    // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
-    // can recompute the eval as `eval = -last_eval + 2 * Tempo`
-    eval = thread->evalStack[thread->height] =
-           ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[thread->height-1] != NULL_MOVE ?  evaluate(thread)
-                                                    : -thread->evalStack[thread->height-1] + 2 * Tempo;
+    // Save a history of static evals. Use the TT's eval if possible
+    eval = ttHit && ttEval != VALUE_NONE ? ttEval : evaluate(thread);
+    thread->evalStack[thread->height] = eval;
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
