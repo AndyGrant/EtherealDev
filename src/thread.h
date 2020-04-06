@@ -47,6 +47,7 @@ struct Thread {
     int depth, seldepth;
     uint64_t nodes, tbhits;
 
+    int *historyStack, _historyStack[STACK_SIZE];
     int *evalStack, _evalStack[STACK_SIZE];
     uint16_t *moveStack, _moveStack[STACK_SIZE];
     int *pieceStack, _pieceStack[STACK_SIZE];

@@ -451,8 +451,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             continue;
 
         played += 1;
-        if (isQuiet)
+        if (isQuiet) {
             quietsTried[quietsPlayed++] = move;
+            thread->historyStack[height] = hist + cmhist + fmhist;
+        }
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
@@ -472,9 +474,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // extend moves which were not candidates for singularity, but are for positions that
         // are in check, as well as moves which have excellent continuation history scores
 
+        int history = hist + cmhist + fmhist;
+        int ophistory = thread->historyStack[height-1];
+
         extension = singular
                   ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
-                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
+                  : inCheck || (isQuiet && history >= 32000 && history > ophistory);
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we

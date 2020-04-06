@@ -51,12 +51,14 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
+        thread->historyStack[height] = 0;
         thread->moveStack[height] = NULL_MOVE;
         applyNullMove(board, &thread->undoStack[height]);
         return 1;
     }
 
-    // Track some move information for history lookups
+    // Track some information for history lookups
+    thread->historyStack[height] = 0;
     thread->moveStack[height] = move;
     thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 
@@ -70,7 +72,8 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
 void applyLegal(Thread *thread, Board *board, uint16_t move, int height) {
 
-    // Track some move information for history lookups
+    // Track some information for history lookups
+    thread->historyStack[height] = 0;
     thread->moveStack[height] = move;
     thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 
