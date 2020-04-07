@@ -470,11 +470,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Step 13 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend moves which were not candidates for singularity, but are for positions that
-        // are in check, as well as moves which have excellent continuation history scores
+        // are in check, as well as moves which have excellent continuation history scores. We
+        // take care to avoid extending non-pv lines too far beyond the intitial search depth.
 
-        extension = singular
-                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
-                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
+        extension  =  isQuiet
+                  &&  cmhist >= HistExtensionLimit
+                  &&  fmhist >= HistExtensionLimit
+                  &&  quietsSeen <= HistExtensionCutoff;
+                  && (PvNode || depth + height < thread->depth);
+
+        extension = !singular ? inCheck || extension
+                  : moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut);
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
