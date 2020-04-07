@@ -474,10 +474,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // take care to avoid extending non-pv lines too far beyond the intitial search depth.
 
         extension  =  isQuiet
-                  &&  cmhist >= HistExtensionLimit
-                  &&  fmhist >= HistExtensionLimit
-                  &&  quietsSeen <= HistExtensionCutoff
-                  && (PvNode || depth + height < thread->depth);
+                  &&  cmhist >= HistoryExtensionLimit
+                  &&  fmhist >= HistoryExtensionLimit
+                  &&  quietsSeen <= HistoryExtensionCutoff
+                  && (PvNode || depth + height < 2 * thread->depth);
 
         extension = !singular ? inCheck || extension
                   : moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut);
