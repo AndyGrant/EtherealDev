@@ -476,7 +476,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         extension  =  isQuiet
                   &&  cmhist >= HistExtensionLimit
                   &&  fmhist >= HistExtensionLimit
-                  &&  quietsSeen <= HistExtensionCutoff;
+                  &&  quietsSeen <= HistExtensionCutoff
                   && (PvNode || depth + height < thread->depth);
 
         extension = !singular ? inCheck || extension
