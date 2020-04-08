@@ -40,6 +40,12 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
+    if (counter == NULL_MOVE) {
+        counter = thread->moveStack[height-3];
+        cmPiece = thread->pieceStack[height-3];
+        cmTo = MoveTo(counter);
+    }
+
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
 
@@ -101,6 +107,12 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
+    if (counter == NULL_MOVE) {
+        counter = thread->moveStack[height-3];
+        cmPiece = thread->pieceStack[height-3];
+        cmTo = MoveTo(counter);
+    }
+
     // Set basic Butterfly history
     *hist = thread->history[thread->board.turn][from][to];
 
@@ -124,6 +136,12 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
     uint16_t follow = thread->moveStack[height-2];
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
+
+    if (counter == NULL_MOVE) {
+        counter = thread->moveStack[height-3];
+        cmPiece = thread->pieceStack[height-3];
+        cmTo = MoveTo(counter);
+    }
 
     for (int i = start; i < start + length; i++) {
 
