@@ -43,7 +43,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     if (follow == NULL_MOVE) {
         follow = thread->moveStack[height-4];
         fmPiece = thread->pieceStack[height-4];
-        fmTo = MoveTo(counter);
+        fmTo = MoveTo(follow);
     }
 
 
@@ -111,7 +111,7 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     if (follow == NULL_MOVE) {
         follow = thread->moveStack[height-4];
         fmPiece = thread->pieceStack[height-4];
-        fmTo = MoveTo(counter);
+        fmTo = MoveTo(follow);
     }
 
     // Set basic Butterfly history
@@ -141,7 +141,7 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
     if (follow == NULL_MOVE) {
         follow = thread->moveStack[height-4];
         fmPiece = thread->pieceStack[height-4];
-        fmTo = MoveTo(counter);
+        fmTo = MoveTo(follow);
     }
 
     for (int i = start; i < start + length; i++) {
