@@ -489,7 +489,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1) {
+        if (isQuiet && newDepth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
@@ -507,7 +507,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
 
             // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
+            R  = MIN(newDepth - 1, MAX(R, 1));
 
         } else R = 1;
 
