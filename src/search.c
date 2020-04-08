@@ -435,6 +435,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             if (   depth <= FollowUpMovePruningDepth[improving]
                 && fmhist < FollowUpMoveHistoryLimit[improving])
                 continue;
+
+            // Step 11F. Null Move Reversion. Skip moves that return to the position
+            // which was so bad that our opponent was comfortable making a NULL move
+            if (    thread->moveStack[height-1] == NULL_MOVE
+                &&  MoveFrom(move) == MoveTo(thread->moveStack[height-2])
+                &&  MoveTo(move)   == MoveFrom(thread->moveStack[height-2])
+                &&  MoveType(move) == MoveType(thread->moveStack[height-2]))
+                continue;
         }
 
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
