@@ -152,6 +152,12 @@ void getRefutationMoves(Thread *thread, int height, uint16_t *killer1, uint16_t 
     int cmPiece = thread->pieceStack[height-1];
     int cmTo = MoveTo(previous);
 
+    if (previous == NULL_MOVE) {
+        previous = thread->moveStack[height-3];
+        cmPiece = thread->pieceStack[height-3];
+        cmTo = MoveTo(previous);
+    }
+
     // Set Killer Moves by height
     *killer1 = thread->killers[height][0];
     *killer2 = thread->killers[height][1];
