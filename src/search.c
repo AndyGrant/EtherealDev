@@ -494,8 +494,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             /// Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+            // Increase for non PV, non improving
+            R += !PvNode + !improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
