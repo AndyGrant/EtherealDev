@@ -476,6 +476,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
                   : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
 
+        extension = extension && !RootNode;
+
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
         // have multiple moves which appear to beat beta at a reduced depth.
@@ -509,8 +511,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         } else R = 1;
 
-        // Factor the extension into the new depth. Do not extend at the root
-        newDepth = depth + (extension && !RootNode);
+        // Factor the extension into the new depth
+        newDepth = depth + extension;
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
