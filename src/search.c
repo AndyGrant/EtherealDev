@@ -417,6 +417,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
                 skipQuiets = 1;
 
+            if (   depth <= FutilityPruningDepth
+                && eval + futilityMargin <= alpha
+                && thread->moveStack[height-1] == NULL_MOVE
+                && hist + fmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                skipQuiets = 1;
+
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
