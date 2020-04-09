@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-static const int HistoryMax = 400;
+static const int HistoryMax = 144;
 static const int HistoryMultiplier = 32;
 static const int HistoryDivisor = 512;
 
