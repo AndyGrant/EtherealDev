@@ -372,7 +372,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Try tactical moves which maintain rBeta
         rBeta = thread->moveStack[height-1] != NULL_MOVE
               ? MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1)
-              : MIN(beta + ProbCutMargin / 2, MATE - MAX_PLY - 1);
+              : MIN(beta, MATE - MAX_PLY - 1);
 
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
