@@ -482,7 +482,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         if (singular && multiCut) {
             revert(thread, board, move, height);
-            return MAX(ttValue - depth, -MATE);
+            best = MAX(ttValue - depth, -MATE);
+            break;
         }
 
         // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
