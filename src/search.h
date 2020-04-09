@@ -86,7 +86,6 @@ static const int SEEPieceValues[] = {
     1300,    0,    0,    0,
 };
 
-static const int HistExtensionCutoff = 4;
 static const int HistExtensionLimit = 10000;
 
 static const int QSEEMargin = 1;
