@@ -370,13 +370,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
         // Try tactical moves which maintain rBeta
+        R = thread->moveStack[height-1] == NULL_MOVE ? 6 : 4;
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Perform a reduced depth verification search
             if (!apply(thread, board, move, height)) continue;
-            value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+            value = -search(thread, &lpv, -rBeta, -rBeta+1, MAX(1, depth-R), height+1);
             revert(thread, board, move, height);
 
             // Probcut failed high
