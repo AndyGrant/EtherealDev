@@ -482,6 +482,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         if (singular && multiCut) {
             revert(thread, board, move, height);
+            if (!moveIsTactical(board, bestMove))
+                updateHistoryHeuristics(thread, &move, 1, height, depth*depth);
             return MAX(ttValue - depth, -MATE);
         }
 
