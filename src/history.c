@@ -40,13 +40,6 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    if (follow == NULL_MOVE) {
-        follow = thread->moveStack[height-4];
-        fmPiece = thread->pieceStack[height-4];
-        fmTo = MoveTo(follow);
-    }
-
-
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
 
