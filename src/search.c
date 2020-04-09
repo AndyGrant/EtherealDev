@@ -483,6 +483,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (singular && multiCut) {
             revert(thread, board, move, height);
             best = MAX(ttValue - depth, -MATE);
+            bestMove = move;
             break;
         }
 
