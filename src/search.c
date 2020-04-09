@@ -495,8 +495,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
 
-            // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+            // Increase for royal moves that evade checks without returning them
+            R += (inCheck && !board->kingAttackers)
+              &&  pieceType(board->squares[MoveTo(move)]) >= QUEEN;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
