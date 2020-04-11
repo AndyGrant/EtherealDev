@@ -433,7 +433,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
-
             if (  !(PvNode || improving)
                 &&  depth <= FollowUpMovePruningDepth
                 &&  fmhist <= FollowUpMoveHistoryLimit)
