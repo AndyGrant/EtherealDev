@@ -34,7 +34,7 @@ int PSQT[32][SQUARE_NB];
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S( 105, 118);
+const int PawnValue   = S( 100, 118);
 const int KnightValue = S( 449, 410);
 const int BishopValue = S( 473, 423);
 const int RookValue   = S( 654, 684);
