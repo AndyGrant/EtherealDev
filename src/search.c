@@ -401,7 +401,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > MATED_IN_MAX) {
+        if (isQuiet && best > MATED_IN_MAX && !RootNode) {
 
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
@@ -440,7 +440,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (    best > MATED_IN_MAX
+        if (   !RootNode
+            &&  best > MATED_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
