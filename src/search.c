@@ -802,15 +802,15 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         // Move failed high, thus ttMove is not singular
         if (value > rBeta) break;
 
+        // Don't skip when a cutoff would lead to a MultiCut
+        if (rBeta >= beta) continue;
+
         // Start skipping quiets after a few have been attempted
         moveIsTactical(board, move) ? tacticals++ : quiets++;
         skipQuiets = quiets >= SingularQuietLimit;
 
-        // Once we have decided to skip quiets, we will consider skipping
-        // any remaining tactical moves. In essence, we will skip some of
-        // the bad captures, if we have already skipped the quiet moves
-        if (skipQuiets && tacticals >= SingularTacticalLimit)
-            break;
+        // Once we begin skipping both move types, we are done
+        if (skipQuiets && tacticals >= SingularTacticalLimit) break;
     }
 
     // Reapply the table move we took off
