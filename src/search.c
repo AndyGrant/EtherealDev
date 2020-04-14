@@ -511,7 +511,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Factor the extension into the new depth. Do not extend at the root,
         // also don't deny what would normal be reduced to a depth 1 Leaf node
-        newDepth = depth + (extension && !RootNode && depth - R > 1);
+        newDepth = depth + (extension && !RootNode && R <= 3);
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
