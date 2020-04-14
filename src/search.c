@@ -469,12 +469,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 13 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
-        // extend moves which were not candidates for singularity, but are for positions that
-        // are in check, as well as moves which have excellent continuation history scores
+        // extend for any position where our King is checked.
 
-        extension = singular
-                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
-                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
+        extension = !singular ? inCheck && !RootNode
+                  :  moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut);
+
+        newDepth = depth + extension;
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
@@ -493,7 +493,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+            R += !PvNode + !improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
@@ -508,9 +508,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R  = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
-
-        // Factor the extension into the new depth. Do not extend at the root
-        newDepth = depth + (extension && !RootNode);
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
