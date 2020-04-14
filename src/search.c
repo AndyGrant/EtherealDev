@@ -474,7 +474,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         extension = singular
                   ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
-                  : inCheck || (isQuiet && quietsSeen <= 4 && cmhist >= 10000 && fmhist >= 10000);
+                  : inCheck || (isQuiet && cmhist >= 10000 && fmhist >= 10000);
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
@@ -502,7 +502,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+            R -= MAX(-3, MIN(3, (hist + cmhist + fmhist) / 6000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
@@ -510,6 +510,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         } else R = 1;
 
         // Factor the extension into the new depth. Do not extend at the root
+        if (!inCheck && !singular && !PvNode && extension && R > 1)
+            R--, extension--;
+
         newDepth = depth + (extension && !RootNode);
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
