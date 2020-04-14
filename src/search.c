@@ -442,7 +442,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // is a speedup, which assumes that good noisy moves have a positive SEE
         if (    best > MATED_IN_MAX
             &&  depth <= SEEPruningDepth
-            &&  movePicker.stage > STAGE_GOOD_NOISY
+            && (isQuiet || movePicker.stage == STAGE_BAD_NOISY)
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
