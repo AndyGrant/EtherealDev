@@ -507,9 +507,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
             }
 
-            // For bad noisy moves, reduce important nodes
+            // For bad noisy moves, reduce PvNodes
             else if (movePicker.stage == STAGE_BAD_NOISY)
-                 R -= PvNode + improving + extension;
+                 R -= PvNode;
 
             // Don't apply LMR to good noisy moves
             else R = 1;
