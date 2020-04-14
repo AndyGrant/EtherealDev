@@ -509,7 +509,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // For bad noisy moves, use the normal formula
             else if (movePicker.stage == STAGE_BAD_NOISY)
-                R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+                R = LMRTable[MIN(depth, 63)][MIN(played, 63)] / 2;
 
             // Don't apply LMR to good noisy moves
             else R = 1;
