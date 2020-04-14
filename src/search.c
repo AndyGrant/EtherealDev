@@ -492,7 +492,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+            R += !PvNode + !improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
@@ -501,7 +501,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(4, (hist + cmhist + fmhist) / 6750));
+            R -= MAX(-2, MIN(4, (hist + cmhist + fmhist) / 7500));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
