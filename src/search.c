@@ -493,7 +493,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+            R += !PvNode + !improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
@@ -510,7 +510,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         } else R = 1;
 
         // Factor the extension into the new depth. Do not extend at the root
-        newDepth = depth + (extension && !RootNode && (PvNode || R <= 2));
+        newDepth = depth + (extension && !RootNode && (PvNode || R == 1));
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
