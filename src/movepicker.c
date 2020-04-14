@@ -68,9 +68,13 @@ static void evaluateNoisyMoves(MovePicker *mp) {
         else if ((mp->moves[i] & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
             mp->values[i] += MVVLVAValues[QUEEN];
 
+        // Always consider under promotions to be bad noisy moves
+        else if (MoveType(mp->moves[i]) == PROMOTION_MOVE)
+            mp->values[i] = -1;
+
         // We may flag a move with the value -1, to indicate that it was
         // designated as a bad noisy move while in STAGE_GENERATE_NOISY
-        assert(mp->values[i] >= 0);
+        assert(mp->values[i] >= 0 || MoveType(mp->moves[i]) == PROMOTION_MOVE);
     }
 }
 
