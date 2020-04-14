@@ -505,17 +505,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
                 // Adjust based on history scores
                 R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
-
-                // Don't extend or drop into QS
-                R  = MIN(depth - 1, MAX(R, 1));
             }
 
-            // For bad noisy moves, use half the normal formula
+            // For bad noisy moves, use the normal formula
             else if (movePicker.stage == STAGE_BAD_NOISY)
-                R = LMRTable[MIN(depth, 63)][MIN(played, 63)] / 2;
+                R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Don't apply LMR to good noisy moves
             else R = 1;
+
+            // Don't extend or drop into QS
+            R  = MIN(depth - 1, MAX(R, 1));
 
         } else R = 1;
 
