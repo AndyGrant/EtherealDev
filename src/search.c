@@ -487,25 +487,32 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1) {
+        if (depth > 2 && played > 1) {
 
-            /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            // Use the LMR Formula as a starting point
+            R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+            if (isQuiet) {
 
-            // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+                // Increase for non PV, non improving, and extended nodes
+                R += !PvNode + !improving + extension;
 
-            // Reduce for Killers and Counters
-            R -= movePicker.stage < STAGE_QUIET;
+                // Increase for King moves that evade checks
+                R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+                // Reduce for Killers and Counters
+                R -= movePicker.stage < STAGE_QUIET;
 
-            // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
+                // Adjust based on history scores
+                R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+
+                // Don't extend or drop into QS
+                R  = MIN(depth - 1, MAX(R, 1));
+            }
+
+            // Only apply LMR to the bad noisy moves
+            else if (movePicker.stage != STAGE_BAD_NOISY)
+                R = 1;
 
         } else R = 1;
 
