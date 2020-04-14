@@ -489,10 +489,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // allow the later steps to perform the reduced searches
         if (depth > 2 && played > 1) {
 
-            // Use the LMR Formula as a starting point
-            R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
-
             if (isQuiet) {
+
+                // Use the LMR Formula as a starting point
+                R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
                 // Increase for non PV, non improving, and extended nodes
                 R += !PvNode + !improving + extension;
@@ -510,9 +510,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 R  = MIN(depth - 1, MAX(R, 1));
             }
 
-            // Only apply LMR to the bad noisy moves
-            else if (movePicker.stage != STAGE_BAD_NOISY)
-                R = 1;
+            // For bad noisy moves, use half the normal formula
+            else if (movePicker.stage == STAGE_BAD_NOISY)
+                R = LMRTable[MIN(depth, 63)][MIN(played, 63)] / 2;
+
+            // Don't apply LMR to good noisy moves
+            else R = 1;
 
         } else R = 1;
 
