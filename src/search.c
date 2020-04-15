@@ -206,7 +206,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, multiCut, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
-    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
+    uint16_t move, refutation, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
 
@@ -473,10 +473,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // with very strong continuation histories, so long as they are along the PV line
 
         extension = singular
-                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut)
+                  ? moveIsSingular(thread, ttMove, ttValue, depth, height, beta, &multiCut, &refutation)
                   : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
 
         newDepth = depth + (extension && !RootNode);
+
+        if (singular) movePicker.refutation = refutation;
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used for that proof is greater than beta, then we
@@ -774,7 +776,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     return board->turn != colour;
 }
 
-int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height, int beta, int *multiCut) {
+int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height, int beta, int *multiCut, uint16_t *refutation) {
 
     Board *const board = &thread->board;
 
@@ -783,6 +785,8 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
+
+    *refutation = NONE_MOVE;
 
     // Table move was already applied
     revert(thread, board, ttMove, height);
@@ -799,7 +803,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         revert(thread, board, move, height);
 
         // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
+        if (value > rBeta) { *refutation = move; break; }
 
         // Start skipping quiets after a few have been attempted
         moveIsTactical(board, move) ? tacticals++ : quiets++;
