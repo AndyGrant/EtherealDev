@@ -184,18 +184,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 return selectNextMove(mp, board, skipQuiets);
             }
 
-            mp->stage = STAGE_REFUTATION;
-
-            /* fallthrough */
-
-        case STAGE_REFUTATION:
-
-            // Play refutation move if it is pseudo legal
             mp->stage = STAGE_KILLER_1;
-            if (   !skipQuiets
-                &&  mp->refutation != mp->tableMove
-                &&  moveIsPseudoLegal(board, mp->refutation))
-                return mp->refutation;
 
             /* fallthrough */
 
@@ -205,7 +194,6 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             mp->stage = STAGE_KILLER_2;
             if (   !skipQuiets
                 &&  mp->killer1 != mp->tableMove
-                &&  mp->killer1 != mp->refutation
                 &&  moveIsPseudoLegal(board, mp->killer1))
                 return mp->killer1;
 
@@ -217,7 +205,6 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             mp->stage = STAGE_COUNTER_MOVE;
             if (   !skipQuiets
                 &&  mp->killer2 != mp->tableMove
-                &&  mp->killer2 != mp->refutation
                 &&  moveIsPseudoLegal(board, mp->killer2))
                 return mp->killer2;
 
@@ -226,14 +213,27 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_COUNTER_MOVE:
 
             // Play counter move if not yet played, and pseudo legal
-            mp->stage = STAGE_GENERATE_QUIET;
+            mp->stage = STAGE_REFUTATION;
             if (   !skipQuiets
                 &&  mp->counter != mp->tableMove
-                &&  mp->counter != mp->refutation
                 &&  mp->counter != mp->killer1
                 &&  mp->counter != mp->killer2
                 &&  moveIsPseudoLegal(board, mp->counter))
                 return mp->counter;
+
+            /* fallthrough */
+
+        case STAGE_REFUTATION:
+
+            // Play refutation move if it is pseudo legal
+            mp->stage = STAGE_GENERATE_QUIET;
+            if (   !skipQuiets
+                &&  mp->refutation != mp->tableMove
+                &&  mp->refutation != mp->killer1
+                &&  mp->refutation != mp->killer2
+                &&  mp->refutation != mp->counter
+                &&  moveIsPseudoLegal(board, mp->refutation))
+                return mp->refutation;
 
             /* fallthrough */
 
