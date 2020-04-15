@@ -124,19 +124,9 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_TABLE:
 
             // Play table move if it is pseudo legal
-            mp->stage = STAGE_REFUTATION;
+            mp->stage = STAGE_GENERATE_NOISY;
             if (moveIsPseudoLegal(board, mp->tableMove))
                 return mp->tableMove;
-
-            /* fallthrough */
-
-        case STAGE_REFUTATION:
-
-            // Play refutation move if it is pseudo legal
-            mp->stage = STAGE_GENERATE_NOISY;
-            if (   mp->refutation != mp->tableMove
-                && moveIsPseudoLegal(board, mp->refutation))
-                return mp->refutation;
 
             /* fallthrough */
 
@@ -175,11 +165,11 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                     bestMove = popMove(&mp->noisySize, mp->moves, mp->values, best);
 
                     // Don't play the table move twice
-                    if (    bestMove == mp->tableMove
-                        ||  bestMove == mp->refutation)
+                    if (bestMove == mp->tableMove)
                         return selectNextMove(mp, board, skipQuiets);
 
                     // Don't play any special moves twice
+                    if (bestMove == mp->refutation) mp->refutation = NONE_MOVE;
                     if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
                     if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
                     if (bestMove == mp->counter) mp->counter = NONE_MOVE;
@@ -194,7 +184,18 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 return selectNextMove(mp, board, skipQuiets);
             }
 
+            mp->stage = STAGE_REFUTATION;
+
+            /* fallthrough */
+
+        case STAGE_REFUTATION:
+
+            // Play refutation move if it is pseudo legal
             mp->stage = STAGE_KILLER_1;
+            if (   !skipQuiets
+                &&  mp->refutation != mp->tableMove
+                &&  moveIsPseudoLegal(board, mp->refutation))
+                return mp->refutation;
 
             /* fallthrough */
 
