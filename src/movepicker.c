@@ -134,7 +134,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
             // Play refutation move if it is pseudo legal
             mp->stage = STAGE_GENERATE_NOISY;
-            if (   moveIsTactical(board, mp->refutation)
+            if (  !moveIsTactical(board, mp->refutation)
                 && moveIsPseudoLegal(board, mp->refutation))
                 return mp->refutation;
 
@@ -260,6 +260,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
                 // Don't play a move more than once
                 if (   bestMove == mp->tableMove
+                    || bestMove == mp->refutation
                     || bestMove == mp->killer1
                     || bestMove == mp->killer2
                     || bestMove == mp->counter)
