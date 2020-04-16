@@ -207,6 +207,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int inCheck, isQuiet, improving, extension, singular, multiCut, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
+    int noisyPlayed = 0;
     MovePicker movePicker;
     PVariation lpv;
 
@@ -446,7 +447,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             if (    depth <= TacticalMovePruningDepth
                 &&  eval + futilityMargin <= alpha
                 &&  movePicker.stage == STAGE_BAD_NOISY
-                &&  played - quietsSeen > TacticalMovePruningCount[depth])
+                &&  noisyPlayed >= TacticalMovePruningCount[depth])
                 continue;
         }
 
@@ -463,9 +464,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (!apply(thread, board, move, height))
             continue;
 
+        if (isQuiet) quietsTried[quietsPlayed++] = move;
+        else noisyPlayed++;
         played += 1;
-        if (isQuiet)
-            quietsTried[quietsPlayed++] = move;
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
