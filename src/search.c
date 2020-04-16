@@ -437,6 +437,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 continue;
         }
 
+        else if (best > MATE_IN_MAX) {
+
+            static const int TacticalMovePruningDepth = 6;
+
+            static const int TacticalMovePruningCount[] = {2, 2, 3, 3, 4, 4, 4};
+
+            if (    depth <= TacticalMovePruningDepth
+                &&  eval + futilityMargin <= alpha
+                &&  movePicker.stage == STAGE_BAD_NOISY
+                &&  played - quietsSeen > TacticalMovePruningCount[depth])
+                continue;
+        }
+
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
