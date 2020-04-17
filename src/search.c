@@ -812,7 +812,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
     // Reapply the table move we took off
     applyLegal(thread, board, ttMove, height);
 
-    *multiCut = value > rBeta && rBeta >= beta;
+    *multiCut = value > rBeta && rBeta >= beta + depth;
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
