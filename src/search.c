@@ -497,7 +497,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
 
-            R +=  ttMove != NONE_MOVE &&  ttDepth >= depth - 2
+            R -=  ttMove != NONE_MOVE &&  ttDepth >= depth - 2
               &&  ttValue > beta      && (ttBound & BOUND_LOWER);
 
 
