@@ -803,7 +803,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
         // Start skipping quiets after a few have been tried
         moveIsTactical(board, move) ? tacticals++ : quiets++;
-        skipQuiets = quiets >= SingularQuietLimit;
+        skipQuiets = quiets >= SingularQuietLimit[rBeta < beta];
 
         // Start skipping bad captures after a few have been tried
         if (skipQuiets && tacticals >= SingularTacticalLimit) break;
