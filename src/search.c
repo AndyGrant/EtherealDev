@@ -806,7 +806,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
         skipQuiets = quiets >= SingularQuietLimit;
 
         // Start skipping bad captures after a few have been tried
-        if (skipQuiets && tacticals >= SingularTacticalLimit) break;
+        if (skipQuiets && tacticals >= SingularTacticalLimit && rBeta < beta) break;
     }
 
     // Reapply the table move we took off
