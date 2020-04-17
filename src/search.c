@@ -464,7 +464,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         singular =  !RootNode
                  &&  depth >= 8
                  &&  move == ttMove
-                 &&  ttDepth >= depth - 2
+                 &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER);
 
         // Step 13 (~60 elo). Extensions. Search an additional ply when the move comes from the
