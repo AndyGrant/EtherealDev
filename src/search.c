@@ -403,6 +403,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > -MATE_IN_MAX) {
 
+            // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
+            // move history are pruned at near leaf nodes of the search.
+            if (   depth <= CounterMovePruningDepth[improving]
+                && cmhist < CounterMoveHistoryLimit[improving])
+                continue;
+
+            // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
+            // follow up move history are pruned at near leaf nodes of the search.
+            if (   depth <= FollowUpMovePruningDepth[improving]
+                && fmhist < FollowUpMoveHistoryLimit[improving])
+                continue;
+
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
@@ -423,18 +435,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             if (   depth <= LateMovePruningDepth
                 && quietsSeen >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
-
-            // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
-            // move history are pruned at near leaf nodes of the search.
-            if (   depth <= CounterMovePruningDepth[improving]
-                && cmhist < CounterMoveHistoryLimit[improving])
-                continue;
-
-            // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
-            // follow up move history are pruned at near leaf nodes of the search.
-            if (   depth <= FollowUpMovePruningDepth[improving]
-                && fmhist < FollowUpMoveHistoryLimit[improving])
-                continue;
         }
 
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
