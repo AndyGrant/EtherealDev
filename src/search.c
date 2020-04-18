@@ -795,7 +795,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
         // Perform a reduced depth search on a null rbeta window
         if (!apply(thread, board, move, height)) continue;
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2, height+1);
         revert(thread, board, move, height);
 
         // Move failed high, thus ttMove is not singular
