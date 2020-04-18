@@ -501,7 +501,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Compensate for inflated history scores
-            R += movePicker.avghist > HistexLimit;
+            R += movePicker.avghist > HistexLimit
+              && (hist + cmhist + fmhist) < -HistexLimit;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
