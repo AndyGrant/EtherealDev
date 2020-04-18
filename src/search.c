@@ -502,7 +502,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Compensate for inflated history scores
             R += movePicker.avghist > HistexLimit
-              && (hist + cmhist + fmhist) < -HistexLimit;
+              && (hist + cmhist + fmhist) < movePicker.avghist;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
