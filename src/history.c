@@ -113,7 +113,7 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     else *fmhist = thread->continuation[1][fmPiece][fmTo][piece][to];
 }
 
-void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length, int height) {
+int getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length, int height) {
 
     // Extract information from last move
     uint16_t counter = thread->moveStack[height-1];
@@ -124,6 +124,8 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
     uint16_t follow = thread->moveStack[height-2];
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
+
+    int totalhist = 0;
 
     for (int i = start; i < start + length; i++) {
 
@@ -142,7 +144,11 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         // Add Followup Move History if it exists
         if (follow != NONE_MOVE && follow != NULL_MOVE)
             scores[i] += thread->continuation[1][fmPiece][fmTo][piece][to];
+
+        totalhist += scores[i];
     }
+
+    return totalhist / MAX(1, length);
 }
 
 void getRefutationMoves(Thread *thread, int height, uint16_t *killer1, uint16_t *killer2, uint16_t *counter) {

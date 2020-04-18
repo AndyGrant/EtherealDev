@@ -84,7 +84,7 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height)
     getRefutationMoves(thread, height, &mp->killer1, &mp->killer2, &mp->counter);
 
     // General housekeeping
-    mp->threshold = 0;
+    mp->threshold = mp->avghist = 0;
     mp->thread = thread;
     mp->height = height;
     mp->type = NORMAL_PICKER;
@@ -226,7 +226,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             if (!skipQuiets) {
                 mp->quietSize = 0;
                 genAllQuietMoves(board, mp->moves + mp->split, &mp->quietSize);
-                getHistoryScores(mp->thread, mp->moves, mp->values, mp->split, mp->quietSize, mp->height);
+                mp->avghist = getHistoryScores(mp->thread, mp->moves, mp->values, mp->split, mp->quietSize, mp->height);
             }
 
             mp->stage = STAGE_QUIET;
