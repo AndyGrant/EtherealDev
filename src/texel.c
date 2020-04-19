@@ -164,7 +164,7 @@ void runTexelTuning(Thread *thread) {
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
+                    params[i][j] -= (1.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
 }
@@ -315,11 +315,22 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
         #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
         for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; i++) {
 
-            double error = singleLinearError(&tes[i], params, K);
+            // Real Man Do Math Himself (Or Herself, its 2020 guys)
 
-            for (int j = 0; j < tes[i].ntuples; j++)
-                for (int k = MG; k <= EG; k++)
-                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * tes[i].tuples[j].coeff;
+            double E = linearEvaluation(&tes[i], params);
+            double S = sigmoid(K, E);
+            double D1 = 2 * (S - tes[i].result);
+            double D2 = S * (1 + S * K * exp(-K * E / 400.0) / 400.0);
+
+            for (int j = 0; j < tes[i].ntuples; j++) {
+
+                double D3MG = tes[i].factors[MG] * tes[i].tuples[j].coeff;
+                double D3EG = tes[i].factors[EG] * tes[i].tuples[j].coeff;
+
+                local[tes[i].tuples[j].index][MG] += D1 * D2 * D3MG;
+                local[tes[i].tuples[j].index][EG] += D1 * D2 * D3EG;
+
+            }
         }
 
         for (int i = 0; i < NTERMS; i++)
@@ -394,12 +405,6 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     return total / (double)NPOSITIONS;
 }
 
-double singleLinearError(TexelEntry *te, TexelVector params, double K) {
-    double sigm = sigmoid(K, linearEvaluation(te, params));
-    double sigmprime = sigm * (1 - sigm);
-    return (te->result - sigm) * sigmprime;
-}
-
 double linearEvaluation(TexelEntry *te, TexelVector params) {
 
     double mg = 0, eg = 0;
@@ -413,7 +418,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 }
 
 double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
+    return 1.0 / (1.0 + exp(-K * S / 400.0));
 }
 
 void printParameters(TexelVector params, TexelVector cparams) {
