@@ -331,16 +331,16 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
 
             double D1;
 
-            if (R == 1.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * S / 1000.0)));
+            if (R == 1.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * E / 1000.0)));
 
-            if (R == 0.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * S / 1000.0))) - (K / 1000.0);
+            if (R == 0.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * E / 1000.0))) - (K / 1000.0);
 
             else {
 
-                double eKS = exp(K * S / 1000.0);
-                double iabs = abs(1.0 - 2.0 / (1.0 + exp(-K * S / 1000.0)));
-                double numer = 2.0 * (K / 1000.0) * eKS * (eKS - 1.0);
-                double denom = pow(eKS + 1.0, 3) * (1.0 - iabs) * iabs;
+                double eKE = exp(K * E / 1000.0);
+                double iabs = abs(1.0 - 2.0 / (1.0 + exp(-K * E / 1000.0)));
+                double numer = 2.0 * (K / 1000.0) * eKE * (eKE - 1.0);
+                double denom = pow(eKE + 1.0, 3) * (1.0 - iabs) * iabs;
 
                 D1 = numer / denom;
             }
