@@ -329,15 +329,9 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
             double R = tes[i].result;
 
 
-            double D1 = 0;
-
-            if (R == 1.0) D1 = (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 0);
-
-            if (R == 0.0) D1 = (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 1);
-
-            if (R == 0.5 && E >= 0.0)
-                D1 = ((K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 0)
-                   +  (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 1)) / 2.0;
+            // Derivitive of Cross Entophy with respect to the prediction
+            double D1 = (R - 0.0) * (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 0)
+                      + (1.0 - R) * (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 1);
 
             // Derivitive of Sigmoid with respect to the Eval
             double D2 = S * (1 - S) * K / 1000.0;
@@ -405,12 +399,11 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += tes[i].result == 1.0 ? -log(sigmoid(K, tes[i].eval))
-                   : tes[i].result == 0.0 ? -log(1 - sigmoid(K, tes[i].eval))
-                   : tes[i].result == 0.5 ? -log(1 - abs(1 - 2 * sigmoid(K, tes[i].eval))) : 0.0;
+            total -= (tes[i].result - 0.0) * log(sigmoid(K, tes[i].eval) - 0.0)
+                   + (1.0 - tes[i].result) * log(1.0 - sigmoid(K, tes[i].eval));
     }
 
-    return total / (double)NPOSITIONS;
+    return -total / (double)NPOSITIONS;
 }
 
 double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
@@ -421,12 +414,11 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += tes[i].result == 1.0 ? -log(sigmoid(K, linearEvaluation(&tes[i], params)))
-                   : tes[i].result == 0.0 ? -log(1 - sigmoid(K, linearEvaluation(&tes[i], params)))
-                   : tes[i].result == 0.5 ? -log(1 - abs(1 - 2 * sigmoid(K, linearEvaluation(&tes[i], params)))) : 0.0;
+            total -= (tes[i].result - 0.0) * log(sigmoid(K, linearEvaluation(&tes[i], params)) - 0.0)
+                   + (1.0 - tes[i].result) * log(1.0 - sigmoid(K, linearEvaluation(&tes[i], params)));
     }
 
-    return total / (double)NPOSITIONS;
+    return -total / (double)NPOSITIONS;
 }
 
 double linearEvaluation(TexelEntry *te, TexelVector params) {
