@@ -320,7 +320,7 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
             double E = linearEvaluation(&tes[i], params);
             double S = sigmoid(K, E);
             double D1 = 2 * (S - tes[i].result);
-            double D2 = S * (1 + S * K * exp(-K * E / 400.0) / 400.0);
+            double D2 = S * (1 - S) * K / 400.0
 
             for (int j = 0; j < tes[i].ntuples; j++) {
 
