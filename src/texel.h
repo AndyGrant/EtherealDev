@@ -32,10 +32,10 @@
 #define BATCHSIZE    (7400000) // FENs per mini-batch
 #define NPOSITIONS   (7400000) // Total FENS in the book
 
-#define STATICWEIGHT (   0.50) // Weight of the Static Evaluation
-#define SEARCHWEIGHT (   0.50) // Weight of the Depth 10 Search
+#define STATICWEIGHT (   1.00) // Weight of the Static Evaluation
+#define SEARCHWEIGHT (   0.00) // Weight of the Depth 10 Search
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 8))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
 #define TunePawnValue                   (1)
 #define TuneKnightValue                 (1)
