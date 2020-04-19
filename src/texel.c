@@ -343,7 +343,8 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
                 double denom = pow(eKE + 1.0, 3) * (1.0 - iabs) * iabs;
 
                 D1 = numer / denom;
-                D1 = 0;
+
+                if (R != 0.5) D1 = 0;
             }
 
             // Derivitive of Sigmoid with respect to the Eval
