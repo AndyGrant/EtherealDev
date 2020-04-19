@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (     25) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (      6) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -37,12 +37,12 @@
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 8))
 
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
-#define TuneRookValue                   (0)
-#define TuneQueenValue                  (0)
-#define TuneKingValue                   (0)
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
+#define TuneRookValue                   (1)
+#define TuneQueenValue                  (1)
+#define TuneKingValue                   (1)
 #define TunePawnPSQT32                  (0)
 #define TuneKnightPSQT32                (0)
 #define TuneBishopPSQT32                (0)
@@ -126,9 +126,8 @@ void shuffleTexelEntries(TexelEntry *tes);
 double computeOptimalK(TexelEntry *tes);
 double completeEvaluationError(TexelEntry *tes, double K);
 double completeLinearError(TexelEntry *tes, TexelVector params, double K);
-double singleLinearError(TexelEntry *te, TexelVector params, double K);
 double linearEvaluation(TexelEntry *te, TexelVector params);
-double sigmoid(double K, double S);
+double sigmoid(double K, double E);
 
 void printParameters(TexelVector params, TexelVector cparams);
 void printParameters_0(char *name, int params[NTERMS][PHASE_NB], int i);

@@ -315,11 +315,17 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
         #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
         for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; i++) {
 
-            double error = singleLinearError(&tes[i], params, K);
+            double E = linearEvaluation(&tes[i], params);
+            double R = tes[i].result;
+            double N = 400.0;
+
+            double D12 = R == 1.0 ? -(K / N) * (0.0 + (1.0 / (1.0 + exp(K * E / N))))
+                       : R == 0.0 ? +(K / N) * (1.0 - (1.0 / (1.0 + exp(K * E / N))))
+                       : (K * (exp(K * E / N) - 1.0)) / (N * (exp(K * E / N) + 1));
 
             for (int j = 0; j < tes[i].ntuples; j++)
                 for (int k = MG; k <= EG; k++)
-                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * tes[i].tuples[j].coeff;
+                    local[tes[i].tuples[j].index][k] += D12 * tes[i].factors[k] * tes[i].tuples[j].coeff;
         }
 
         for (int i = 0; i < NTERMS; i++)
@@ -373,8 +379,11 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     #pragma omp parallel shared(total)
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
-        for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
+        for (int i = 0; i < NPOSITIONS; i++) {
+            double R = tes[i].result;
+            double S = sigmoid(K, tes[i].eval);
+            total += -log(R == 1.0 ? S : R == 0.0 ? 1 - S : 4 * S * (1 - S));
+        }
     }
 
     return total / (double)NPOSITIONS;
@@ -387,17 +396,14 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     #pragma omp parallel shared(total)
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
-        for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)), 2);
+        for (int i = 0; i < NPOSITIONS; i++) {
+            double R = tes[i].result;
+            double S = sigmoid(K, linearEvaluation(&tes[i], params));
+            total += -log(R == 1.0 ? S : R == 0.0 ? 1 - S : 4 * S * (1 - S));
+        }
     }
 
     return total / (double)NPOSITIONS;
-}
-
-double singleLinearError(TexelEntry *te, TexelVector params, double K) {
-    double sigm = sigmoid(K, linearEvaluation(te, params));
-    double sigmprime = sigm * (1 - sigm);
-    return (te->result - sigm) * sigmprime;
 }
 
 double linearEvaluation(TexelEntry *te, TexelVector params) {
@@ -412,8 +418,8 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
     return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
 }
 
-double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
+double sigmoid(double K, double E) {
+    return 1.0 / (1.0 + exp(-K * E / 400.0));
 }
 
 void printParameters(TexelVector params, TexelVector cparams) {
