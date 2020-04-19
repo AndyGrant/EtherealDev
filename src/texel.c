@@ -319,9 +319,9 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
             double R = tes[i].result;
             double N = 400.0;
 
-            double D12 = R == 1.0 ? +(K / N) * (0.0 + (1.0 / (1.0 + exp(K * E / N))))
-                       : R == 0.0 ? -(K / N) * (1.0 - (1.0 / (1.0 + exp(K * E / N))))
-                       : -(K * (exp(K * E / N) - 1.0)) / (N * (exp(K * E / N) + 1));
+            double D12 = R == 1.0 ? (+(K / N) * (0.0 + (1.0 / (1.0 + exp(K * E / N)))))
+                       : R == 0.0 ? (-(K / N) * (1.0 - (1.0 / (1.0 + exp(K * E / N)))))
+                       : -(K * (exp(K * E / N) - 1.0)) / (N * (exp(K * E / N) + 1.0));
 
             for (int j = 0; j < tes[i].ntuples; j++)
                 for (int k = MG; k <= EG; k++)
