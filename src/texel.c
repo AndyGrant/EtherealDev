@@ -329,22 +329,30 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
             double R = tes[i].result;
 
 
-            double D1;
+            double D1 = 0;
 
-            if (R == 1.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * E / 1000.0)));
+            if (R == 1.0) D1 = (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 0);
 
-            if (R == 0.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * E / 1000.0))) - (K / 1000.0);
+            if (R == 0.0) D1 = (K / 1000.0) * ((1.0 / (1.0 + exp(K * E / 1000.0))) - 1);
 
-            else {
+            if (R == 0.5 && E >= 0.0) {
 
-                double eKE = exp(K * E / 1000.0);
-                double iabs = abs((1.0 / (1.0 + exp(-K * E / 1000.0))) - 0.5);
-                double numer = 0.5 * (K / 1000.0) * eKE * (eKE - 1.0);
-                double denom = pow(eKE + 1.0, 3) * (1.0 - iabs) * iabs;
+                double eKEN = exp(K * E / 1000.0);
 
+                double numer = -2.0 * K * eKEN;
+                double denom = 1000.0 * (4 * eKEN + exp(2.0 * K * E / 1000.0) + 3);
                 D1 = numer / denom;
 
-                if (R != 0.5) D1 = 0;
+
+            }
+
+            if (R == 0.5 && E <= 0.0) {
+
+                double eKEN = exp(K * E / 1000.0);
+
+                double numer = 2.0 * K * eKEN;
+                double denom = 1000.0 * (4 * eKEN + 3 * exp(2.0 * K * E / 1000.0) + 1);
+                D1 = numer / denom;
             }
 
             // Derivitive of Sigmoid with respect to the Eval
