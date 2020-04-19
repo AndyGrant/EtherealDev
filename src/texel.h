@@ -24,12 +24,12 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define REPORTING    (      1) // How often to report progress
+#define REPORTING    (    100) // How often to report progress
 #define NTERMS       (    647) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
-#define BATCHSIZE    (  16384) // FENs per mini-batch
+#define BATCHSIZE    (7400000) // FENs per mini-batch
 #define NPOSITIONS   (7400000) // Total FENS in the book
 
 #define STATICWEIGHT (   0.50) // Weight of the Static Evaluation
