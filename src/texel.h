@@ -24,7 +24,7 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define REPORTING    (     25) // How often to report progress
+#define REPORTING    (    100) // How often to report progress
 #define NTERMS       (      6) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
