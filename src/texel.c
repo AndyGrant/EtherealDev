@@ -317,10 +317,36 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
 
             // Real Man Do Math Himself (Or Herself, its 2020 guys)
 
+            // double E = linearEvaluation(&tes[i], params);
+            // double S = sigmoid(K, E);
+            // double D1 = 2 * (S - tes[i].result);
+            // double D2 = S * (1 - S) * K / 1000.0;
+
+
+            // Evaluation, Sigmoid output, Result
             double E = linearEvaluation(&tes[i], params);
             double S = sigmoid(K, E);
-            double D1 = 2 * (S - tes[i].result);
-            double D2 = S * (1 - S) * K / 400.0
+            double R = tes[i].result;
+
+
+            double D1;
+
+            if (R == 1.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * S / 1000.0)));
+
+            if (R == 0.0) D1 = (K / 1000.0) * (1.0 / (1.0 + exp(K * S / 1000.0))) - (K / 1000.0);
+
+            else {
+
+                double eKS = exp(K * S / 1000.0);
+                double iabs = abs(1.0 - 2.0 / (1.0 + exp(-K * S / 1000.0)));
+                double numer = 2.0 * (K / 1000.0) * eKS * (eKS - 1.0);
+                double denom = pow(eKS + 1.0, 3) * (1.0 - iabs) * iabs;
+
+                D1 = numer / denom;
+            }
+
+            // Derivitive of Sigmoid with respect to the Eval
+            double D2 = S * (1 - S) * K / 1000.0;
 
             for (int j = 0; j < tes[i].ntuples; j++) {
 
@@ -385,7 +411,9 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
+            total += tes[i].result == 1.0 ? -log(sigmoid(K, tes[i].eval))
+                   : tes[i].result == 0.0 ? -log(1 - sigmoid(K, tes[i].eval))
+                   : tes[i].result == 0.5 ? -log(1 - abs(1 - 2 * sigmoid(K, tes[i].eval))) : 0.0;
     }
 
     return total / (double)NPOSITIONS;
@@ -399,7 +427,9 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)), 2);
+            total += tes[i].result == 1.0 ? -log(sigmoid(K, linearEvaluation(&tes[i], params)))
+                   : tes[i].result == 0.0 ? -log(1 - sigmoid(K, linearEvaluation(&tes[i], params)))
+                   : tes[i].result == 0.5 ? -log(1 - abs(1 - 2 * sigmoid(K, linearEvaluation(&tes[i], params)))) : 0.0;
     }
 
     return total / (double)NPOSITIONS;
@@ -418,7 +448,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 }
 
 double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + exp(-K * S / 400.0));
+    return 1.0 / (1.0 + exp(-K * S / 1000.0));
 }
 
 void printParameters(TexelVector params, TexelVector cparams) {
