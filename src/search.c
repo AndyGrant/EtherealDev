@@ -500,8 +500,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Reduce for Killers and Counters when there was no TT move
-            R -= ttMove == NONE_MOVE && movePicker.stage < STAGE_QUIET;
+            // Reduce for Killers and Counters, especially when there is no TT move
+            R -= movePicker.stage < STAGE_QUIET ? 1 + !ttHit : 0;
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
