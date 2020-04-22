@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (    647) // Total terms in the Tuner (647)
+#define NTERMS       (    643) // Total terms in the Tuner (647)
 
 #define LEARNING     (    1.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -91,10 +91,10 @@
 #define TuneSpaceCenterControl          (1)
 #define TuneClosednessKnightAdjustment  (1)
 #define TuneClosednessRookAdjustment    (1)
-#define TuneComplexityTotalPawns        (1)
-#define TuneComplexityPawnFlanks        (1)
-#define TuneComplexityPawnEndgame       (1)
-#define TuneComplexityAdjustment        (1)
+#define TuneComplexityTotalPawns        (0)
+#define TuneComplexityPawnFlanks        (0)
+#define TuneComplexityPawnEndgame       (0)
+#define TuneComplexityAdjustment        (0)
 
 enum { NORMAL, MGONLY, EGONLY };
 
