@@ -16,6 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Tuner 1: LR = 1.0; BS = 32768
+// Iteration [0] Error = 0.0911851
+// Iteration [7000] Error = 0.0903633
+
 #if defined(TUNE)
 
 #pragma once
@@ -27,9 +31,9 @@
 #define REPORTING    (    100) // How often to report progress
 #define NTERMS       (    647) // Total terms in the Tuner (647)
 
-#define LEARNING     (    5.0) // Learning rate
+#define LEARNING     (    1.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
-#define BATCHSIZE    (  16384) // FENs per mini-batch
+#define BATCHSIZE    (  32768) // FENs per mini-batch
 #define NPOSITIONS   (5888224) // Total FENS in the book
 
 #define STATICWEIGHT (   0.50) // Weight of the Static Evaluation
