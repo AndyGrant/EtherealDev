@@ -818,8 +818,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSSafeKnightCheck * popcount(knightChecks)
                + KSAdjustment;
 
-        // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        // Convert safety to an MG and EG score
+         eval += MakeScore(-count * abs(count) / 720, -count / 20);
     }
 
     // Everything else is stored in the Pawn King Table
