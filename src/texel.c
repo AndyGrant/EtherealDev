@@ -514,7 +514,7 @@ double linearSafetyMG(TEntry *entry, TVector params, TVector cparams, TArray typ
                 * (cparams[index][MG] + params[index][MG]);
     }
 
-    return MIN(0, -safety * abs(safety) / 720);
+    return safety;
 }
 
 

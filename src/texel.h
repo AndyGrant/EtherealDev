@@ -24,12 +24,12 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define REPORTING    (      1) // How often to report progress
+#define REPORTING    (    100) // How often to report progress
 #define NTERMS       (     13) // Total terms in the Tuner (660)
 #define TUNE_SAFETY  (      1) // All Safety terms must be Tuned at once
 
 #define LEARNING     (  100.0) // Learning rate
-#define BATCHSIZE    (  32768) // FENs per mini-batch
+#define BATCHSIZE    (5888224) // FENs per mini-batch
 #define NPOSITIONS   (5888224) // Total FENS in the book
 
 #define STATICWEIGHT (   0.25) // Weight of the Static Evaluation
@@ -96,19 +96,19 @@
 #define TuneComplexityPawnEndgame       (0)
 #define TuneComplexityAdjustment        (0)
 
-#define TuneSafetyKnightWeight          (TUNE_SAFETY)
-#define TuneSafetyBishopWeight          (TUNE_SAFETY)
-#define TuneSafetyRookWeight            (TUNE_SAFETY)
-#define TuneSafetyQueenWeight           (TUNE_SAFETY)
-#define TuneSafetyAttackValue           (TUNE_SAFETY)
-#define TuneSafetyWeakSquares           (TUNE_SAFETY)
-#define TuneSafetyFriendlyPawns         (TUNE_SAFETY)
-#define TuneSafetyNoEnemyQueens         (TUNE_SAFETY)
-#define TuneSafetySafeQueenCheck        (TUNE_SAFETY)
-#define TuneSafetySafeRookCheck         (TUNE_SAFETY)
-#define TuneSafetySafeBishopCheck       (TUNE_SAFETY)
-#define TuneSafetySafeKnightCheck       (TUNE_SAFETY)
-#define TuneSafetyAdjustment            (TUNE_SAFETY)
+#define TuneSafetyKnightWeight     (TUNE_SAFETY)
+#define TuneSafetyBishopWeight     (TUNE_SAFETY)
+#define TuneSafetyRookWeight       (TUNE_SAFETY)
+#define TuneSafetyQueenWeight      (TUNE_SAFETY)
+#define TuneSafetyAttackValue      (TUNE_SAFETY)
+#define TuneSafetyWeakSquares      (TUNE_SAFETY)
+#define TuneSafetyFriendlyPawns    (TUNE_SAFETY)
+#define TuneSafetyNoEnemyQueens    (TUNE_SAFETY)
+#define TuneSafetySafeQueenCheck   (TUNE_SAFETY)
+#define TuneSafetySafeRookCheck    (TUNE_SAFETY)
+#define TuneSafetySafeBishopCheck  (TUNE_SAFETY)
+#define TuneSafetySafeKnightCheck  (TUNE_SAFETY)
+#define TuneSafetyAdjustment       (TUNE_SAFETY)
 
 enum { NORMAL, MGONLY, EGONLY, SAFETY };
 
