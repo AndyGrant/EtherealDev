@@ -340,20 +340,32 @@ const int ComplexityAdjustment  = S(   0,-110);
 
 /* Safety Evaluation Terms */
 
-const int SafetyKnightWeight    = S(  16,  16);
-const int SafetyBishopWeight    = S(   6,   6);
-const int SafetyRookWeight      = S(  10,  10);
-const int SafetyQueenWeight     = S(   8,   8);
+const int SafetyKnightWeight = S(  38,  31);
 
-const int SafetyAttackValue     = S(  44,  44);
-const int SafetyWeakSquares     = S(  38,  38);
-const int SafetyFriendlyPawns   = S( -22, -22);
-const int SafetyNoEnemyQueens   = S(-276,-276);
-const int SafetySafeQueenCheck  = S(  95,  95);
-const int SafetySafeRookCheck   = S(  94,  94);
-const int SafetySafeBishopCheck = S(  51,  51);
-const int SafetySafeKnightCheck = S( 123, 123);
-const int SafetyAdjustment      = S( -18, -18);
+const int SafetyBishopWeight = S(   3,  16);
+
+const int SafetyRookWeight = S(  -1,   9);
+
+const int SafetyQueenWeight = S(  -5,  -4);
+
+const int SafetyAttackValue = S(   9,  25);
+
+const int SafetyWeakSquares = S(  29,  -4);
+
+const int SafetyFriendlyPawns = S( -10,   4);
+
+const int SafetyNoEnemyQueens = S(-262,-265);
+
+const int SafetySafeQueenCheck = S(  85,  75);
+
+const int SafetySafeRookCheck = S(  93,  86);
+
+const int SafetySafeBishopCheck = S(  51,  52);
+
+const int SafetySafeKnightCheck = S( 122, 117);
+
+const int SafetyAdjustment = S( -13, -17);
+
 
 /* General Evaluation Terms */
 
@@ -762,7 +774,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int count, safety, mg, eg, dist, blocked, eval = 0;
+    int count, safety, dist, blocked, eval = 0;
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
@@ -842,8 +854,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.SafetyAdjustment[US]      = 1;
 
         // Convert safety to an MG and EG score
-        mg = ScoreMG(safety), eg = ScoreEG(safety);
-        eval += MakeScore(MIN(0, -mg * abs(mg) / 720), -eg / 20);
+        eval += MakeScore(-ScoreMG(safety) / 20, -ScoreEG(safety) / 20);
     }
 
     // Everything else is stored in the Pawn King Table

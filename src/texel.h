@@ -28,8 +28,8 @@
 #define NTERMS       (     13) // Total terms in the Tuner (660)
 #define TUNE_SAFETY  (      1) // All Safety terms must be Tuned at once
 
-#define LEARNING     (   10.0) // Learning rate
-#define BATCHSIZE    (  32768) // FENs per mini-batch
+#define LEARNING     (   1000.0) // Learning rate
+#define BATCHSIZE    (5888224) // FENs per mini-batch
 #define NPOSITIONS   (5888224) // Total FENS in the book
 
 #define STATICWEIGHT (   0.25) // Weight of the Static Evaluation
@@ -141,7 +141,7 @@ void initCurrentParameters(TVector cparams);
 
 void updateMemory(TEntry *te, int size);
 void updateGradient(TEntry *entries, TVector gradient, TVector params, TVector cparams, TArray types, double K, int batch);
-double computeGradient(TEntry *entry, int index, int coeff, TArray types, int phase, int wsafety, int bsafety);
+double computeGradient(TEntry *entry, int index, int coeff, TArray types, int phase);
 
 void shuffleTunerEntries(TEntry *tes);
 
@@ -153,7 +153,6 @@ double completeLinearError(TEntry *tes, TVector params, TVector cparams, TArray 
 double linearEvaluation(TEntry *entry, TVector params, TVector cparams, TArray types);
 double linearEvaluationNormal(TEntry *te, TVector params, TArray types);
 double linearEvaluationSafety(TEntry *te, TVector params, TVector cparams, TArray types);
-double linearSafetyMG(TEntry *entry, TVector params, TVector cparams, TArray types, int colour);
 
 void printParameters(TVector params, TVector cparams);
 void print_0(char *name, int params[NTERMS][PHASE_NB], int i, char *S);

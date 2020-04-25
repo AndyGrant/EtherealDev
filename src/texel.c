@@ -326,16 +326,13 @@ void updateGradient(TEntry *entries, TVector gradient, TVector params, TVector c
 
             double R = entries[i].result;
             double S = sigmoid(K, linearEvaluation(&entries[i], params, cparams, types));
-            double D = -K * (R - S) * S * (1.0 - S) / 200.0;
-
-            double wsafety = linearSafetyMG(&entries[i], params, cparams, types, WHITE);
-            double bsafety = linearSafetyMG(&entries[i], params, cparams, types, BLACK);
+            double D = -(R - S) * S * (1.0 - S);
 
             for (int j = 0; j < entries[i].ntuples; j++) {
                 int index = entries[i].tuples[j].index;
                 int coeff = entries[i].tuples[j].coeff;
-                local[index][MG] += D * computeGradient(&entries[i], index, coeff, types, MG, wsafety, bsafety);
-                local[index][EG] += D * computeGradient(&entries[i], index, coeff, types, EG, wsafety, bsafety);
+                local[index][MG] += D * computeGradient(&entries[i], index, coeff, types, MG);
+                local[index][EG] += D * computeGradient(&entries[i], index, coeff, types, EG);
             }
         }
 
@@ -346,18 +343,12 @@ void updateGradient(TEntry *entries, TVector gradient, TVector params, TVector c
     }
 }
 
-double computeGradient(TEntry *entry, int index, int coeff, TArray types, int phase, int wsafety, int bsafety) {
+double computeGradient(TEntry *entry, int index, int coeff, TArray types, int phase) {
 
     if (types[index] != SAFETY)
         return entry->factors[phase] * coeff;
 
-    if (phase == EG)
-        return entry->factors[phase] * (BlackCoeff(coeff) - WhiteCoeff(coeff)) / 20.0;
-
-    return entry->factors[phase] * WhiteCoeff(coeff) * (wsafety <= 0 ? 0 : -wsafety / 360.0)
-         - entry->factors[phase] * BlackCoeff(coeff) * (bsafety <= 0 ? 0 : -bsafety / 360.0);
-
-
+    return entry->factors[phase] * (BlackCoeff(coeff) - WhiteCoeff(coeff)) / 20.0;
 }
 
 void shuffleTunerEntries(TEntry *tes) {
@@ -485,11 +476,9 @@ double linearEvaluationSafety(TEntry *entry, TVector params, TVector cparams, TA
         safety[BLACK][EG] += bcoeff * (cparams[index][EG] + params[index][EG]);
     }
 
-    // MG = -OldWhite + OldBlack + NewWhite - NewBlack
-    mg = -MIN(0, -original[WHITE][MG] * abs(original[WHITE][MG]) / 720)
-       + -MIN(0, -original[BLACK][MG] * abs(original[BLACK][MG]) / 720)
-       +  MIN(0, -  safety[WHITE][MG] * abs(  safety[WHITE][MG]) / 720)
-       -  MIN(0, -  safety[BLACK][MG] * abs(  safety[BLACK][MG]) / 720);
+    // EG = -OldWhite + OldBlack + NewWhite - NewBlack
+    mg = -(-original[WHITE][MG] / 20) + -(-original[BLACK][MG] / 20)
+       +  (-  safety[WHITE][MG] / 20) -  (-  safety[BLACK][MG] / 20);
 
     // EG = -OldWhite + OldBlack + NewWhite - NewBlack
     eg = -(-original[WHITE][EG] / 20) + -(-original[BLACK][EG] / 20)
@@ -498,27 +487,6 @@ double linearEvaluationSafety(TEntry *entry, TVector params, TVector cparams, TA
     // Interpolate the evaluation by game phase
     return ((mg * (256 - entry->phase) + eg * entry->phase) / 256.0);
 }
-
-double linearSafetyMG(TEntry *entry, TVector params, TVector cparams, TArray types, int colour) {
-
-    int index, wcoeff, bcoeff;
-    double safety = 0;
-
-    for (int i = 0; i < entry->ntuples; i++) {
-
-        if (types[entry->tuples[i].index] != SAFETY) continue;
-
-        index = entry->tuples[i].index;
-        wcoeff = WhiteCoeff(entry->tuples[i].coeff);
-        bcoeff = BlackCoeff(entry->tuples[i].coeff);
-
-        safety += (colour == WHITE ? wcoeff : bcoeff)
-                * (cparams[index][MG] + params[index][MG]);
-    }
-
-    return safety;
-}
-
 
 void printParameters(TVector params, TVector cparams) {
 
