@@ -340,31 +340,20 @@ const int ComplexityAdjustment  = S(   0,-110);
 
 /* Safety Evaluation Terms */
 
-const int SafetyKnightWeight = S(  14,  15);
+const int SafetyKnightWeight = S(  11,  15);
+const int SafetyBishopWeight = S(   0,   5);
+const int SafetyRookWeight   = S(   7,   8);
+const int SafetyQueenWeight  = S(   3,   7);
 
-const int SafetyBishopWeight = S(   3,   5);
-
-const int SafetyRookWeight = S(   9,   8);
-
-const int SafetyQueenWeight = S(   7,   7);
-
-const int SafetyAttackValue = S(  39,  36);
-
-const int SafetyWeakSquares = S(  37,  33);
-
-const int SafetyFriendlyPawns = S( -30, -23);
-
-const int SafetyNoEnemyQueens = S(-277,-277);
-
-const int SafetySafeQueenCheck = S(  95,  94);
-
-const int SafetySafeRookCheck = S(  94,  93);
-
+const int SafetyAttackValue     = S(  24,  35);
+const int SafetyWeakSquares     = S(  31,  32);
+const int SafetyFriendlyPawns   = S( -36, -23);
+const int SafetyNoEnemyQueens   = S(-277,-277);
+const int SafetySafeQueenCheck  = S(  94,  94);
+const int SafetySafeRookCheck   = S(  94,  93);
 const int SafetySafeBishopCheck = S(  51,  51);
-
 const int SafetySafeKnightCheck = S( 123, 123);
-
-const int SafetyAdjustment = S( -21, -19);
+const int SafetyAdjustment      = S( -26, -19);
 
 /* General Evaluation Terms */
 

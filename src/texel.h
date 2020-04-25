@@ -28,8 +28,8 @@
 #define NTERMS       (     13) // Total terms in the Tuner (660)
 #define TUNE_SAFETY  (      1) // All Safety terms must be Tuned at once
 
-#define LEARNING     (   10.0) // Learning rate
-#define BATCHSIZE    (  32768) // FENs per mini-batch
+#define LEARNING     (   64.0) // Learning rate
+#define BATCHSIZE    (5888224) // FENs per mini-batch
 #define NPOSITIONS   (5888224) // Total FENS in the book
 
 #define STATICWEIGHT (   0.25) // Weight of the Static Evaluation
