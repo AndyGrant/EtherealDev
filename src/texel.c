@@ -354,8 +354,8 @@ double computeGradient(TEntry *entry, int index, int coeff, TArray types, int ph
     if (phase == EG)
         return entry->factors[phase] * (BlackCoeff(coeff) - WhiteCoeff(coeff)) / 20.0;
 
-    return entry->factors[phase] * WhiteCoeff(coeff) * MAX(0, wsafety) / -360.0
-         - entry->factors[phase] * BlackCoeff(coeff) * MAX(0, bsafety) / -360.0;
+    return entry->factors[phase] * WhiteCoeff(coeff) * MIN(0, wsafety) / -360.0
+         - entry->factors[phase] * BlackCoeff(coeff) * MIN(0, bsafety) / -360.0;
 }
 
 void shuffleTunerEntries(TEntry *tes) {
@@ -500,7 +500,7 @@ double linearEvaluationSafety(TEntry *entry, TVector params, TVector cparams, TA
 double linearSafetyMG(TEntry *entry, TVector params, TVector cparams, TArray types, int colour) {
 
     int index, wcoeff, bcoeff;
-    double safety = {0};
+    double safety = 0;
 
     for (int i = 0; i < entry->ntuples; i++) {
 
