@@ -170,7 +170,7 @@ void runTuner(Thread *thread) {
             updateGradient(entries, gradient, params, cparams, types, K, batch);
 
             for (int i = 0; i < NTERMS; i++)
-                for (int j = MG; j <= EG; j++)
+                for (int j = EG; j <= EG; j++)
                     params[i][j] -= (1.0 / BATCHSIZE) * LEARNING * gradient[i][j];
         }
     }
@@ -328,13 +328,13 @@ void updateGradient(TEntry *entries, TVector gradient, TVector params, TVector c
             double S = sigmoid(K, linearEvaluation(&entries[i], params, cparams, types));
             double D = -K * (R - S) * S * (1.0 - S) / 200.0;
 
-            double wsafety = linearSafetyMG(&entries[i], params, cparams, types, WHITE);
-            double bsafety = linearSafetyMG(&entries[i], params, cparams, types, BLACK);
+            double wsafety = 0; // linearSafetyMG(&entries[i], params, cparams, types, WHITE);
+            double bsafety = 0; // linearSafetyMG(&entries[i], params, cparams, types, BLACK);
 
             for (int j = 0; j < entries[i].ntuples; j++) {
                 int index = entries[i].tuples[j].index;
                 int coeff = entries[i].tuples[j].coeff;
-                local[index][MG] += D * computeGradient(&entries[i], index, coeff, types, MG, wsafety, bsafety);
+                // local[index][MG] += D * computeGradient(&entries[i], index, coeff, types, MG, wsafety, bsafety);
                 local[index][EG] += D * computeGradient(&entries[i], index, coeff, types, EG, wsafety, bsafety);
             }
         }
