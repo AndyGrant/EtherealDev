@@ -75,8 +75,7 @@ int main(int argc, char **argv) {
 
     // Allow the tuner to be run when compiled
     #ifdef TUNE
-        runTexelTuning(threads);
-        return 0;
+        runTuner(threads); return 0;
     #endif
 
     while (getInput(str)) {

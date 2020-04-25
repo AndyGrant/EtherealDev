@@ -97,6 +97,20 @@ struct EvalTrace {
     int ComplexityPawnFlanks[COLOUR_NB];
     int ComplexityPawnEndgame[COLOUR_NB];
     int ComplexityAdjustment[COLOUR_NB];
+    int SafetyKnightWeight[COLOUR_NB];
+    int SafetyBishopWeight[COLOUR_NB];
+    int SafetyRookWeight[COLOUR_NB];
+    int SafetyQueenWeight[COLOUR_NB];
+    int SafetyAttackValue[COLOUR_NB];
+    int SafetyWeakSquares[COLOUR_NB];
+    int SafetyFriendlyPawns[COLOUR_NB];
+    int SafetyNoEnemyQueens[COLOUR_NB];
+    int SafetySafeQueenCheck[COLOUR_NB];
+    int SafetySafeRookCheck[COLOUR_NB];
+    int SafetySafeBishopCheck[COLOUR_NB];
+    int SafetySafeKnightCheck[COLOUR_NB];
+    int SafetyAdjustment[COLOUR_NB];
+
 };
 
 struct EvalInfo {

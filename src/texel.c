@@ -37,7 +37,7 @@
 #include "zobrist.h"
 
 // Internal Memory Managment
-TexelTuple* TupleStack;
+TTuple* TupleStack;
 int TupleStackSize = STACKSIZE;
 
 // Tap into evaluate()
@@ -101,75 +101,82 @@ extern const int ComplexityTotalPawns;
 extern const int ComplexityPawnFlanks;
 extern const int ComplexityPawnEndgame;
 extern const int ComplexityAdjustment;
+extern const int SafetyKnightWeight;
+extern const int SafetyBishopWeight;
+extern const int SafetyRookWeight;
+extern const int SafetyQueenWeight;
+extern const int SafetyAttackValue;
+extern const int SafetyWeakSquares;
+extern const int SafetyFriendlyPawns;
+extern const int SafetyNoEnemyQueens;
+extern const int SafetySafeQueenCheck;
+extern const int SafetySafeRookCheck;
+extern const int SafetySafeBishopCheck;
+extern const int SafetySafeKnightCheck;
+extern const int SafetyAdjustment;
 
-void runTexelTuning(Thread *thread) {
+void runTuner(Thread *thread) {
 
-    TexelEntry *tes;
     int iteration = -1;
-    double K, error, best = 1e6, rate = LEARNING;
-    TexelVector params = {0}, cparams = {0}, phases = {0};
+    double K, error;
+
+    TArray types;
+    TEntry *entries;
+    TVector params = {0};
+    TVector cparams = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    printf("\nTUNER WILL BE TUNING %d TERMS...", NTERMS);
+    printf("\nTuner Will Be Tuning %d Terms...", NTERMS);
 
-    printf("\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...");
+    printf("\n\nSetting Table Size to 1MB for Speed...");
     initTT(1);
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
-           (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
-    tes = calloc(NPOSITIONS, sizeof(TexelEntry));
+    printf("\n\nAllocating Memory for Tuner Entries [%dMB]...",
+          (int)(NPOSITIONS * sizeof(TEntry) / (1024 * 1024)));
+    entries = calloc(NPOSITIONS, sizeof(TEntry));
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
-    TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
+    printf("\n\nAllocating Memory for Tuple Stack [%dMB]...",
+          (int)(STACKSIZE * sizeof(TTuple) / (1024 * 1024)));
+    TupleStack = calloc(STACKSIZE, sizeof(TTuple));
 
-    printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
-    initTexelEntries(tes, thread);
+    printf("\n\nInitializing Tuner Entries from FENS...");
+    initTunerEntries(entries, thread);
 
-    printf("\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...");
+    printf("\n\nFetching Current Params as a Starting Point...");
     initCurrentParameters(cparams);
 
-    printf("\n\nSETTING TERM PHASES, MG, EG, OR BOTH...");
-    initPhaseManager(phases);
+    printf("\n\nSetting Term Types {NORMAL, MGONLY, EGONLY, SAFETY}...");
+    initTypeManager(types);
 
-    printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
-    K = computeOptimalK(tes);
+    printf("\n\nComputing OptimaL K Value...\n");
+    K = computeOptimalK(entries);
 
     while (1) {
 
-        // Shuffle the dataset before each epoch
         if (NPOSITIONS != BATCHSIZE)
-            shuffleTexelEntries(tes);
+            shuffleTunerEntries(entries);
 
-        // Report every REPORTING iterations
         if (++iteration % REPORTING == 0) {
 
-            // Check for a regression in tuning
-            error = completeLinearError(tes, params, K);
-            if (error > best) rate = rate / LRDROPRATE;
-
-            // Report current best parameters
-            best = error;
+            error = completeLinearError(entries, params, cparams, types, K);
             printParameters(params, cparams);
-            printf("\nIteration [%d] Error = %g \n", iteration, best);
+            printf("\nIteration [%d] Error = %g \n", iteration, error);
         }
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
-            TexelVector gradient = {0};
-            updateGradient(tes, gradient, params, phases, K, batch);
+            TVector gradient = {0};
+            updateGradient(entries, gradient, params, cparams, types, K, batch);
 
-            // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
-            // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
+                    params[i][j] -= (1.0 / BATCHSIZE) * LEARNING * gradient[i][j];
         }
     }
 }
 
-void initTexelEntries(TexelEntry *tes, Thread *thread) {
+void initTunerEntries(TEntry *tes, Thread *thread) {
 
     Undo undo[1];
     Limits limits;
@@ -180,7 +187,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     // Initialize the thread for the search
     thread->limits = &limits; thread->depth  = 0;
 
-    // Create a TexelEntry for each FEN
+    // Create a TEntry for each FEN
     for (i = 0; i < NPOSITIONS; i++) {
 
         // Read next position from the FEN file
@@ -191,7 +198,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Occasional reporting for total completion
         if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
-            printf("\rINITIALIZING TEXEL ENTRIES FROM FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
+            printf("\rINITIALIZING TUNER ENTRIES FROM FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV search
         searchEval = atoi(strstr(line, "] ") + 2);
@@ -240,7 +247,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Allocate Tuples
         updateMemory(&tes[i], k);
 
-        // Initialize the Texel Tuples
+        // Initialize the Tuner Tuples
         for (k = 0, j = 0; j < NTERMS; j++) {
             if (coeffs[j] != 0){
                 tes[i].tuples[k].index = j;
@@ -252,9 +259,22 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     fclose(fin);
 }
 
-void initCoefficients(int coeffs[NTERMS]) {
 
-    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
+void initTypeManager(TArray types) {
+
+    int i = 0; // EXECUTE_ON_TERMS() will update i accordingly
+
+    EXECUTE_ON_TERMS(INIT_TYPE);
+
+    if (i != NTERMS){
+        printf("Error in initTypeManager(): i = %d ; NTERMS = %d\n", i, NTERMS);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void initCoefficients(TArray coeffs) {
+
+    int i = 0; // EXECUTE_ON_TERMS() will update i accordingly
 
     EXECUTE_ON_TERMS(INIT_COEFF);
 
@@ -264,9 +284,9 @@ void initCoefficients(int coeffs[NTERMS]) {
     }
 }
 
-void initCurrentParameters(TexelVector cparams) {
+void initCurrentParameters(TVector cparams) {
 
-    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
+    int i = 0; // EXECUTE_ON_TERMS() will update i accordingly
 
     EXECUTE_ON_TERMS(INIT_PARAM);
 
@@ -276,29 +296,18 @@ void initCurrentParameters(TexelVector cparams) {
     }
 }
 
-void initPhaseManager(TexelVector phases) {
 
-    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
+void updateMemory(TEntry *te, int size) {
 
-    EXECUTE_ON_TERMS(INIT_PHASE);
-
-    if (i != NTERMS){
-        printf("Error in initPhaseManager(): i = %d ; NTERMS = %d\n", i, NTERMS);
-        exit(EXIT_FAILURE);
-    }
-}
-
-void updateMemory(TexelEntry *te, int size) {
-
-    // First ensure we have enough Tuples left for this TexelEntry
+    // First ensure we have enough Tuples left for this TEntry
     if (size > TupleStackSize) {
-        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
-                (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
+        printf("\n\nALLOCATING MEMORY FOR TUNER TUPLE STACK [%dMB]...\n\n",
+                (int)(STACKSIZE * sizeof(TTuple) / (1024 * 1024)));
         TupleStackSize = STACKSIZE;
-        TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
+        TupleStack = calloc(STACKSIZE, sizeof(TTuple));
     }
 
-    // Allocate Tuples for the given TexelEntry
+    // Allocate Tuples for the given TEntry
     te->tuples = TupleStack;
     te->ntuples = size;
 
@@ -307,41 +316,67 @@ void updateMemory(TexelEntry *te, int size) {
     TupleStackSize -= size;
 }
 
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, TexelVector phases, double K, int batch) {
+void updateGradient(TEntry *entries, TVector gradient, TVector params, TVector cparams, TArray types, double K, int batch) {
 
     #pragma omp parallel shared(gradient)
     {
-        TexelVector local = {0};
+        TVector local = {0};
         #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
         for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; i++) {
 
-            double error = singleLinearError(&tes[i], params, K);
+            double R = entries[i].result;
+            double S = sigmoid(K, linearEvaluation(&entries[i], params, cparams, types));
+            double D = -K * (R - S) * S * (1.0 - S) / 200.0;
 
-            for (int j = 0; j < tes[i].ntuples; j++)
-                for (int k = MG; k <= EG; k++)
-                    local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * tes[i].tuples[j].coeff;
+            double wsafety = linearSafetyMG(&entries[i], params, cparams, types, WHITE);
+            double bsafety = linearSafetyMG(&entries[i], params, cparams, types, BLACK);
+
+            for (int j = 0; j < entries[i].ntuples; j++) {
+                int index = entries[i].tuples[j].index;
+                int coeff = entries[i].tuples[j].coeff;
+                local[index][MG] += D * computeGradient(&entries[i], index, coeff, types, MG, wsafety, bsafety);
+                local[index][EG] += D * computeGradient(&entries[i], index, coeff, types, EG, wsafety, bsafety);
+            }
         }
 
-        for (int i = 0; i < NTERMS; i++)
-            for (int j = MG; j <= EG; j++)
-                if (phases[i][j]) gradient[i][j] += local[i][j];
+        for (int i = 0; i < NTERMS; i++) {
+            if (types[i] != EGONLY) gradient[i][MG] += local[i][MG];
+            if (types[i] != MGONLY) gradient[i][EG] += local[i][EG];
+        }
     }
 }
 
-void shuffleTexelEntries(TexelEntry *tes) {
+double computeGradient(TEntry *entry, int index, int coeff, TArray types, int phase, int wsafety, int bsafety) {
+
+    if (types[index] != SAFETY)
+        return entry->factors[phase] * coeff;
+
+    if (phase == EG)
+        return entry->factors[phase] * (BlackCoeff(coeff) - WhiteCoeff(coeff)) / 20.0;
+
+    return entry->factors[phase] * WhiteCoeff(coeff) * MAX(0, wsafety) / -360.0
+         - entry->factors[phase] * BlackCoeff(coeff) * MAX(0, bsafety) / -360.0;
+}
+
+void shuffleTunerEntries(TEntry *tes) {
 
     for (int i = 0; i < NPOSITIONS; i++) {
 
         int A = rand64() % NPOSITIONS;
         int B = rand64() % NPOSITIONS;
 
-        TexelEntry temp = tes[A];
+        TEntry temp = tes[A];
         tes[A] = tes[B];
         tes[B] = temp;
     }
 }
 
-double computeOptimalK(TexelEntry *tes) {
+
+double sigmoid(double K, double S) {
+    return 1.0 / (1.0 + exp(-K * S / 400.0));
+}
+
+double computeOptimalK(TEntry *tes) {
 
     double start = -10.0, end = 10.0, delta = 1.0;
     double curr = start, error, best = completeEvaluationError(tes, start);
@@ -366,7 +401,7 @@ double computeOptimalK(TexelEntry *tes) {
     return start;
 }
 
-double completeEvaluationError(TexelEntry *tes, double K) {
+double completeEvaluationError(TEntry *tes, double K) {
 
     double total = 0.0;
 
@@ -380,7 +415,7 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     return total / (double)NPOSITIONS;
 }
 
-double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
+double completeLinearError(TEntry *tes, TVector params, TVector cparams, TArray types, double K) {
 
     double total = 0.0;
 
@@ -388,35 +423,102 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)), 2);
+            total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params, cparams, types)), 2);
     }
 
     return total / (double)NPOSITIONS;
 }
 
-double singleLinearError(TexelEntry *te, TexelVector params, double K) {
-    double sigm = sigmoid(K, linearEvaluation(te, params));
-    double sigmprime = sigm * (1 - sigm);
-    return (te->result - sigm) * sigmprime;
+
+double linearEvaluation(TEntry *entry, TVector params, TVector cparams, TArray types) {
+
+    return linearEvaluationNormal(entry, params, types) + entry->eval
+         + linearEvaluationSafety(entry, params, cparams, types);
 }
 
-double linearEvaluation(TexelEntry *te, TexelVector params) {
+double linearEvaluationNormal(TEntry *entry, TVector params, TArray types) {
 
     double mg = 0, eg = 0;
 
-    for (int i = 0; i < te->ntuples; i++) {
-        mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
-        eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
+    // Recompute evaluation for NORMAL terms
+    for (int i = 0; i < entry->ntuples; i++) {
+        if (types[entry->tuples[i].index] != SAFETY) {
+            mg += entry->tuples[i].coeff * params[entry->tuples[i].index][MG];
+            eg += entry->tuples[i].coeff * params[entry->tuples[i].index][EG];
+        }
     }
 
-    return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
+    // Interpolate the evaluation by game phase
+    return ((mg * (256 - entry->phase) + eg * entry->phase) / 256.0);
 }
 
-double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
+double linearEvaluationSafety(TEntry *entry, TVector params, TVector cparams, TArray types) {
+
+    int index, wcoeff, bcoeff;
+
+    double mg, eg;
+    double safety[COLOUR_NB][PHASE_NB] = {0};
+    double original[COLOUR_NB][PHASE_NB] = {0};
+
+    for (int i = 0; i < entry->ntuples; i++) {
+
+        // Only deal with the SAFETY terms
+        if (types[entry->tuples[i].index] != SAFETY) continue;
+
+        // Coeffs are packed by colour
+        index = entry->tuples[i].index;
+        wcoeff = WhiteCoeff(entry->tuples[i].coeff);
+        bcoeff = BlackCoeff(entry->tuples[i].coeff);
+
+        // Rebuild the original evaluation (pre-formula)
+        original[WHITE][MG] += wcoeff * cparams[index][MG];
+        original[WHITE][EG] += wcoeff * cparams[index][EG];
+        original[BLACK][MG] += bcoeff * cparams[index][MG];
+        original[BLACK][EG] += bcoeff * cparams[index][EG];
+
+        // Build the updated evaluation (pre-formula)
+        safety[WHITE][MG] += wcoeff * (cparams[index][MG] + params[index][MG]);
+        safety[WHITE][EG] += wcoeff * (cparams[index][EG] + params[index][EG]);
+        safety[BLACK][MG] += bcoeff * (cparams[index][MG] + params[index][MG]);
+        safety[BLACK][EG] += bcoeff * (cparams[index][EG] + params[index][EG]);
+    }
+
+    // MG = -OldWhite + OldBlack + NewWhite - NewBlack
+    mg = -MIN(0, -original[WHITE][MG] * abs(original[WHITE][MG]) / 720)
+       + -MIN(0, -original[BLACK][MG] * abs(original[BLACK][MG]) / 720)
+       +  MIN(0, -  safety[WHITE][MG] * abs(  safety[WHITE][MG]) / 720)
+       -  MIN(0, -  safety[BLACK][MG] * abs(  safety[BLACK][MG]) / 720);
+
+    // EG = -OldWhite + OldBlack + NewWhite - NewBlack
+    eg = -(-original[WHITE][EG] / 20) + -(-original[BLACK][EG] / 20)
+       +  (-  safety[WHITE][EG] / 20) -  (-  safety[BLACK][EG] / 20);
+
+    // Interpolate the evaluation by game phase
+    return ((mg * (256 - entry->phase) + eg * entry->phase) / 256.0);
 }
 
-void printParameters(TexelVector params, TexelVector cparams) {
+double linearSafetyMG(TEntry *entry, TVector params, TVector cparams, TArray types, int colour) {
+
+    int index, wcoeff, bcoeff;
+    double safety = {0};
+
+    for (int i = 0; i < entry->ntuples; i++) {
+
+        if (types[entry->tuples[i].index] != SAFETY) continue;
+
+        index = entry->tuples[i].index;
+        wcoeff = WhiteCoeff(entry->tuples[i].coeff);
+        bcoeff = BlackCoeff(entry->tuples[i].coeff);
+
+        safety += (colour == WHITE ? wcoeff : bcoeff)
+                * (cparams[index][MG] + params[index][MG]);
+    }
+
+    return MIN(0, -safety * abs(safety) / 720);
+}
+
+
+void printParameters(TVector params, TVector cparams) {
 
     int tparams[NTERMS][PHASE_NB];
 
