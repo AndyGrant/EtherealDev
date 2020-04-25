@@ -354,8 +354,10 @@ double computeGradient(TEntry *entry, int index, int coeff, TArray types, int ph
     if (phase == EG)
         return entry->factors[phase] * (BlackCoeff(coeff) - WhiteCoeff(coeff)) / 20.0;
 
-    return entry->factors[phase] * WhiteCoeff(coeff) * MIN(0, -wsafety) / 360.0
-         - entry->factors[phase] * BlackCoeff(coeff) * MIN(0, -bsafety) / 360.0;
+    return entry->factors[phase] * WhiteCoeff(coeff) * (wsafety <= 0 ? 0 : -wsafety / 360.0)
+         - entry->factors[phase] * BlackCoeff(coeff) * (bsafety <= 0 ? 0 : -bsafety / 360.0);
+
+
 }
 
 void shuffleTunerEntries(TEntry *tes) {
