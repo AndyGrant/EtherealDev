@@ -28,14 +28,14 @@
 #define NTERMS       (     13) // Total terms in the Tuner (660)
 #define TUNE_SAFETY  (      1) // All Safety terms must be Tuned at once
 
-#define LEARNING     ( 1000.0) // Learning rate
-#define BATCHSIZE    (5888224) // FENs per mini-batch
+#define LEARNING     (   10.0) // Learning rate
+#define BATCHSIZE    (  16384) // FENs per mini-batch
 #define NPOSITIONS   (5888224) // Total FENS in the book
 
-#define STATICWEIGHT (   0.25) // Weight of the Static Evaluation
-#define SEARCHWEIGHT (   0.75) // Weight of the Depth 10 Search
+#define STATICWEIGHT (   1.00) // Weight of the Static Evaluation
+#define SEARCHWEIGHT (   0.00) // Weight of the Depth 10 Search
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 8))
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
