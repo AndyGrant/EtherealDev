@@ -80,9 +80,6 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height)
     mp->stage = STAGE_TABLE;
     mp->tableMove = ttMove;
 
-    // Lookup our refutations (killers and counter moves)
-    getRefutationMoves(thread, height, &mp->killer1, &mp->killer2, &mp->counter);
-
     // General housekeeping
     mp->threshold = 0;
     mp->thread = thread;
@@ -103,8 +100,8 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
     // Start with just the noisy moves
     mp->stage = STAGE_GENERATE_NOISY;
 
-    // Skip all of the special (refutation and table) moves
-    mp->tableMove = mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    // We still compare to the TT move
+    mp->tableMove = NONE_MOVE;
 
     // General housekeeping
     mp->threshold = threshold;
@@ -166,21 +163,18 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                     if (bestMove == mp->tableMove)
                         return selectNextMove(mp, board, skipQuiets);
 
-                    // Don't play the refutation moves twice
-                    if (bestMove == mp->killer1) mp->killer1 = NONE_MOVE;
-                    if (bestMove == mp->killer2) mp->killer2 = NONE_MOVE;
-                    if (bestMove == mp->counter) mp->counter = NONE_MOVE;
-
                     return bestMove;
                 }
             }
 
             // Jump to bad noisy moves when skipping quiets
-            if (skipQuiets) {
+            if (skipQuiets || mp->type == NOISY_PICKER) {
                 mp->stage = STAGE_BAD_NOISY;
                 return selectNextMove(mp, board, skipQuiets);
             }
 
+            // Lookup our refutations (killers and counter moves)
+            getRefutationMoves(mp->thread, mp->height, &mp->killer1, &mp->killer2, &mp->counter);
             mp->stage = STAGE_KILLER_1;
 
             /* fallthrough */
@@ -191,6 +185,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             mp->stage = STAGE_KILLER_2;
             if (   !skipQuiets
                 &&  mp->killer1 != mp->tableMove
+                && !moveIsTactical(board, mp->killer1)
                 &&  moveIsPseudoLegal(board, mp->killer1))
                 return mp->killer1;
 
@@ -202,6 +197,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             mp->stage = STAGE_COUNTER_MOVE;
             if (   !skipQuiets
                 &&  mp->killer2 != mp->tableMove
+                && !moveIsTactical(board, mp->killer2)
                 &&  moveIsPseudoLegal(board, mp->killer2))
                 return mp->killer2;
 
@@ -215,6 +211,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 &&  mp->counter != mp->tableMove
                 &&  mp->counter != mp->killer1
                 &&  mp->counter != mp->killer2
+                && !moveIsTactical(board, mp->counter)
                 &&  moveIsPseudoLegal(board, mp->counter))
                 return mp->counter;
 
@@ -266,10 +263,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 bestMove = popMove(&mp->noisySize, mp->moves, mp->values, 0);
 
                 // Don't play a move more than once
-                if (   bestMove == mp->tableMove
-                    || bestMove == mp->killer1
-                    || bestMove == mp->killer2
-                    || bestMove == mp->counter)
+                if (bestMove == mp->tableMove)
                     return selectNextMove(mp, board, skipQuiets);
 
                 return bestMove;
