@@ -36,6 +36,7 @@ enum {
     SCALE_LONE_QUEEN       =  88,
     SCALE_NORMAL           = 128,
     SCALE_LARGE_PAWN_ADV   = 144,
+    SCALE_FIFTY_MOVE       = 168,
 };
 
 struct EvalTrace {

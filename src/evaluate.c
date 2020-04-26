@@ -1163,7 +1163,7 @@ int evaluateScaleFactor(Board *board, int eval) {
         &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
         return SCALE_LARGE_PAWN_ADV;
 
-    return SCALE_NORMAL;
+    return MIN(SCALE_NORMAL, SCALE_FIFTY_MOVE - board->halfMoveCounter);
 }
 
 void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
