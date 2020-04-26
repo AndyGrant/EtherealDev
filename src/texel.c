@@ -194,13 +194,13 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
             printf("\rINITIALIZING TEXEL ENTRIES FROM FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV search
-        searchEval = atoi(strstr(line, "] ") + 2);
+        searchEval = 0; //atoi(strstr(line, "] ") + 2);
         if (strstr(line, " b ")) searchEval *= -1;
 
         // Determine the result of the game
-        if      (strstr(line, "[1.0]")) tes[i].result = 1.0;
-        else if (strstr(line, "[0.0]")) tes[i].result = 0.0;
-        else if (strstr(line, "[0.5]")) tes[i].result = 0.5;
+        if      (strstr(line, " 1-0")) tes[i].result = 1.0;
+        else if (strstr(line, " 0-1")) tes[i].result = 0.0;
+        else if (strstr(line, " 1/2-1/2")) tes[i].result = 0.5;
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
         // Resolve FEN to a quiet position
@@ -413,7 +413,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 }
 
 double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
+    return 1.0 / (1.0 + exp(-K * S / 400.0));
 }
 
 void printParameters(TexelVector params, TexelVector cparams) {
