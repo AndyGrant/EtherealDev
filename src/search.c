@@ -800,15 +800,13 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         // Move failed high, thus mp->tableMove is not singular
         if (value > rBeta) {
 
-            if (!moveIsTactical(board, move)) {
+            if (!moveIsTactical(board, move) && value > beta) {
 
                 if (thread->killers[mp->height][0] != move) {
                     thread->killers[mp->height][1] = thread->killers[mp->height][0];
                     thread->killers[mp->height][0] = move;
                 }
             }
-
-            break;
         }
 
         // Start skipping quiets after a few have been tried
