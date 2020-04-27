@@ -72,6 +72,14 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
             thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
         }
     }
+}
+
+void updateRefutations(Thread *thread, uint16_t bestMove, int height) {
+
+    // Extract information from last move
+    uint16_t counter = thread->moveStack[height-1];
+    int cmPiece = thread->pieceStack[height-1];
+    int cmTo = MoveTo(counter);
 
     // Update Killer Moves (Avoid duplicates)
     if (thread->killers[height][0] != bestMove) {
@@ -81,8 +89,9 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
 
     // Update Counter Moves (BestMove refutes the previous move)
     if (counter != NONE_MOVE && counter != NULL_MOVE)
-        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
+        thread->cmtable[!thread->board.turn][cmPiece][cmTo] = bestMove;
 }
+
 
 void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhist, int *fmhist) {
 

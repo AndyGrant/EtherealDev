@@ -380,7 +380,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             revert(thread, board, move, height);
 
             // Probcut failed high
-            if (value >= rBeta) return value;
+            if (value >= rBeta) {
+                updateRefutations(thread, move, height);
+                return value;
+            }
         }
     }
 
@@ -484,6 +487,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         if (singular && multiCut) {
             revert(thread, board, move, height);
+            updateRefutations(thread, ttMove, height);
             return MAX(ttValue - depth, -MATE);
         }
 
@@ -565,8 +569,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
 
     // Step 19 (~760 elo). Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove))
+    if (best >= beta && !moveIsTactical(board, bestMove)) {
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, depth*depth);
+        updateRefutations(thread, bestMove, height);
+    }
 
     // Step 20. Store results of search into the Transposition Table. We do
     // not overwrite the Root entry from the first line of play we examined
