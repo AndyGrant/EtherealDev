@@ -415,10 +415,13 @@ void printParameters(TexelVector params, TexelVector cparams) {
 
     int tparams[NTERMS][PHASE_NB];
 
+    float scalar = !TunePawnValue ? 100.0 / ScoreMG(PawnValue)
+                 : 100.0 / (params[0][MG] + cparams[0][MG]);
+
     // Combine updated and current parameters
     for (int j = 0; j < NTERMS; j++) {
-        tparams[j][MG] = round(params[j][MG] + cparams[j][MG]);
-        tparams[j][EG] = round(params[j][EG] + cparams[j][EG]);
+        tparams[j][MG] = round(scalar * (params[j][MG] + cparams[j][MG]));
+        tparams[j][EG] = round(scalar * (params[j][EG] + cparams[j][EG]));
     }
 
     int i = 0; // EXECUTE_ON_TERMS will update i accordingly
