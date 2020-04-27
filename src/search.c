@@ -807,6 +807,8 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
                     thread->killers[mp->height][0] = move;
                 }
             }
+
+            break;
         }
 
         // Start skipping quiets after a few have been tried
