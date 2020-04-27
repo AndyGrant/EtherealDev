@@ -106,7 +106,7 @@ void runTexelTuning(Thread *thread) {
 
     TexelEntry *tes;
     int iteration = -1;
-    double K, error, best = 1e6, rate = LEARNING;
+    double K, error;
     TexelVector params = {0}, cparams = {0}, phases = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -145,14 +145,9 @@ void runTexelTuning(Thread *thread) {
         // Report every REPORTING iterations
         if (++iteration % REPORTING == 0) {
 
-            // Check for a regression in tuning
-            error = completeLinearError(tes, params, K);
-            if (error > best) rate = rate / LRDROPRATE;
-
-            // Report current best parameters
-            best = error;
             printParameters(params, cparams);
-            printf("\nIteration [%d] Error = %g \n", iteration, best);
+            error = completeLinearError(tes, params, K);
+            printf("\nIteration [%d] Error = %g \n", iteration, error);
         }
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
@@ -164,7 +159,7 @@ void runTexelTuning(Thread *thread) {
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
+                    params[i][j] += (2.0 / BATCHSIZE) * LEARNING * gradient[i][j];
         }
     }
 }
@@ -413,7 +408,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 }
 
 double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
+    return 1.0 / (1.0 + exp(-K * S / 400.0));
 }
 
 void printParameters(TexelVector params, TexelVector cparams) {
