@@ -43,33 +43,36 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
 
-    for (int i = 0; i < length; i++) {
+    if (counter != NULL_MOVE && follow != NULL_MOVE) {
 
-        // Apply a malus until the final move
-        int delta = (moves[i] == bestMove) ? bonus : -bonus;
+        for (int i = 0; i < length; i++) {
 
-        // Extract information from this move
-        int to = MoveTo(moves[i]);
-        int from = MoveFrom(moves[i]);
-        int piece = pieceType(thread->board.squares[from]);
+            // Apply a malus until the final move
+            int delta = (moves[i] == bestMove) ? bonus : -bonus;
 
-        // Update Butterfly History
-        entry = thread->history[colour][from][to];
-        entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-        thread->history[colour][from][to] = entry;
+            // Extract information from this move
+            int to = MoveTo(moves[i]);
+            int from = MoveFrom(moves[i]);
+            int piece = pieceType(thread->board.squares[from]);
 
-        // Update Counter Move History
-        if (counter != NONE_MOVE && counter != NULL_MOVE) {
-            entry = thread->continuation[0][cmPiece][cmTo][piece][to];
+            // Update Butterfly History
+            entry = thread->history[colour][from][to];
             entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-            thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
-        }
+            thread->history[colour][from][to] = entry;
 
-        // Update Followup Move History
-        if (follow != NONE_MOVE && follow != NULL_MOVE) {
-            entry = thread->continuation[1][fmPiece][fmTo][piece][to];
-            entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-            thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
+            // Update Counter Move History
+            if (counter != NONE_MOVE && counter != NULL_MOVE) {
+                entry = thread->continuation[0][cmPiece][cmTo][piece][to];
+                entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+                thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
+            }
+
+            // Update Followup Move History
+            if (follow != NONE_MOVE && follow != NULL_MOVE) {
+                entry = thread->continuation[1][fmPiece][fmTo][piece][to];
+                entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+                thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
+            }
         }
     }
 
