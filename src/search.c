@@ -812,7 +812,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     if (value > rBeta && rBeta >= beta) {
         if (!moveIsTactical(board, move))
             updateKillerMoves(thread, mp->height, move);
-        if (!moveIsTactical(board, mp->tableMove))
+        else if (!moveIsTactical(board, mp->tableMove))
             updateKillerMoves(thread, mp->height, mp->tableMove);
         mp->stage = STAGE_DONE;
     }
