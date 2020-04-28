@@ -84,13 +84,21 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
 }
 
-void updateKillerMoves(Thread *thread, int height, uint16_t move) {
+void updateRefutationMoves(Thread *thread, int height, uint16_t move) {
 
-    // Avoid saving the same Killer Move twice
-    if (thread->killers[height][0] == move) return;
+    // Previous move information
+    uint16_t counter = thread->moveStack[height-1];
+    int cmPiece = thread->pieceStack[height-1];
 
-    thread->killers[height][1] = thread->killers[height][0];
-    thread->killers[height][0] = move;
+    // Update Counter Moves
+    if (counter != NONE_MOVE && counter != NULL_MOVE)
+        thread->cmtable[!thread->board.turn][cmPiece][MoveTo(counter)] = move;
+
+    // Updater Killer Moves
+    if (thread->killers[height][0] != move) {
+        thread->killers[height][1] = thread->killers[height][0];
+        thread->killers[height][0] = move;
+    }
 }
 
 
