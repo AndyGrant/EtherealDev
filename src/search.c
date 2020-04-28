@@ -185,7 +185,7 @@ void aspirationWindow(Thread *thread) {
         // Search failed high, adjust window and reduce depth
         else if (value >= beta) {
             beta = MIN(MATE, beta + delta);
-            depth = depth - 1;
+            depth = depth - (abs(value) <= MATE / 2);
         }
 
         // Expand the search window
@@ -458,7 +458,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // that we are going to search. We only do this from the main thread,
         // and we wait a few seconds in order to avoid floiding the output
         if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
-            uciReportCurrentMove(board, move, played + thread->multiPV, depth);
+            uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
@@ -798,18 +798,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         revert(thread, board, move, mp->height);
 
         // Move failed high, thus mp->tableMove is not singular
-        if (value > rBeta) {
-
-            if (!moveIsTactical(board, move) && value > beta) {
-
-                if (thread->killers[mp->height][0] != move) {
-                    thread->killers[mp->height][1] = thread->killers[mp->height][0];
-                    thread->killers[mp->height][0] = move;
-                }
-            }
-
-            break;
-        }
+        if (value > rBeta) break;
 
         // Start skipping quiets after a few have been tried
         moveIsTactical(board, move) ? tacticals++ : quiets++;
@@ -819,11 +808,15 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         if (skipQuiets && tacticals >= SingularTacticalLimit) break;
     }
 
+    // MultiCut. We signal the Move Picker to terminate the search
+    if (value > rBeta && rBeta >= beta) {
+        if (!moveIsTactical(board, move))
+            updateKillerMoves(thread, mp->height, move);
+        mp->stage = STAGE_DONE;
+    }
+
     // Reapply the table move we took off
     applyLegal(thread, board, mp->tableMove, mp->height);
-
-    // MultiCut. We signal the Move Picker to terminate the search
-    if (value > rBeta && rBeta >= beta) mp->stage = STAGE_DONE;
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
