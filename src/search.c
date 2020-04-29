@@ -792,6 +792,13 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
         assert(move != mp->tableMove); // Skip the table move
 
+        // Don't play a move with a losing SEE() ever
+        if (    movePicker.stage > STAGE_GOOD_NOISY
+            && !staticExchangeEvaluation(board, move, 0))
+            continue;
+        if (movePicker.stage == STAGE_BAD_NOISY)
+            break;
+
         // Perform a reduced depth search on a null rbeta window
         if (!apply(thread, board, move, mp->height)) continue;
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, mp->height+1);
