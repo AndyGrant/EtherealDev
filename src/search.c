@@ -777,7 +777,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
     uint16_t move, quietsPlayed[MAX_MOVES];
     int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rDepth = depth / 2 - 1;
+    int value = -MATE, rDepth = depth / 2;
     int rBeta = MAX(ttValue - depth, -MATE);
 
     MovePicker movePicker;
@@ -795,7 +795,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
         // Perform a reduced depth search on a null rbeta window
         if (!apply(thread, board, move, mp->height)) continue;
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, rDepth, mp->height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, rDepth-1, mp->height+1);
         revert(thread, board, move, mp->height);
 
         // Start skipping quiets after a few have been tried
