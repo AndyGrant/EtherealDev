@@ -395,9 +395,19 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
 }
 
 double singleLinearError(TexelEntry *te, TexelVector params, double K) {
-    double sigm = sigmoid(K, linearEvaluation(te, params));
-    double sigmprime = sigm * (1 - sigm);
-    return (te->result - sigm) * sigmprime;
+
+    // double sigm = sigmoid(K, linearEvaluation(te, params));
+    // double sigmprime = sigm * (1 - sigm);
+    // return (te->result - sigm) * sigmprime;
+
+    double E = linearEvaluation(te, params);
+    double S = sigmoid(K, E);
+    double R = te->result;
+    double N = -K / 400.0;
+
+    int sign = (R - S > 0) - (R - S < 0);
+
+    return -N * sign * exp(N * E) * S * S;
 }
 
 double linearEvaluation(TexelEntry *te, TexelVector params) {
@@ -413,7 +423,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 }
 
 double sigmoid(double K, double S) {
-    return 1.0 / (1.0 + pow(10.0, -K * S / 400.0));
+    return 1.0 / (1.0 + exp(-K * S / 400.0));
 }
 
 void printParameters(TexelVector params, TexelVector cparams) {
