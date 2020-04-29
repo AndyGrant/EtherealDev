@@ -288,6 +288,8 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
+const int PassedOppositionOverload = S(  24,  24);
+
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -38,   3), S( -55,  21), S( -82,  27),
     S(  -6,  12), S(  70,  -5), S( 157,  56), S(   0,   0)},
@@ -870,6 +872,9 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     uint64_t myPassers = board->colours[US] & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
     uint64_t tempPawns = myPassers;
+
+    if (popcount(tempPawns) >= popcount(board->colours[THEM] & ~board->pieces[PAWN]))
+        eval += PassedOppositionOverload;
 
     // Evaluate each passed pawn
     while (tempPawns) {
