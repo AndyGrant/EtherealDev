@@ -806,7 +806,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
-        count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
+        count  = ei->kingAttackersCount[THEM] * 10;
 
         count += KSAttackValue     * scaledAttackCounts
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
