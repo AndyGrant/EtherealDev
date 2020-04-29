@@ -775,9 +775,10 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
 int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta) {
 
-    uint16_t move;
+    uint16_t move, quietsPlayed[MAX_MOVES];
     int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int value = -MATE, rDepth = depth / 2 - 1;
+    int rBeta = MAX(ttValue - depth, -MATE);
 
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
@@ -794,24 +795,24 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
         // Perform a reduced depth search on a null rbeta window
         if (!apply(thread, board, move, mp->height)) continue;
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, mp->height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, rDepth, mp->height+1);
         revert(thread, board, move, mp->height);
 
-        // Move failed high, thus mp->tableMove is not singular
-        if (value > rBeta) break;
-
         // Start skipping quiets after a few have been tried
-        moveIsTactical(board, move) ? tacticals++ : quiets++;
+        moveIsTactical(board, move) ? tacticals++ : (quietsPlayed[quiets++] = move);
         skipQuiets = quiets >= SingularQuietLimit;
 
         // Start skipping bad captures after a few have been tried
         if (skipQuiets && tacticals >= SingularTacticalLimit) break;
+
+        // Move failed high, thus mp->tableMove is not singular
+        if (value > rBeta) break;
     }
 
     // MultiCut. We signal the Move Picker to terminate the search
     if (value > rBeta && rBeta >= beta) {
         if (!moveIsTactical(board, move))
-            updateKillerMoves(thread, mp->height, move);
+            updateHistoryHeuristics(thread, quietsPlayed, quiets, mp->height, rDepth*rDepth);
         mp->stage = STAGE_DONE;
     }
 
@@ -821,3 +822,4 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     // Move is singular if all other moves failed low
     return value <= rBeta;
 }
+
