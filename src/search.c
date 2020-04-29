@@ -648,7 +648,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
+    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin - QFutilityMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Search the next ply if the move is legal
