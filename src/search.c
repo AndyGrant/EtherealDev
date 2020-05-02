@@ -86,8 +86,8 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
         pthread_join(pthreads[i], NULL);
 
     // The main thread will update SearchInfo with results
-    *best = info.bestMoves[info.depth];
-    *ponder = info.ponderMoves[info.depth];
+    *ponder = info.bestMoves[info.depth];
+    *best = info.ponderMoves[info.depth];
 }
 
 void* iterativeDeepening(void *vthread) {
