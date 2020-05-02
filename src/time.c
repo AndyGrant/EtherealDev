@@ -24,7 +24,7 @@
 #include "types.h"
 #include "uci.h"
 
-int MoveOverhead = 250; // Set by UCI options
+int MoveOverhead = -4000; // Set by UCI options
 
 double getRealTime() {
 #if defined(_WIN32) || defined(_WIN64)
