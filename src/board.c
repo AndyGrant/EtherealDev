@@ -395,7 +395,7 @@ void runBenchmark(int argc, char **argv) {
     }
 
     printf("Time  : %dms\n", (int)(getRealTime() - start));
-    printf("Nodes : %"PRIu64"\n", nodes);
+    printf("Nodes : %"PRIu64"\n", nodes+1);
     printf("NPS   : %d\n", (int)(nodes / ((getRealTime() - start) / 1000.0)));
 
     free(threads);
