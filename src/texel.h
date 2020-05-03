@@ -25,12 +25,12 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (     66) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
 #define BATCHSIZE    (  16384) // FENs per mini-batch
-#define NPOSITIONS   (5888224) // Total FENS in the book
+#define NPOSITIONS   (5832689) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
@@ -54,17 +54,17 @@
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
 #define TuneKnightInSiberia             (0)
-#define TuneKnightMobility              (0)
+#define TuneKnightMobility              (1)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
 #define TuneBishopOutpost               (0)
 #define TuneBishopBehindPawn            (0)
 #define TuneBishopLongDiagonal          (0)
-#define TuneBishopMobility              (0)
+#define TuneBishopMobility              (1)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
-#define TuneRookMobility                (0)
-#define TuneQueenMobility               (0)
+#define TuneRookMobility                (1)
+#define TuneQueenMobility               (1)
 #define TuneKingDefenders               (0)
 #define TuneKingPawnFileProximity       (0)
 #define TuneKingShelter                 (0)
