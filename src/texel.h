@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (     64) // Total terms in the Tuner (583)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -67,7 +67,7 @@
 #define TuneQueenMobility               (0)
 #define TuneKingDefenders               (0)
 #define TuneKingPawnFileProximity       (0)
-#define TuneKingShelter                 (0)
+#define TuneKingShelter                 (1)
 #define TuneKingStorm                   (0)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
@@ -264,7 +264,7 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
     ENABLE_1(F, QueenMobility, 28, NORMAL, "[28]");                         \
     ENABLE_1(F, KingDefenders, 12, NORMAL, "[12]");                         \
     ENABLE_1(F, KingPawnFileProximity, 8, NORMAL, "[FILE_NB]");             \
-    ENABLE_3(F, KingShelter, 2, 8, 8, NORMAL, "[2][FILE_NB][RANK_NB]");     \
+    ENABLE_3(F, KingShelter, 2, 4, 8, NORMAL, "[2][FILE_NB/2][RANK_NB]");   \
     ENABLE_3(F, KingStorm, 2, 4, 8, NORMAL, "[2][FILE_NB/2][RANK_NB]");     \
     ENABLE_3(F, PassedPawn, 2, 2, 8, NORMAL, "[2][2][RANK_NB]");            \
     ENABLE_1(F, PassedFriendlyDistance, 8, NORMAL, "[FILE_NB]");            \
