@@ -219,59 +219,9 @@ const int KingPawnFileProximity[FILE_NB] = {
     S( -28, -46), S( -21, -61), S( -17, -66), S( -11, -64),
 };
 
-const int KingShelter[2][FILE_NB][RANK_NB] = {
-  {{S(  -9,   2), S(  14, -26), S(  26,  -9), S(  17,   6),
-    S(  14,   3), S(  -1,  -1), S(  -3, -34), S( -51,  20)},
-   {S(  16,  -7), S(  21, -19), S(   3,  -5), S( -15,   4),
-    S( -30,  16), S( -73,  67), S(  91,  81), S( -18,   0)},
-   {S(  36,  -4), S(  10,  -8), S( -30,   7), S( -13,  -8),
-    S( -17,  -5), S( -12,   1), S(   0,  68), S( -12,  -1)},
-   {S(   2,  12), S(  24, -13), S(   5, -12), S(  15, -21),
-    S(  31, -38), S( -58,   3), S(-135,  51), S(   6,  -6)},
-   {S( -18,  11), S(   4,  -1), S( -31,   4), S( -20,   8),
-    S( -21,  -6), S( -45,  -5), S(  32, -18), S(  -8,   2)},
-   {S(  48, -18), S(  21, -14), S( -21,   4), S( -11, -19),
-    S(   7, -25), S(  19, -21), S(  40, -32), S( -23,   2)},
-   {S(  29, -16), S(  -1, -16), S( -26,  -1), S( -22,  -7),
-    S( -31,  -5), S( -41,  30), S(   1,  44), S(  -9,   0)},
-   {S(  -9, -13), S(   5, -19), S(   8,   2), S(  -1,  12),
-    S( -11,  16), S( -11,  36), S(-190,  89), S( -19,  15)}},
-  {{S(   0,   0), S( -13, -26), S(   7, -23), S( -39,  20),
-    S( -23,   1), S(   3,  42), S(-167,  -7), S( -43,   9)},
-   {S(   0,   0), S(  25, -22), S(   8,  -6), S( -16,   0),
-    S(   3, -18), S(  26,  65), S(-184,  -3), S( -30,   4)},
-   {S(   0,   0), S(  25, -12), S(  -1, -10), S(   5, -20),
-    S(  21,  -3), S( -87,  48), S( -84, -74), S( -19,  -2)},
-   {S(   0,   0), S( -10,   9), S(  -6,  -2), S( -25,   5),
-    S( -27,   4), S(-100,  30), S(   7, -40), S( -22,  -4)},
-   {S(   0,   0), S(  14,   2), S(  12,  -6), S(  15, -13),
-    S(  17, -31), S( -57,  14), S(-101, -60), S(  -2,  -3)},
-   {S(   0,   0), S(   1,  -6), S( -26,   2), S( -23,  -9),
-    S(  23, -23), S( -37,   3), S(  55,  39), S( -17,  -4)},
-   {S(   0,   0), S(  23, -17), S(  11, -15), S( -11,  -7),
-    S( -28,  14), S(  -8,  19), S( -57, -50), S( -31,  12)},
-   {S(   0,   0), S(  12, -42), S(  21, -32), S( -19,  -7),
-    S( -20,  19), S(  -8,  21), S(-228, -56), S( -25,   3)}},
-};
+const int KingShelter[2][2][RANK_NB];
 
-const int KingStorm[2][FILE_NB/2][RANK_NB] = {
-  {{S( -13,  32), S( 112,  -6), S( -23,  25), S( -14,   3),
-    S( -12,   0), S(  -6,  -6), S( -15,   2), S( -24,   1)},
-   {S(  -8,  53), S(  51,  14), S( -20,  22), S(  -3,   9),
-    S(  -2,   4), S(   6,  -5), S(  -2,   2), S( -11,   3)},
-   {S(   3,  43), S(   4,  28), S( -22,  20), S( -10,   7),
-    S(   3,   1), S(   7,   0), S(  12,  -6), S(   6,   2)},
-   {S(  -7,  28), S(   4,  25), S( -22,   9), S( -14,   0),
-    S( -12,   1), S(   9, -12), S(   3,  -9), S( -12,   4)}},
-  {{S(   0,   0), S( -18, -16), S( -16,  -2), S(  22, -20),
-    S(  10,  -7), S(   6, -21), S(   4,   1), S(  16,  29)},
-   {S(   0,   0), S( -17, -37), S(   3, -11), S(  44, -13),
-    S(   3,  -4), S(  17, -25), S(  -6,  -5), S( -19,   0)},
-   {S(   0,   0), S( -28, -52), S( -23,  -7), S(  17, -13),
-    S(   6,  -2), S(  -8, -13), S( -10, -12), S( -11,   6)},
-   {S(   0,   0), S(  -2, -19), S( -20, -16), S( -14,  -2),
-    S(  -3,  -7), S(   2, -23), S(  73, -12), S(  15,  20)}},
-};
+const int KingStorm[2][2][RANK_NB];
 
 /* King Safety Evaluation Terms */
 
@@ -835,27 +785,27 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,
     // as well as the adjacent files. When looking at pawn distances, we will use a
     // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
-    for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); file++) {
-
-        // Find closest friendly pawn at or above our King on a given file
-        uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
-        int ourDist = !ours ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, ours)));
-
-        // Find closest enemy pawn at or above our King on a given file
-        uint64_t theirs = enemyPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
-        int theirDist = !theirs ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, theirs)));
-
-        // Evaluate King Shelter using pawn distance. Use separate evaluation
-        // depending on the file, and if we are looking at the King's file
-        ei->pkeval[US] += KingShelter[file == fileOf(kingSq)][file][ourDist];
-        if (TRACE) T.KingShelter[file == fileOf(kingSq)][file][ourDist][US]++;
-
-        // Evaluate King Storm using enemy pawn distance. Use a separate evaluation
-        // depending on the file, and if the opponent's pawn is blocked by our own
-        blocked = (ourDist != 7 && (ourDist == theirDist - 1));
-        ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirDist];
-        if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDist][US]++;
-    }
+    // for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); file++) {
+    //
+    //     // Find closest friendly pawn at or above our King on a given file
+    //     uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
+    //     int ourDist = !ours ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, ours)));
+    //
+    //     // Find closest enemy pawn at or above our King on a given file
+    //     uint64_t theirs = enemyPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
+    //     int theirDist = !theirs ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, theirs)));
+    //
+    //     // Evaluate King Shelter using pawn distance. Use separate evaluation
+    //     // depending on the file, and if we are looking at the King's file
+    //     ei->pkeval[US] += KingShelter[file == fileOf(kingSq)][file][ourDist];
+    //     if (TRACE) T.KingShelter[file == fileOf(kingSq)][file][ourDist][US]++;
+    //
+    //     // Evaluate King Storm using enemy pawn distance. Use a separate evaluation
+    //     // depending on the file, and if the opponent's pawn is blocked by our own
+    //     blocked = (ourDist != 7 && (ourDist == theirDist - 1));
+    //     ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirDist];
+    //     if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDist][US]++;
+    // }
 
     return eval;
 }
