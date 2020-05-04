@@ -254,23 +254,15 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
     S( -20,  19), S(  -8,  21), S(-228, -56), S( -25,   3)}},
 };
 
-const int KingStorm[2][FILE_NB/2][RANK_NB] = {
-  {{S( -15,   6), S(  31,  12), S(  14,   5), S(  -9,   5),
-    S(  -5,   3), S(  -3,   1), S(  -7,   3), S(   0,   0)},
-   {S(  -9,   4), S(   4,  15), S( -11,   9), S(  -3,   5),
-    S(  -3,   5), S(   5,  -1), S(  -4,   3), S(   0,   0)},
-   {S(   6,   2), S( -13,  16), S( -13,   9), S( -12,   6),
-    S(   5,   0), S(   8,  -2), S(   6,  -2), S(   0,   0)},
-   {S(  -3,   4), S( -11,  13), S( -22,   6), S(  -3,  -1),
-    S(  -2,  -1), S(   5,  -1), S(   6,  -3), S(   0,   0)}},
-  {{S(  -5,   2), S(   0,   0), S( -10, -30), S(  23,  -9),
-    S(  -1,   1), S(   9,  -3), S(  13,   4), S(   0,   0)},
-   {S(  -2,   1), S(   0,   0), S(  -4, -26), S(  29, -11),
-    S(  -2,   3), S(   7,  -3), S(   3,   3), S(   0,   0)},
-   {S(   1,   1), S(   0,   0), S( -16, -16), S(   1,  -1),
-    S(   6,  -7), S(   3,   0), S(  -4,   2), S(   0,   0)},
-   {S(   3,   1), S(   0,   0), S( -28,  -6), S(  -4, -10),
-    S(  -2,  -8), S(   3,   0), S(  16,  -1), S(   0,   0)}},
+const int KingStorm[2][2][RANK_NB] = {
+  {{S(  16,   5), S(  -3,  19), S( -10,  14), S(  10,   6),
+    S(  18,   5), S(  22,   0), S(   9,   4), S(   0,   0)},
+   {S(   9,   6), S(  12,  15), S(  16,  17), S(  10,  11),
+    S(  18,   3), S(  21,   1), S(  22,   2), S(   0,   0)}},
+  {{S(   0,   0), S(   0,   0), S(   0, -16), S(  20,  -5),
+    S(  13,  -6), S(  22,  -5), S(   3,   4), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   2, -22), S(  53, -17),
+    S(  36,  -6), S(  34,   0), S(  21,  14), S(   0,   0)}},
 };
 
 /* King Safety Evaluation Terms */
@@ -840,16 +832,18 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t forward = Files[file] & forwardRanksMasks(US, rankOf(kingSq));
         uint64_t ours = forward & myPawns, theirs = forward & enemyPawns;
 
-        int ourDist   = !  ours ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, ours)));
-        int theirDist = !theirs ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, theirs)));
+        int ourDist   = !ours   ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, ours)));
+        int ourRank   = !ours   ? 0 : relativeRankOf(US, backmost(US, ours));
         int theirRank = !theirs ? 0 : relativeRankOf(US, backmost(US, theirs));
-        int blocked   = (ourDist == theirDist - 1);
+
+        int edge    = !file || file == FILE_NB - 1;
+        int blocked = ourRank && (ourRank == theirRank - 1);
 
         ei->pkeval[US] += KingShelter[file == fileOf(kingSq)][file][ourDist];
         if (TRACE) T.KingShelter[file == fileOf(kingSq)][file][ourDist][US]++;
 
-        ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirRank];
-        if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirRank][US]++;
+        ei->pkeval[US] += KingStorm[blocked][edge][theirRank];
+        if (TRACE) T.KingStorm[blocked][edge][theirRank][US]++;
 
     }
 
