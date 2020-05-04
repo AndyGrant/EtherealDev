@@ -76,7 +76,7 @@ extern const int RookMobility[15];
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
 extern const int KingPawnFileProximity[8];
-extern const int KingShelter[2][8][8];
+extern const int KingShelter[2][4][8];
 extern const int KingStorm[2][4][8];
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
@@ -221,7 +221,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL, 0);
+        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 
         // Count up the non zero coefficients
