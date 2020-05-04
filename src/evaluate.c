@@ -835,7 +835,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,
     // as well as the adjacent files. When looking at pawn distances, we will use a
     // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
-    for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); file++) {
+
+    int start = MIN(5, fileOf(kingSq) - 1), end = MAX(2, fileOf(kingSq) + 1);
+
+    for (int file = MAX(0, start); file <= MIN(7, end); file++) {
 
         // Find closest friendly pawn at or above our King on a given file
         uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
