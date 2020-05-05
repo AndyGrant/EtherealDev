@@ -475,8 +475,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
                   : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
 
-        extension |= pieceType(board->squares[MoveTo(move)]) == PAWN
-                  && relativeRankOf(!board->turn, MoveTo(move)) >= 5;
+        extension |=   pieceType(board->squares[MoveTo(move)]) == PAWN
+                  &&   relativeRankOf(!board->turn, MoveTo(move)) >= 5
+                  && !(  board->colours[board->turn] & board->pieces[PAWN]
+                       & passedPawnMasks(!board->turn, MoveTo(move)));
 
         newDepth = depth + (extension && !RootNode);
 
