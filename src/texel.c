@@ -105,36 +105,33 @@ extern const int ComplexityAdjustment;
 void runTexelTuning() {
 
     TexelEntry *tes;
-    int iteration = -1;
+    int iteration = 0;
     Thread *thread = createThreadPool(1);
     double K, error, best = 1e6, rate = LEARNING;
     TexelVector params = {0}, cparams = {0}, phases = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    printf("\nTUNER WILL BE TUNING %d TERMS...", NTERMS);
+    printf("\nTuner Will be Tuning %d Terms...", NTERMS);
 
-    printf("\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...");
-    initTT(1);
-
-    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
+    printf("\n\nAllocating Memory For Texel Entries [%dMB]...",
            (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",
+    printf("\n\nAllocating Memory For Texel Tuple Stack [%dMB]...",
            (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
-    printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
+    printf("\n\nInitializing Texel Entries From FENS...");
     initTexelEntries(tes, thread);
 
-    printf("\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...");
+    printf("\n\nFetching Current Evaluation Terms as a Starting Point...");
     initCurrentParameters(cparams);
 
-    printf("\n\nSETTING TERM PHASES, MG, EG, OR BOTH...");
+    printf("\n\nSetting Term Phases, MG, EG, or BOTH...");
     initPhaseManager(phases);
 
-    printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
+    printf("\n\nComputing Optimal K Value...\n");
     K = computeOptimalK(tes);
 
     while (1) {
@@ -165,7 +162,7 @@ void runTexelTuning() {
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
             for (int i = 0; i < NTERMS; i++)
                 for (int j = MG; j <= EG; j++)
-                    params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
+                    params[i][j] -= (1.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
 }
@@ -191,7 +188,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Occasional reporting for total completion
         if ((i + 1) % 100000 == 0 || i == NPOSITIONS - 1)
-            printf("\rINITIALIZING TEXEL ENTRIES FROM FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
+            printf("\rInitializing Texel Entries From FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV search
         tes[i].eval = atoi(strstr(line, "] ") + 2);
@@ -283,7 +280,7 @@ void updateMemory(TexelEntry *te, int size) {
 
     // First ensure we have enough Tuples left for this TexelEntry
     if (size > TupleStackSize) {
-        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
+        printf("\n\nAllocating Memory For Texel Tuple Stack [%dMB]...\n\n",
                 (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
         TupleStackSize = STACKSIZE;
         TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
@@ -347,7 +344,7 @@ double computeOptimalK(TexelEntry *tes) {
                 best = error, start = curr;
         }
 
-        printf("COMPUTING K ITERATION [%d] K = %f E = %f\n", i, start, best);
+        printf("Computing K Iteration [%d] K = %2f E = %2f\n", i, start, best);
 
         end = start + delta;
         start = start - delta;
@@ -365,7 +362,7 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
+            total += fabs(tes[i].result - sigmoid(K, tes[i].eval));
     }
 
     return total / (double)NPOSITIONS;
@@ -379,16 +376,19 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)), 2);
+            total += fabs(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)));
     }
 
     return total / (double)NPOSITIONS;
 }
 
 double singleLinearError(TexelEntry *te, TexelVector params, double K) {
-    double sigm = sigmoid(K, linearEvaluation(te, params));
-    double sigmprime = sigm * (1 - sigm);
-    return (te->result - sigm) * sigmprime;
+
+    double Eval   = linearEvaluation(te, params);
+    double Expon  = exp(-K * Eval / 400.0);
+    double Sign   = te->result - sigmoid(K, Eval) > 0 ? 1 : -1;
+
+    return -(K / 400.0) * (Expon / pow(Expon + 1, 2)) * Sign;
 }
 
 double linearEvaluation(TexelEntry *te, TexelVector params) {
