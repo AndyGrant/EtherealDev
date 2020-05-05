@@ -491,7 +491,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(MAX(played, quietsSeen), 63)];
 
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
