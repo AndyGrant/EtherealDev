@@ -191,8 +191,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
             printf("\rInitializing Texel Entries From FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV search
-        tes[i].eval = atoi(strstr(line, "] ") + 2);
-        if (strstr(line, " b ")) tes[i].eval *= -1;
+        // tes[i].eval = atoi(strstr(line, "] ") + 2);
+        // if (strstr(line, " b ")) tes[i].eval *= -1;
 
         // Determine the result of the game
         if      (strstr(line, "[1.0]")) tes[i].result = 1.0;
@@ -218,7 +218,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL, 0);
+        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 
         // Count up the non zero coefficients
