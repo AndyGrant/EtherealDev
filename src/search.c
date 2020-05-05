@@ -32,6 +32,7 @@
 #include "evaluate.h"
 #include "fathom/tbprobe.h"
 #include "history.h"
+#include "masks.h"
 #include "move.h"
 #include "movegen.h"
 #include "movepicker.h"
