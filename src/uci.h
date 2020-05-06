@@ -24,9 +24,9 @@
 
 #define VERSION_ID "12.13"
 
-#if defined(USE_PEXT)
+#if defined(PEXT)
     #define ETHEREAL_VERSION VERSION_ID" (PEXT)"
-#elif defined(USE_POPCNT)
+#elif defined(POPCNT)
     #define ETHEREAL_VERSION VERSION_ID" (POPCNT)"
 #else
     #define ETHEREAL_VERSION VERSION_ID

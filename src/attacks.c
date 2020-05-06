@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#ifdef USE_PEXT
+#ifdef PEXT
 #include <immintrin.h>
 #endif
 
@@ -48,7 +48,7 @@ static void setSquare(uint64_t *bb, int rank, int file) {
 }
 
 static int sliderIndex(uint64_t occupied, Magic *table) {
-#ifdef USE_PEXT
+#ifdef PEXT
     return _pext_u64(occupied, table->mask);
 #else
     return ((occupied & table->mask) * table->magic) >> table->shift;
