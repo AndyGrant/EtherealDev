@@ -201,7 +201,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
-    int quietsSeen = 0, quietsPlayed = 0, played = 0;
+    int quietsSeen = 0, noisySeen = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -394,10 +394,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             continue;
 
         // For quiet moves we fetch various history scores
-        if ((isQuiet = !moveIsTactical(board, move))) {
+        if ((isQuiet = !moveIsTactical(board, move)))
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
-            quietsSeen++;
-        }
+
+        isQuiet ? quietsSeen++ : noisySeen++;
 
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
@@ -491,7 +491,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(quietsSeen + noisySeen, 63)];
 
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
