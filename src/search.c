@@ -475,7 +475,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
                   : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
 
-        extension = extension || (!singular && MoveType(move) == CASTLE_MOVE);
+        extension |= !singular && MoveType(move) == CASTLE_MOVE && hist + cmhist + fmhist > 0;
 
         newDepth = depth + (extension && !RootNode);
 
