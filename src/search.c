@@ -475,6 +475,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
                   : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
 
+        extension = extension || (!singular && MoveType(move) == CASTLE_MOVE);
+
         newDepth = depth + (extension && !RootNode);
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
