@@ -26,21 +26,20 @@
 #include "movegen.h"
 #include "types.h"
 
-static void buildEnpassMoves(uint16_t *moves, int *size, uint64_t attacks, int epsq) {
-    while (attacks) {
-        int sq = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq, epsq, ENPASS_MOVE);
-    }
+
+void buildEnpassMoves(uint16_t *moves, int *size, uint64_t attacks, int epsq) {
+    while (attacks)
+        moves[(*size)++] = MoveMake(poplsb(&attacks), epsq, ENPASS_MOVE);
 }
 
-static void buildPawnMoves(uint16_t *moves, int *size, uint64_t attacks, int delta) {
+void buildPawnMoves(uint16_t *moves, int *size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(&attacks);
         moves[(*size)++] = MoveMake(sq + delta, sq, NORMAL_MOVE);
     }
 }
 
-static void buildPawnPromotions(uint16_t *moves, int *size, uint64_t attacks, int delta) {
+void buildPawnPromotions(uint16_t *moves, int *size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(&attacks);
         moves[(*size)++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
@@ -50,38 +49,29 @@ static void buildPawnPromotions(uint16_t *moves, int *size, uint64_t attacks, in
     }
 }
 
-static void buildNonPawnMoves(uint16_t *moves, int *size, uint64_t attacks, int sq) {
-    while (attacks) {
-        int to = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq, to, NORMAL_MOVE);
-    }
+
+typedef uint64_t (*JumperFunc)(int);
+typedef uint64_t (*SliderFunc)(int, uint64_t);
+
+void buildNormalMoves(uint16_t *moves, int *size, uint64_t attacks, int sq) {
+    while (attacks)
+        moves[(*size)++] = MoveMake(sq, poplsb(&attacks), NORMAL_MOVE);
 }
 
-static void buildKnightMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t targets) {
+void buildJumperMoves(JumperFunc F, uint16_t *moves, int *size, uint64_t pieces, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
-        buildNonPawnMoves(moves, size, knightAttacks(sq) & targets, sq);
+        buildNormalMoves(moves, size, F(sq) & targets, sq);
     }
 }
 
-static void buildBishopMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+void buildSliderMoves(SliderFunc F, uint16_t *moves, int *size, uint64_t pieces, uint64_t targets, uint64_t occupied) {
     while (pieces) {
         int sq = poplsb(&pieces);
-        buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied) & targets, sq);
+        buildNormalMoves(moves, size, F(sq, occupied) & targets, sq);
     }
 }
 
-static void buildRookMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
-    while (pieces) {
-        int sq = poplsb(&pieces);
-        buildNonPawnMoves(moves, size, rookAttacks(sq, occupied) & targets, sq);
-    }
-}
-
-static void buildKingMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t targets) {
-    int sq = getlsb(pieces);
-    buildNonPawnMoves(moves, size, kingAttacks(sq) & targets, sq);
-}
 
 void genAllLegalMoves(Board *board, uint16_t *moves, int *size) {
 
@@ -103,44 +93,45 @@ void genAllLegalMoves(Board *board, uint16_t *moves, int *size) {
 
 void genAllNoisyMoves(Board *board, uint16_t *moves, int *size) {
 
-    const int Forward = board->turn == WHITE ? -8 : 8;
     const int Left    = board->turn == WHITE ? -7 : 7;
     const int Right   = board->turn == WHITE ? -9 : 9;
+    const int Forward = board->turn == WHITE ? -8 : 8;
 
     uint64_t destinations, pawnEnpass, pawnLeft, pawnRight;
     uint64_t pawnPromoForward, pawnPromoLeft, pawnPromoRight;
 
-    uint64_t friendly = board->colours[ board->turn];
-    uint64_t enemy    = board->colours[!board->turn];
-    uint64_t occupied = friendly | enemy;
+    uint64_t us       = board->colours[board->turn];
+    uint64_t them     = board->colours[!board->turn];
+    uint64_t occupied = us | them;
 
-    uint64_t myPawns   = friendly &  board->pieces[PAWN  ];
-    uint64_t myKnights = friendly &  board->pieces[KNIGHT];
-    uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t myRooks   = friendly & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t myKings   = friendly &  board->pieces[KING  ];
+    uint64_t pawns   = us & (board->pieces[PAWN  ]);
+    uint64_t knights = us & (board->pieces[KNIGHT]);
+    uint64_t bishops = us & (board->pieces[BISHOP]);
+    uint64_t rooks   = us & (board->pieces[ROOK  ]);
+    uint64_t kings   = us & (board->pieces[KING  ]);
 
-    // Double checks can only be evaded by moving the King. We only
-    // look at captures by the king since we are generating noisy moves
+    // Merge together duplicate piece ideas
+    bishops |= us & board->pieces[QUEEN];
+    rooks   |= us & board->pieces[QUEEN];
+
+    // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers)) {
-        buildKingMoves(moves, size, myKings, enemy);
+        buildJumperMoves(&kingAttacks, moves, size, kings, them);
         return;
     }
 
-    // If we are attacked we will only consider the normal moves which would
-    // capture the checking piece, since we are only generating noisy moves
-    // in this function. Otherwise, we consider all enemy pieces as targets
-    destinations = board->kingAttackers ? board->kingAttackers : enemy;
+    // When checked, we may only uncheck by capturing the checker
+    destinations = board->kingAttackers ? board->kingAttackers : them;
 
     // Compute bitboards for each type of Pawn movement
-    pawnEnpass       = pawnEnpassCaptures(myPawns, board->epSquare, board->turn);
-    pawnLeft         = pawnLeftAttacks(myPawns, enemy, board->turn);
-    pawnRight        = pawnRightAttacks(myPawns, enemy, board->turn);
-    pawnPromoForward = pawnAdvance(myPawns, occupied, board->turn) & PROMOTION_RANKS;
+    pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
+    pawnLeft         = pawnLeftAttacks(pawns, them, board->turn);
+    pawnRight        = pawnRightAttacks(pawns, them, board->turn);
+    pawnPromoForward = pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS;
     pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS;
     pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS;
 
-    // Generate all the noisy Pawn moves
+    // Generate moves for all the Pawns, so long as they are noisy
     buildEnpassMoves(moves, size, pawnEnpass, board->epSquare);
     buildPawnMoves(moves, size, pawnLeft & destinations, Left);
     buildPawnMoves(moves, size, pawnRight & destinations, Right);
@@ -148,11 +139,11 @@ void genAllNoisyMoves(Board *board, uint16_t *moves, int *size) {
     buildPawnPromotions(moves, size, pawnPromoLeft, Left);
     buildPawnPromotions(moves, size, pawnPromoRight, Right);
 
-    // Generate all the noisy non-Pawn moves
-    buildKnightMoves(moves, size, myKnights, destinations);
-    buildBishopMoves(moves, size, myBishops, occupied, destinations);
-    buildRookMoves(moves, size, myRooks, occupied, destinations);
-    buildKingMoves(moves, size, myKings, enemy);
+    // Generate moves for the remainder of the pieces, so long as they are noisy
+    buildJumperMoves(&knightAttacks, moves, size, knights, destinations);
+    buildSliderMoves(&bishopAttacks, moves, size, bishops, destinations, occupied);
+    buildSliderMoves(&rookAttacks, moves, size, rooks, destinations, occupied);
+    buildJumperMoves(&kingAttacks, moves, size, kings, them);
 }
 
 void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
@@ -163,56 +154,49 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     int rook, king, rookTo, kingTo, attacked;
     uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
 
-    uint64_t friendly = board->colours[ board->turn];
-    uint64_t enemy    = board->colours[!board->turn];
-    uint64_t occupied = friendly | enemy;
+    uint64_t us       = board->colours[board->turn];
+    uint64_t occupied = us | board->colours[!board->turn];
+    uint64_t castles  = us & board->castleRooks;
 
-    uint64_t myPawns   = friendly &  board->pieces[PAWN  ];
-    uint64_t myKnights = friendly &  board->pieces[KNIGHT];
-    uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t myRooks   = friendly & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t myKings   = friendly &  board->pieces[KING  ];
-    uint64_t castles   = friendly &  board->castleRooks;
+    uint64_t pawns   = us & (board->pieces[PAWN  ]);
+    uint64_t knights = us & (board->pieces[KNIGHT]);
+    uint64_t bishops = us & (board->pieces[BISHOP]);
+    uint64_t rooks   = us & (board->pieces[ROOK  ]);
+    uint64_t kings   = us & (board->pieces[KING  ]);
 
-    // Double checks can only be evaded by moving the King. We do not
-    // look at captures by the king since we are generating quiet moves
+    // Merge together duplicate piece ideas
+    bishops |= us & board->pieces[QUEEN];
+    rooks   |= us & board->pieces[QUEEN];
+
+    // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers)) {
-        buildKingMoves(moves, size, myKings, ~occupied);
+        buildJumperMoves(&kingAttacks, moves, size, kings, ~occupied);
         return;
     }
 
-    // Like above, since checks by Pawns and Knights cannot be blocked,
-    // the only quiet evasions are the ones in which we move our King
-    if (board->kingAttackers & (board->pieces[PAWN] | board->pieces[KNIGHT])) {
-        buildKingMoves(moves, size, myKings, ~occupied);
-        return;
-    }
-
-    // When there is no checking threat we will look at all moves to empty squares.
-    // squares. When there is a checking threat, we may only look at moves which
-    // block the sliding path between the piece giving check and our King
+    // When checked, we must block the checker with non-King pieces
     destinations = !board->kingAttackers ? ~occupied
-                 : ~occupied & bitsBetweenMasks(getlsb(myKings), getlsb(board->kingAttackers));
+                 : ~occupied & bitsBetweenMasks(getlsb(kings), getlsb(board->kingAttackers));
 
-    // Compute bitboards for the quiet Pawn moves
-    pawnForwardOne = pawnAdvance(myPawns, occupied, board->turn) & ~PROMOTION_RANKS;
+    // Compute bitboards for each type of Pawn movement
+    pawnForwardOne = pawnAdvance(pawns, occupied, board->turn) & ~PROMOTION_RANKS;
     pawnForwardTwo = pawnAdvance(pawnForwardOne & Rank3Relative, occupied, board->turn);
 
-    // Generate all of the quiet Pawn moves
+    // Generate moves for all the pawns, so long as they are quiet
     buildPawnMoves(moves, size, pawnForwardOne & destinations, Forward);
     buildPawnMoves(moves, size, pawnForwardTwo & destinations, Forward * 2);
 
-    // Generate all of the quiet non-Pawn moves, except castles
-    buildKnightMoves(moves, size, myKnights, destinations);
-    buildBishopMoves(moves, size, myBishops, occupied, destinations);
-    buildRookMoves(moves, size, myRooks, occupied, destinations);
-    buildKingMoves(moves, size, myKings, ~occupied);
+    // Generate moves for the remainder of the pieces, so long as they are quiet
+    buildJumperMoves(&knightAttacks, moves, size, knights, destinations);
+    buildSliderMoves(&bishopAttacks, moves, size, bishops, destinations, occupied);
+    buildSliderMoves(&rookAttacks, moves, size, rooks, destinations, occupied);
+    buildJumperMoves(&kingAttacks, moves, size, kings, ~occupied);
 
     // Attempt to generate a castle move for each rook
     while (castles && !board->kingAttackers) {
 
         // Figure out which pieces are moving to which squares
-        rook = poplsb(&castles), king = getlsb(myKings);
+        rook = poplsb(&castles), king = getlsb(kings);
         rookTo = castleRookTo(king, rook);
         kingTo = castleKingTo(king, rook);
         attacked = 0;
