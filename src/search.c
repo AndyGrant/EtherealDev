@@ -352,7 +352,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R  = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+
+        R += eval - moveBestCaseValue(board, !board->turn) >= beta;
 
         apply(thread, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
@@ -367,7 +369,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
+        &&  eval + moveBestCaseValue(board, board->turn) >= beta + ProbCutMargin) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
@@ -642,7 +644,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional boost of the futility margin would still fail
     margin = alpha - eval - QFutilityMargin;
-    if (moveBestCaseValue(board) < margin)
+    if (moveBestCaseValue(board, board->turn) < margin)
         return eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
