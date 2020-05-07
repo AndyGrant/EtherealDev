@@ -25,6 +25,7 @@
 #include "thread.h"
 #include "types.h"
 
+
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
 
     int entry, colour = thread->board.turn;
@@ -111,9 +112,6 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    // Set basic Butterfly history
-    *hist = thread->history[thread->board.turn][from][to];
-
     // Set Counter Move History if it exists
     if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
     else *cmhist = thread->continuation[0][cmPiece][cmTo][piece][to];
@@ -121,6 +119,9 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     // Set Followup Move History if it exists
     if (follow == NONE_MOVE || follow == NULL_MOVE) *fmhist = 0;
     else *fmhist = thread->continuation[1][fmPiece][fmTo][piece][to];
+
+    // Set the overall History (Butterfly, Counter Move, Followup Move)
+    *hist = thread->history[thread->board.turn][from][to] + *cmhist + *fmhist;
 }
 
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length, int height) {

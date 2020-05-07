@@ -175,6 +175,12 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 }
             }
 
+            // Noisy Pickers ignore bad captures
+            if (mp->type == NOISY_PICKER) {
+                mp->stage = STAGE_DONE;
+                return NONE_MOVE;
+            }
+
             // Jump to bad noisy moves when skipping quiets
             if (skipQuiets) {
                 mp->stage = STAGE_BAD_NOISY;
@@ -236,20 +242,16 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_QUIET:
 
             // Check to see if there are still more quiet moves
-            if (!skipQuiets && mp->quietSize) {
+            while (!skipQuiets && mp->quietSize) {
 
                 // Select next best quiet and reduce the effective move list size
                 best = getBestMoveIndex(mp, mp->split, mp->split + mp->quietSize) - mp->split;
                 bestMove = popMove(&mp->quietSize, mp->moves + mp->split, mp->values + mp->split, best);
 
                 // Don't play a move more than once
-                if (   bestMove == mp->tableMove
-                    || bestMove == mp->killer1
-                    || bestMove == mp->killer2
-                    || bestMove == mp->counter)
-                    return selectNextMove(mp, board, skipQuiets);
-
-                return bestMove;
+                if (   bestMove != mp->tableMove && bestMove != mp->killer1
+                    && bestMove != mp->killer2   && bestMove != mp->counter)
+                    return bestMove;
             }
 
             // Out of quiet moves, only bad quiets remain
@@ -260,19 +262,15 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_BAD_NOISY:
 
             // Check to see if there are still more noisy moves
-            if (mp->noisySize && mp->type != NOISY_PICKER) {
+            while (mp->noisySize) {
 
                 // Reduce effective move list size
                 bestMove = popMove(&mp->noisySize, mp->moves, mp->values, 0);
 
                 // Don't play a move more than once
-                if (   bestMove == mp->tableMove
-                    || bestMove == mp->killer1
-                    || bestMove == mp->killer2
-                    || bestMove == mp->counter)
-                    return selectNextMove(mp, board, skipQuiets);
-
-                return bestMove;
+                if (   bestMove != mp->tableMove && bestMove != mp->killer1
+                    && bestMove != mp->killer2   && bestMove != mp->counter)
+                    return bestMove;
             }
 
             mp->stage = STAGE_DONE;

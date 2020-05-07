@@ -407,7 +407,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
                 && eval + futilityMargin <= alpha
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && hist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
@@ -481,10 +481,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
         // which appear to beat beta at a reduced depth. singularity() sets the stage to STAGE_DONE
 
-        if (movePicker.stage == STAGE_DONE) {
-            revert(thread, board, move, height);
+        if (movePicker.stage == STAGE_DONE)
             return MAX(ttValue - depth, -MATE);
-        }
 
         // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
@@ -503,7 +501,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R -= movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+            R -= MAX(-2, MIN(2, hist / 5000));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
@@ -813,6 +811,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         if (!moveIsTactical(board, move))
             updateKillerMoves(thread, mp->height, move);
         mp->stage = STAGE_DONE;
+        return value <= rBeta;
     }
 
     // Reapply the table move we took off
