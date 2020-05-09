@@ -488,27 +488,35 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
-        if (isQuiet && depth > 2 && played > 1) {
+        if (depth > 2 && played > 1) {
 
-            /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            if (isQuiet) {
 
-            // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+                /// Use the LMR Formula as a starting point
+                R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+                // Increase for non PV, non improving, and extended nodes
+                R += !PvNode + !improving + extension;
 
-            // Reduce for Killers and Counters
-            R -= movePicker.stage < STAGE_QUIET;
+                // Increase for King moves that evade checks
+                R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+                // Reduce for Killers and Counters
+                R -= movePicker.stage < STAGE_QUIET;
 
-            // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
+                // Adjust based on history scores
+                R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
 
-        } else R = 1;
+                // Don't extend or drop into QS
+                R  = MIN(depth - 1, MAX(R, 1));
+            }
+
+            else if (movePicker.stage == STAGE_BAD_NOISY)
+                R = MIN(depth - 1, 1 + (pieceType(board->squares[MoveTo(move)]) != PAWN));
+
+            else R = 1;
+
+        }  else R = 1;
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
