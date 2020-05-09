@@ -203,7 +203,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int hist = 0, cmhist = 0, fmhist = 0;
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, pruneDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
@@ -311,15 +311,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
-    // Futility Pruning Margin
-    futilityMargin = FutilityMargin * depth;
-
-    // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
-
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
+    pruneDepth = depth + (PvNode && improving) - !(PvNode || improving);
+
+    // Futility Pruning Margin
+    futilityMargin = FutilityMargin * pruneDepth;
+
+    // Static Exchange Evaluation Pruning Margins
+    seeMargin[0] = SEENoisyMargin * pruneDepth * pruneDepth;
+    seeMargin[1] = SEEQuietMargin * pruneDepth;
 
     // Reset Killer moves for our children
     thread->killers[height+1][0] = NONE_MOVE;
@@ -405,7 +406,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
-            if (   depth <= FutilityPruningDepth
+            if (   pruneDepth <= FutilityPruningDepth
                 && eval + futilityMargin <= alpha
                 && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
@@ -413,27 +414,28 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
-            if (   depth <= FutilityPruningDepth
+            if (   pruneDepth <= FutilityPruningDepth
                 && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
                 skipQuiets = 1;
 
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
-            if (   depth <= LateMovePruningDepth
-                && quietsSeen >= LateMovePruningCounts[improving][depth])
+            if (   pruneDepth <= LateMovePruningDepth
+                && quietsSeen >= LateMovePruningCounts[improving][pruneDepth])
                 skipQuiets = 1;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   depth <= CounterMovePruningDepth[improving]
-                && cmhist < CounterMoveHistoryLimit[improving])
+            if (   cmhist < CounterMoveHistoryLimit[improving]
+                && pruneDepth <= CounterMovePruningDepth[improving])
+
                 continue;
 
             // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
-            if (   depth <= FollowUpMovePruningDepth[improving]
-                && fmhist < FollowUpMoveHistoryLimit[improving])
+            if (   fmhist < FollowUpMoveHistoryLimit[improving]
+                && pruneDepth <= FollowUpMovePruningDepth[improving])
                 continue;
         }
 
@@ -441,7 +443,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
         if (    best > -MATE_IN_MAX
-            &&  depth <= SEEPruningDepth
+            &&  pruneDepth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
