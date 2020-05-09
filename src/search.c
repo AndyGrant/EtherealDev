@@ -313,7 +313,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
-    pruneDepth = depth + (PvNode && improving) - !(PvNode || improving);
+    pruneDepth = depth + ((PvNode && improving) || (eval >= beta));
 
     // Futility Pruning Margin
     futilityMargin = FutilityMargin * pruneDepth;
