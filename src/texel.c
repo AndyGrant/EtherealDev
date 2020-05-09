@@ -95,6 +95,7 @@ extern const int ThreatByPawnPush;
 extern const int SpaceRestrictPiece;
 extern const int SpaceRestrictEmpty;
 extern const int SpaceCenterControl;
+extern const int SpaceCentralControl;
 extern const int ClosednessKnightAdjustment[9];
 extern const int ClosednessRookAdjustment[9];
 extern const int ComplexityTotalPawns;
@@ -221,7 +222,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL, 0);
+        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
+        if (thread->board.turn == BLACK) tes[i].eval = -1;
         initCoefficients(coeffs);
 
         // Count up the non zero coefficients

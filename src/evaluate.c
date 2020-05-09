@@ -326,9 +326,10 @@ const int ThreatByPawnPush           = S(  14,  24);
 
 /* Space Evaluation Terms */
 
-const int SpaceRestrictPiece = S(  -3,  -1);
-const int SpaceRestrictEmpty = S(  -4,  -2);
-const int SpaceCenterControl = S(   5,  -5);
+const int SpaceRestrictPiece  = S(  -3,  -1);
+const int SpaceRestrictEmpty  = S(  -4,  -2);
+const int SpaceCenterControl  = S(   5,  -5);
+const int SpaceCentralControl = S(   7,  15);
 
 /* Closedness Evaluation Terms */
 
@@ -1009,6 +1010,7 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
 
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
+    uint64_t bitboard;
 
     // Squares we attack with more enemy attackers and no friendly pawn attacks
     uint64_t uncontrolled =   ei->attackedBy2[THEM] & ei->attacked[US]
@@ -1027,12 +1029,17 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     // This is mostly relevant in the opening and the early middlegame, while rarely correct
     // in the endgame where one rook or queen could control many uncontested squares.
     // Thus we don't apply this term when below a threshold of minors/majors count.
-    if (      popcount(board->pieces[KNIGHT] | board->pieces[BISHOP])
-        + 2 * popcount(board->pieces[ROOK  ] | board->pieces[QUEEN ]) > 12) {
-        count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
-        eval += count * SpaceCenterControl;
-        if (TRACE) T.SpaceCenterControl[US] += count;
-    }
+    // if (      popcount(board->pieces[KNIGHT] | board->pieces[BISHOP])
+    //     + 2 * popcount(board->pieces[ROOK  ] | board->pieces[QUEEN ]) > 12) {
+    //     count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
+    //     eval += count * SpaceCenterControl;
+    //     if (TRACE) T.SpaceCenterControl[US] += count;
+    // }
+
+    bitboard = friendly & (ei->attackedBy2[US] | ei->attackedBy[US][PAWN]);
+    count = popcount(bitboard & CENTER_BIG) + popcount(bitboard & CENTER_FOUR);
+    eval += count * SpaceCentralControl;
+    if (TRACE) T.SpaceCentralControl[US] += count;
 
     return eval;
 }

@@ -91,6 +91,7 @@ struct EvalTrace {
     int SpaceRestrictPiece[COLOUR_NB];
     int SpaceRestrictEmpty[COLOUR_NB];
     int SpaceCenterControl[COLOUR_NB];
+    int SpaceCentralControl[COLOUR_NB];
     int ClosednessKnightAdjustment[9][COLOUR_NB];
     int ClosednessRookAdjustment[9][COLOUR_NB];
     int ComplexityTotalPawns[COLOUR_NB];
