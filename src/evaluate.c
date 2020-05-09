@@ -328,7 +328,7 @@ const int ThreatByPawnPush           = S(  14,  24);
 
 const int SpaceRestrictPiece = S(  -3,  -1);
 const int SpaceRestrictEmpty = S(  -4,  -2);
-const int SpaceCenterControl = S(   5,  -5);
+const int SpaceCenterControl = S(   4,   0);
 
 /* Closedness Evaluation Terms */
 
@@ -1023,16 +1023,10 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     eval += count * SpaceRestrictEmpty;
     if (TRACE) T.SpaceRestrictEmpty[US] += count;
 
-    // Bonus for uncontested central squares
-    // This is mostly relevant in the opening and the early middlegame, while rarely correct
-    // in the endgame where one rook or queen could control many uncontested squares.
-    // Thus we don't apply this term when below a threshold of minors/majors count.
-    if (      popcount(board->pieces[KNIGHT] | board->pieces[BISHOP])
-        + 2 * popcount(board->pieces[ROOK  ] | board->pieces[QUEEN ]) > 12) {
-        count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
-        eval += count * SpaceCenterControl;
-        if (TRACE) T.SpaceCenterControl[US] += count;
-    }
+    // Bonus for uncontested central squares that we have some power over
+    count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
+    eval += count * SpaceCenterControl;
+    if (TRACE) T.SpaceCenterControl[US] += count;
 
     return eval;
 }
