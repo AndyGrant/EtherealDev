@@ -173,12 +173,6 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 }
             }
 
-            // Jump to bad noisy moves when skipping quiets
-            if (skipQuiets) {
-                mp->stage = STAGE_BAD_NOISY;
-                return selectNextMove(mp, board, skipQuiets);
-            }
-
             mp->stage = STAGE_KILLER_1;
 
             /* fallthrough */
@@ -187,9 +181,8 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
             // Play killer move if not yet played, and pseudo legal
             mp->stage = STAGE_KILLER_2;
-            if (   !skipQuiets
-                &&  mp->killer1 != mp->tableMove
-                &&  moveIsPseudoLegal(board, mp->killer1))
+            if (   mp->killer1 != mp->tableMove
+                && moveIsPseudoLegal(board, mp->killer1))
                 return mp->killer1;
 
             /* fallthrough */
@@ -198,9 +191,8 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
             // Play killer move if not yet played, and pseudo legal
             mp->stage = STAGE_COUNTER_MOVE;
-            if (   !skipQuiets
-                &&  mp->killer2 != mp->tableMove
-                &&  moveIsPseudoLegal(board, mp->killer2))
+            if (   mp->killer2 != mp->tableMove
+                && moveIsPseudoLegal(board, mp->killer2))
                 return mp->killer2;
 
             /* fallthrough */
