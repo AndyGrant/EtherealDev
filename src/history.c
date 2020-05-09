@@ -25,7 +25,7 @@
 #include "thread.h"
 #include "types.h"
 
-void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
+void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int depth, int R) {
 
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
@@ -41,12 +41,13 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int fmTo = MoveTo(follow);
 
     // Cap update size to avoid saturation
-    bonus = MIN(bonus, HistoryMax);
+    int bonus = MIN((depth + R) * (depth + R), HistoryMax);
+    int malus = MAX(-depth * depth, -HistoryMax);
 
     for (int i = 0; i < length; i++) {
 
         // Apply a malus until the final move
-        int delta = (moves[i] == bestMove) ? bonus : -bonus;
+        int delta = (moves[i] == bestMove) ? bonus : malus;
 
         // Extract information from this move
         int to = MoveTo(moves[i]);
