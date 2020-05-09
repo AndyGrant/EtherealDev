@@ -68,8 +68,8 @@ static void evaluateNoisyMoves(MovePicker *mp) {
         else if ((mp->moves[i] & QUEEN_PROMO_MOVE) == QUEEN_PROMO_MOVE)
             mp->values[i] += MVVLVAValues[QUEEN];
 
-        // We may flag a move with the value -1, to indicate that it was
-        // designated as a bad noisy move while in STAGE_GENERATE_NOISY
+        // We may flag a move with negative values to indicate that it
+        // was designated as a bad noisy move while in STAGE_GENERATE_NOISY
         assert(mp->values[i] >= 0);
     }
 }
@@ -153,7 +153,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                     // Skip moves which fail to beat our SEE margin. We flag those moves
                     // as failed with the value (-1), and then repeat the selection process
                     if (!staticExchangeEvaluation(board, mp->moves[best], mp->threshold)) {
-                        mp->values[best] = -1;
+                        mp->values[best] = -1 - board->squares[MoveFrom(mp->moves[best])];
                         return selectNextMove(mp, board, skipQuiets);
                     }
 
@@ -260,7 +260,8 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             if (mp->noisySize && mp->type != NOISY_PICKER) {
 
                 // Reduce effective move list size
-                bestMove = popMove(&mp->noisySize, mp->moves, mp->values, 0);
+                best = getBestMoveIndex(mp, 0, mp->noisySize);
+                bestMove = popMove(&mp->noisySize, mp->moves, mp->values, best);
 
                 // Don't play a move more than once
                 if (   bestMove == mp->tableMove
