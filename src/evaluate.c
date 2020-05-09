@@ -329,7 +329,7 @@ const int ThreatByPawnPush           = S(  14,  24);
 const int SpaceRestrictPiece  = S(  -3,  -1);
 const int SpaceRestrictEmpty  = S(  -4,  -2);
 const int SpaceCenterControl  = S(   5,  -5);
-const int SpaceCentralControl = S(   7,  15);
+const int SpaceCentralControl = S(   6,  24);
 
 /* Closedness Evaluation Terms */
 
@@ -1036,8 +1036,7 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
     //     if (TRACE) T.SpaceCenterControl[US] += count;
     // }
 
-    bitboard = friendly & (ei->attackedBy2[US] | ei->attackedBy[US][PAWN]);
-    count = popcount(bitboard & CENTER_BIG) + popcount(bitboard & CENTER_FOUR);
+    count = popcount(friendly & (ei->attackedBy2[US] | ei->attackedBy[US][PAWN]) & CENTER_BIG);
     eval += count * SpaceCentralControl;
     if (TRACE) T.SpaceCentralControl[US] += count;
 
