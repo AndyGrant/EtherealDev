@@ -867,9 +867,11 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
-    uint64_t myPassers = board->colours[US] & ei->passedPawns;
-    uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
-    uint64_t tempPawns = myPassers;
+    uint64_t myPassers  = board->colours[US] & ei->passedPawns;
+    uint64_t tempPawns  = myPassers;
+
+    uint64_t occupied   = board->colours[WHITE] | board->colours[BLACK];
+    uint64_t controlled = ~ei->attacked[THEM] | (ei->attackedBy2[US] & ~ei->attackedBy2[THEM]);
 
     // Evaluate each passed pawn
     while (tempPawns) {
@@ -880,8 +882,8 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
 
         // Evaluate based on rank, ability to advance, and safety
-        canAdvance = !(bitboard & occupied);
-        safeAdvance = !(bitboard & ei->attacked[THEM]);
+        canAdvance  =  !(bitboard & occupied);
+        safeAdvance = !!(bitboard & controlled);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
