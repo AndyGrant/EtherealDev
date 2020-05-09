@@ -322,8 +322,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     improving = height >= 2 && eval > thread->evalStack[height-2];
 
     // Reset Killer moves for our children
-    thread->killers[height+1][0] = NONE_MOVE;
-    thread->killers[height+1][1] = NONE_MOVE;
+    thread->killers[height+1][0] = thread->killers[height-1][0];
+    thread->killers[height+1][1] = thread->killers[height-1][0];
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
