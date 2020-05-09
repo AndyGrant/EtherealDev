@@ -512,7 +512,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             }
 
             else if (movePicker.stage == STAGE_BAD_NOISY)
-                R = MIN(depth - 1, 1 + (pieceType(board->squares[MoveTo(move)]) != PAWN));
+                R = MIN(depth - 1, 1 + pieceType(board->squares[MoveTo(move)]));
 
             else R = 1;
 
