@@ -161,7 +161,7 @@ void aspirationWindow(Thread *thread) {
     while (1) {
 
         // Perform a search and consider reporting results
-        value = search(thread, pv, alpha, beta, MAX(1, depth), 0);
+        value = search(thread, pv, alpha, beta, depth, 0);
         if (   (mainThread && value > alpha && value < beta)
             || (mainThread && elapsedTime(thread->info) >= WindowTimerMS))
             uciReport(thread->threads, alpha, beta, value);
@@ -190,6 +190,9 @@ void aspirationWindow(Thread *thread) {
 
         // Expand the search window
         delta = delta + delta / 2;
+
+        // Always use the real depth on helper threads
+        depth = mainThread ? MAX(1, depth) : thread->depth;
     }
 }
 
