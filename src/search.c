@@ -333,6 +333,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  eval - BetaMargin * depth > beta)
         return eval;
 
+
+    if (   !PvNode
+        && !inCheck
+        &&  depth <= BetaPruningDepth
+        &&  eval + BetaMargin * depth < alpha)
+        depth = MAX(0, depth - 1);
+
     // Step 8 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
     // gain control of the game, we can be somewhat safe in saying that
