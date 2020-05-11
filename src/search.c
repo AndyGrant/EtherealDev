@@ -325,9 +325,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     int adjusted = eval;
     if (ttHit && ttValue != VALUE_NONE) {
-        if (ttValue < eval && (ttBound & BOUND_UPPER))
+        if (ttValue <= eval && (ttBound & BOUND_UPPER))
             adjusted = (eval <= beta) ? MAX(ttValue, eval) : MIN(ttValue, eval);
-        if (ttValue > eval && (ttBound & BOUND_LOWER))
+        if (ttValue >= eval && (ttBound & BOUND_LOWER))
             adjusted = (eval >= beta) ? MAX(ttValue, eval) : MIN(ttValue, eval);
     }
 
