@@ -333,13 +333,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  eval - BetaMargin * depth > beta)
         return eval;
 
+    int alpha_reduce = 0;
 
     if (   !PvNode
         && !inCheck
         && !improving
         &&  depth <= BetaPruningDepth
-        &&  eval + BetaMargin * 2 * depth < alpha)
-        depth = MAX(0, depth - 1);
+        &&  eval + BetaMargin * depth < alpha)
+        alpha_reduce = 1;
 
     // Step 8 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
@@ -497,7 +498,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving, and extended nodes
-            R += !PvNode + !improving + extension;
+            R += !PvNode + !improving + extension + alpha_reduce;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
