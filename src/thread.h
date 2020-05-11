@@ -44,7 +44,7 @@ struct Thread {
     uint16_t ponderMoves[MAX_MOVES];
 
     int contempt;
-    int depth, seldepth;
+    int depth, seldepth, delta;
     uint64_t nodes, tbhits;
 
     int *evalStack, _evalStack[STACK_SIZE];

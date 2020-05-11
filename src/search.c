@@ -144,13 +144,16 @@ void aspirationWindow(Thread *thread) {
     const int mainThread = thread->index == 0;
 
     int value, depth = thread->depth;
-    int alpha = -MATE, beta = MATE, delta = WindowSize;
+    int alpha = -MATE, beta = MATE;
+
+
+    thread->delta = MAX(WindowSize, thread->delta / 3);
 
     // Create an aspiration window after a few depths using
     // the eval from the bestline from the previous iteration
     if (thread->depth >= WindowDepth) {
-        alpha = MAX(-MATE, thread->values[0] - delta);
-        beta  = MIN( MATE, thread->values[0] + delta);
+        alpha = MAX(-MATE, thread->values[0] - thread->delta);
+        beta  = MIN( MATE, thread->values[0] + thread->delta);
     }
 
     while (1) {
@@ -173,18 +176,18 @@ void aspirationWindow(Thread *thread) {
         // Search failed low, adjust window and reset depth
         if (value <= alpha) {
             beta  = (alpha + beta) / 2;
-            alpha = MAX(-MATE, alpha - delta);
+            alpha = MAX(-MATE, alpha - thread->delta);
             depth = thread->depth;
         }
 
         // Search failed high, adjust window and reduce depth
         else if (value >= beta) {
-            beta = MIN(MATE, beta + delta);
+            beta = MIN(MATE, beta + thread->delta);
             depth = depth - (abs(value) <= MATE / 2);
         }
 
         // Expand the search window
-        delta = delta + delta / 2;
+        thread->delta += thread->delta / 2;
     }
 }
 
