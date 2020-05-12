@@ -200,7 +200,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
+    int eval, adjusted, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
@@ -320,16 +320,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     thread->killers[height+1][0] = NONE_MOVE;
     thread->killers[height+1][1] = NONE_MOVE;
 
-
-
-
-    int adjusted = eval;
-    if (ttHit && ttValue != VALUE_NONE) {
-        if (ttValue <= eval && (ttBound & BOUND_UPPER))
-            adjusted = (eval <= beta) ? MAX(ttValue, eval) : MIN(ttValue, eval);
-        if (ttValue >= eval && (ttBound & BOUND_LOWER))
-            adjusted = (eval >= beta) ? MAX(ttValue, eval) : MIN(ttValue, eval);
-    }
+    if (     ttHit && ttValue != VALUE_NONE
+        && ((ttValue <= eval && (ttBound & BOUND_UPPER))
+        ||  (ttValue >= eval && (ttBound & BOUND_LOWER))))
+        adjusted = (eval + ttValue) / 2;
+    else adjusted = eval;
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
