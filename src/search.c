@@ -320,16 +320,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     thread->killers[height+1][0] = NONE_MOVE;
     thread->killers[height+1][1] = NONE_MOVE;
 
-
-
-
     int adjusted = eval;
-    if (ttHit && ttValue != VALUE_NONE) {
-        if (ttValue <= eval && (ttBound & BOUND_UPPER))
-            adjusted = (eval <= beta) ? MAX(ttValue, eval) : MIN(ttValue, eval);
-        if (ttValue >= eval && (ttBound & BOUND_LOWER))
-            adjusted = (eval >= beta) ? MAX(ttValue, eval) : MIN(ttValue, eval);
-    }
+    if (     ttHit && ttValue != VALUE_NONE
+        && ((ttValue <= eval && eval <= beta && (ttBound & BOUND_UPPER))
+        ||  (ttValue >= eval && eval >= beta && (ttBound & BOUND_LOWER))))
+        adjusted = ttValue;
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
