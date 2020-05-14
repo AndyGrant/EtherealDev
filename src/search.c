@@ -329,6 +329,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // dependent margin, then we assume the eval will hold above beta
     if (   !PvNode
         && !inCheck
+        &&  abs(beta) < TBWIN_IN_MAX
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return eval;
@@ -341,6 +342,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  eval >= beta
+        &&  abs(beta) < TBWIN_IN_MAX
         &&  depth >= NullMovePruningDepth
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
@@ -353,7 +355,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
         revert(thread, board, NULL_MOVE, height);
 
-        if (value >= beta) return beta;
+        if (value >= beta) return abs(value) < TBWIN_IN_MAX ? value : beta;
     }
 
     // Step 9 (~9 elo). Probcut Pruning. If we have a good capture that causes a cutoff
@@ -361,11 +363,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // will cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         &&  depth >= ProbCutDepth
-        &&  abs(beta) < MATE_IN_MAX
+        &&  abs(beta) < TBWIN_IN_MAX
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
         // Try tactical moves which maintain rBeta
-        rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
+        rBeta = MIN(beta + ProbCutMargin, TBWIN_IN_MAX - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
@@ -374,8 +376,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
             revert(thread, board, move, height);
 
-            // Probcut failed high
-            if (value >= rBeta) return value;
+            if (value >= rBeta) return abs(value) < TBWIN_IN_MAX ? value : rBeta;
         }
     }
 
