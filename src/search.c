@@ -255,7 +255,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        if (ttDepth >= depth && ttMove != NULL_MOVE && !(depth && PvNode)) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
@@ -347,13 +347,22 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = MIN(depth, 4 + depth / 6 + MIN(3, (eval - beta) / 200));
+
+        if (   ttHit
+            && ttValue >= beta
+            && ttDepth >= depth-R
+            && ttMove == NULL_MOVE)
+            return ttValue;
 
         apply(thread, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
         revert(thread, board, NULL_MOVE, height);
 
-        if (value >= beta) return beta;
+        if (value >= beta) {
+            storeTTEntry(board->hash, NULL_MOVE, value, eval, depth-R, BOUND_LOWER);
+            return value;
+        }
     }
 
     // Step 9 (~9 elo). Probcut Pruning. If we have a good capture that causes a cutoff
