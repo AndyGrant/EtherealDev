@@ -50,12 +50,12 @@ static const int WindowTimerMS = 2500;
 static const int CurrmoveTimerMS = 2500;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 95;
+static const int BetaMargin = 75;
 
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 110;
+static const int ProbCutMargin = 90;
 
 static const int FutilityMargin = 90;
 static const int FutilityMarginNoHistory = 256;
