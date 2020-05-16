@@ -322,7 +322,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Allow the TT to give us a better self-eval
     adjusted =  ttHit && ttValue != VALUE_NONE
-            && (ttBound & BOUND_LOWER) ? MAX(eval, ttValue) : eval;
+            && (ttBound & BOUND_UPPER) ? MIN(eval, ttValue) : eval;
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
