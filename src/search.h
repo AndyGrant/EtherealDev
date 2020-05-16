@@ -42,6 +42,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height);
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold);
 int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta);
+void updatePV(PVariation *dest, PVariation *src, uint16_t move);
 
 static const int WindowDepth   = 5;
 static const int WindowSize    = 14;

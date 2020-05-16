@@ -529,20 +529,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 17. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
+
         if (value > best) {
 
-            best = value;
-            bestMove = move;
+            best = value; bestMove = move;
 
             if (value > alpha) {
+
                 alpha = value;
 
-                // Copy our child's PV and prepend this move to it
-                pv->length = 1 + lpv.length;
-                pv->line[0] = move;
-                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+                if (PvNode) updatePV(pv, &lpv, move);
 
-                // Search failed high
                 if (alpha >= beta) break;
             }
         }
@@ -575,6 +572,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
+    const int PvNode   = (alpha != beta - 1);
     Board *const board = &thread->board;
 
     int eval, value, best, margin;
@@ -651,24 +649,19 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
 
-        // Improved current value
         if (value > best) {
+
             best = value;
 
-            // Improved current lower bound
             if (value > alpha) {
+
                 alpha = value;
 
-                // Update the Principle Variation
-                pv->length = 1 + lpv.length;
-                pv->line[0] = move;
-                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+                if (PvNode) updatePV(pv, &lpv, move);
+
+                if (alpha >= beta) break;
             }
         }
-
-        // Search has failed high
-        if (alpha >= beta)
-            return best;
     }
 
     return best;
@@ -815,4 +808,10 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
+}
+
+void updatePV(PVariation *dest, PVariation *src, uint16_t move) {
+    dest->line[0] = move;
+    dest->length = 1 + src->length;
+    memcpy(dest->line + 1, src->line, sizeof(uint16_t) * src->length);
 }
