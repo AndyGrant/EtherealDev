@@ -321,8 +321,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     thread->killers[height+1][1] = NONE_MOVE;
 
     // Allow the TT to give us a better self-eval
-    eval =  ttHit && ttValue != VALUE_NONE
-        && (ttBound & BOUND_LOWER) ? eval : MAX(eval, ttValue);
+    adjusted =  ttHit && ttValue != VALUE_NONE
+            && (ttBound & BOUND_LOWER) ? eval : MAX(eval, ttValue);
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
@@ -334,8 +334,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  adjusted - BetaMargin * depth > beta)
+        return adjusted;
 
     // Step 8 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
@@ -344,14 +344,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  eval >= beta
+        &&  adjusted >= beta
         &&  depth >= NullMovePruningDepth
         &&  thread->moveStack[height-1] != NULL_MOVE
         &&  thread->moveStack[height-2] != NULL_MOVE
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = 4 + depth / 6 + MIN(3, (adjusted - beta) / 200);
 
         apply(thread, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
@@ -366,11 +366,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
+        &&  adjusted + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, rBeta - adjusted);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Perform a reduced depth verification search
@@ -405,7 +405,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin <= alpha
+                && adjusted + futilityMargin <= alpha
                 && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
@@ -413,7 +413,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
+                && adjusted + futilityMargin + FutilityMarginNoHistory <= alpha)
                 skipQuiets = 1;
 
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
