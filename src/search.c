@@ -59,8 +59,8 @@ void initSearch() {
     // Init Static Exchange Evaluation Table
     for (int depth = 0; depth <= SEEPruningDepth; depth++) {
         for (int improving = 0; improving <= 1; improving++) {
-            SEETable[depth][improving][0] = -(15 +  3 * improving) * depth * depth;
-            SEETable[depth][improving][1] = -(70 + 10 * improving) * depth;
+            SEETable[depth][improving][0] = -(18 -  3 * improving) * depth * depth;
+            SEETable[depth][improving][1] = -(80 - 10 * improving) * depth;
         }
     }
 }
