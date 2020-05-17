@@ -59,7 +59,7 @@ void initSearch() {
     // Init Static Exchange Evaluation Table
     for (int depth = 0; depth <= SEEPruningDepth; depth++) {
         SEETable[depth][0] = -100 * depth;
-        SEETable[depth][1] =  -15 * sqrt(depth);
+        SEETable[depth][1] =  -15 * depth * depth;
     }
 }
 
