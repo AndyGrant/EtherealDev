@@ -44,8 +44,8 @@
 #include "uci.h"
 #include "windows.h"
 
-int SEETable[10][2];       // Static Exchange Evaluation
 int LMRTable[64][64];      // Late Move Reductions
+int SEETable[10][2][2];    // Static Exchange Evaluation
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
@@ -58,8 +58,10 @@ void initSearch() {
 
     // Init Static Exchange Evaluation Table
     for (int depth = 0; depth <= SEEPruningDepth; depth++) {
-        SEETable[depth][0] = -100 * depth;
-        SEETable[depth][1] =  -15 * depth * depth;
+        for (int improving = 0; improving <= 1; improving++) {
+            SEETable[depth][improving][0] = -(15 +  3 * improving) * depth * depth;
+            SEETable[depth][improving][1] = -(70 + 10 * improving) * depth;
+        }
     }
 }
 
@@ -441,7 +443,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (    best > -MATE_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, SEETable[depth][isQuiet]))
+            && !staticExchangeEvaluation(board, move, SEETable[depth][improving][isQuiet]))
             continue;
 
         // Apply move, skip if move is illegal
