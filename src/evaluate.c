@@ -313,7 +313,15 @@ const int PassedSafePromotionPath = S( -19,  38);
 
 /* Threat Evaluation Terms */
 
-const int ThreatTabulation[PIECE_NB][PIECE_NB];
+const int ThreatTabulation[PIECE_NB][PIECE_NB] = {
+   {S(  16,   2), S( -30, -21), S( -22, -19), S( -26, -47), S( -27,  -9), S(  -6, -21)},
+   {S(-106, -27), S(  -6,   0), S( -38, -13), S( -35, -24), S( -58,  -9), S( -16, -14)},
+   {S( -93, -32), S( -38, -18), S(  -1,  -1), S( -47, -31), S( -55, -11), S( -17, -13)},
+   {S( -14, -10), S( -12, -10), S( -26, -14), S(   0,  -2), S( -16,  -5), S(  -6, -10)},
+   {S(  -5,  -1), S(  12,   1), S(   8,   1), S(  -7,  -2), S(   4,   1), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+};
+
 const int ThreatOverloadedPieces = S(  -8, -13);
 const int ThreatByPawnPush       = S(  14,  24);
 
