@@ -493,21 +493,27 @@ int moveEstimatedValue(Board *board, uint16_t move) {
 
 int moveBestCaseValue(Board *board) {
 
-    // Assume the opponent has at least a pawn
-    int value = SEEPieceValues[PAWN];
+    int value, US = board->turn, THEM = !board->turn;
+    uint64_t targets, promoting, targetable;
 
-    // Check for a higher value target
-    for (int piece = QUEEN; piece > PAWN; piece--)
-        if (board->pieces[piece] & board->colours[!board->turn])
-          { value = SEEPieceValues[piece]; break; }
+    promoting = board->pieces[PAWN] & board->colours[US]
+              & (board->turn == WHITE ? RANK_7 : RANK_2);
 
-    // Check for a potential pawn promotion
-    if (   board->pieces[PAWN]
-        &  board->colours[board->turn]
-        & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += SEEPieceValues[QUEEN] - SEEPieceValues[PAWN];
+    targetable = !promoting ? board->colours[THEM]
+               :  pawnAttackSpan(promoting, board->colours[THEM], US);
 
-    return value;
+    value = promoting ? SEEPieceValues[QUEEN] : 0;
+
+    for (int piece = QUEEN; piece > PAWN; piece--) {
+
+        targets = board->pieces[piece] & targetable;
+
+        while (targets)
+            if (squareIsAttacked(board, US, poplsb(&targets)))
+                return value + SEEPieceValues[piece];
+    }
+
+    return promoting ? value : SEEPieceValues[PAWN];
 }
 
 int moveWasLegal(Board *board) {
