@@ -27,10 +27,10 @@
 #define REPORTING    (    100) // How often to report progress
 #define NTERMS       (     36) // Total terms in the Tuner (675)
 
-#define LEARNING     (    5.0) // Learning rate
+#define LEARNING     (    1.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
-#define BATCHSIZE    (5832689) // FENs per mini-batch
-#define NPOSITIONS   (5832689) // Total FENS in the book
+#define BATCHSIZE    (  16384) // FENs per mini-batch
+#define NPOSITIONS   (5888224) // Total FENS in the book
 
 #define USE_SEARCH_EVAL    (0)
 #define USE_STATIC_EVAL    (1)
