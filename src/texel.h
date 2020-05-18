@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (     36) // Total terms in the Tuner (675)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -73,14 +73,7 @@
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
-#define TuneThreatWeakPawn              (0)
-#define TuneThreatMinorAttackedByPawn   (0)
-#define TuneThreatMinorAttackedByMinor  (0)
-#define TuneThreatMinorAttackedByMajor  (0)
-#define TuneThreatRookAttackedByLesser  (0)
-#define TuneThreatMinorAttackedByKing   (0)
-#define TuneThreatRookAttackedByKing    (0)
-#define TuneThreatQueenAttackedByOne    (0)
+#define TuneThreatTabulation            (1)
 #define TuneThreatOverloadedPieces      (0)
 #define TuneThreatByPawnPush            (0)
 #define TuneSpaceRestrictPiece          (0)
@@ -270,14 +263,7 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
     ENABLE_1(F, PassedFriendlyDistance, 8, NORMAL, "[FILE_NB]");            \
     ENABLE_1(F, PassedEnemyDistance, 8, NORMAL, "[FILE_NB]");               \
     ENABLE_0(F, PassedSafePromotionPath, NORMAL, "");                       \
-    ENABLE_0(F, ThreatWeakPawn, NORMAL, "");                                \
-    ENABLE_0(F, ThreatMinorAttackedByPawn, NORMAL, "");                     \
-    ENABLE_0(F, ThreatMinorAttackedByMinor, NORMAL, "");                    \
-    ENABLE_0(F, ThreatMinorAttackedByMajor, NORMAL, "");                    \
-    ENABLE_0(F, ThreatRookAttackedByLesser, NORMAL, "");                    \
-    ENABLE_0(F, ThreatMinorAttackedByKing, NORMAL, "");                     \
-    ENABLE_0(F, ThreatRookAttackedByKing, NORMAL, "");                      \
-    ENABLE_0(F, ThreatQueenAttackedByOne, NORMAL, "");                      \
+    ENABLE_2(F, ThreatTabulation, 6, 6, NORMAL, "[PIECE_NB][PIECE_NB]");    \
     ENABLE_0(F, ThreatOverloadedPieces, NORMAL, "");                        \
     ENABLE_0(F, ThreatByPawnPush, NORMAL, "");                              \
     ENABLE_0(F, SpaceRestrictPiece, NORMAL, "");                            \
