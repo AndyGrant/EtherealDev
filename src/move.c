@@ -509,7 +509,7 @@ int moveBestCaseValue(Board *board) {
         targets = board->pieces[piece] & targetable;
 
         while (targets)
-            if (squareIsAttacked(board, THEM, poplsb(&targets)))
+            if (piece < ROOK || squareIsAttacked(board, THEM, poplsb(&targets)))
                 return value + SEEPieceValues[piece];
     }
 
