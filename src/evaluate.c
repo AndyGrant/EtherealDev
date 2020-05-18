@@ -314,11 +314,11 @@ const int PassedSafePromotionPath = S( -19,  38);
 /* Threat Evaluation Terms */
 
 const int ThreatTabulation[PIECE_NB][PIECE_NB] = {
-   {S( -20,  -6), S( -25, -20), S( -20, -18), S( -25, -46), S( -25,  -9), S(  -5, -20)},
-   {S( -98, -25), S( -31,  -4), S( -35, -12), S( -32, -22), S( -53,  -9), S( -14, -12)},
-   {S( -86, -29), S( -37, -17), S( -16,  -5), S( -43, -28), S( -50, -10), S( -15, -12)},
-   {S( -13,  -9), S( -11,  -9), S( -23, -13), S(  -7,  -5), S( -15,  -5), S(  -5,  -9)},
-   {S(  -5,  -1), S(  11,   1), S(   7,   1), S(  -7,  -2), S(   5,   1), S(   0,   0)},
+   {S(  16,   2), S( -29, -20), S( -21, -18), S( -26, -46), S( -27,  -9), S(  -5, -20)},
+   {S(-100, -25), S(  -5,   0), S( -35, -12), S( -32, -22), S( -54,  -9), S( -14, -13)},
+   {S( -87, -29), S( -37, -17), S(  -1,  -1), S( -44, -28), S( -51, -10), S( -15, -12)},
+   {S( -13,  -9), S( -11, -10), S( -24, -13), S(   0,  -2), S( -15,  -5), S(  -5, -10)},
+   {S(  -5,  -1), S(  11,   1), S(   8,   1), S(  -7,  -2), S(   3,   1), S(   0,   0)},
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
@@ -939,9 +939,10 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreat &= ~ei->attackedBy[THEM][PAWN] & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
+    uint64_t outmanned = (ei->attacked[THEM] & ~ei->attacked[US])
+                       | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US]);
 
-    uint64_t t0Threat = ~ei->attacked[US] | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US]);
-    uint64_t t2Threat = t0Threat & (ei->attackedBy[THEM][PAWN] | ~ei->attackedBy[US][PAWN]);
+    uint64_t targeting[] = { ~ei->attackedBy[US][PAWN], ~0ull, outmanned & ~ei->attackedBy[US][PAWN] };
 
     // pt1 = The piece being attacked
     // pt2 = The piece doing the attacking
@@ -951,9 +952,6 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     // pt1 < pt2 :> idx = 2 targeting = Hard Threats
 
     for (int pt1 = PAWN; pt1 < KING; pt1++) {
-
-        uint64_t targeting[3] = { t0Threat, ~0ull, t2Threat };
-
         for (int pt2 = PAWN; pt2 <= KING; pt2++) {
 
             int idx = (pt1 > pt2) + 2 * (pt1 < pt2);
