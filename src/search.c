@@ -58,9 +58,9 @@ void initSearch() {
 
     // Init Static Exchange Evaluation Table
     for (int depth = 0; depth <= SEEPruningDepth; depth++) {
-        for (int improving = 0; improving <= 1; improving++) {
-            SEETable[depth][improving][0] = -(18 -  3 * improving) * depth * depth;
-            SEETable[depth][improving][1] = -(80 - 10 * improving) * depth;
+        for (int flag = 0; flag <= 1; flag++) {
+            SEETable[depth][flag][0] = (18 - 3 * flag) * depth * depth;
+            SEETable[depth][flag][1] = (80 - 9 * flag) * depth;
         }
     }
 }
@@ -443,7 +443,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (    best > -MATE_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, SEETable[depth][improving][isQuiet]))
+            && !staticExchangeEvaluation(board, move, -SEETable[depth][improving||PvNode||inCheck][isQuiet]))
             continue;
 
         // Apply move, skip if move is illegal
