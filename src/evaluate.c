@@ -314,11 +314,11 @@ const int PassedSafePromotionPath = S( -19,  38);
 /* Threat Evaluation Terms */
 
 const int ThreatTabulation[PIECE_NB][PIECE_NB] = {
-   {S(  16,   2), S( -30, -21), S( -22, -19), S( -26, -47), S( -27,  -9), S(  -6, -21)},
-   {S(-106, -27), S(  -6,   0), S( -38, -13), S( -35, -24), S( -58,  -9), S( -16, -14)},
-   {S( -93, -32), S( -38, -18), S(  -1,  -1), S( -47, -31), S( -55, -11), S( -17, -13)},
-   {S( -14, -10), S( -12, -10), S( -26, -14), S(   0,  -2), S( -16,  -5), S(  -6, -10)},
-   {S(  -5,  -1), S(  12,   1), S(   8,   1), S(  -7,  -2), S(   4,   1), S(   0,   0)},
+   {S( -20,  -6), S( -25, -20), S( -20, -18), S( -25, -46), S( -25,  -9), S(  -5, -20)},
+   {S( -98, -25), S( -31,  -4), S( -35, -12), S( -32, -22), S( -53,  -9), S( -14, -12)},
+   {S( -86, -29), S( -37, -17), S( -16,  -5), S( -43, -28), S( -50, -10), S( -15, -12)},
+   {S( -13,  -9), S( -11,  -9), S( -23, -13), S(  -7,  -5), S( -15,  -5), S(  -5,  -9)},
+   {S(  -5,  -1), S(  11,   1), S(   7,   1), S(  -7,  -2), S(   5,   1), S(   0,   0)},
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
@@ -940,13 +940,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
 
-
-    uint64_t weakThreats = (ei->attacked[THEM] & ~ei->attackedBy[US][PAWN]);
-
-    uint64_t softThreats = (ei->attacked[THEM] & ~ei->attacked[US])
-                         | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US]);
-
-    uint64_t hardThreats = softThreats & ~ei->attackedBy[US][PAWN];
+    uint64_t t0Threat = ~ei->attacked[US] | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US]);
+    uint64_t t2Threat = t0Threat & (ei->attackedBy[THEM][PAWN] | ~ei->attackedBy[US][PAWN]);
 
     // pt1 = The piece being attacked
     // pt2 = The piece doing the attacking
@@ -957,7 +952,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     for (int pt1 = PAWN; pt1 < KING; pt1++) {
 
-        uint64_t targeting[3] = { weakThreats, ~0ull, hardThreats };
+        uint64_t targeting[3] = { t0Threat, ~0ull, t2Threat };
 
         for (int pt2 = PAWN; pt2 <= KING; pt2++) {
 
@@ -969,8 +964,6 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.ThreatTabulation[pt1][pt2][US] += count;
         }
     }
-
-
 
     // Penalty for any overloaded minors or majors
     count = popcount(overloaded);
