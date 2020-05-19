@@ -311,6 +311,8 @@ const int PassedEnemyDistance[FILE_NB] = {
 
 const int PassedSafePromotionPath = S( -19,  38);
 
+const int PassedWinsPromotionRace = S(   8,  30);
+
 /* Threat Evaluation Terms */
 
 const int ThreatWeakPawn             = S( -12, -28);
@@ -866,7 +868,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
-    uint64_t bitboard;
+    uint64_t bitboard, promosq;
     uint64_t myPassers = board->colours[US] & ei->passedPawns;
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
     uint64_t tempPawns = myPassers;
@@ -878,6 +880,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         sq = poplsb(&tempPawns);
         rank = relativeRankOf(US, sq);
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
+        promosq = getlsb(forwardFileMasks(US, sq) & PROMOTION_RANKS);
 
         // Evaluate based on rank, ability to advance, and safety
         canAdvance = !(bitboard & occupied);
@@ -903,6 +906,12 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         flag = !(bitboard & (board->colours[THEM] | ei->attacked[THEM]));
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
+
+        // Apply a bonus if we are closer to the promo square than them
+        dist =  distanceBetween(ei->kingSquare[THEM], promosq);
+        flag = (distanceBetween(sq, promosq) < dist);
+        eval += flag * PassedWinsPromotionRace;
+        if (TRACE) T.PassedWinsPromotionRace[US] += flag;
     }
 
     return eval;

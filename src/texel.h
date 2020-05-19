@@ -25,12 +25,12 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (      1) // Total terms in the Tuner (648)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
 #define BATCHSIZE    (  16384) // FENs per mini-batch
-#define NPOSITIONS   (5888224) // Total FENS in the book
+#define NPOSITIONS   (5832689) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
@@ -73,6 +73,7 @@
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
+#define TunePassedWinsPromotionRace     (1)
 #define TuneThreatWeakPawn              (0)
 #define TuneThreatMinorAttackedByPawn   (0)
 #define TuneThreatMinorAttackedByMinor  (0)
@@ -270,6 +271,7 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
     ENABLE_1(F, PassedFriendlyDistance, 8, NORMAL, "[FILE_NB]");            \
     ENABLE_1(F, PassedEnemyDistance, 8, NORMAL, "[FILE_NB]");               \
     ENABLE_0(F, PassedSafePromotionPath, NORMAL, "");                       \
+    ENABLE_0(F, PassedWinsPromotionRace, NORMAL, "");                       \
     ENABLE_0(F, ThreatWeakPawn, NORMAL, "");                                \
     ENABLE_0(F, ThreatMinorAttackedByPawn, NORMAL, "");                     \
     ENABLE_0(F, ThreatMinorAttackedByMinor, NORMAL, "");                    \

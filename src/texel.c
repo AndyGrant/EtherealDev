@@ -82,6 +82,7 @@ extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
 extern const int PassedEnemyDistance[8];
 extern const int PassedSafePromotionPath;
+extern const int PassedWinsPromotionRace;
 extern const int ThreatWeakPawn;
 extern const int ThreatMinorAttackedByPawn;
 extern const int ThreatMinorAttackedByMinor;
@@ -221,7 +222,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL, 0);
+        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 
         // Count up the non zero coefficients
