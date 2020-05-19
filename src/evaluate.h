@@ -66,7 +66,7 @@ struct EvalTrace {
     int BishopBehindPawn[COLOUR_NB];
     int BishopLongDiagonal[COLOUR_NB];
     int BishopMobility[14][COLOUR_NB];
-    int RookFile[2][COLOUR_NB];
+    int RookFile[2][2][COLOUR_NB];
     int RookOnSeventh[COLOUR_NB];
     int RookMobility[15][COLOUR_NB];
     int QueenMobility[28][COLOUR_NB];
