@@ -45,6 +45,9 @@
 #include "windows.h"
 
 int LMRTable[64][64];      // Late Move Reductions
+int SEETable[10][2];       // Static Exchange Evaluation Pruning
+int FMPTable[9][2];        // Futility Move Pruning
+
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 
@@ -54,6 +57,18 @@ void initSearch() {
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
+
+    // Init Static Exchange Evaluation Pruning Table
+    for (int depth = 0; depth <= SEEPruningDepth; depth++) {
+        SEETable[depth][0] = SEENoisyMargin * depth * depth;
+        SEETable[depth][1] = SEEQuietMargin * depth;
+    }
+
+    // Init Futility Move Pruning Table
+    for (int depth = 0; depth <= FutilityPruningDepth; depth++) {
+        FMPTable[depth][0] = FutilityMargin * depth;
+        FMPTable[depth][1] = FMPTable[depth][0] + FutilityMarginNoHistory;
+    }
 }
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
@@ -200,7 +215,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
@@ -253,16 +268,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
-        // Only cut with a greater depth search, and do not return
-        // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
-
-            // Table is exact or produces a cutoff
-            if (    ttBound == BOUND_EXACT
-                || (ttBound == BOUND_LOWER && ttValue >= beta)
-                || (ttBound == BOUND_UPPER && ttValue <= alpha))
-                return ttValue;
-        }
+        // // Cutoff with a greater depth and non real PvNodes
+        if (     ttDepth >= depth && !(PvNode && depth)
+            && ((ttValue >= beta  && (ttBound & BOUND_LOWER))
+            ||  (ttValue <= alpha && (ttBound & BOUND_UPPER))
+            ||   ttBound == BOUND_EXACT))
+            return ttValue;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -305,13 +316,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
            ttHit && ttEval != VALUE_NONE            ?  ttEval
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
-
-    // Futility Pruning Margin
-    futilityMargin = FutilityMargin * depth;
-
-    // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = height >= 2 && eval > thread->evalStack[height-2];
@@ -401,7 +405,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin <= alpha
+                && eval + FMPTable[depth][0] <= alpha
                 && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
@@ -409,7 +413,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
+                && eval + FMPTable[depth][1] <= alpha)
                 skipQuiets = 1;
 
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
@@ -438,7 +442,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (    best > -MATE_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
+            && !staticExchangeEvaluation(board, move, SEETable[depth][isQuiet]))
             continue;
 
         // Apply move, skip if move is illegal
