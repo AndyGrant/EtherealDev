@@ -118,9 +118,14 @@ const int PawnCandidatePasser[2][RANK_NB] = {
     S(  19,  86), S(  38,  62), S(   0,   0), S(   0,   0)},
 };
 
-const int PawnIsolated = S(  -5, -12);
+const int PawnIsolated[FILE_NB/2] = {
+    S(  -2, -11), S(  -4, -11), S(  -4, -12), S(  -6, -12),
+};
 
-const int PawnStacked[2] = { S(  -6, -18), S(  -7,  -9) };
+const int PawnStacked[2][FILE_NB/2] = {
+   {S(  -6, -26), S(  -3, -17), S(  -2, -18), S(   0, -15)},
+   {S( -11, -13), S(  -4, -11), S(  -6,  -9), S(  -8,  -6)},
+};
 
 const int PawnBackwards[2][RANK_NB] = {
    {S(   0,   0), S(   3,  -7), S(  10,  -5), S(   8, -11),
@@ -467,23 +472,18 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnCandidatePasser[flag][relativeRankOf(US, sq)][US]++;
         }
 
-        // Apply a penalty if the pawn is isolated. We consider pawns that
-        // are able to capture another pawn to not be isolated, as they may
-        // have the potential to deisolate by capturing, or be traded away
+        // Apply a penalty if the pawn is isolated and may not capture
         if (!threats && !neighbors) {
-            pkeval += PawnIsolated;
-            if (TRACE) T.PawnIsolated[US]++;
+            pkeval += PawnIsolated[mirrorFile(fileOf(sq))];
+            if (TRACE) T.PawnIsolated[mirrorFile(fileOf(sq))][US]++;
         }
 
-        // Apply a penalty if the pawn is stacked. We adjust the bonus for when
-        // the pawn appears to be a candidate to unstack. This occurs when the
-        // pawn is not passed but may capture or be recaptured by our own pawns,
-        // and when the pawn may freely advance on a file and then be traded away
+        // Apply a penalty if the pawn is stacked. Check for the ability to unstack.
         if (several(Files[fileOf(sq)] & myPawns)) {
             flag = (stoppers && (threats || neighbors))
                 || (stoppers & ~forwardFileMasks(US, sq));
-            pkeval += PawnStacked[flag];
-            if (TRACE) T.PawnStacked[flag][US]++;
+            pkeval += PawnStacked[flag][mirrorFile(fileOf(sq))];
+            if (TRACE) T.PawnStacked[flag][mirrorFile(fileOf(sq))][US]++;
         }
 
         // Apply a penalty if the pawn is backward. We follow the usual definition

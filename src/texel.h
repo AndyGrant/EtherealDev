@@ -25,12 +25,12 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (     12) // Total terms in the Tuner (656)
 
-#define LEARNING     (    5.0) // Learning rate
+#define LEARNING     (    1.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
 #define BATCHSIZE    (  16384) // FENs per mini-batch
-#define NPOSITIONS   (5888224) // Total FENS in the book
+#define NPOSITIONS   (5832689) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
@@ -47,8 +47,8 @@
 #define TuneQueenPSQT32                 (0)
 #define TuneKingPSQT32                  (0)
 #define TunePawnCandidatePasser         (0)
-#define TunePawnIsolated                (0)
-#define TunePawnStacked                 (0)
+#define TunePawnIsolated                (1)
+#define TunePawnStacked                 (1)
 #define TunePawnBackwards               (0)
 #define TunePawnConnected32             (0)
 #define TuneKnightOutpost               (0)
@@ -244,8 +244,8 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
     ENABLE_1(F, QueenPSQT32, 32, NORMAL, "[32]");                           \
     ENABLE_1(F, KingPSQT32, 32, NORMAL, "[32]");                            \
     ENABLE_2(F, PawnCandidatePasser, 2, 8, NORMAL, "[2][RANK_NB]");         \
-    ENABLE_0(F, PawnIsolated, NORMAL, "");                                  \
-    ENABLE_1(F, PawnStacked, 2, NORMAL, "[2]");                             \
+    ENABLE_1(F, PawnIsolated, 4, NORMAL, "[FILE_NB/2]");                    \
+    ENABLE_2(F, PawnStacked, 2, 4, NORMAL, "[2][FILE_NB/2]");               \
     ENABLE_2(F, PawnBackwards, 2, 8, NORMAL, "[2][RANK_NB]");               \
     ENABLE_1(F, PawnConnected32, 32, NORMAL, "[32]");                       \
     ENABLE_2(F, KnightOutpost, 2, 2, NORMAL, "[2][2]");                     \
