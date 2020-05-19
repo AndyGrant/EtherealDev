@@ -174,6 +174,8 @@ const int BishopBehindPawn = S(   2,  19);
 
 const int BishopLongDiagonal = S(  21,  10);
 
+const int BishopCannotRetreat = S(   0,  -2);
+
 const int BishopMobility[14] = {
     S( -69,-149), S( -33, -99), S( -12, -54), S(  -2, -28),
     S(   9, -17), S(  17,  -3), S(  20,   7), S(  21,  12),
@@ -632,6 +634,13 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             && several(bishopAttacks(sq, board->pieces[PAWN]) & CENTER_SQUARES)) {
             eval += BishopLongDiagonal;
             if (TRACE) T.BishopLongDiagonal[US]++;
+        }
+
+        // Apply a penalty when the bishop may be trapped near enemy pawns
+        if (   !(pawnAttacks(THEM, sq) & ~board->pieces[PAWN])
+            &&  (enemyPawns & passedPawnMasks(US, sq) & ~Files[fileOf(sq)])) {
+            eval += BishopCannotRetreat;
+            if (TRACE) T.BishopCannotRetreat[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the bishop
