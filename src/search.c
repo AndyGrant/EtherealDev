@@ -438,6 +438,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (    best > -MATE_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
+            && (!isQuiet || hist + cmhist + fmhist < SEEPruningLimit)
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
