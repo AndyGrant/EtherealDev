@@ -75,7 +75,7 @@ static const int LateMovePruningCounts[2][9] = {
 };
 
 static const int SEEPruningDepth = 9;
-static const int SEEPruningLimit = 6000;
+static const int SEEPruningLimit = 18000;
 static const int SEEQuietMargin = -80;
 static const int SEENoisyMargin = -18;
 static const int SEEPieceValues[] = {
