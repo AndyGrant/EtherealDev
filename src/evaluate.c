@@ -311,7 +311,7 @@ const int PassedEnemyDistance[FILE_NB] = {
 
 const int PassedSafePromotionPath = S( -19,  38);
 
-const int PassedWinsPromotionRace = S(   8,  30);
+const int PassedWinsPromotionRace = S(   2,   7);
 
 /* Threat Evaluation Terms */
 
@@ -908,8 +908,8 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
 
         // Apply a bonus if we are closer to the promo square than them
-        dist =  distanceBetween(ei->kingSquare[THEM], promosq);
-        flag = (distanceBetween(sq, promosq) < dist);
+        dist = distanceBetween(ei->kingSquare[THEM], promosq);
+        flag = rank * (distanceBetween(sq, promosq) < dist);
         eval += flag * PassedWinsPromotionRace;
         if (TRACE) T.PassedWinsPromotionRace[US] += flag;
     }
