@@ -300,18 +300,18 @@ const int PassedPawn[2][2][RANK_NB] = {
 };
 
 const int PassedFriendlyDistance[FILE_NB] = {
-    S(   0,   0), S(   1,   1), S(   4,  -4), S(   6, -11),
-    S(   4, -14), S( -10, -10), S( -17,  -1), S(   0,   0),
+    S(   0,   0), S(   1,   2), S(   5,  -4), S(   7, -12),
+    S(   6, -15), S(  -9, -10), S( -17,   0), S(   0,   0),
 };
 
 const int PassedEnemyDistance[FILE_NB] = {
-    S(   0,   0), S(   3,  -1), S(   4,   0), S(   9,   8),
-    S(   1,  20), S(   6,  28), S(  27,  25), S(   0,   0),
+    S(   0,   0), S(   2,   0), S(   3,   1), S(   8,   9),
+    S(  -1,  22), S(   5,  28), S(  29,  21), S(   0,   0),
 };
 
-const int PassedSafePromotionPath = S( -19,  38);
+const int PassedSafePromotionPath = S( -18,  43);
 
-const int PassedWinsPromotionRace = S(   2,   7);
+const int PassedWinsPromotionRace = S(   1,   2);
 
 /* Threat Evaluation Terms */
 
@@ -909,7 +909,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus if we are closer to the promo square than them
         dist = distanceBetween(ei->kingSquare[THEM], promosq);
-        flag = rank * (distanceBetween(sq, promosq) < dist);
+        flag = distanceBetween(sq, promosq) < dist;
         eval += flag * PassedWinsPromotionRace;
         if (TRACE) T.PassedWinsPromotionRace[US] += flag;
     }

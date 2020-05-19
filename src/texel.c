@@ -222,8 +222,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
-        if (thread->board.turn == BLACK) tes[i].eval *= -1;
+        evaluateBoard(&thread->board, NULL, 0);
         initCoefficients(coeffs);
 
         // Count up the non zero coefficients
