@@ -366,7 +366,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+
+        // Try any tactical, SEE passing moves which do not have poor TT scores
+        move =   ttHit && moveIsTactical(board, ttMove)
+            && !(ttDepth >= depth - 4 && (ttBound & BOUND_UPPER) && ttValue < rBeta)
+            &&   staticExchangeEvaluation(board, ttMove, rBeta) ? ttMove : NONE_MOVE;
+
+        initNoisyMovePicker(&movePicker, thread, move, rBeta - eval);
+
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
@@ -652,7 +659,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
+    initNoisyMovePicker(&movePicker, thread, NONE_MOVE, MAX(QSEEMargin, margin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Search the next ply if the move is legal

@@ -98,13 +98,12 @@ void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int
 
 }
 
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
+void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int threshold) {
 
-    // Start with just the noisy moves
-    mp->stage = STAGE_GENERATE_NOISY;
-
-    // Skip all of the special (refutation and table) moves
-    mp->tableMove = mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    // Start with the table move and ignore refutations
+    mp->stage = STAGE_TABLE;
+    mp->tableMove = ttMove;
+    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
 
     // General housekeeping
     mp->threshold = threshold;
