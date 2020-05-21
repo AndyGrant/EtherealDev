@@ -372,7 +372,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   && !(ttDepth >= depth - 4 && (ttBound & BOUND_UPPER) && ttValue < rBeta)
                   &&   staticExchangeEvaluation(board, ttMove, rBeta) ? ttMove : NONE_MOVE;
 
-        initNoisyMovePicker(&movePicker, thread, ttProbMove, rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, ttMove, rBeta - eval);
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
