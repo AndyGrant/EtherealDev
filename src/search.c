@@ -372,12 +372,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                   && !(ttDepth >= depth - 4 && (ttBound & BOUND_UPPER) && ttValue < rBeta)
                   &&   staticExchangeEvaluation(board, ttMove, rBeta - eval) ? ttMove : NONE_MOVE;
 
+        // Only pass a tactical TT move into the Mover Picker
+        move = ttHit && moveIsTactical(board, ttMove) ? ttMove : NONE_MOVE;
+
         // Try only tactical moves which maintain rBeta
-        initNoisyMovePicker(&movePicker, thread, ttMove, rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, move, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Skip any TT move that we refused to use earlier
-            if (move == ttMove && ttProbMove == NONE_MOVE) continue;
+            if (move == ttMove && ttProbMove == NONE_MOVE) break;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
