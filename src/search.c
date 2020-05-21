@@ -201,7 +201,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
-    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
+    uint16_t move, ttMove = NONE_MOVE, ttProbMove, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
 
@@ -364,17 +364,20 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  abs(beta) < MATE_IN_MAX
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
-        // Try tactical moves which maintain rBeta
+        // Adjust beta by the ProbCutMargin
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
         // Try any tactical, SEE passing moves which do not have poor TT scores
-        move =   ttHit && moveIsTactical(board, ttMove)
-            && !(ttDepth >= depth - 4 && (ttBound & BOUND_UPPER) && ttValue < rBeta)
-            &&   staticExchangeEvaluation(board, ttMove, rBeta) ? ttMove : NONE_MOVE;
+        ttProbMove =   ttHit && moveIsTactical(board, ttMove)
+                  && !(ttDepth >= depth - 4 && (ttBound & BOUND_UPPER) && ttValue < rBeta)
+                  &&   staticExchangeEvaluation(board, ttMove, rBeta - eval) ? ttMove : NONE_MOVE;
 
-        initNoisyMovePicker(&movePicker, thread, move, rBeta - eval);
-
+        // Try only tactical moves which maintain rBeta
+        initNoisyMovePicker(&movePicker, thread, ttMove, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+
+            // Skip any TT move that we refused to use earlier
+            if (move == ttMove && ttProbMove == NONE_MOVE) continue;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
