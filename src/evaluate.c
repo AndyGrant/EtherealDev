@@ -34,11 +34,11 @@ int PSQT[32][SQUARE_NB];
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S( 104, 120);
-const int KnightValue = S( 462, 409);
-const int BishopValue = S( 482, 430);
-const int RookValue   = S( 664, 689);
-const int QueenValue  = S(1307,1341);
+const int PawnValue   = S( 105, 119);
+const int KnightValue = S( 456, 408);
+const int BishopValue = S( 477, 427);
+const int RookValue   = S( 660, 684);
+const int QueenValue  = S(1301,1347);
 const int KingValue   = S(   0,   0);
 
 /* Piece Square Evaluation Terms */
