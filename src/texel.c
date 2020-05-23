@@ -172,6 +172,7 @@ void runTexelTuning() {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
+    Undo undo;
     Limits limits;
     char line[128];
     int i, j, k, coeffs[NTERMS];
@@ -203,8 +204,11 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         else if (strstr(line, "[0.5]")) tes[i].result = 0.5;
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
-        // Setup the given position
+        // Resolve the position via a qsearch
         boardFromFEN(&thread->board, line, 0);
+        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        for (int idx = 0; idx < thread->pv.length; idx++)
+            applyMove(&thread->board, thread->pv.line[idx], &undo);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
