@@ -433,8 +433,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 11D (~8 elo). Continuation Move Pruning. Moves with a poor
             // counter move or followup move history are pruned near leaf nodes
-            if (  (cmhist <= ContinuationPruningDepth[improving]
-                || fmhist <= ContinuationPruningDepth[improving])
+            if (  (cmhist <= ContinuationHistoryLimit[improving]
+                || fmhist <= ContinuationHistoryLimit[improving])
                 && depth - R <= ContinuationPruningDepth[improving])
                 continue;
         }
