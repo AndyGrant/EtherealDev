@@ -431,16 +431,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && quietsSeen >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
-            // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
-            // move history are pruned at near leaf nodes of the search.
-            if (   cmhist < CounterMoveHistoryLimit[improving]
-                && depth - R <= CounterMovePruningDepth[improving])
-                continue;
-
-            // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
-            // follow up move history are pruned at near leaf nodes of the search.
-            if (   fmhist < FollowUpMoveHistoryLimit[improving]
-                && depth - R <= FollowUpMovePruningDepth[improving])
+            // Step 11D (~8 elo). Continuation Move Pruning. Moves with a poor
+            // counter move or followup move history are pruned near leaf nodes
+            if (  (cmhist < ContinuationPruningDepth[improving]
+                || fmhist < ContinuationPruningDepth[improving])
+                && depth - R <= ContinuationPruningDepth[improving])
                 continue;
         }
 
