@@ -379,7 +379,7 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board, eval);
+    factor = evaluateScaleFactor(&ei, board, eval);
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -1103,12 +1103,15 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     return MakeScore(0, v);
 }
 
-int evaluateScaleFactor(Board *board, int eval) {
+int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
 
     // Scale endgames based upon the remaining material. We check
     // for various Opposite Coloured Bishop cases, positions with
     // a lone Queen against multiple minor pieces and/or rooks, and
     // positions with a Lone minor that should not be winnable
+
+    uint64_t passers;
+    int imbalance, pawnEdge, passerEdge;
 
     const uint64_t pawns   = board->pieces[PAWN  ];
     const uint64_t knights = board->pieces[KNIGHT];
@@ -1116,8 +1119,8 @@ int evaluateScaleFactor(Board *board, int eval) {
     const uint64_t rooks   = board->pieces[ROOK  ];
     const uint64_t queens  = board->pieces[QUEEN ];
 
-    const uint64_t minors  = knights | bishops;
-    const uint64_t pieces  = knights | bishops | rooks;
+    const uint64_t minors   = knights | bishops;
+    const uint64_t pieces   = knights | bishops | rooks | queens;
 
     const uint64_t white   = board->colours[WHITE];
     const uint64_t black   = board->colours[BLACK];
@@ -1125,43 +1128,45 @@ int evaluateScaleFactor(Board *board, int eval) {
     const uint64_t weak    = ScoreEG(eval) < 0 ? white : black;
     const uint64_t strong  = ScoreEG(eval) < 0 ? black : white;
 
-
-    // Check for opposite coloured bishops
-    if (   onlyOne(white & bishops)
-        && onlyOne(black & bishops)
-        && onlyOne(bishops & WHITE_SQUARES)) {
-
-        // Scale factor for OCB + knights
-        if ( !(rooks | queens)
-            && onlyOne(white & knights)
-            && onlyOne(black & knights))
-            return SCALE_OCB_ONE_KNIGHT;
-
-        // Scale factor for OCB + rooks
-        if ( !(knights | queens)
-            && onlyOne(white & rooks)
-            && onlyOne(black & rooks))
-            return SCALE_OCB_ONE_ROOK;
-
-        // Scale factor for lone OCB
-        if (!(knights | rooks | queens))
-            return SCALE_OCB_BISHOPS_ONLY;
-    }
+    int ocb = onlyOne(white & bishops)
+           && onlyOne(black & bishops)
+           && onlyOne(bishops & WHITE_SQUARES);
 
     // Lone Queens are weak against multiple pieces
-    if (onlyOne(queens) && several(pieces) && pieces == (weak & pieces))
+    if (    onlyOne(queens)
+        &&  several(minors | rooks)
+        && (minors | rooks) == (weak & (minors | rooks)))
         return SCALE_LONE_QUEEN;
 
     // Lone Minor vs King + Pawns should never be won
     if ((strong & minors) && popcount(strong) == 2)
         return SCALE_DRAW;
 
+    // Check for opposite coloured bishops
+    if (ocb && !(pieces ^ bishops))
+        return SCALE_OCB_BISHOPS_ONLY;
+
     // Scale up lone pieces with massive pawn advantages
-    if (   !queens
-        && !several(pieces & white)
-        && !several(pieces & black)
+    if (   !(weak & queens)
+        && !several(pieces & weak)
+        &&  onlyOne(pieces & strong)
         &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
         return SCALE_LARGE_PAWN_ADV;
+
+    // Below is code only for the OCB case
+    if (!ocb) return SCALE_NORMAL;
+
+    // Compute a form of compexity for the position
+    passers    = ei->passedPawns;
+    pawnEdge   = abs(popcount(strong & pawns) - popcount(weak & pawns));
+    passerEdge = abs(popcount(strong & passers) - popcount(weak & passers));
+    imbalance  = SCALE_PAWN_EDGE * pawnEdge + SCALE_PASSER_EDGE * passerEdge;
+
+    // Scale for OCB + NvN or RvR or QvQ
+    if (   (onlyOne(white & knights) && onlyOne(black & knights))
+        || (onlyOne(white & rooks  ) && onlyOne(black & rooks  ))
+        || (onlyOne(white & queens ) && onlyOne(black & queens)))
+        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_OTHER + imbalance);
 
     return SCALE_NORMAL;
 }
