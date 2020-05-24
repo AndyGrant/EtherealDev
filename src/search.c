@@ -372,7 +372,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (    ttValue < rBeta
             &&  ttDepth >= depth - 4
             && (ttBound & BOUND_UPPER))
-            movePicker.stage == STAGE_DONE;
+            movePicker.stage = STAGE_DONE;
 
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
