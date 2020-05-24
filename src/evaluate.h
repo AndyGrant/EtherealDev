@@ -30,9 +30,7 @@
 
 enum {
     SCALE_OCB_BISHOPS_ONLY =  64,
-    SCALE_OCB_ONE_OTHER    =  80,
-    SCALE_PAWN_EDGE        =   8,
-    SCALE_PASSER_EDGE      =  12,
+    SCALE_OCB_ONE_OTHER    = 100,
     SCALE_DRAW             =   0,
     SCALE_LONE_QUEEN       =  88,
     SCALE_NORMAL           = 128,

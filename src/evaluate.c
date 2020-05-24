@@ -1110,9 +1110,6 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
     // a lone Queen against multiple minor pieces and/or rooks, and
     // positions with a Lone minor that should not be winnable
 
-    uint64_t passers;
-    int imbalance, pawnEdge, passerEdge;
-
     const uint64_t pawns   = board->pieces[PAWN  ];
     const uint64_t knights = board->pieces[KNIGHT];
     const uint64_t bishops = board->pieces[BISHOP];
@@ -1156,17 +1153,11 @@ int evaluateScaleFactor(EvalInfo *ei, Board *board, int eval) {
     // Below is code only for the OCB case
     if (!ocb) return SCALE_NORMAL;
 
-    // Compute a form of compexity for the position
-    passers    = ei->passedPawns;
-    pawnEdge   = abs(popcount(strong & pawns) - popcount(weak & pawns));
-    passerEdge = abs(popcount(strong & passers) - popcount(weak & passers));
-    imbalance  = SCALE_PAWN_EDGE * pawnEdge + SCALE_PASSER_EDGE * passerEdge;
-
     // Scale for OCB + NvN or RvR or QvQ
     if (   (onlyOne(white & knights) && onlyOne(black & knights))
         || (onlyOne(white & rooks  ) && onlyOne(black & rooks  ))
         || (onlyOne(white & queens ) && onlyOne(black & queens)))
-        return MIN(SCALE_NORMAL, SCALE_OCB_ONE_OTHER + imbalance);
+        return SCALE_OCB_ONE_OTHER;
 
     return SCALE_NORMAL;
 }
