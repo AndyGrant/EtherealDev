@@ -1159,7 +1159,7 @@ int evaluateScaleFactor(Board *board, int eval) {
     // Scale up lone pieces with massive pawn advantages
     if (   !(weak & queens)
         && !several(pieces & weak)
-        &&  onlyOne(pieces & strong)
+        && !several(pieces & strong)
         &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
         return SCALE_LARGE_PAWN_ADV;
 
