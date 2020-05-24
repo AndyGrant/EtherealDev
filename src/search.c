@@ -362,12 +362,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin
-        && (!ttHit || ttBound == BOUND_LOWER || ttValue >= beta || ttDepth < depth - 4)) {
+        &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+
+        // Skip Probcut if the TT suggests that no such cutting move exists
+        if (    ttValue < rBeta
+            &&  ttDepth >= depth - 4
+            && (ttBound & BOUND_UPPER))
+            movePicker.stage == STAGE_DONE;
+
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
