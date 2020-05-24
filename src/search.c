@@ -363,7 +363,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin
-        && (!ttHit || ttBound == BOUND_LOWER || ttValue >= beta || ttDepth < depth - 4)) {
+        && (!ttHit || ttBound == BOUND_LOWER || ttValue >= rBeta || ttDepth < depth - 4)) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
