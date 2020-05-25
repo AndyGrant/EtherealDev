@@ -348,7 +348,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
-        newDepth = (eval - beta < 64) ? MAX(1, depth-R) : depth - R;
+        newDepth = (eval - beta < 32) ? MAX(1, depth-R) : depth - R;
 
         apply(thread, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, newDepth, height+1);
