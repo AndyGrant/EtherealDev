@@ -1117,14 +1117,13 @@ int evaluateScaleFactor(Board *board, int eval) {
     const uint64_t queens  = board->pieces[QUEEN ];
 
     const uint64_t minors  = knights | bishops;
-    const uint64_t pieces  = knights | bishops | rooks;
+    const uint64_t pieces  = knights | bishops | rooks | queens;
 
     const uint64_t white   = board->colours[WHITE];
     const uint64_t black   = board->colours[BLACK];
 
     const uint64_t weak    = ScoreEG(eval) < 0 ? white : black;
     const uint64_t strong  = ScoreEG(eval) < 0 ? black : white;
-
 
     // Check for opposite coloured bishops
     if (   onlyOne(white & bishops)
@@ -1149,18 +1148,20 @@ int evaluateScaleFactor(Board *board, int eval) {
     }
 
     // Lone Queens are weak against multiple pieces
-    if (onlyOne(queens) && several(pieces) && pieces == (weak & pieces))
+    if (   onlyOne(queens)
+        && several(minors | rooks)
+        && (minors | rooks) == (weak & (minors | rooks)))
         return SCALE_LONE_QUEEN;
 
     // Lone Minor vs King + Pawns should never be won
     if ((strong & minors) && popcount(strong) == 2)
         return SCALE_DRAW;
 
-    // Scale up lone pieces with massive pawn advantages
-    if (   !(weak & queens)
-        && !several(pieces & weak)
-        && !several(pieces & strong)
-        &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
+    // Scale up single piece endgames with a large pawn advantage
+    if (    queens == (strong & queens)
+        && !several(popcount(pieces & weak))
+        &&  popcount(pieces & strong) - popcount(pieces & weak) >= 0
+        &&  popcount(pawns  & strong) - popcount(pawns  & weak) >= 3)
         return SCALE_LARGE_PAWN_ADV;
 
     return SCALE_NORMAL;
