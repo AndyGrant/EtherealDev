@@ -388,6 +388,24 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         }
     }
 
+    // Alpha Trimming
+
+    static const int AlphaTrimmingDepth = 4;
+    static const int AlphaTrimmingMargin = 256;
+
+    if (   !PvNode
+        && !inCheck
+        &&  depth <= AlphaTrimmingDepth
+        &&  eval + depth * AlphaTrimmingMargin < alpha) {
+
+        // Simply return if we can't beat alpha at depth 1 (Razoring)
+        value = qsearch(thread, &lpv, alpha, beta, height);
+        if (depth <= 1 && value <= alpha) return value;
+
+        // If we can't beat alpha, reduce depth (Trimming)
+        if (value <= alpha) depth = depth - 1;
+    }
+
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
