@@ -399,7 +399,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  eval + depth * AlphaTrimmingMargin < alpha) {
 
         // Simply return if we can't beat alpha at depth 1 (Razoring)
-        value = qsearch(thread, &lpv, alpha, beta, height);
+        rAlpha = alpha - AlphaTrimmingMargin;
+        value = qsearch(thread, &lpv, rAlpha, rAlpha+1, height);
         if (depth <= 1 && value <= alpha) return value;
 
         // If we can't beat alpha, reduce depth (Trimming)
