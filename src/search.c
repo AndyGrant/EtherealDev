@@ -365,7 +365,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        rSEE  = MAX(rBeta - eval, -2 * SEEPieceValues[PAWN]);
+        rSEE  = MAX(rBeta - eval, -SEEPieceValues[KNIGHT]);
 
         // Try tactical moves which maintain rBeta
         initNoisyMovePicker(&movePicker, thread, rSEE);
