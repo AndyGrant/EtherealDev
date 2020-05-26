@@ -201,7 +201,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
-    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
+    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, probCutMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
 
@@ -371,6 +371,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
+            if (probCutMove == NONE_MOVE) probCutMove = move;
 
             // For high depths, verify the move first with a depth one search
             if (depth >= 2 * ProbCutDepth)
@@ -390,7 +391,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    initMovePicker(&movePicker, thread, ttMove, height);
+    initMovePicker(&movePicker, thread, ttHit ? ttMove : probCutMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // In MultiPV mode, skip over already examined lines
