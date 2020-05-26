@@ -263,6 +263,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
+
+        // Take a speculative cutoff with an entry just one depth
+        // to low to produce a cutoff, but would produce a large cut
+        else if ((ttDepth >= depth - 1 && !PvNode)
+            && (((ttBound & BOUND_LOWER) && ttValue - 128 >= beta)
+            ||  ((ttBound & BOUND_UPPER) && ttValue + 128 <= alpha)))
+            return ttValue;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
