@@ -878,15 +878,16 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
         sq = poplsb(&tempPawns);
         rank = relativeRankOf(US, sq);
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
+        flag = several(forwardFileMasks(US, sq) & myPassers);
 
         // Evaluate based on rank, ability to advance, and safety
-        canAdvance = !(bitboard & occupied);
+        canAdvance = !(bitboard & occupied) && !flag;
         safeAdvance = !(bitboard & ei->attacked[THEM]);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
         // Short-circuit evaluation for additional passers on a file
-        if (several(forwardFileMasks(US, sq) & myPassers)) continue;
+        if (flag) continue;
 
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ei->kingSquare[US]);
