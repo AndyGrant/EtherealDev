@@ -196,10 +196,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
-    int quietsSeen = 0, quietsPlayed = 0, played = 0;
+    int quietsSeen = 0, quietsPlayed = 0, played = 0, probCutPlayed = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, weakCaptures = 0, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
@@ -371,6 +371,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
+            probCutPlayed++;
 
             // For high depths, verify the move first with a depth one search
             if (depth >= 2 * ProbCutDepth)
@@ -386,11 +387,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Probcut failed high verifying the cutoff
             if (value >= rBeta) return value;
         }
+
+        // We discovered that no good captures exist
+        weakCaptures = !probCutPlayed && rBeta - eval <= 0;
     }
 
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    initMovePicker(&movePicker, thread, ttMove, height);
+    initMovePicker(&movePicker, thread, ttMove, height, weakCaptures);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // In MultiPV mode, skip over already examined lines

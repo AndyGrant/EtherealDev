@@ -74,7 +74,7 @@ static void evaluateNoisyMoves(MovePicker *mp) {
     }
 }
 
-void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height) {
+void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height, int weakCaptures) {
 
     // Start with the table move
     mp->stage = STAGE_TABLE;
@@ -82,6 +82,9 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height)
 
     // Lookup our refutations (killers and counter moves)
     getRefutationMoves(thread, height, &mp->killer1, &mp->killer2, &mp->counter);
+
+    // Flag that all captures fail SEE(0)
+    mp->weakCaptures = weakCaptures;
 
     // General housekeeping
     mp->threshold = 0;
@@ -93,7 +96,7 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height)
 void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height) {
 
     // Simply skip over the TT move
-    initMovePicker(mp, thread, ttMove, height);
+    initMovePicker(mp, thread, ttMove, height, 0);
     mp->stage = STAGE_GENERATE_NOISY;
 
 }
@@ -135,6 +138,14 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             // some of the noisy moves during STAGE_GOOD_NOISY and return later
             mp->noisySize = mp->split = genAllNoisyMoves(board, mp->moves);
             evaluateNoisyMoves(mp);
+
+            // We have knowledge that all moves will fail SEE(0) for this
+            // normal picker. This means we may skip over STAGE_GOOD_NOISY
+            if (mp->type == NORMAL_PICKER && mp->weakCaptures) {
+                mp->stage = skipQuiets ? STAGE_BAD_NOISY : STAGE_KILLER_1;
+                return selectNextMove(mp, board, skipQuiets);
+            }
+
             mp->stage = STAGE_GOOD_NOISY;
 
             /* fallthrough */
