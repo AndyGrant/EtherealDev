@@ -36,6 +36,7 @@ uint64_t PassedPawnMasks[COLOUR_NB][SQUARE_NB];
 uint64_t PawnConnectedMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostSquareMasks[COLOUR_NB][SQUARE_NB];
 uint64_t OutpostRanksMasks[COLOUR_NB];
+uint64_t MinorBehindPawnMasks[COLOUR_NB];
 
 void initMasks() {
 
@@ -135,6 +136,10 @@ void initMasks() {
         PawnConnectedMasks[WHITE][sq] = pawnAttacks(BLACK, sq) | pawnAttacks(BLACK, sq + 8);
         PawnConnectedMasks[BLACK][sq] = pawnAttacks(WHITE, sq) | pawnAttacks(WHITE, sq - 8);
     }
+
+    // Init a pair of bitmasks to check to apply a pawn behind bonus
+    MinorBehindPawnMasks[WHITE] = RANK_3 | RANK_4 | RANK_5 | RANK_6;
+    MinorBehindPawnMasks[BLACK] = RANK_3 | RANK_4 | RANK_5 | RANK_6;
 }
 
 int distanceBetween(int s1, int s2) {
@@ -205,4 +210,9 @@ uint64_t outpostSquareMasks(int colour, int sq) {
 uint64_t outpostRanksMasks(int colour) {
     assert(0 <= colour && colour < COLOUR_NB);
     return OutpostRanksMasks[colour];
+}
+
+uint64_t minorBehindPawnMasks(int colour) {
+    assert(0 <= colour && colour < COLOUR_NB);
+    return MinorBehindPawnMasks[colour];
 }

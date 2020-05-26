@@ -36,3 +36,4 @@ uint64_t passedPawnMasks(int colour, int sq);
 uint64_t pawnConnectedMasks(int colour, int sq);
 uint64_t outpostSquareMasks(int colour, int sq);
 uint64_t outpostRanksMasks(int colour);
+uint64_t minorBehindPawnMasks(int colour);
