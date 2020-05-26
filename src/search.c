@@ -371,7 +371,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
-            if (probCutMove == NONE_MOVE) probCutMove = move;
+
+            // Save the first move tried with positive SEE()
+            if (probCutMove == NONE_MOVE && rBeta - eval >= 0)
+                probCutMove = move;
 
             // For high depths, verify the move first with a depth one search
             if (depth >= 2 * ProbCutDepth)
