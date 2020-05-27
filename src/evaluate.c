@@ -313,18 +313,18 @@ const int PassedSafePromotionPath = S( -19,  38);
 
 /* Threat Evaluation Terms */
 
-const int ThreatMinorAttackedByPawn  = S( -53, -57);
-const int ThreatMinorAttackedByMinor = S( -24, -37);
-const int ThreatMinorAttackedByMajor = S( -27, -46);
-const int ThreatMinorAttackedByKing  = S( -16, -16);
+const int ThreatMinorAttackedByPawn  = S( -49, -56);
+const int ThreatMinorAttackedByMinor = S( -16, -34);
+const int ThreatMinorAttackedByMajor = S( -22, -46);
+const int ThreatMinorAttackedByKing  = S( -17, -18);
 const int ThreatRookAttackedByPawn   = S( -49, -22);
-const int ThreatRookAttackedByMinor  = S( -49, -22);
-const int ThreatRookAttackedByMajor  = S( -24, -37);
-const int ThreatRookAttackedByKing   = S( -18, -16);
-const int ThreatWeakPawn             = S( -12, -28);
-const int ThreatQueenAttackedByOne   = S( -40, -21);
-const int ThreatOverloadedPieces     = S(  -8, -13);
-const int ThreatByPawnPush           = S(  14,  24);
+const int ThreatRookAttackedByMinor  = S( -48, -21);
+const int ThreatRookAttackedByMajor  = S( -18, -32);
+const int ThreatRookAttackedByKing   = S( -19, -18);
+const int ThreatWeakPawn             = S( -10, -34);
+const int ThreatQueenAttackedByOne   = S( -39, -21);
+const int ThreatOverloadedPieces     = S( -14, -17);
+const int ThreatByPawnPush           = S(  17,  25);
 
 /* Space Evaluation Terms */
 

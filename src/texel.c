@@ -174,6 +174,7 @@ void runTexelTuning() {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
+    Undo undo;
     Limits limits;
     char line[128];
     int i, j, k, coeffs[NTERMS];
@@ -207,6 +208,9 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Setup the given position
         boardFromFEN(&thread->board, line, 0);
+        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        for (int idx = 0; idx < thread->pv.length; idx++)
+            applyMove(&thread->board, thread->pv.line[idx], &undo);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -223,7 +227,8 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
-        evaluateBoard(&thread->board, NULL, 0);
+        tes[i].eval = evaluateBoard(&thread->board, NULL, 0);
+        if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 
         // Count up the non zero coefficients
