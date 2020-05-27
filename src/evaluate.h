@@ -78,13 +78,15 @@ struct EvalTrace {
     int PassedFriendlyDistance[8][COLOUR_NB];
     int PassedEnemyDistance[8][COLOUR_NB];
     int PassedSafePromotionPath[COLOUR_NB];
-    int ThreatWeakPawn[COLOUR_NB];
     int ThreatMinorAttackedByPawn[COLOUR_NB];
     int ThreatMinorAttackedByMinor[COLOUR_NB];
     int ThreatMinorAttackedByMajor[COLOUR_NB];
-    int ThreatRookAttackedByLesser[COLOUR_NB];
     int ThreatMinorAttackedByKing[COLOUR_NB];
+    int ThreatRookAttackedByPawn[COLOUR_NB];
+    int ThreatRookAttackedByMinor[COLOUR_NB];
+    int ThreatRookAttackedByMajor[COLOUR_NB];
     int ThreatRookAttackedByKing[COLOUR_NB];
+    int ThreatWeakPawn[COLOUR_NB];
     int ThreatQueenAttackedByOne[COLOUR_NB];
     int ThreatOverloadedPieces[COLOUR_NB];
     int ThreatByPawnPush[COLOUR_NB];

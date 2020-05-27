@@ -313,13 +313,15 @@ const int PassedSafePromotionPath = S( -19,  38);
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -12, -28);
 const int ThreatMinorAttackedByPawn  = S( -53, -57);
 const int ThreatMinorAttackedByMinor = S( -24, -37);
 const int ThreatMinorAttackedByMajor = S( -27, -46);
-const int ThreatRookAttackedByLesser = S( -49, -22);
 const int ThreatMinorAttackedByKing  = S( -16, -16);
+const int ThreatRookAttackedByPawn   = S( -49, -22);
+const int ThreatRookAttackedByMinor  = S( -49, -22);
+const int ThreatRookAttackedByMajor  = S( -24, -37);
 const int ThreatRookAttackedByKing   = S( -18, -16);
+const int ThreatWeakPawn             = S( -12, -28);
 const int ThreatQueenAttackedByOne   = S( -40, -21);
 const int ThreatOverloadedPieces     = S(  -8, -13);
 const int ThreatByPawnPush           = S(  14,  24);
@@ -933,7 +935,8 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
                             | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
 
-    uint64_t weakMinors = (knights | bishops) & poorlyDefended;
+    uint64_t weakMinors = poorlyDefended & (knights | bishops);
+    uint64_t weakRooks  = poorlyDefended & rooks;
 
     // A friendly minor or major is overloaded if attacked and defended by exactly one
     uint64_t overloaded = (knights | bishops | rooks | queens)
@@ -948,10 +951,9 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
-    // Penalty for each of our poorly supported pawns
-    count = popcount(pawns & ~attacksByPawns & poorlyDefended);
-    eval += count * ThreatWeakPawn;
-    if (TRACE) T.ThreatWeakPawn[US] += count;
+    // ------------------------------------------------------------
+    //      Evaluation of attacks against our Knights & Bishops
+    // ------------------------------------------------------------
 
     // Penalty for pawn threats against our minors
     count = popcount((knights | bishops) & attacksByPawns);
@@ -959,7 +961,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
 
     // Penalty for any minor threat against minor pieces
-    count = popcount((knights | bishops) & attacksByMinors);
+    count = popcount(weakMinors & attacksByMinors);
     eval += count * ThreatMinorAttackedByMinor;
     if (TRACE) T.ThreatMinorAttackedByMinor[US] += count;
 
@@ -968,20 +970,45 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     eval += count * ThreatMinorAttackedByMajor;
     if (TRACE) T.ThreatMinorAttackedByMajor[US] += count;
 
-    // Penalty for pawn and minor threats against our rooks
-    count = popcount(rooks & (attacksByPawns | attacksByMinors));
-    eval += count * ThreatRookAttackedByLesser;
-    if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
-
     // Penalty for king threats against our poorly defended minors
     count = popcount(weakMinors & ei->attackedBy[THEM][KING]);
     eval += count * ThreatMinorAttackedByKing;
     if (TRACE) T.ThreatMinorAttackedByKing[US] += count;
 
+
+    // ------------------------------------------------------------
+    //           Evaluation of attacks against our Rooks
+    // ------------------------------------------------------------
+
+    // Penalty for pawn threats against our rooks
+    count = popcount(rooks & attacksByPawns);
+    eval += count * ThreatRookAttackedByPawn;
+    if (TRACE) T.ThreatRookAttackedByPawn[US] += count;
+
+    // Penalty for knight or bishop threats against our rooks
+    count = popcount(rooks & attacksByMinors);
+    eval += count * ThreatRookAttackedByMinor;
+    if (TRACE) T.ThreatRookAttackedByMinor[US] += count;
+
+    // Penalty for major threats against our poorly defended rooks
+    count = popcount(weakRooks & attacksByMajors);
+    eval += count * ThreatRookAttackedByMajor;
+    if (TRACE) T.ThreatRookAttackedByMajor[US] += count;
+
     // Penalty for king threats against our poorly defended rooks
-    count = popcount(rooks & poorlyDefended & ei->attackedBy[THEM][KING]);
+    count = popcount(weakRooks & ei->attackedBy[THEM][KING]);
     eval += count * ThreatRookAttackedByKing;
     if (TRACE) T.ThreatRookAttackedByKing[US] += count;
+
+
+    // ------------------------------------------------------------
+    //   Miscellaneous evaluation of actual or potential attacks
+    // ------------------------------------------------------------
+
+    // Penalty for each of our poorly supported pawns
+    count = popcount(pawns & ~attacksByPawns & poorlyDefended);
+    eval += count * ThreatWeakPawn;
+    if (TRACE) T.ThreatWeakPawn[US] += count;
 
     // Penalty for any threat against our queens
     count = popcount(queens & ei->attacked[THEM]);

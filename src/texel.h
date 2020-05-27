@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (     12) // Total terms in the Tuner (649)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -73,16 +73,18 @@
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
 #define TunePassedSafePromotionPath     (0)
-#define TuneThreatWeakPawn              (0)
-#define TuneThreatMinorAttackedByPawn   (0)
-#define TuneThreatMinorAttackedByMinor  (0)
-#define TuneThreatMinorAttackedByMajor  (0)
-#define TuneThreatRookAttackedByLesser  (0)
-#define TuneThreatMinorAttackedByKing   (0)
-#define TuneThreatRookAttackedByKing    (0)
-#define TuneThreatQueenAttackedByOne    (0)
-#define TuneThreatOverloadedPieces      (0)
-#define TuneThreatByPawnPush            (0)
+#define TuneThreatMinorAttackedByPawn   (1)
+#define TuneThreatMinorAttackedByMinor  (1)
+#define TuneThreatMinorAttackedByMajor  (1)
+#define TuneThreatMinorAttackedByKing   (1)
+#define TuneThreatRookAttackedByPawn    (1)
+#define TuneThreatRookAttackedByMinor   (1)
+#define TuneThreatRookAttackedByMajor   (1)
+#define TuneThreatRookAttackedByKing    (1)
+#define TuneThreatWeakPawn              (1)
+#define TuneThreatQueenAttackedByOne    (1)
+#define TuneThreatOverloadedPieces      (1)
+#define TuneThreatByPawnPush            (1)
 #define TuneSpaceRestrictPiece          (0)
 #define TuneSpaceRestrictEmpty          (0)
 #define TuneSpaceCenterControl          (0)
@@ -270,13 +272,15 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
     ENABLE_1(F, PassedFriendlyDistance, 8, NORMAL, "[FILE_NB]");            \
     ENABLE_1(F, PassedEnemyDistance, 8, NORMAL, "[FILE_NB]");               \
     ENABLE_0(F, PassedSafePromotionPath, NORMAL, "");                       \
-    ENABLE_0(F, ThreatWeakPawn, NORMAL, "");                                \
     ENABLE_0(F, ThreatMinorAttackedByPawn, NORMAL, "");                     \
     ENABLE_0(F, ThreatMinorAttackedByMinor, NORMAL, "");                    \
     ENABLE_0(F, ThreatMinorAttackedByMajor, NORMAL, "");                    \
-    ENABLE_0(F, ThreatRookAttackedByLesser, NORMAL, "");                    \
     ENABLE_0(F, ThreatMinorAttackedByKing, NORMAL, "");                     \
+    ENABLE_0(F, ThreatRookAttackedByPawn, NORMAL, "");                      \
+    ENABLE_0(F, ThreatRookAttackedByMinor, NORMAL, "");                     \
+    ENABLE_0(F, ThreatRookAttackedByMajor, NORMAL, "");                     \
     ENABLE_0(F, ThreatRookAttackedByKing, NORMAL, "");                      \
+    ENABLE_0(F, ThreatWeakPawn, NORMAL, "");                                \
     ENABLE_0(F, ThreatQueenAttackedByOne, NORMAL, "");                      \
     ENABLE_0(F, ThreatOverloadedPieces, NORMAL, "");                        \
     ENABLE_0(F, ThreatByPawnPush, NORMAL, "");                              \
