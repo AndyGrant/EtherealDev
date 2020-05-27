@@ -956,7 +956,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
           + ThreatMinorAttackedByMajor * popcount(weakMinors & attacksByMajors)
           + ThreatMinorAttackedByKing  * popcount(weakMinors & ei->attackedBy[THEM][KING])
           + ThreatRookAttackedByLesser * popcount(rooks & (attacksByPawns | attacksByMinors))
-          + ThreatRookAttackedByMajor  * popcount(rooks & poorlyDefended & attacksByMajors)
+          + ThreatRookAttackedByMajor  * popcount(rooks & ~poorlyDefended & attacksByMajors)
           + ThreatRookAttackedByKing   * popcount(rooks & poorlyDefended & ei->attackedBy[THEM][KING])
           + ThreatQueenAttackedByOne   * popcount(queens & ei->attacked[THEM])
           + ThreatOverloadedPieces     * popcount(overloaded)
