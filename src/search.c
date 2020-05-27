@@ -508,7 +508,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Pawn pushes which may be captured
-            R +=  board->squares[MoveTo(move)] == PAWN
+            R +=  pieceType(board->squares[MoveTo(move)]) == PAWN
               && (board->pieces[PAWN] & board->colours[!US] & pawnAttacks(US, MoveTo(move)))
               && (board->pieces[PAWN] & board->colours[US] & pawnAttacks(!US, MoveTo(move)));
 
