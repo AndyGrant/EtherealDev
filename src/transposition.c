@@ -188,9 +188,12 @@ PKEntry* getPKEntry(PKTable *pktable, uint64_t pkhash) {
     return pkentry->pkhash == pkhash ? pkentry : NULL;
 }
 
-void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, int eval) {
+void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, uint64_t backwards, int eval) {
+
     PKEntry *pkentry = &pktable->entries[pkhash >> PKT_HASH_SHIFT];
-    pkentry->pkhash = pkhash;
-    pkentry->passed = passed;
-    pkentry->eval   = eval;
+
+    pkentry->pkhash    = pkhash;
+    pkentry->passed    = passed;
+    pkentry->backwards = backwards;
+    pkentry->eval      = eval;
 }

@@ -392,7 +392,7 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
-        storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+        storePKEntry(pktable, board->pkhash, ei.passedPawns, ei.backwards, pkeval);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -493,6 +493,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag][relativeRankOf(US, sq)];
             if (TRACE) T.PawnBackwards[flag][relativeRankOf(US, sq)][US]++;
+            setBit(&ei->backwards, sq);
         }
 
         // Apply a bonus if the pawn is connected and not backwards. We consider a
@@ -1218,6 +1219,7 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     // Try to read a hashed Pawn King Eval. Otherwise, start from scratch
     ei->pkentry       =     pktable == NULL ? NULL : getPKEntry(pktable, board->pkhash);
     ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
+    ei->backwards     = ei->pkentry == NULL ? 0ull : ei->pkentry->backwards;
     ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
 }

@@ -61,7 +61,7 @@ struct TTable {
 
 struct PKEntry {
     uint64_t pkhash;
-    uint64_t passed;
+    uint64_t passed, backwards;
     int eval;
 };
 
@@ -81,4 +81,4 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound);
 
 PKEntry* getPKEntry(PKTable *pktable, uint64_t pkhash);
-void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, int eval);
+void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, uint64_t backwards, int eval);
