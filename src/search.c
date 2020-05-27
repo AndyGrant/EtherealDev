@@ -509,8 +509,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Reduce for Pawn pushes which may be captured
             R +=  board->squares[MoveTo(move)] == PAWN
-              && (board->pieces[PAWN] & board->colours[!US] & pawnAttacks(US, MoveTo(move)))
-              && (board->pieces[PAWN] & board->colours[US] & pawnAttacks(!US, MoveTo(move)));
+              && (board->pieces[PAWN] & board->colours[!US] & pawnAttacks(US, MoveTo(move)));
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
