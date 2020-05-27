@@ -317,8 +317,9 @@ const int ThreatWeakPawn             = S( -12, -28);
 const int ThreatMinorAttackedByPawn  = S( -53, -57);
 const int ThreatMinorAttackedByMinor = S( -24, -37);
 const int ThreatMinorAttackedByMajor = S( -27, -46);
-const int ThreatRookAttackedByLesser = S( -49, -22);
 const int ThreatMinorAttackedByKing  = S( -16, -16);
+const int ThreatRookAttackedByLesser = S( -49, -22);
+const int ThreatRookAttackedByMajor  = S(  -6,  -9);
 const int ThreatRookAttackedByKing   = S( -18, -16);
 const int ThreatQueenAttackedByOne   = S( -40, -21);
 const int ThreatOverloadedPieces     = S(  -8, -13);
@@ -928,6 +929,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t attacksByPawns  = ei->attackedBy[THEM][PAWN  ];
     uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT] | ei->attackedBy[THEM][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
+    uint64_t attacksByKings  = ei->attackedBy[THEM][KING  ];
 
     // Squares with more attackers, few defenders, and no pawn support
     uint64_t poorlyDefended = (ei->attacked[THEM] & ~ei->attacked[US])
@@ -948,55 +950,31 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreat &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreat  = pawnAttackSpan(pushThreat, enemy & ~ei->attackedBy[US][PAWN], US);
 
-    // Penalty for each of our poorly supported pawns
-    count = popcount(pawns & ~attacksByPawns & poorlyDefended);
-    eval += count * ThreatWeakPawn;
-    if (TRACE) T.ThreatWeakPawn[US] += count;
+    eval += ThreatWeakPawn             * popcount(pawns & ~attacksByPawns & poorlyDefended)
+          + ThreatMinorAttackedByPawn  * popcount((knights | bishops) & attacksByPawns)
+          + ThreatMinorAttackedByMinor * popcount((knights | bishops) & attacksByMinors)
+          + ThreatMinorAttackedByMajor * popcount(weakMinors & attacksByMajors)
+          + ThreatMinorAttackedByKing  * popcount(weakMinors & ei->attackedBy[THEM][KING])
+          + ThreatRookAttackedByLesser * popcount(rooks & (attacksByPawns | attacksByMinors))
+          + ThreatRookAttackedByMajor  * popcount(rooks & poorlyDefended & attacksByMajors)
+          + ThreatRookAttackedByKing   * popcount(rooks & poorlyDefended & ei->attackedBy[THEM][KING])
+          + ThreatQueenAttackedByOne   * popcount(queens & ei->attacked[THEM])
+          + ThreatOverloadedPieces     * popcount(overloaded)
+          + ThreatByPawnPush           * popcount(pushThreat);
 
-    // Penalty for pawn threats against our minors
-    count = popcount((knights | bishops) & attacksByPawns);
-    eval += count * ThreatMinorAttackedByPawn;
-    if (TRACE) T.ThreatMinorAttackedByPawn[US] += count;
-
-    // Penalty for any minor threat against minor pieces
-    count = popcount((knights | bishops) & attacksByMinors);
-    eval += count * ThreatMinorAttackedByMinor;
-    if (TRACE) T.ThreatMinorAttackedByMinor[US] += count;
-
-    // Penalty for all major threats against poorly supported minors
-    count = popcount(weakMinors & attacksByMajors);
-    eval += count * ThreatMinorAttackedByMajor;
-    if (TRACE) T.ThreatMinorAttackedByMajor[US] += count;
-
-    // Penalty for pawn and minor threats against our rooks
-    count = popcount(rooks & (attacksByPawns | attacksByMinors));
-    eval += count * ThreatRookAttackedByLesser;
-    if (TRACE) T.ThreatRookAttackedByLesser[US] += count;
-
-    // Penalty for king threats against our poorly defended minors
-    count = popcount(weakMinors & ei->attackedBy[THEM][KING]);
-    eval += count * ThreatMinorAttackedByKing;
-    if (TRACE) T.ThreatMinorAttackedByKing[US] += count;
-
-    // Penalty for king threats against our poorly defended rooks
-    count = popcount(rooks & poorlyDefended & ei->attackedBy[THEM][KING]);
-    eval += count * ThreatRookAttackedByKing;
-    if (TRACE) T.ThreatRookAttackedByKing[US] += count;
-
-    // Penalty for any threat against our queens
-    count = popcount(queens & ei->attacked[THEM]);
-    eval += count * ThreatQueenAttackedByOne;
-    if (TRACE) T.ThreatQueenAttackedByOne[US] += count;
-
-    // Penalty for any overloaded minors or majors
-    count = popcount(overloaded);
-    eval += count * ThreatOverloadedPieces;
-    if (TRACE) T.ThreatOverloadedPieces[US] += count;
-
-    // Bonus for giving threats by safe pawn pushes
-    count = popcount(pushThreat);
-    eval += count * ThreatByPawnPush;
-    if (TRACE) T.ThreatByPawnPush[colour] += count;
+    if (TRACE) {
+        T.ThreatWeakPawn[US]             += popcount(pawns & ~attacksByPawns & poorlyDefended);
+        T.ThreatMinorAttackedByPawn[US]  += popcount((knights | bishops) & attacksByPawns);
+        T.ThreatMinorAttackedByMinor[US] += popcount((knights | bishops) & attacksByMinors);
+        T.ThreatMinorAttackedByMajor[US] += popcount(weakMinors & attacksByMajors);
+        T.ThreatMinorAttackedByKing[US]  += popcount(weakMinors & ei->attackedBy[THEM][KING]);
+        T.ThreatRookAttackedByLesser[US] += popcount(rooks & (attacksByPawns | attacksByMinors));
+      //T.ThreatRookAttackedByMajor[US]  += popcount(rooks & poorlyDefended & attacksByMajors);
+        T.ThreatRookAttackedByKing[US]   += popcount(rooks & poorlyDefended & attacksByKings);
+        T.ThreatQueenAttackedByOne[US]   += popcount(queens & ei->attacked[THEM]);
+        T.ThreatOverloadedPieces[US]     += popcount(overloaded);
+        T.ThreatByPawnPush[US]           += popcount(pushThreat);
+    }
 
     return eval;
 }
