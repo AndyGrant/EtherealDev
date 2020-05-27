@@ -190,8 +190,9 @@ void aspirationWindow(Thread *thread) {
 
 int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
 
-    const int PvNode   = (alpha != beta - 1);
-    const int RootNode = (height == 0);
+    const int PvNode   = alpha != beta - 1;
+    const int RootNode = height == 0;
+    const int US       = thread->board.turn;
     Board *const board = &thread->board;
 
     unsigned tbresult;
@@ -505,6 +506,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Reduce for Pawn pushes which may be captured
+            R -=  board->squares[MoveTo(move)] == PAWN
+              && (board->pieces[PAWN] & board->colours[!US] & pawnAttacks(US, MoveTo(move)));
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
