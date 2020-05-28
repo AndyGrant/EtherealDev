@@ -93,6 +93,18 @@ void updateKillerMoves(Thread *thread, int height, uint16_t move) {
     thread->killers[height][0] = move;
 }
 
+void updateCounterMove(Thread *thread, int height, uint16_t move) {
+
+    // Extract information from last move
+    uint16_t counter = thread->moveStack[height-1];
+    int cmPiece = thread->pieceStack[height-1];
+    int cmTo = MoveTo(counter);
+
+    // Update Counter Moves (BestMove refutes the previous move)
+    if (counter != NONE_MOVE && counter != NULL_MOVE)
+        thread->cmtable[!thread->board.turn][cmPiece][cmTo] = move;
+}
+
 
 void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhist, int *fmhist) {
 
