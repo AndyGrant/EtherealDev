@@ -913,7 +913,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
     const uint64_t Rank3Rel = US == WHITE ? RANK_3 : RANK_6;
 
-    int eval = 0;
+    int eval;
 
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
@@ -924,45 +924,47 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     uint64_t bishops = friendly & board->pieces[BISHOP];
     uint64_t rooks   = friendly & board->pieces[ROOK  ];
     uint64_t queens  = friendly & board->pieces[QUEEN ];
+    uint64_t minors  = knights | bishops;
 
     uint64_t attacksByPawns  = ei->attackedBy[THEM][PAWN  ];
     uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT] | ei->attackedBy[THEM][BISHOP];
     uint64_t attacksByMajors = ei->attackedBy[THEM][ROOK  ] | ei->attackedBy[THEM][QUEEN ];
     uint64_t attacksByKings  = ei->attackedBy[THEM][KING  ];
 
-    uint64_t weak, weakMinors, overloaded, pushThreats;
+    uint64_t weak, overloaded, pushThreats;
 
+    // Squares with more attackers than defenders, and no pawn support
     weak = (ei->attacked[THEM] & ~ei->attacked[US])
          | (ei->attackedBy2[THEM] & ~ei->attackedBy2[US] & ~ei->attackedBy[US][PAWN]);
 
-    weakMinors = (knights | bishops) & weak;
-
-    overloaded = (knights | bishops | rooks | queens)
+    // Squares which may have defenders tied to them
+    overloaded = (minors | rooks | queens)
                & ei->attacked[  US] & ~ei->attackedBy2[  US]
                & ei->attacked[THEM] & ~ei->attackedBy2[THEM];
 
+    // Our threats against them via a safe pawn push
     pushThreats  = pawnAdvance(pawns, occupied, US);
     pushThreats |= pawnAdvance(pushThreats & ~attacksByPawns & Rank3Rel, occupied, US);
     pushThreats &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreats  = pawnAttackSpan(pushThreats, enemy & ~ei->attackedBy[US][PAWN], US);
 
-    eval += ThreatWeakPawn             * popcount(pawns & ~attacksByPawns & weak)
-          + ThreatMinorAttackedByPawn  * popcount((knights | bishops) & attacksByPawns)
-          + ThreatMinorAttackedByMinor * popcount((knights | bishops) & attacksByMinors)
-          + ThreatMinorAttackedByMajor * popcount(weakMinors & attacksByMajors)
-          + ThreatMinorAttackedByKing  * popcount(weakMinors & ei->attackedBy[THEM][KING])
-          + ThreatRookAttackedByLesser * popcount(rooks & (attacksByPawns | attacksByMinors))
-          + ThreatRookAttackedByKing   * popcount(rooks & weak & attacksByKings)
-          + ThreatQueenAttackedByOne   * popcount(queens & ei->attacked[THEM])
-          + ThreatOverloadedPieces     * popcount(overloaded)
-          + ThreatByPawnPush           * popcount(pushThreats);
+    eval = ThreatWeakPawn             * popcount(pawns & ~attacksByPawns & weak)
+         + ThreatMinorAttackedByPawn  * popcount(minors & attacksByPawns)
+         + ThreatMinorAttackedByMinor * popcount(minors & attacksByMinors)
+         + ThreatMinorAttackedByMajor * popcount(minors & weak & attacksByMajors)
+         + ThreatMinorAttackedByKing  * popcount(minors & weak & attacksByKings)
+         + ThreatRookAttackedByLesser * popcount(rooks & (attacksByPawns | attacksByMinors))
+         + ThreatRookAttackedByKing   * popcount(rooks & weak & attacksByKings)
+         + ThreatQueenAttackedByOne   * popcount(queens & ei->attacked[THEM])
+         + ThreatOverloadedPieces     * popcount(overloaded)
+         + ThreatByPawnPush           * popcount(pushThreats);
 
     if (TRACE) {
         T.ThreatWeakPawn[US]             += popcount(pawns & ~attacksByPawns & weak);
-        T.ThreatMinorAttackedByPawn[US]  += popcount((knights | bishops) & attacksByPawns);
-        T.ThreatMinorAttackedByMinor[US] += popcount((knights | bishops) & attacksByMinors);
-        T.ThreatMinorAttackedByMajor[US] += popcount(weakMinors & attacksByMajors);
-        T.ThreatMinorAttackedByKing[US]  += popcount(weakMinors & ei->attackedBy[THEM][KING]);
+        T.ThreatMinorAttackedByPawn[US]  += popcount(minors & attacksByPawns);
+        T.ThreatMinorAttackedByMinor[US] += popcount(minors & attacksByMinors);
+        T.ThreatMinorAttackedByMajor[US] += popcount(minors & weak & attacksByMajors);
+        T.ThreatMinorAttackedByKing[US]  += popcount(minors & weak & attacksByKings);
         T.ThreatRookAttackedByLesser[US] += popcount(rooks & (attacksByPawns | attacksByMinors));
         T.ThreatRookAttackedByKing[US]   += popcount(rooks & weak & attacksByKings);
         T.ThreatQueenAttackedByOne[US]   += popcount(queens & ei->attacked[THEM]);
