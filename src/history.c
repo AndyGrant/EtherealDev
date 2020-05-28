@@ -61,14 +61,14 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         // Update Counter Move History
         if (counter != NONE_MOVE && counter != NULL_MOVE) {
             entry = thread->continuation[0][cmPiece][cmTo][piece][to];
-            entry += 16 * delta - entry * abs(delta) / 1024;
+            entry += 64 * delta - entry * abs(delta) / 256;
             thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
         }
 
         // Update Followup Move History
         if (follow != NONE_MOVE && follow != NULL_MOVE) {
             entry = thread->continuation[1][fmPiece][fmTo][piece][to];
-            entry += 16 * delta - entry * abs(delta) / 1024;
+            entry += 64 * delta - entry * abs(delta) / 256;
             thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
         }
     }
