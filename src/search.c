@@ -444,6 +444,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 continue;
         }
 
+        // We already know all of these bad tactical moves fail an SEE(0). Since bad
+        // tactical moves are the final stage, we can skip everything else. This is
+        // purely a speedup, and has no functional implications
+        if (   !depth
+            &&  best > -MATE_IN_MAX
+            &&  seeMargin[isQuiet] == 0
+            &&  movePicker.stage == STAGE_BAD_NOISY)
+            break;
+
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
