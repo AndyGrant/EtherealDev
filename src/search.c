@@ -455,7 +455,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move, height))
-            continue;
+          { quietsSeen -= isQuiet; continue; }
 
         played += 1;
         if (isQuiet)
