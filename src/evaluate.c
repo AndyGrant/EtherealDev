@@ -142,9 +142,9 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2][2] = {
-   {S(  10, -27), S(  35,  -3)},
-   {S(   4, -22), S(  19,  -5)},
+const int KnightOutpost[2][3] = {
+   {S(  14, -27), S(  38,  -2), S(  37,  -5)},
+   {S(   1, -22), S(  18,  -7), S(   0,   0)},
 };
 
 const int KnightBehindPawn = S(   4,  20);
@@ -165,9 +165,9 @@ const int BishopPair = S(  21,  68);
 
 const int BishopRammedPawns = S(  -8, -14);
 
-const int BishopOutpost[2][2] = {
-   {S(  14, -13), S(  43,  -2)},
-   {S(   6, -12), S(  10,  -4)},
+const int BishopOutpost[2][3] = {
+   {S(  17, -13), S(  44,  -2), S(  45,  -3)},
+   {S(   6, -11), S(   3,  -6), S(   0,   0)},
 };
 
 const int BishopBehindPawn = S(   2,  19);
@@ -512,9 +512,10 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, outside, kingDistance, defended, count, eval = 0;
+    int sq, outside, kingDistance, strength, count, eval = 0;
     uint64_t attacks;
 
+    uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[US  ];
 
@@ -538,10 +539,10 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            outside  = testBit(FILE_A | FILE_H, sq);
-            defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[outside][defended];
-            if (TRACE) T.KnightOutpost[outside][defended][US]++;
+            outside   = testBit(FILE_A | FILE_H, sq);
+            strength  = popcount(pawnAttacks(THEM, sq) & myPawns);
+            eval += KnightOutpost[outside][strength];
+            if (TRACE) T.KnightOutpost[outside][strength][US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -577,9 +578,10 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, outside, defended, count, eval = 0;
+    int sq, outside, strength, count, eval = 0;
     uint64_t attacks;
 
+    uint64_t myPawns     = board->pieces[PAWN  ] & board->colours[US  ];
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
     uint64_t tempBishops = board->pieces[BISHOP] & board->colours[US  ];
 
@@ -615,10 +617,10 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            outside  = testBit(FILE_A | FILE_H, sq);
-            defended = testBit(ei->pawnAttacks[US], sq);
-            eval += BishopOutpost[outside][defended];
-            if (TRACE) T.BishopOutpost[outside][defended][US]++;
+            outside   = testBit(FILE_A | FILE_H, sq);
+            strength  = popcount(pawnAttacks(THEM, sq) & myPawns);
+            eval += BishopOutpost[outside][strength];
+            if (TRACE) T.BishopOutpost[outside][strength][US]++;
         }
 
         // Apply a bonus if the bishop is behind a pawn
