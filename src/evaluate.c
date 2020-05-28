@@ -913,7 +913,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
     const uint64_t Rank3Rel = US == WHITE ? RANK_3 : RANK_6;
 
-    int eval;
+    int eval = 0;
 
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
@@ -948,16 +948,16 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     pushThreats &= ~attacksByPawns & (ei->attacked[US] | ~ei->attacked[THEM]);
     pushThreats  = pawnAttackSpan(pushThreats, enemy & ~ei->attackedBy[US][PAWN], US);
 
-    eval = ThreatWeakPawn             * popcount(pawns & ~attacksByPawns & weak)
-         + ThreatMinorAttackedByPawn  * popcount(minors & attacksByPawns)
-         + ThreatMinorAttackedByMinor * popcount(minors & attacksByMinors)
-         + ThreatMinorAttackedByMajor * popcount(minors & weak & attacksByMajors)
-         + ThreatMinorAttackedByKing  * popcount(minors & weak & attacksByKings)
-         + ThreatRookAttackedByLesser * popcount(rooks & (attacksByPawns | attacksByMinors))
-         + ThreatRookAttackedByKing   * popcount(rooks & weak & attacksByKings)
-         + ThreatQueenAttackedByOne   * popcount(queens & ei->attacked[THEM])
-         + ThreatOverloadedPieces     * popcount(overloaded)
-         + ThreatByPawnPush           * popcount(pushThreats);
+    eval += ThreatWeakPawn             * popcount(pawns & ~attacksByPawns & weak);
+    eval += ThreatMinorAttackedByPawn  * popcount(minors & attacksByPawns);
+    eval += ThreatMinorAttackedByMinor * popcount(minors & attacksByMinors);
+    eval += ThreatMinorAttackedByMajor * popcount(minors & weak & attacksByMajors);
+    eval += ThreatMinorAttackedByKing  * popcount(minors & weak & attacksByKings);
+    eval += ThreatRookAttackedByLesser * popcount(rooks & (attacksByPawns | attacksByMinors));
+    eval += ThreatRookAttackedByKing   * popcount(rooks & weak & attacksByKings);
+    eval += ThreatQueenAttackedByOne   * popcount(queens & ei->attacked[THEM]);
+    eval += ThreatOverloadedPieces     * popcount(overloaded);
+    eval += ThreatByPawnPush           * popcount(pushThreats);
 
     if (TRACE) {
         T.ThreatWeakPawn[US]             += popcount(pawns & ~attacksByPawns & weak);
