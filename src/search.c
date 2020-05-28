@@ -194,6 +194,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     const int RootNode = (height == 0);
     Board *const board = &thread->board;
 
+    uint64_t checkers = board->kingAttackers;
+
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
@@ -505,6 +507,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Increase when blocking a non-queen check with our queen
+            R += !(checkers & board->pieces[QUEEN])
+              &&   inCheck && pieceType(board->squares[MoveTo(move)]) == QUEEN;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
