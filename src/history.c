@@ -25,7 +25,9 @@
 #include "thread.h"
 #include "types.h"
 
-void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
+extern int LMRTable[64][64];
+
+void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int depth) {
 
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
@@ -40,13 +42,14 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    // Cap update size to avoid saturation
-    bonus = MIN(bonus, HistoryMax);
-
     for (int i = 0; i < length; i++) {
 
         // Apply a malus until the final move
-        int delta = (moves[i] == bestMove) ? bonus : -bonus;
+        int delta = (moves[i] == bestMove)
+                  ? depth * MAX(0, LMRTable[MIN(depth, 63)][MIN(i, 63)] + depth)
+                  : depth * MIN(0, LMRTable[MIN(depth, 63)][MIN(i, 63)] - depth);
+
+        delta = MIN(HistoryMax, MAX(-HistoryMax, delta));
 
         // Extract information from this move
         int to = MoveTo(moves[i]);
