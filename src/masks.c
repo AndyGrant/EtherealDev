@@ -155,20 +155,6 @@ int openFileCount(uint64_t pawns) {
     return popcount(~pawns & 0xFF);
 }
 
-uint64_t semiOpenSquares(uint64_t wpawns, uint64_t bpawns) {
-
-    uint64_t semi;
-
-    // Trickle all Pawns down into 0xFF
-    wpawns |= wpawns >> 8; wpawns |= wpawns >> 16; wpawns |= wpawns >> 32;
-    bpawns |= bpawns >> 8; bpawns |= bpawns >> 16; bpawns |= bpawns >> 32;
-
-    // Backfill Semi Files from 0xFF
-    semi = (wpawns ^ bpawns) & 0xFF;
-    semi |= semi << 8; semi |= semi << 16; semi |= semi << 32;
-    return semi;
-}
-
 uint64_t bitsBetweenMasks(int s1, int s2) {
     assert(0 <= s1 && s1 < SQUARE_NB);
     assert(0 <= s2 && s2 < SQUARE_NB);

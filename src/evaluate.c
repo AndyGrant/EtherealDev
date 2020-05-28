@@ -344,7 +344,7 @@ const int ClosednessRookAdjustment[9] = {
     S( -35, -21),
 };
 
-const int ClosednessWeakBackwardsPawn = S(   0,   0);
+const int ClosednessWeakBackwardsPawn = S(  -1,   4);
 
 /* Complexity Evaluation Terms */
 
@@ -1053,8 +1053,7 @@ int evaluateClosedness(EvalInfo *ei, Board *board) {
     // Compute Closedness factor for this position
     closedness = 1 * popcount(board->pieces[PAWN])
                + 3 * popcount(ei->rammedPawns[WHITE])
-               - 4 * openFileCount(board->pieces[PAWN])
-               - 1 * popcount(ei->backwards);
+               - 4 * openFileCount(board->pieces[PAWN]);
     closedness = MAX(0, MIN(8, closedness / 3));
 
     // Evaluate Knights based on how Closed the position is
@@ -1066,6 +1065,10 @@ int evaluateClosedness(EvalInfo *ei, Board *board) {
     count = popcount(white & rooks) - popcount(black & rooks);
     eval += count * ClosednessRookAdjustment[closedness];
     if (TRACE) T.ClosednessRookAdjustment[closedness][WHITE] += count;
+
+    count *= popcount(ei->backwards);
+    eval += count * ClosednessWeakBackwardsPawn;
+    if (TRACE) T.ClosednessWeakBackwardsPawn[WHITE] += count;
 
     return eval;
 }
