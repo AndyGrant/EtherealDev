@@ -951,6 +951,7 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
 
     // Penalty for each of our poorly supported pawns
     count = popcount(pawns & ~attacksByPawns & poorlyDefended);
+          + popcount(pawns & ei->backwards & poorlyDefended);
     eval += count * ThreatWeakPawn;
     if (TRACE) T.ThreatWeakPawn[US] += count;
 
