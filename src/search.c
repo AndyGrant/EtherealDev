@@ -572,7 +572,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 19 (~760 elo). Update History counters on a fail high for a quiet move
     if (best >= beta && !moveIsTactical(board, bestMove)) {
-        int bonus = moveIsTactical(board, ttMove) ? 2 * depth * depth : depth * depth;
+        int bonus = moveIsTactical(board, ttMove) ? (depth+1) * (depth+1) : depth * depth;
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, bonus);
     }
 
