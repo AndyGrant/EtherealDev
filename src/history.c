@@ -46,8 +46,8 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
 
         // Apply a malus until the final move
         int delta = (moves[i] == bestMove)
-                  ? depth * MAX(0, LMRTable[MIN(depth, 63)][MIN(i, 63)] + depth)
-                  : depth * MIN(0, LMRTable[MIN(depth, 63)][MIN(i, 63)] - depth);
+                  ? depth * MAX(0, LMRTable[MIN(depth, 63)][MIN(i, 63)] / 2 + depth)
+                  : depth * MIN(0, LMRTable[MIN(depth, 63)][MIN(i, 63)] / 2 - depth);
 
         delta = MIN(HistoryMax, MAX(-HistoryMax, delta));
 
