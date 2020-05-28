@@ -1047,18 +1047,14 @@ int evaluateClosedness(EvalInfo *ei, Board *board) {
     uint64_t white = board->colours[WHITE];
     uint64_t black = board->colours[BLACK];
 
-    uint64_t pawns   = board->pieces[PAWN  ];
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t rooks   = board->pieces[ROOK  ];
-
-    uint64_t wpawns = white & pawns;
-    uint64_t bpawns = black & pawns;
 
     // Compute Closedness factor for this position
     closedness = 1 * popcount(board->pieces[PAWN])
                + 3 * popcount(ei->rammedPawns[WHITE])
                - 4 * openFileCount(board->pieces[PAWN])
-               - 1 * popcount(ei->backwards & semiOpenSquares(wpawns, bpawns));
+               - 1 * popcount(ei->backwards);
     closedness = MAX(0, MIN(8, closedness / 3));
 
     // Evaluate Knights based on how Closed the position is
