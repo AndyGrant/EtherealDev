@@ -415,21 +415,25 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             if (   depth <= FutilityPruningDepth
                 && eval + futilityMargin <= alpha
                 && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
-                skipQuiets = 1;
+                skipQuiets++;
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
             if (   depth <= FutilityPruningDepth
                 && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
-                skipQuiets = 1;
+                skipQuiets++;
 
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
                 && quietsSeen >= LateMovePruningCounts[improving][depth])
-                skipQuiets = 1;
+                skipQuiets++;
+
+            // Skip when multiple pruning conditions were met
+            if (skipQuiets > 1)
+                continue;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
