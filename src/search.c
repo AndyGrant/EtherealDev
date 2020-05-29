@@ -432,7 +432,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 skipQuiets = 1;
 
             //
-            if (skipQuiets && best > -MATE_IN_MAX)
+            if (skipQuiets > 1 && best > -MATE_IN_MAX)
                 continue;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
