@@ -391,7 +391,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
-    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+    while ((move = selectNextMove(&movePicker, board, skipQuiets && best > -MATE_IN_MAX)) != NONE_MOVE) {
 
         // In MultiPV mode, skip over already examined lines
         if (RootNode && moveExaminedByMultiPV(thread, move))
@@ -404,8 +404,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         }
 
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
-        // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > -MATE_IN_MAX) {
+        // of the criteria below, only after proving a non mated line exists.
+        if (isQuiet) {
 
             // Base LMR value that we expect to use later
             R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
@@ -433,13 +433,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   cmhist < CounterMoveHistoryLimit[improving]
+            if (   best > -MATE_IN_MAX
+                && cmhist < CounterMoveHistoryLimit[improving]
                 && depth - R <= CounterMovePruningDepth[improving])
                 continue;
 
             // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
-            if (   fmhist < FollowUpMoveHistoryLimit[improving]
+            if (   best > -MATE_IN_MAX
+                && fmhist < FollowUpMoveHistoryLimit[improving]
                 && depth - R <= FollowUpMovePruningDepth[improving])
                 continue;
         }
