@@ -87,7 +87,6 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height)
     mp->threshold = 0;
     mp->thread = thread;
     mp->height = height;
-    mp->type = NORMAL_PICKER;
 }
 
 void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height) {
@@ -98,19 +97,19 @@ void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int
 
 }
 
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
+void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int threshold) {
 
-    // Start with just the noisy moves
-    mp->stage = STAGE_GENERATE_NOISY;
+    // Start with the table move
+    mp->stage = STAGE_TABLE;
+    mp->tableMove = ttMove;
 
-    // Skip all of the special (refutation and table) moves
-    mp->tableMove = mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    // Skip over Killer and Counter moves
+    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
 
     // General housekeeping
     mp->threshold = threshold;
     mp->thread = thread;
     mp->height = 0;
-    mp->type = NOISY_PICKER;
 }
 
 uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
@@ -257,7 +256,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_BAD_NOISY:
 
             // Check to see if there are still more noisy moves
-            if (mp->noisySize && mp->type != NOISY_PICKER) {
+            if (mp->noisySize) {
 
                 // Reduce effective move list size
                 bestMove = popMove(&mp->noisySize, mp->moves, mp->values, 0);

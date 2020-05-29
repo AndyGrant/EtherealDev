@@ -207,8 +207,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta, height);
+    if (depth <= 0) return qsearch(thread, pv, alpha, beta, height);
 
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
@@ -366,8 +365,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, NONE_MOVE, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+
+            // Don't try any of the moves with failing SEEs
+            if (movePicker.stage == STAGE_BAD_NOISY) break;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
@@ -588,8 +590,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     Board *const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
-    int eval, value, best, margin;
+    int skipQuiets = !InCheck;
+    int eval, value, best = -MATE + height, margin;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
@@ -625,9 +629,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
         // Table is exact or produces a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && ttValue >= beta)
-            || (ttBound == BOUND_UPPER && ttValue <= alpha))
+        if (   (ttBound & BOUND_LOWER && ttValue >= beta)
+            || (ttBound & BOUND_UPPER && ttValue <= alpha))
             return ttValue;
     }
 
@@ -642,9 +645,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+    if (!InCheck) {
+        alpha = MAX(alpha, eval);
+        if (alpha >= beta) return eval;
+    }
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional boost of the futility margin would still fail
@@ -655,13 +659,21 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
-    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+    initNoisyMovePicker(&movePicker, thread, ttMove, MAX(QSEEMargin, margin));
+    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+
+        // Skip bad captures when not checkmated
+        if (   best > -MATE_IN_MAX
+            && movePicker.stage == STAGE_BAD_NOISY)
+            break;
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move, height)) continue;
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
+
+        // Skip quiets after a legal move is found
+        if (value > -MATE_IN_MAX) skipQuiets = 1;
 
         // Improved current value
         if (value > best) {
@@ -683,7 +695,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
             return best;
     }
 
-    return best;
+    return !InCheck ? MAX(eval, best) : best;
 }
 
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
