@@ -642,24 +642,27 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
+
     if (!InCheck) {
+
+        // Step 5. Eval Pruning. If a static evaluation of the board will
+        // exceed beta, then we can stop the search here. Also, if the static
+        // eval exceeds alpha, we can call our static eval the new alpha
         alpha = MAX(alpha, eval);
         if (alpha >= beta) return eval;
-    }
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional boost of the futility margin would still fail
-    margin = alpha - eval - QFutilityMargin;
-    if (moveBestCaseValue(board) < margin)
-        return eval;
+        // Step 6. Delta Pruning. Even the best possible capture and or promotion
+        // combo with the additional boost of the futility margin would still fail
+        margin = alpha - eval - QFutilityMargin;
+        if (moveBestCaseValue(board) < margin)
+            return eval;
+    }
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, ttMove, MAX(QSEEMargin - InCheck, margin));
+    margin = MAX(QSEEMargin - InCheck, alpha - eval - QFutilityMargin);
+    initNoisyMovePicker(&movePicker, thread, ttMove, margin);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // Skip bad captures when not checkmated
