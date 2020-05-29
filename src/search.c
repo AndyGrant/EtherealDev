@@ -32,6 +32,7 @@
 #include "evaluate.h"
 #include "fathom/tbprobe.h"
 #include "history.h"
+#include "masks.h"
 #include "move.h"
 #include "movegen.h"
 #include "movepicker.h"
@@ -686,9 +687,48 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     return best;
 }
 
+int seeNextAttacker(Board *board, uint64_t myAttackers, uint64_t occupied, int colour, int target) {
+
+    uint64_t options, ray, type, attacks;
+    int sq, ksq = getlsb(board->pieces[KING] & board->colours[colour]);
+
+    // Find our weakest piece to attack with
+    for (int nextVictim = PAWN; nextVictim <= KING; nextVictim++) {
+
+        options = myAttackers & board->pieces[nextVictim];
+
+        while (options) {
+
+            sq = poplsb(&options);
+            ray = attackRayMasks(ksq, sq);
+
+            // Not in the King line or moving along it
+            if (!ray || testBit(ray, target)) return sq;
+
+            // Determine if a diagonal or orthogonal attack
+            type = (   fileOf(ksq) == fileOf(sq)
+                    || rankOf(ksq) == rankOf(sq)) ? ROOK : BISHOP;
+
+            // Find attacks as if our King was the found type
+            attacks = type == ROOK
+                    ? rookAttacks(ksq, occupied & ~(1ull << sq))
+                    : bishopAttacks(ksq, occupied & ~(1ull << sq));
+
+            // Look only at enemy threats on our attack ray
+            attacks &= ray & occupied & board->colours[!colour];
+            attacks &= board->pieces[type] | board->pieces[QUEEN];
+
+            // Only accept the square if it is not pinned
+            if (!attacks) return sq;
+        }
+    }
+
+    return -1; // Signal failure
+}
+
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
-    int from, to, type, colour, balance, nextVictim;
+    int from, to, type, colour, sq, balance, nextVictim;
     uint64_t bishops, rooks, occupied, attackers, myAttackers;
 
     // Unpack move information
@@ -734,28 +774,22 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
     while (1) {
 
-        // If we have no more attackers left we lose
+        // Find the square of our weakest piece to attack with
         myAttackers = attackers & board->colours[colour];
-        if (myAttackers == 0ull) break;
-
-        // Find our weakest piece to attack with
-        for (nextVictim = PAWN; nextVictim <= QUEEN; nextVictim++)
-            if (myAttackers & board->pieces[nextVictim])
-                break;
+        sq = seeNextAttacker(board, myAttackers, occupied, colour, to);
+        if (sq == -1) break;
 
         // Remove this attacker from the occupied
-        occupied ^= (1ull << getlsb(myAttackers & board->pieces[nextVictim]));
+        nextVictim = pieceType(board->squares[sq]);
+        attackers ^= (1ull << sq); occupied ^= (1ull << sq);
 
         // A diagonal move may reveal bishop or queen attackers
         if (nextVictim == PAWN || nextVictim == BISHOP || nextVictim == QUEEN)
-            attackers |= bishopAttacks(to, occupied) & bishops;
+            attackers |= occupied & bishopAttacks(to, occupied) & bishops;
 
         // A vertical or horizontal move may reveal rook or queen attackers
         if (nextVictim == ROOK || nextVictim == QUEEN)
-            attackers |=   rookAttacks(to, occupied) & rooks;
-
-        // Make sure we did not add any already used attacks
-        attackers &= occupied;
+            attackers |= occupied & rookAttacks(to, occupied) & rooks;
 
         // Swap the turn
         colour = !colour;
