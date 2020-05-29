@@ -689,37 +689,38 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
 int seeNextAttacker(Board *board, uint64_t myAttackers, uint64_t occupied, int colour, int target) {
 
-    uint64_t options, ray, type, attacks;
+    uint64_t options, ray, type;
     int sq, ksq = getlsb(board->pieces[KING] & board->colours[colour]);
 
-    // Find our weakest piece to attack with
-    for (int nextVictim = PAWN; nextVictim <= KING; nextVictim++) {
+    // Find our weakest piece to attack with first
+    for (int attacker = PAWN; attacker <= KING; attacker++) {
 
-        options = myAttackers & board->pieces[nextVictim];
+        options = myAttackers & board->pieces[attacker];
 
         while (options) {
 
             sq = poplsb(&options);
             ray = attackRayMasks(ksq, sq);
 
-            // Not in the King line or moving along it
+            // Not pinnable, or moving along any such pins
             if (!ray || testBit(ray, target)) return sq;
+
+            // Filter down only to possible pinners
+            ray &= occupied & board->colours[!colour];
+            if (!ray) return sq;
 
             // Determine if a diagonal or orthogonal attack
             type = (   fileOf(ksq) == fileOf(sq)
                     || rankOf(ksq) == rankOf(sq)) ? ROOK : BISHOP;
 
-            // Find attacks as if our King was the found type
-            attacks = type == ROOK
-                    ? rookAttacks(ksq, occupied & ~(1ull << sq))
-                    : bishopAttacks(ksq, occupied & ~(1ull << sq));
+            // Find attackers as if our King was the found type
+            ray &= type == ROOK
+                 ? rookAttacks(ksq, occupied & ~(1ull << sq))
+                 : bishopAttacks(ksq, occupied & ~(1ull << sq));
 
-            // Look only at enemy threats on our attack ray
-            attacks &= ray & occupied & board->colours[!colour];
-            attacks &= board->pieces[type] | board->pieces[QUEEN];
-
-            // Only accept the square if it is not pinned
-            if (!attacks) return sq;
+            // Filter down to actual pinners
+            ray &= board->pieces[type] | board->pieces[QUEEN];
+            if (!ray) return sq;
         }
     }
 
