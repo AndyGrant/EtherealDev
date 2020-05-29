@@ -97,19 +97,19 @@ void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int
 
 }
 
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int threshold) {
+void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height, int threshold) {
 
     // Start with the table move
     mp->stage = STAGE_TABLE;
     mp->tableMove = ttMove;
 
-    // Skip over Killer and Counter moves
-    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    // Lookup our refutations (killers and counter moves)
+    getRefutationMoves(thread, height, &mp->killer1, &mp->killer2, &mp->counter);
 
     // General housekeeping
     mp->threshold = threshold;
     mp->thread = thread;
-    mp->height = 0;
+    mp->height = height;
 }
 
 uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
