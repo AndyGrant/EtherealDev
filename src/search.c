@@ -663,7 +663,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // Skip bad captures when not checkmated
-        if (   best > -MATE_IN_MAX
+        if (  (best > -MATE_IN_MAX || !InCheck)
             && movePicker.stage == STAGE_BAD_NOISY)
             break;
 
