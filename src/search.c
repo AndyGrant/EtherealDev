@@ -207,7 +207,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0) return qsearch(thread, pv, alpha, beta, height);
+    if (depth <= 0) return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
@@ -393,7 +393,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
-    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+    while ((move = selectNextMove(&movePicker, board, skipQuiets && best > -MATE_IN_MAX)) != NONE_MOVE) {
 
         // In MultiPV mode, skip over already examined lines
         if (RootNode && moveExaminedByMultiPV(thread, move))
@@ -407,7 +407,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > -MATE_IN_MAX) {
+        if (isQuiet) {
 
             // Base LMR value that we expect to use later
             R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
@@ -435,13 +435,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
-            if (   cmhist < CounterMoveHistoryLimit[improving]
+            if (   best > -MATE_IN_MAX
+                && cmhist < CounterMoveHistoryLimit[improving]
                 && depth - R <= CounterMovePruningDepth[improving])
                 continue;
 
             // Step 11E (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
-            if (   fmhist < FollowUpMoveHistoryLimit[improving]
+            if (   best > -MATE_IN_MAX
+                && fmhist < FollowUpMoveHistoryLimit[improving]
                 && depth - R <= FollowUpMovePruningDepth[improving])
                 continue;
         }
@@ -587,7 +589,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
 
     Board *const board = &thread->board;
     const int InCheck  = !!board->kingAttackers;
@@ -645,10 +647,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    if (!InCheck) {
-        alpha = MAX(alpha, eval);
-        if (alpha >= beta) return eval;
-    }
+    alpha = MAX(alpha, eval);
+    if (alpha >= beta) return eval;
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional boost of the futility margin would still fail
@@ -669,7 +669,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move, height)) continue;
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         revert(thread, board, move, height);
 
         // Skip quiets after a legal move is found
