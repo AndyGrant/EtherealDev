@@ -417,11 +417,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
+
+            int A = thread->moveStack[height-1] == NULL_MOVE
+                  ? 0 : FutilityMarginNoHistory;
+
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
+                && eval + futilityMargin + A <= alpha)
                 skipQuiets = 1;
 
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
