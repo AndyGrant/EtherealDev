@@ -448,7 +448,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             &&  movePicker.stage == STAGE_BAD_NOISY
             &&  thread->moveStack[height-1] == NULL_MOVE
             &&  eval + moveEstimatedValue(board, move) < alpha)
-            break;
+            continue;
 
 
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
