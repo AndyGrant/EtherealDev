@@ -444,7 +444,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 continue;
         }
 
+        static const int NMPRefutationDepth = 8;
+
         if (    best > -MATE_IN_MAX
+            &&  depth <= NMPRefutationDepth
             &&  movePicker.stage == STAGE_BAD_NOISY
             &&  thread->moveStack[height-1] == NULL_MOVE
             &&  eval + moveEstimatedValue(board, move) < alpha)
