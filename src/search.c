@@ -506,8 +506,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            R += pieceType(board->squares[MoveTo(move)]) == QUEEN
-              && squareIsAttacked(board, board->turn, MoveTo(move));
+
+            int moved = pieceType(board->squares[MoveTo(move)]);
+
+            if (PAWN < moved && moved < KING) {
+
+                uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+                uint64_t attackers = allAttackersToSquare(board, occupied, MoveTo(move));
+
+                R += popcount(attackers & board->colours[ board->turn])
+                   > popcount(attackers & board->colours[!board->turn]);
+            }
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
