@@ -507,9 +507,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
 
-            int moved = pieceType(board->squares[MoveTo(move)]);
-
-            if (PAWN < moved && moved < KING) {
+            if (pieceType(board->squares[MoveTo(move)]) != KING) {
 
                 uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
                 uint64_t attackers = allAttackersToSquare(board, occupied, MoveTo(move));
