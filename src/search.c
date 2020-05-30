@@ -199,10 +199,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, improving, extension, singular;
+    int skipQuiets = board->kingAttackers && depth <= 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
-    MovePicker movePicker;
+    MovePicker mp;
     PVariation lpv;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
@@ -366,8 +367,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
-        while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+        initNoisyMovePicker(&mp, thread, rBeta - eval);
+        while ((move = selectNextMove(&mp, board, 1))) {
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
@@ -390,8 +391,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    initMovePicker(&movePicker, thread, ttMove, height);
-    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+    initMovePicker(&mp, thread, ttMove, height);
+    while ((move = selectNextMove(&mp, board, skipQuiets && best > -MATE_IN_MAX))) {
 
         // In MultiPV mode, skip over already examined lines
         if (RootNode && moveExaminedByMultiPV(thread, move))
@@ -449,7 +450,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // is a speedup, which assumes that good noisy moves have a positive SEE
         if (    best > -MATE_IN_MAX
             &&  depth <= SEEPruningDepth
-            &&  movePicker.stage > STAGE_GOOD_NOISY
+            &&  mp.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
@@ -479,7 +480,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // extend for any position where our King is checked. We also selectivly extend moves
         // with very strong continuation histories, so long as they are along the PV line
 
-        extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
+        extension = singular ? singularity(thread, &mp, ttValue, depth, beta)
                   : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
 
         newDepth = depth + (extension && !RootNode);
@@ -488,7 +489,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
         // which appear to beat beta at a reduced depth. singularity() sets the stage to STAGE_DONE
 
-        if (movePicker.stage == STAGE_DONE) {
+        if (mp.stage == STAGE_DONE) {
             revert(thread, board, move, height);
             return MAX(ttValue - depth, -MATE);
         }
@@ -507,7 +508,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Killers and Counters
-            R -= movePicker.stage < STAGE_QUIET;
+            R -= mp.stage < STAGE_QUIET;
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
@@ -592,7 +593,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     int eval, value, best, margin;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
-    MovePicker movePicker;
+    MovePicker mp;
     PVariation lpv;
 
     // Prefetch TT as early as reasonable
@@ -655,8 +656,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
-    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+    initNoisyMovePicker(&mp, thread, MAX(QSEEMargin, margin));
+    while ((move = selectNextMove(&mp, board, 1))) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move, height)) continue;
@@ -786,7 +787,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
 
-    MovePicker movePicker;
+    MovePicker lmp;
     PVariation lpv; lpv.length = 0;
     Board *const board = &thread->board;
 
@@ -794,8 +795,8 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     revert(thread, board, mp->tableMove, mp->height);
 
     // Iterate over each move, except for the table move
-    initSingularMovePicker(&movePicker, thread, mp->tableMove, mp->height);
-    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+    initSingularMovePicker(&lmp, thread, mp->tableMove, mp->height);
+    while ((move = selectNextMove(&lmp, board, skipQuiets))) {
 
         assert(move != mp->tableMove); // Skip the table move
 
