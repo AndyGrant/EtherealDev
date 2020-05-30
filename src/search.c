@@ -450,7 +450,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             &&  depth <= NMPRefutationDepth
             &&  movePicker.stage == STAGE_BAD_NOISY
             &&  thread->moveStack[height-1] == NULL_MOVE
-            &&  eval + moveEstimatedValue(board, move) < alpha)
+            &&  eval + futilityMargin + moveEstimatedValue(board, move) < alpha)
             continue;
 
 
