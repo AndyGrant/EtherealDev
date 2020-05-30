@@ -446,7 +446,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         if (    best > -MATE_IN_MAX
             &&  movePicker.stage == STAGE_BAD_NOISY
-            &&  thread->moveStack[height-1] == NULL_MOVE)
+            &&  thread->moveStack[height-1] == NULL_MOVE
+            &&  eval + moveEstimatedValue(board, move) < alpha)
             break;
 
 
