@@ -509,7 +509,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Adjust based on history scores and the stage of the picker
-            R -= MAX(-2, MIN(2, movePicker.stage == STAGE_QUIET + (hist / 5000)));
+            R -= MAX(-2, MIN(2, (movePicker.stage == STAGE_QUIET) + (hist / 5000)));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
