@@ -414,7 +414,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
                 && eval + futilityMargin <= alpha
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
+                && hist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
@@ -508,11 +508,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Reduce for Killers and Counters
-            R -= movePicker.stage < STAGE_QUIET;
-
-            // Adjust based on history scores
-            R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
+            // Adjust based on history scores and the stage of the picker
+            R -= MAX(-2, MIN(2, movePicker.stage == STAGE_QUIET + (hist / 5000)));
 
             // Don't extend or drop into QS
             R  = MIN(depth - 1, MAX(R, 1));
