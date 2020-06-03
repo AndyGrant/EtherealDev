@@ -650,7 +650,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional boost of the futility margin would still fail
-    margin = alpha - eval - QFutilityMargin;
+    margin = beta - eval - QFutilityMargin;
     if (moveBestCaseValue(board) < margin)
         return eval;
 
