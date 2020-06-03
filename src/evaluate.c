@@ -1125,6 +1125,7 @@ int evaluateScaleFactor(Board *board, int eval) {
     const uint64_t weak    = ScoreEG(eval) < 0 ? white : black;
     const uint64_t strong  = ScoreEG(eval) < 0 ? black : white;
 
+    const int pawnEdge = popcount(strong & pawns) - popcount(weak & pawns);
 
     // Check for opposite coloured bishops
     if (   onlyOne(white & bishops)
@@ -1156,12 +1157,9 @@ int evaluateScaleFactor(Board *board, int eval) {
     if ((strong & minors) && popcount(strong) == 2)
         return SCALE_DRAW;
 
-    // Scale up lone pieces with massive pawn advantages
-    if (   !queens
-        && !several(pieces & white)
-        && !several(pieces & black)
-        &&  popcount(strong & pawns) - popcount(weak & pawns) > 2)
-        return SCALE_LARGE_PAWN_ADV;
+    // Scale up lone piece endgames with pawn advantages
+    if (onlyOne(pieces & strong) && !several(pieces & weak) && !queens)
+        return SCALE_NORMAL + MAX(0, SCALE_PAWN_EDGE * (pawnEdge - 1));
 
     return SCALE_NORMAL;
 }
