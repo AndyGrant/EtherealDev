@@ -1158,8 +1158,8 @@ int evaluateScaleFactor(Board *board, int eval) {
         return SCALE_DRAW;
 
     // Scale up lone piece endgames with pawn advantages
-    if (onlyOne(pieces & strong) && !several(pieces & weak) && !(weak & queens))
-        return SCALE_NORMAL + MAX(0, SCALE_PAWN_EDGE * (pawnEdge - 1));
+    if (onlyOne(pieces & strong) && !several(pieces & weak) && !queens)
+        return SCALE_NORMAL + MAX(0, SCALE_PAWN_EDGE * pawnEdge);
 
     return SCALE_NORMAL;
 }
