@@ -591,8 +591,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     Board *const board = &thread->board;
 
-    int eval, value, best, margin;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int value, eval, margin, ttHit;
+    int ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
     PVariation lpv;
@@ -644,7 +644,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
     alpha = MAX(alpha, eval);
     if (alpha >= beta) return eval;
 
@@ -665,27 +664,21 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
 
-        // Improved current value
-        if (value > best) {
-            best = value;
-
-            // Improved current lower bound
-            if (value > alpha) {
-                alpha = value;
-
-                // Update the Principle Variation
-                pv->length = 1 + lpv.length;
-                pv->line[0] = move;
-                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
-            }
+        // Update the Principle Variation on an improvement
+        if (value > alpha) {
+            pv->line[0] = move;
+            pv->length = 1 + lpv.length;
+            memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
         }
 
-        // Search has failed high
-        if (alpha >= beta)
-            return best;
+        // Check for a beta-cutoff
+        if (value >= beta) return value;
+
+        // Otherwise conditionally raise alpha
+        alpha = MAX(alpha, value);
     }
 
-    return best;
+    return MAX(alpha, eval);
 }
 
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
