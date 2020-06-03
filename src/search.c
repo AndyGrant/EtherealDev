@@ -787,6 +787,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int newDepth = depth / 2 - (rBeta >= beta ? 0 : 1);
 
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
@@ -803,7 +804,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
         // Perform a reduced depth search on a null rbeta window
         if (!apply(thread, board, move, mp->height)) continue;
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, mp->height+1);
+        value = -search(thread, &lpv, -rBeta-1, -rBeta, newDepth, mp->height+1);
         revert(thread, board, move, mp->height);
 
         // Move failed high, thus mp->tableMove is not singular
