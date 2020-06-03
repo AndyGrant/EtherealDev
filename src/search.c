@@ -787,7 +787,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
-    int newDepth = depth / 2 - (rBeta >= beta ? 0 : 1);
+    int newDepth = depth / 2 - (rBeta >= beta ? 1 : 2);
 
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
