@@ -410,18 +410,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Base LMR value that we expect to use later
             R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
-            // and we don't expect anything from this move, we can skip all other quiets
-            if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin <= alpha
-                && hist + cmhist + fmhist < FutilityPruningHistoryLimit[improving])
-                skipQuiets = 1;
+
+            int X = (hist + cmhist + fmhist) / 6000;
+            int Y = eval + futilityMargin + MAX(0, X * 128);
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
-            if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
+            if (depth <= FutilityPruningDepth && Y <= alpha)
                 skipQuiets = 1;
 
             // Step 11C (~77 elo). Late Move Pruning / Move Count Pruning. If we
