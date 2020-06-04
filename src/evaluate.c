@@ -801,10 +801,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Identify if there are pieces which can move to the checking squares safely.
         // We consider forking a Queen to be a safe check, even with our own Queen.
-        uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
+        uint64_t knightChecks = knightThreats & ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks = bishopThreats & ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   = rookThreats   & ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  = queenThreats  & ei->attackedBy[THEM][QUEEN ];
 
         count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
 
@@ -812,10 +812,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
                + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
+               + KSSafeKnightCheck * popcount(knightChecks & safe)
+               + KSSafeBishopCheck * popcount(bishopChecks & safe)
+               + KSSafeRookCheck   * popcount(rookChecks   & ~ei->attackedBy2[US])
+               + KSSafeQueenCheck  * popcount(queenChecks  & ~ei->attackedBy2[US])
                + KSAdjustment;
 
         // Convert safety to an MG and EG score, if we are unsafe
