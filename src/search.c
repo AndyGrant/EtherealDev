@@ -411,8 +411,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
 
-            int X = (hist + cmhist + fmhist) / 6000;
-            int Y = eval + futilityMargin + MAX(0, X * 128);
+            int X = (hist + cmhist + fmhist) / 7500;
+            int Y = eval + futilityMargin + 64 * MAX(-1, X);
 
             // Step 11B (~2.5 elo). Futility Pruning. If our score is not only far
             // below alpha but still far below alpha after adding the FutilityMargin,
