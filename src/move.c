@@ -438,12 +438,43 @@ void revertNullMove(Board *board, Undo *undo) {
     board->numMoves--;
 }
 
-int legalMoveCount(Board * board) {
+int legalMoveCount(Board  *board) {
 
     // Count of the legal number of moves for a given position
 
     uint16_t moves[MAX_MOVES];
     return genAllLegalMoves(board, moves);
+}
+
+int legalMoveExists(Board *board) {
+
+    Undo undo;
+    int size, legal;
+    uint16_t moves[MAX_MOVES];
+
+    // Check for a capture to evade check
+    size = genAllNoisyMoves(board, moves);
+    for (int i = 0; i < size; i++) {
+
+        applyMove(board, moves[i], &undo);
+        legal = moveWasLegal(board);
+        revertMove(board, moves[i], &undo);
+
+        if (legal) return 1;
+    }
+
+    // Check for a piece movement to evade check
+    size = genAllQuietMoves(board, moves);
+    for (int i = 0; i < size; i++) {
+
+        applyMove(board, moves[i], &undo);
+        legal = moveWasLegal(board);
+        revertMove(board, moves[i], &undo);
+
+        if (legal) return 1;
+    }
+
+    return 0;
 }
 
 int moveExaminedByMultiPV(Thread *thread, uint16_t move) {

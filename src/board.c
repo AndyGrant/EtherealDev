@@ -292,10 +292,11 @@ int boardIsDrawn(Board *board, int height) {
 
 int boardDrawnByFiftyMoveRule(Board *board) {
 
-    // Fifty move rule triggered. BUG: We do not account for the case
-    // when the fifty move rule occurs as checkmate is delivered, which
-    // should not be considered a drawn position, but a checkmated one.
-    return board->halfMoveCounter > 99;
+    // Cannot be drawn until we've reached the 100th ply
+    if (board->halfMoveCounter <= 99) return 0;
+
+    // Check against the final move delivering Check Mate
+    return !board->kingAttackers || legalMoveExists(board);
 }
 
 int boardDrawnByRepetition(Board *board, int height) {
