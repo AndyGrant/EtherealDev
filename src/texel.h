@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 #define REPORTING    (    100) // How often to report progress
-#define NTERMS       (      0) // Total terms in the Tuner (647)
+#define NTERMS       (      6) // Total terms in the Tuner (647)
 
 #define LEARNING     (    5.0) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
@@ -34,12 +34,12 @@
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
-#define TuneRookValue                   (0)
-#define TuneQueenValue                  (0)
-#define TuneKingValue                   (0)
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
+#define TuneRookValue                   (1)
+#define TuneQueenValue                  (1)
+#define TuneKingValue                   (1)
 #define TunePawnPSQT32                  (0)
 #define TuneKnightPSQT32                (0)
 #define TuneBishopPSQT32                (0)
@@ -93,139 +93,140 @@
 #define TuneComplexityPawnEndgame       (0)
 #define TuneComplexityAdjustment        (0)
 
-enum { NORMAL, MGONLY, EGONLY };
+enum { NORMAL, COMPLEXITY };
 
-typedef struct TexelTuple {
+typedef struct TTuple {
     int index;
     int coeff;
-} TexelTuple;
+} TTuple;
 
-typedef struct TexelEntry {
+typedef struct TEntry {
     int ntuples;
     double result;
     double eval, phase;
     double factors[PHASE_NB];
-    TexelTuple *tuples;
-} TexelEntry;
+    TTuple *tuples;
+} TEntry;
 
-typedef double TexelVector[NTERMS][PHASE_NB];
+typedef int TArray[NTERMS];
+
+typedef double TVector[NTERMS][PHASE_NB];
 
 void runTexelTuning();
-void initTexelEntries(TexelEntry *tes, Thread *thread);
-void initCoefficients(int coeffs[NTERMS]);
-void initCurrentParameters(TexelVector cparams);
-void initPhaseManager(TexelVector phases);
+void initTexelEntries(TEntry *tes, Thread *thread);
+void updateMemory(TEntry *te, int size);
 
-void updateMemory(TexelEntry *te, int size);
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, TexelVector phases, double K, int batch);
-void shuffleTexelEntries(TexelEntry *tes);
+void initModeManager(TArray modes);
+void initCoefficients(TArray coeffs);
+void initCurrentParameters(TVector cparams);
 
-double computeOptimalK(TexelEntry *tes);
-double completeEvaluationError(TexelEntry *tes, double K);
-double completeLinearError(TexelEntry *tes, TexelVector params, double K);
-double singleLinearError(TexelEntry *te, TexelVector params, double K);
-double linearEvaluation(TexelEntry *te, TexelVector params);
+void updateGradient(TEntry *tes, TVector gradient, TVector params, TVector phases, double K, int batch);
+void shuffleTexelEntries(TEntry *tes);
+
+double computeOptimalK(TEntry *tes);
+double completeEvaluationError(TEntry *tes, double K);
+double completeLinearError(TEntry *tes, TVector params, double K);
+double singleLinearError(TEntry *te, TVector params, double K);
+double linearEvaluation(TEntry *te, TVector params);
 double sigmoid(double K, double S);
 
-void printParameters(TexelVector params, TexelVector cparams);
-void print_0(char *name, int params[NTERMS][PHASE_NB], int i, char *S);
-void print_1(char *name, int params[NTERMS][PHASE_NB], int i, int A, char *S);
-void print_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, char *S);
-void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C, char *S);
+void printParameters(TVector params, TVector cparams);
+void print_0(char *name, TVector params, int i, char *S);
+void print_1(char *name, TVector params, int i, int A, char *S);
+void print_2(char *name, TVector params, int i, int A, int B, char *S);
+void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
 
 // Initalize the Phase Manger for an N dimensional array
 
-#define INIT_PHASE_0(term, P, S) do {                           \
-    phases[i  ][MG] = (P == NORMAL || P == MGONLY);             \
-    phases[i++][EG] = (P == NORMAL || P == EGONLY);             \
+#define INIT_MODE_0(term, M, S) do {                            \
+    MODEs[i++] = M;                                            \
 } while (0)
 
-#define INIT_PHASE_1(term, A, P, S) do {                        \
+#define INIT_MODE_1(term, A, M, S) do {                         \
     for (int _a = 0; _a < A; _a++)                              \
-       {phases[i  ][MG] = (P == NORMAL || P == MGONLY);         \
-        phases[i++][EG] = (P == NORMAL || P == EGONLY);}        \
+       MODEs[i++] = M;                                          \
 } while (0)
 
-#define INIT_PHASE_2(term, A, B, P, S) do {                     \
+#define INIT_MODE_2(term, A, B, M, S) do {                      \
     for (int _b = 0; _b < A; _b++)                              \
-        INIT_PHASE_1(term[_b], B, P, S);                        \
+        INIT_MODE_1(term[_b], B, M, S);                         \
 } while (0)
 
-#define INIT_PHASE_3(term, A, B, C, P, S) do {                  \
+#define INIT_MODE_3(term, A, B, C, M, S) do {                   \
     for (int _c = 0; _c < A; _c++)                              \
-        INIT_PHASE_2(term[_c], B, C, P, S);                     \
+        INIT_MODE_2(term[_c], B, C, M, S);                      \
 } while (0)
 
 // Initalize Parameters of an N dimensional array
 
-#define INIT_PARAM_0(term, P, S) do {                           \
+#define INIT_PARAM_0(term, M, S) do {                           \
      cparams[i  ][MG] = ScoreMG(term);                          \
      cparams[i++][EG] = ScoreEG(term);                          \
 } while (0)
 
-#define INIT_PARAM_1(term, A, P, S) do {                        \
+#define INIT_PARAM_1(term, A, M, S) do {                        \
     for (int _a = 0; _a < A; _a++)                              \
        {cparams[i  ][MG] = ScoreMG(term[_a]);                   \
         cparams[i++][EG] = ScoreEG(term[_a]);}                  \
 } while (0)
 
-#define INIT_PARAM_2(term, A, B, P, S) do {                     \
+#define INIT_PARAM_2(term, A, B, M, S) do {                     \
     for (int _b = 0; _b < A; _b++)                              \
-        INIT_PARAM_1(term[_b], B, P, S);                        \
+        INIT_PARAM_1(term[_b], B, M, S);                        \
 } while (0)
 
-#define INIT_PARAM_3(term, A, B, C, P, S) do {                  \
+#define INIT_PARAM_3(term, A, B, C, M, S) do {                  \
     for (int _c = 0; _c < A; _c++)                              \
-        INIT_PARAM_2(term[_c], B, C, P, S);                     \
+        INIT_PARAM_2(term[_c], B, C, M, S);                     \
 } while (0)
 
 // Initalize Coefficients from an N dimensional array
 
-#define INIT_COEFF_0(term, P, S) do {                           \
+#define INIT_COEFF_0(term, M, S) do {                           \
     coeffs[i++] = T.term[WHITE] - T.term[BLACK];                \
 } while (0)
 
-#define INIT_COEFF_1(term, A, P, S) do {                        \
+#define INIT_COEFF_1(term, A, M, S) do {                        \
     for (int _a = 0; _a < A; _a++)                              \
         coeffs[i++] = T.term[_a][WHITE] - T.term[_a][BLACK];    \
 } while (0)
 
-#define INIT_COEFF_2(term, A, B, P, S) do {                     \
+#define INIT_COEFF_2(term, A, B, M, S) do {                     \
     for (int _b = 0; _b < A; _b++)                              \
-        INIT_COEFF_1(term[_b], B, P, S);                        \
+        INIT_COEFF_1(term[_b], B, M, S);                        \
 } while (0)
 
-#define INIT_COEFF_3(term, A, B, C, P, S) do {                  \
+#define INIT_COEFF_3(term, A, B, C, M, S) do {                  \
     for (int _c = 0; _c < A; _c++)                              \
-        INIT_COEFF_2(term[_c], B, C, P, S);                     \
+        INIT_COEFF_2(term[_c], B, C, M, S);                     \
 } while (0)
 
 // Print Parameters of an N dimensional array
 
-#define PRINT_0(term, P, S) (print_0(#term, tparams, i, S), i+=1)
+#define PRINT_0(term, M, S) (print_0(#term, tparams, i, S), i+=1)
 
-#define PRINT_1(term, A, P, S) (print_1(#term, tparams, i, A, S), i+=A)
+#define PRINT_1(term, A, M, S) (print_1(#term, tparams, i, A, S), i+=A)
 
-#define PRINT_2(term, A, B, P, S) (print_2(#term, tparams, i, A, B, S), i+=A*B)
+#define PRINT_2(term, A, B, M, S) (print_2(#term, tparams, i, A, B, S), i+=A*B)
 
-#define PRINT_3(term, A, B, C, P, S) (print_3(#term, tparams, i, A, B, C, S), i+=A*B*C)
+#define PRINT_3(term, A, B, C, M, S) (print_3(#term, tparams, i, A, B, C, S), i+=A*B*C)
 
 // Generic wrapper for all of the above functions
 
-#define ENABLE_0(F, term, P, S) do {                            \
-    if (Tune##term) F##_0(term, P, S);                          \
+#define ENABLE_0(F, term, M, S) do {                            \
+    if (Tune##term) F##_0(term, M, S);                          \
 } while (0)
 
-#define ENABLE_1(F, term, A, P, S) do {                         \
-    if (Tune##term) F##_1(term, A, P, S);                       \
+#define ENABLE_1(F, term, A, M, S) do {                         \
+    if (Tune##term) F##_1(term, A, M, S);                       \
 } while (0)
 
-#define ENABLE_2(F, term, A, B, P, S) do {                      \
-    if (Tune##term) F##_2(term, A, B, P, S);                    \
+#define ENABLE_2(F, term, A, B, M, S) do {                      \
+    if (Tune##term) F##_2(term, A, B, M, S);                    \
 } while (0)
 
-#define ENABLE_3(F, term, A, B, C, P, S) do {                   \
-    if (Tune##term) F##_3(term, A, B, C, P, S);                 \
+#define ENABLE_3(F, term, A, B, C, M, S) do {                   \
+    if (Tune##term) F##_3(term, A, B, C, M, S);                 \
 } while (0)
 
 // Configuration for each aspect of the evaluation terms
@@ -285,10 +286,10 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
     ENABLE_0(F, SpaceCenterControl, NORMAL, "");                            \
     ENABLE_1(F, ClosednessKnightAdjustment, 9, NORMAL, "[9]");              \
     ENABLE_1(F, ClosednessRookAdjustment, 9, NORMAL, "[9]");                \
-    ENABLE_0(F, ComplexityTotalPawns, EGONLY, "");                          \
-    ENABLE_0(F, ComplexityPawnFlanks, EGONLY, "");                          \
-    ENABLE_0(F, ComplexityPawnEndgame, EGONLY, "");                         \
-    ENABLE_0(F, ComplexityAdjustment, EGONLY, "");                          \
+    ENABLE_0(F, ComplexityTotalPawns, COMPLEXITY, "");                      \
+    ENABLE_0(F, ComplexityPawnFlanks, COMPLEXITY, "");                      \
+    ENABLE_0(F, ComplexityPawnEndgame, COMPLEXITY, "");                     \
+    ENABLE_0(F, ComplexityAdjustment, COMPLEXITY, "");                      \
 } while (0)
 
 #endif

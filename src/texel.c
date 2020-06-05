@@ -37,7 +37,7 @@
 #include "zobrist.h"
 
 // Internal Memory Managment
-TexelTuple* TupleStack;
+TTuple* TupleStack;
 int TupleStackSize = STACKSIZE;
 
 // Tap into evaluate()
@@ -104,26 +104,25 @@ extern const int ComplexityAdjustment;
 
 void runTexelTuning() {
 
-    TexelEntry *tes;
+    TEntry *tes;
     int iteration = -1;
     Thread *thread = createThreadPool(1);
     double K, error, best = 1e6, rate = LEARNING;
-    TexelVector params = {0}, cparams = {0}, phases = {0};
+
+    TArray modes = {0};
+    TVector params = {0}, cparams = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    printf("\nTUNER WILL BE TUNING %d TERMS...", NTERMS);
-
-    printf("\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...");
-    initTT(1);
+    printf("\nTuner will be tuning %d Terms...", NTERMS);
 
     printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
-           (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
-    tes = calloc(NPOSITIONS, sizeof(TexelEntry));
+           (int)(NPOSITIONS * sizeof(TEntry) / (1024 * 1024)));
+    tes = calloc(NPOSITIONS, sizeof(TEntry));
 
     printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
-    TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
+           (int)(STACKSIZE * sizeof(TTuple) / (1024 * 1024)));
+    TupleStack = calloc(STACKSIZE, sizeof(TTuple));
 
     printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
     initTexelEntries(tes, thread);
@@ -132,7 +131,7 @@ void runTexelTuning() {
     initCurrentParameters(cparams);
 
     printf("\n\nSETTING TERM PHASES, MG, EG, OR BOTH...");
-    initPhaseManager(phases);
+    initModeManager(modes);
 
     printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
     K = computeOptimalK(tes);
@@ -158,7 +157,7 @@ void runTexelTuning() {
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
-            TexelVector gradient = {0};
+            TVector gradient = {0};
             updateGradient(tes, gradient, params, phases, K, batch);
 
             // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
@@ -170,17 +169,18 @@ void runTexelTuning() {
     }
 }
 
-void initTexelEntries(TexelEntry *tes, Thread *thread) {
+void initTexelEntries(TEntry *tes, Thread *thread) {
 
     Limits limits;
+    int i, j, k;
     char line[128];
-    int i, j, k, coeffs[NTERMS];
+    TArray coeffs[NTERMS];
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
-    thread->limits = &limits; thread->depth  = 0;
+    thread->limits = &limits; thread->depth = 0;
 
-    // Create a TexelEntry for each FEN
+    // Create a TEntry for each FEN
     for (i = 0; i < NPOSITIONS; i++) {
 
         // Read next position from the FEN file
@@ -243,7 +243,39 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     fclose(fin);
 }
 
-void initCoefficients(int coeffs[NTERMS]) {
+void updateMemory(TEntry *te, int size) {
+
+    // First ensure we have enough Tuples left for this TEntry
+    if (size > TupleStackSize) {
+        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
+                (int)(STACKSIZE * sizeof(TTuple) / (1024 * 1024)));
+        TupleStackSize = STACKSIZE;
+        TupleStack = calloc(STACKSIZE, sizeof(TTuple));
+    }
+
+    // Allocate Tuples for the given TEntry
+    te->tuples = TupleStack;
+    te->ntuples = size;
+
+    // Update internal memory manager
+    TupleStack += size;
+    TupleStackSize -= size;
+}
+
+
+void initModeManager(TArray modes) {
+
+    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
+
+    EXECUTE_ON_TERMS(INIT_MODE);
+
+    if (i != NTERMS){
+        printf("Error in initModeManager(): i = %d ; NTERMS = %d\n", i, NTERMS);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void initCoefficients(TArray coeffs) {
 
     int i = 0; // EXECUTE_ON_TERMS will update i accordingly
 
@@ -255,7 +287,7 @@ void initCoefficients(int coeffs[NTERMS]) {
     }
 }
 
-void initCurrentParameters(TexelVector cparams) {
+void initCurrentParameters(TVector cparams) {
 
     int i = 0; // EXECUTE_ON_TERMS will update i accordingly
 
@@ -267,42 +299,12 @@ void initCurrentParameters(TexelVector cparams) {
     }
 }
 
-void initPhaseManager(TexelVector phases) {
 
-    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
-
-    EXECUTE_ON_TERMS(INIT_PHASE);
-
-    if (i != NTERMS){
-        printf("Error in initPhaseManager(): i = %d ; NTERMS = %d\n", i, NTERMS);
-        exit(EXIT_FAILURE);
-    }
-}
-
-void updateMemory(TexelEntry *te, int size) {
-
-    // First ensure we have enough Tuples left for this TexelEntry
-    if (size > TupleStackSize) {
-        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
-                (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
-        TupleStackSize = STACKSIZE;
-        TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
-    }
-
-    // Allocate Tuples for the given TexelEntry
-    te->tuples = TupleStack;
-    te->ntuples = size;
-
-    // Update internal memory manager
-    TupleStack += size;
-    TupleStackSize -= size;
-}
-
-void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, TexelVector phases, double K, int batch) {
+void updateGradient(TEntry *tes, TVector gradient, TVector params, TVector phases, double K, int batch) {
 
     #pragma omp parallel shared(gradient)
     {
-        TexelVector local = {0};
+        TVector local = {0};
         #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
         for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; i++) {
 
@@ -319,20 +321,20 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
     }
 }
 
-void shuffleTexelEntries(TexelEntry *tes) {
+void shuffleTexelEntries(TEntry *tes) {
 
     for (int i = 0; i < NPOSITIONS; i++) {
 
         int A = rand64() % NPOSITIONS;
         int B = rand64() % NPOSITIONS;
 
-        TexelEntry temp = tes[A];
+        TEntry temp = tes[A];
         tes[A] = tes[B];
         tes[B] = temp;
     }
 }
 
-double computeOptimalK(TexelEntry *tes) {
+double computeOptimalK(TEntry *tes) {
 
     double start = -10.0, end = 10.0, delta = 1.0;
     double curr = start, error, best = completeEvaluationError(tes, start);
@@ -357,7 +359,7 @@ double computeOptimalK(TexelEntry *tes) {
     return start;
 }
 
-double completeEvaluationError(TexelEntry *tes, double K) {
+double completeEvaluationError(TEntry *tes, double K) {
 
     double total = 0.0;
 
@@ -371,7 +373,7 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     return total / (double)NPOSITIONS;
 }
 
-double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
+double completeLinearError(TEntry *tes, TVector params, double K) {
 
     double total = 0.0;
 
@@ -385,13 +387,13 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     return total / (double)NPOSITIONS;
 }
 
-double singleLinearError(TexelEntry *te, TexelVector params, double K) {
+double singleLinearError(TEntry *te, TVector params, double K) {
     double sigm = sigmoid(K, linearEvaluation(te, params));
     double sigmprime = sigm * (1 - sigm);
     return (te->result - sigm) * sigmprime;
 }
 
-double linearEvaluation(TexelEntry *te, TexelVector params) {
+double linearEvaluation(TEntry *te, TVector params) {
 
     double mg = 0, eg = 0;
 
@@ -407,9 +409,9 @@ double sigmoid(double K, double S) {
     return 1.0 / (1.0 + exp(-K * S / 400.0));
 }
 
-void printParameters(TexelVector params, TexelVector cparams) {
+void printParameters(TVector params, TVector cparams) {
 
-    int tparams[NTERMS][PHASE_NB];
+    TVector tparams;
 
     // Combine updated and current parameters
     for (int j = 0; j < NTERMS; j++) {
@@ -427,13 +429,13 @@ void printParameters(TexelVector params, TexelVector cparams) {
     }
 }
 
-void print_0(char *name, int params[NTERMS][PHASE_NB], int i, char *S) {
+void print_0(char *name, TVector params, int i, char *S) {
 
-    printf("const int %s%s = S(%4d,%4d);\n\n", name, S, params[i][MG], params[i][EG]);
+    printf("const int %s%s = S(%4d,%4d);\n\n", name, S, (int)params[i][MG],  (int)params[i][EG]);
 
 }
 
-void print_1(char *name, int params[NTERMS][PHASE_NB], int i, int A, char *S) {
+void print_1(char *name, TVector params, int i, int A, char *S) {
 
     printf("const int %s%s = { ", name, S);
 
@@ -441,7 +443,7 @@ void print_1(char *name, int params[NTERMS][PHASE_NB], int i, int A, char *S) {
 
         for (int a = 0; a < A; a++, i++) {
             if (a % 4 == 0) printf("\n    ");
-            printf("S(%4d,%4d), ", params[i][MG], params[i][EG]);
+            printf("S(%4d,%4d), ",  (int)params[i][MG],  (int)params[i][EG]);
         }
 
         printf("\n};\n\n");
@@ -450,14 +452,14 @@ void print_1(char *name, int params[NTERMS][PHASE_NB], int i, int A, char *S) {
     else {
 
         for (int a = 0; a < A; a++, i++) {
-            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("S(%4d,%4d)",  (int)params[i][MG],  (int)params[i][EG]);
             if (a != A - 1) printf(", "); else printf(" };\n\n");
         }
     }
 
 }
 
-void print_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, char *S) {
+void print_2(char *name, TVector params, int i, int A, int B, char *S) {
 
     printf("const int %s%s = {\n", name, S);
 
@@ -467,7 +469,7 @@ void print_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, char
 
         for (int b = 0; b < B; b++, i++) {
             if (b && b % 4 == 0) printf("\n    ");
-            printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+            printf("S(%4d,%4d)",  (int)params[i][MG],  (int)params[i][EG]);
             printf("%s", b == B - 1 ? "" : ", ");
         }
 
@@ -478,7 +480,7 @@ void print_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, char
 
 }
 
-void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int C, char *S) {
+void print_3(char *name, TVector params, int i, int A, int B, int C, char *S) {
 
     printf("const int %s%s = {\n", name, S);
 
@@ -490,7 +492,7 @@ void print_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B, int 
 
             for (int c = 0; c < C; c++, i++) {
                 if (c &&  c % 4 == 0) printf("\n    ");
-                printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
+                printf("S(%4d,%4d)",  (int)params[i][MG],  (int)params[i][EG]);
                 printf("%s", c == C - 1 ? "" : ", ");
             }
 
