@@ -33,13 +33,13 @@ TTable Table; // Global Transposition Table
 static const uint64_t MB = 1ull << 20;
 
 
-static int entryReplacementWeight(int depth, uint8_t generation) {
+static int entryWeight(int depth, uint8_t generation) {
 
     // Estimate of the age with an account for wrapping of the age counter
-    int age = ((259 + Table.generation - generation) & TT_MASK_AGE) >> TT_AGE_SHIFT;
+    int age = ((259 + Table.generation - generation) & TT_MASK_AGE);
 
     // Formula: Depth - 4 * Age^2
-    return depth - 4 * age * age;
+    return depth - 4 * (age >> TT_AGE_SHIFT) * (age >> TT_AGE_SHIFT);
 }
 
 
@@ -146,9 +146,6 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     for (int i = 0; i < TT_BUCKET_NB; i++) {
         if (slots[i].hash16 == hash16) {
 
-            // Update age but retain bound type
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
-
             // Copy over the TTEntry and signal success
             *move  = slots[i].move;
             *value = slots[i].value;
@@ -172,8 +169,8 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN is the depth minus 4 times the age difference squared
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   entryReplacementWeight(replace->depth, replace->generation)
-            >= entryReplacementWeight(slots[i].depth, slots[i].generation))
+        if (   entryWeight(replace->depth, replace->generation)
+            >= entryWeight(slots[i].depth, slots[i].generation))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
