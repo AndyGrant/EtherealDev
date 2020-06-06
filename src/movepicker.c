@@ -121,10 +121,12 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
         case STAGE_TABLE:
 
-            // Play table move if it is pseudo legal
+            // Table move is already checked for psuedo legality if set
             mp->stage = STAGE_GENERATE_NOISY;
-            if (moveIsPseudoLegal(board, mp->tableMove))
+            if (mp->tableMove != NONE_MOVE) {
+                assert(moveIsPseudoLegal(board, mp->tableMove));
                 return mp->tableMove;
+            }
 
             /* fallthrough */
 

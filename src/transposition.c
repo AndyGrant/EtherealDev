@@ -25,6 +25,8 @@
     #include <sys/mman.h>
 #endif
 
+#include "board.h"
+#include "move.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -125,10 +127,10 @@ void prefetchTTEntry(uint64_t hash) {
     __builtin_prefetch(bucket);
 }
 
-int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
+int getTTEntry(Board *board, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
 
-    const uint16_t hash16 = hash >> 48;
-    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+    const uint16_t hash16 = board->hash >> 48;
+    TTEntry *slots = Table.buckets[board->hash & Table.hashMask].slots;
 
     // Search for a matching hash signature
     for (int i = 0; i < TT_BUCKET_NB; i++) {
@@ -143,7 +145,9 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
             *eval  = slots[i].eval;
             *depth = slots[i].depth;
             *bound = slots[i].generation & TT_MASK_BOUND;
-            return 1;
+
+            // Use the move for "extra" verification. Account for TB entries
+            return *move == NONE_MOVE || moveIsPseudoLegal(board, *move);
         }
     }
 

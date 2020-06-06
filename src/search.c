@@ -249,7 +249,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     }
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = getTTEntry(board, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -622,7 +622,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         return evaluateBoard(board, &thread->pktable, thread->contempt);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = getTTEntry(board, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
