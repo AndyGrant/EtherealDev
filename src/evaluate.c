@@ -421,7 +421,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     const int Forward = (colour == WHITE) ? 8 : -8;
 
     int sq, flag, eval = 0, pkeval = 0;
-    uint64_t pawns, myPawns, tempPawns, enemyPawns, attacks;
+    uint64_t pawns, myPawns, tempPawns, enemyPawns, ours, theirs, attacks;
 
     // Store off pawn attacks for king safety and threat computations
     ei->attackedBy2[US]      = ei->pawnAttacks[US] & ei->attacked[US];
@@ -439,6 +439,10 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     myPawns = tempPawns = pawns & board->colours[US];
     enemyPawns = pawns & board->colours[THEM];
 
+    // Pawns and Kings of ours and of theirs
+    ours   = (pawns | board->pieces[KING]) & board->colours[US];
+    theirs = (pawns | board->pieces[KING]) & board->colours[THEM];
+
     // Evaluate each pawn (but not for being passed)
     while (tempPawns) {
 
@@ -448,13 +452,14 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.PawnPSQT32[relativeSquare32(US, sq)][US]++;
 
         uint64_t neighbors   = myPawns    & adjacentFilesMasks(fileOf(sq));
-        uint64_t backup      = myPawns    & passedPawnMasks(THEM, sq);
         uint64_t stoppers    = enemyPawns & passedPawnMasks(US, sq);
-        uint64_t threats     = enemyPawns & pawnAttacks(US, sq);
-        uint64_t support     = myPawns    & pawnAttacks(THEM, sq);
-        uint64_t pushThreats = enemyPawns & pawnAttacks(US, sq + Forward);
-        uint64_t pushSupport = myPawns    & pawnAttacks(THEM, sq + Forward);
+
+        uint64_t threats     = theirs & pawnAttacks(US, sq);
+        uint64_t pushThreats = theirs & pawnAttacks(US, sq + Forward);
         uint64_t leftovers   = stoppers ^ threats ^ pushThreats;
+
+        uint64_t support     = ours   & pawnAttacks(THEM, sq);
+        uint64_t pushSupport = ours   & pawnAttacks(THEM, sq + Forward);
 
         // Save passed pawn information for later evaluation
         if (!stoppers) setBit(&ei->passedPawns, sq);
@@ -489,7 +494,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Apply a penalty if the pawn is backward. We follow the usual definition
         // of backwards, but also specify that the pawn is not both isolated and
         // backwards at the same time. We don't give backward pawns a connected bonus
-        if (neighbors && pushThreats && !backup) {
+        if (neighbors && pushThreats && !(myPawns & passedPawnMasks(THEM, sq))) {
             flag = !(Files[fileOf(sq)] & enemyPawns);
             pkeval += PawnBackwards[flag][relativeRankOf(US, sq)];
             if (TRACE) T.PawnBackwards[flag][relativeRankOf(US, sq)][US]++;
