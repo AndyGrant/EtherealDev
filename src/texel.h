@@ -139,12 +139,12 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
 // Initalize the Phase Manger for an N dimensional array
 
 #define INIT_MODE_0(term, M, S) do {                            \
-    MODEs[i++] = M;                                            \
+    modes[i++] = M;                                             \
 } while (0)
 
 #define INIT_MODE_1(term, A, M, S) do {                         \
     for (int _a = 0; _a < A; _a++)                              \
-       MODEs[i++] = M;                                          \
+       modes[i++] = M;                                          \
 } while (0)
 
 #define INIT_MODE_2(term, A, B, M, S) do {                      \

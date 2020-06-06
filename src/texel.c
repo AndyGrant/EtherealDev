@@ -130,7 +130,7 @@ void runTexelTuning() {
     printf("\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...");
     initCurrentParameters(cparams);
 
-    printf("\n\nSETTING TERM PHASES, MG, EG, OR BOTH...");
+    printf("\n\nCONFIGURATION EVALUATION MODES { NORMAL, COMPLEXITY } ...");
     initModeManager(modes);
 
     printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
@@ -174,7 +174,7 @@ void initTexelEntries(TEntry *tes, Thread *thread) {
     Limits limits;
     int i, j, k;
     char line[128];
-    TArray coeffs[NTERMS];
+    TArray coeffs;
     FILE *fin = fopen("FENS", "r");
 
     // Initialize the thread for the search
@@ -408,6 +408,7 @@ double linearEvaluation(TEntry *te, TVector params) {
 double sigmoid(double K, double S) {
     return 1.0 / (1.0 + exp(-K * S / 400.0));
 }
+
 
 void printParameters(TVector params, TVector cparams) {
 
