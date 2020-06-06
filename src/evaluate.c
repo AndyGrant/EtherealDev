@@ -470,7 +470,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Apply a penalty if the pawn is isolated. We consider pawns that
         // are able to capture another pawn to not be isolated, as they may
         // have the potential to deisolate by capturing, or be traded away
-        if (!threats && !neighbors) {
+        if (!threats && !neighbors && !testBit(ei->attackedBy[US][KING], sq)) {
             pkeval += PawnIsolated;
             if (TRACE) T.PawnIsolated[US]++;
         }
