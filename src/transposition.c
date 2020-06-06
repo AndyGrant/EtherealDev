@@ -146,9 +146,6 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     for (int i = 0; i < TT_BUCKET_NB; i++) {
         if (slots[i].hash16 == hash16) {
 
-            // Update age but retain bound type
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
-
             // Copy over the TTEntry and signal success
             *move  = slots[i].move;
             *value = slots[i].value;
