@@ -32,6 +32,7 @@ enum {
 enum {
     TT_MASK_BOUND = 0x03,
     TT_MASK_AGE   = 0xFC,
+    TT_AGE_SHIFT  = 2,
     TT_BUCKET_NB  = 3,
 };
 

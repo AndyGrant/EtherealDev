@@ -17,6 +17,7 @@
 */
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +31,17 @@
 
 TTable Table; // Global Transposition Table
 static const uint64_t MB = 1ull << 20;
+
+
+static int entryReplacementWeight(int depth, uint8_t generation) {
+
+    // Estimate of the age with an account for wrapping of the age counter
+    int age = ((259 + Table.generation - generation) & TT_MASK_AGE) >> TT_AGE_SHIFT;
+
+    // Formula: Depth - 4 * Age^2
+    return depth - 4 * age * age;
+}
+
 
 void initTT(uint64_t megabytes) {
 
@@ -158,10 +170,10 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     TTEntry *replace = slots; // &slots[0]
 
     // Find a matching hash, or replace using MAX(x1, x2, x3),
-    // where xN equals the depth minus 4 times the age difference
+    // where xN is the depth minus 4 times the age difference squared
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
+        if (   entryReplacementWeight(replace->depth, replace->generation)
+            >= entryReplacementWeight(slots[i].depth, slots[i].generation))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
