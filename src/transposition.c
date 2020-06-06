@@ -134,9 +134,6 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     for (int i = 0; i < TT_BUCKET_NB; i++) {
         if (slots[i].hash16 == hash16) {
 
-            // Update age but retain bound type
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
-
             // Copy over the TTEntry and signal success
             *move  = slots[i].move;
             *value = slots[i].value;
@@ -171,7 +168,8 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // an exact bound or depth that is nearly as good as the old one
     if (   bound != BOUND_EXACT
         && hash16 == replace->hash16
-        && depth < replace->depth - 3)
+        && depth < replace->depth - 3
+        && Table.generation == (replace->generation & TT_MASK_AGE))
         return;
 
     // Finally, copy the new data into the replaced slot
