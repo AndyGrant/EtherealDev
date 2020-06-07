@@ -102,51 +102,52 @@ extern const int ComplexityPawnFlanks;
 extern const int ComplexityPawnEndgame;
 extern const int ComplexityAdjustment;
 
+
 void runTexelTuning() {
 
-    TEntry *tes;
+    TEntry *entries;
     int iteration = -1;
-    Thread *thread = createThreadPool(1);
     double K, error, best = 1e6, rate = LEARNING;
 
     TArray modes = {0};
-    TVector params = {0}, cparams = {0};
+    TVector params = {0};
+    TVector cparams = {0};
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
     printf("\nTuner will be tuning %d Terms...", NTERMS);
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
+    printf("\n\nAllocating memory for Tuning Entries [%dMB]...",
            (int)(NPOSITIONS * sizeof(TEntry) / (1024 * 1024)));
-    tes = calloc(NPOSITIONS, sizeof(TEntry));
+    entries = calloc(NPOSITIONS, sizeof(TEntry));
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",
+    printf("\n\nAllocating memory for Tuning Tuple Stack [%dMB]...",
            (int)(STACKSIZE * sizeof(TTuple) / (1024 * 1024)));
     TupleStack = calloc(STACKSIZE, sizeof(TTuple));
 
-    printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
-    initTexelEntries(tes, thread);
+    printf("\n\nInitializing Tuning Eentries from FENS...");
+    initTexelEntries(entries);
 
-    printf("\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...");
+    printf("\n\nFetching current evaluation as a starting point...");
     initCurrentParameters(cparams);
 
-    printf("\n\nCONFIGURATION EVALUATION MODES { NORMAL, COMPLEXITY } ...");
+    printf("\n\nConfiguration evaluation modes { NORMAL, COMPLEXITY } ...");
     initModeManager(modes);
 
-    printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
-    K = computeOptimalK(tes);
+    printf("\n\nComputing optimal K value...\n");
+    K = computeOptimalK(entries);
 
     while (1) {
 
         // Shuffle the dataset before each epoch
         if (NPOSITIONS != BATCHSIZE)
-            shuffleTexelEntries(tes);
+            shuffleTexelEntries(entries);
 
         // Report every REPORTING iterations
         if (++iteration % REPORTING == 0) {
 
             // Check for a regression in tuning
-            error = completeLinearError(tes, params, K);
+            error = completeLinearError(entries, params, K);
             if (error > best) rate = rate / LRDROPRATE;
 
             // Report current best parameters
@@ -158,7 +159,7 @@ void runTexelTuning() {
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
             TVector gradient = {0};
-            updateGradient(tes, gradient, params, phases, K, batch);
+            computeGradiant(entries, gradient, params, modes, K, batch);
 
             // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
@@ -169,15 +170,16 @@ void runTexelTuning() {
     }
 }
 
-void initTexelEntries(TEntry *tes, Thread *thread) {
+void initTexelEntries(TEntry *entries) {
 
-    Limits limits;
     int i, j, k;
     char line[128];
     TArray coeffs;
     FILE *fin = fopen("FENS", "r");
 
-    // Initialize the thread for the search
+    // Prepare a Thread for running QSearches
+    Limits limits;
+    Thread *thread = createThreadPool(1);
     thread->limits = &limits; thread->depth = 0;
 
     // Create a TEntry for each FEN
@@ -300,7 +302,7 @@ void initCurrentParameters(TVector cparams) {
 }
 
 
-void updateGradient(TEntry *tes, TVector gradient, TVector params, TVector phases, double K, int batch) {
+void computeGradiant(TEntry *tes, TVector gradient, TVector params, TArray modes, double K, int batch) {
 
     #pragma omp parallel shared(gradient)
     {
@@ -317,7 +319,7 @@ void updateGradient(TEntry *tes, TVector gradient, TVector params, TVector phase
 
         for (int i = 0; i < NTERMS; i++)
             for (int j = MG; j <= EG; j++)
-                if (phases[i][j]) gradient[i][j] += local[i][j];
+                gradient[i][j] += local[i][j];
     }
 }
 

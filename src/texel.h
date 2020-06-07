@@ -113,14 +113,14 @@ typedef int TArray[NTERMS];
 typedef double TVector[NTERMS][PHASE_NB];
 
 void runTexelTuning();
-void initTexelEntries(TEntry *tes, Thread *thread);
+void initTexelEntries(TEntry *entries);
 void updateMemory(TEntry *te, int size);
 
 void initModeManager(TArray modes);
 void initCoefficients(TArray coeffs);
 void initCurrentParameters(TVector cparams);
 
-void updateGradient(TEntry *tes, TVector gradient, TVector params, TVector phases, double K, int batch);
+void computeGradiant(TEntry *tes, TVector gradient, TVector params, TArray modes, double K, int batch);
 void shuffleTexelEntries(TEntry *tes);
 
 double computeOptimalK(TEntry *tes);
