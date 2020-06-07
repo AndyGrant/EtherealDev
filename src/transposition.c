@@ -167,11 +167,16 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // Prefer a matching hash, otherwise score a replacement
     replace = (i != TT_BUCKET_NB) ? &slots[i] : replace;
 
-    // Don't overwrite an entry from the same position, unless we have
-    // an exact bound or depth that is nearly as good as the old one
+    // Prefer an old entry unless the new one is EXACT or similar in depth
     if (   bound != BOUND_EXACT
         && hash16 == replace->hash16
         && depth < replace->depth - 3)
+        return;
+
+    // Prefer a higher-depth entry when the bounds are the same
+    if (   depth < replace->depth
+        && hash16 == replace->hash16
+        && bound == (replace->generation & TT_MASK_BOUND))
         return;
 
     // Finally, copy the new data into the replaced slot
