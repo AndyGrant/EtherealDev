@@ -199,7 +199,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, improving, trimming, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
@@ -388,6 +388,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         }
     }
 
+    static const int AlphaTrimmingDepth = 12;
+    static const int AlphaTrimmingMargin = 128;
+
+    trimming = !PvNode
+            && !inCheck
+            &&  depth <= AlphaTrimmingDepth
+            &&  eval + AlphaTrimmingMargin * depth < alpha;
+
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
@@ -504,6 +512,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
+
+            R += trimming && played > depth;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
