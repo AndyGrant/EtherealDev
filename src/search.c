@@ -543,22 +543,21 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 17. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
-        if (value > best) {
 
-            best = value;
+        best = MAX(value, best);
+
+        if (value > alpha) {
+
+            alpha = value;
             bestMove = move;
 
-            if (value > alpha) {
-                alpha = value;
+            // Copy our child's PV and prepend this move to it
+            pv->length = 1 + lpv.length;
+            pv->line[0] = move;
+            memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
 
-                // Copy our child's PV and prepend this move to it
-                pv->length = 1 + lpv.length;
-                pv->line[0] = move;
-                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
-
-                // Search failed high
-                if (alpha >= beta) break;
-            }
+            // Search failed high
+            if (alpha >= beta) break;
         }
     }
 
