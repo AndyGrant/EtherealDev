@@ -31,6 +31,15 @@
 TTable Table; // Global Transposition Table
 static const uint64_t MB = 1ull << 20;
 
+static int entryAge(TTEntry *entry) {
+    return ((259 + Table.generation - entry->generation) & TT_MASK_AGE);
+}
+
+static int entryWeight(TTEntry *entry) {
+    return entry->depth - entryAge(entry);
+}
+
+
 void initTT(uint64_t megabytes) {
 
     // Cleanup memory when resizing the table
@@ -101,6 +110,7 @@ int hashfullTT() {
     return used / TT_BUCKET_NB;
 }
 
+
 int valueFromTT(int value, int height) {
 
     // When probing MATE scores into the table
@@ -119,6 +129,7 @@ int valueToTT(int value, int height) {
          : value <= -TBWIN_IN_MAX ? value - height : value;
 }
 
+
 void prefetchTTEntry(uint64_t hash) {
 
     TTBucket *bucket = &Table.buckets[hash & Table.hashMask];
@@ -133,9 +144,6 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     // Search for a matching hash signature
     for (int i = 0; i < TT_BUCKET_NB; i++) {
         if (slots[i].hash16 == hash16) {
-
-            // Update age but retain bound type
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
 
             // Copy over the TTEntry and signal success
             *move  = slots[i].move;
@@ -160,18 +168,18 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
+        if (entryWeight(replace) >= entryWeight(&slots[i]))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
     replace = (i != TT_BUCKET_NB) ? &slots[i] : replace;
 
-    // Don't overwrite an entry from the same position, unless we have
-    // an exact bound or depth that is nearly as good as the old one
+    // Avoid overwriting an entry from the same position, unless we have
+    // have an EXACT bound, or the age of the entry is sufficient to justify
+    // potentially reducing the depth of the entry;
     if (   bound != BOUND_EXACT
         && hash16 == replace->hash16
-        && depth < replace->depth - 3)
+        && depth - replace->depth <= -entryAge(replace))
         return;
 
     // Finally, copy the new data into the replaced slot
@@ -182,6 +190,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     replace->move       = (uint16_t)move;
     replace->hash16     = (uint16_t)hash16;
 }
+
 
 PKEntry* getPKEntry(PKTable *pktable, uint64_t pkhash) {
     PKEntry *pkentry = &pktable->entries[pkhash >> PKT_HASH_SHIFT];
