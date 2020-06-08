@@ -288,7 +288,7 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
-const int PassedPawnAhead = S(  10,  10);
+const int PassedPawnAhead = S(   4,   4);
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -36,   1), S( -48,  26), S( -73,  31),
@@ -875,10 +875,12 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
     uint64_t tempPawns = myPassers;
 
-    if (   myPassers && theirPassers
-        && relativeRankOf(US, frontmost(US, myPassers))
-         > relativeRankOf(THEM, frontmost(THEM, theirPassers))) {
-        eval += PassedPawnAhead;
+    int ourBest   =    myPassers ? relativeRankOf(  US, frontmost(  US,    myPassers)) : 0;
+    int theirBest = theirPassers ? relativeRankOf(THEM, frontmost(THEM, theirPassers)) : 0;
+
+    if (ourBest > theirBest && theirBest) {
+        eval += PassedPawnAhead * (ourBest - theirBest);
+        // if (TRACE) T.PassedPawnAhead[US] += (ourBest - theirBest);
     }
 
     // Evaluate each passed pawn
