@@ -288,6 +288,8 @@ const int KSAdjustment      =  -18;
 
 /* Passed Pawn Evaluation Terms */
 
+const int PassedPawnAhead = S(  10,  10);
+
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -36,   1), S( -48,  26), S( -73,  31),
     S(   7,  10), S(  82, -15), S( 158,  41), S(   0,   0)},
@@ -867,9 +869,17 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
-    uint64_t myPassers = board->colours[US] & ei->passedPawns;
+    uint64_t myPassers    = board->colours[US  ] & ei->passedPawns;
+    uint64_t theirPassers = board->colours[THEM] & ei->passedPawns;
+
     uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
     uint64_t tempPawns = myPassers;
+
+    if (   myPassers && theirPassers
+        && relativeRankOf(US, frontmost(US, myPassers))
+         > relativeRankOf(THEM, frontmost(THEM, theirPassers))) {
+        eval += PassedPawnAhead;
+    }
 
     // Evaluate each passed pawn
     while (tempPawns) {
