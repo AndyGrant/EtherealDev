@@ -878,7 +878,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     int ourBest   =    myPassers ? relativeRankOf(  US, frontmost(  US,    myPassers)) : 0;
     int theirBest = theirPassers ? relativeRankOf(THEM, frontmost(THEM, theirPassers)) : 0;
 
-    if (ourBest > theirBest && theirBest) {
+    if (ourBest > theirBest) {
         eval += PassedPawnAhead * (ourBest - theirBest);
         // if (TRACE) T.PassedPawnAhead[US] += (ourBest - theirBest);
     }
