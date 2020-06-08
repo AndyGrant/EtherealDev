@@ -863,6 +863,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
+    const int Forward = (colour == WHITE) ? 8 : -8;
 
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
@@ -881,7 +882,8 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
         // Evaluate based on rank, ability to advance, and safety
         canAdvance = !(bitboard & occupied);
-        safeAdvance = !(bitboard & ei->attacked[THEM]);
+        safeAdvance = !testBit(ei->attacked[THEM], sq + Forward)
+                    || testBit(ei->attackedBy[US][PAWN], sq + Forward);
         eval += PassedPawn[canAdvance][safeAdvance][rank];
         if (TRACE) T.PassedPawn[canAdvance][safeAdvance][rank][US]++;
 
