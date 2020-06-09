@@ -43,6 +43,21 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
 
+
+    // Update Killer Moves (Avoid duplicates)
+    if (thread->killers[height][0] != bestMove) {
+        thread->killers[height][1] = thread->killers[height][0];
+        thread->killers[height][0] = bestMove;
+    }
+
+    // Update Counter Moves (BestMove refutes the previous move)
+    if (counter != NONE_MOVE && counter != NULL_MOVE)
+        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
+
+
+    // Don't update a move which immediatly caused a cut-off
+    if (length == 1) return;
+
     for (int i = 0; i < length; i++) {
 
         // Apply a malus until the final move
@@ -72,16 +87,6 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
             thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
         }
     }
-
-    // Update Killer Moves (Avoid duplicates)
-    if (thread->killers[height][0] != bestMove) {
-        thread->killers[height][1] = thread->killers[height][0];
-        thread->killers[height][0] = bestMove;
-    }
-
-    // Update Counter Moves (BestMove refutes the previous move)
-    if (counter != NONE_MOVE && counter != NULL_MOVE)
-        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
 }
 
 void updateKillerMoves(Thread *thread, int height, uint16_t move) {
