@@ -25,7 +25,7 @@
 #include "thread.h"
 #include "types.h"
 
-void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
+void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus, uint16_t ttMove) {
 
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
@@ -40,15 +40,18 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    // Update Killer Moves (Avoid duplicates)
-    if (thread->killers[height][0] != bestMove) {
-        thread->killers[height][1] = thread->killers[height][0];
-        thread->killers[height][0] = bestMove;
-    }
+    if (bestMove != ttMove) {
 
-    // Update Counter Moves (BestMove refutes the previous move)
-    if (counter != NONE_MOVE && counter != NULL_MOVE)
-        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
+        // Update Killer Moves (Avoid duplicates)
+        if (thread->killers[height][0] != bestMove) {
+            thread->killers[height][1] = thread->killers[height][0];
+            thread->killers[height][0] = bestMove;
+        }
+
+        // Update Counter Moves (BestMove refutes the previous move)
+        if (counter != NONE_MOVE && counter != NULL_MOVE)
+            thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
+    }
 
     // If the 1st quiet move failed-high at depth 1, we don't update history tables
     // Depth 0 gives no bonus in any case
