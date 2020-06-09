@@ -30,15 +30,18 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int entry, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
 
-    // Extract information from last move
+    // Extract information from last moves
     uint16_t counter = thread->moveStack[height-1];
-    int cmPiece = thread->pieceStack[height-1];
-    int cmTo = MoveTo(counter);
-
-    // Extract information from two moves ago
     uint16_t follow = thread->moveStack[height-2];
-    int fmPiece = thread->pieceStack[height-2];
-    int fmTo = MoveTo(follow);
+    int cmPiece, cmTo, fmPiece, fmTo;
+
+    // Use a Pawn push to A1 (rare) as the history for Counter Moves
+    if (counter == NONE_MOVE || counter == NULL_MOVE) cmPiece = 0, cmTo = 0;
+    else cmPiece = thread->pieceStack[height-1], cmTo = MoveTo(counter);
+
+    // Use a Pawn push to A1 (rare) as the history for Followup Moves
+    if (follow == NONE_MOVE || follow == NULL_MOVE) fmPiece = 0, fmTo = 0;
+    else fmPiece = thread->pieceStack[height-1], fmTo = MoveTo(follow);
 
     // Update Killer Moves (Avoid duplicates)
     if (thread->killers[height][0] != bestMove) {
@@ -73,18 +76,14 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
         thread->history[colour][from][to] = entry;
 
         // Update Counter Move History
-        if (counter != NONE_MOVE && counter != NULL_MOVE) {
-            entry = thread->continuation[0][cmPiece][cmTo][piece][to];
-            entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-            thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
-        }
+        entry = thread->continuation[0][cmPiece][cmTo][piece][to];
+        entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+        thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
 
         // Update Followup Move History
-        if (follow != NONE_MOVE && follow != NULL_MOVE) {
-            entry = thread->continuation[1][fmPiece][fmTo][piece][to];
-            entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-            thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
-        }
+        entry = thread->continuation[1][fmPiece][fmTo][piece][to];
+        entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+        thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
     }
 }
 
