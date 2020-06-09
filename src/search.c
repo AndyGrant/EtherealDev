@@ -573,8 +573,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (played == 0) return inCheck ? -MATE + height : 0;
 
     // Step 19 (~760 elo). Update History counters on a fail high for a quiet move
-    if (best >= beta && !moveIsTactical(board, bestMove))
-        updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, depth*depth);
+    if (best >= beta && !moveIsTactical(board, bestMove)) {
+
+        if (quietsPlayed > 1 || depth > 1) {
+            int bonus = MIN(depth * depth, HistoryMax);
+            updateHistories(thread, quietsTried, quietsPlayed, height, bonus);
+        }
+
+        updateKillerMoves(thread, height, bestMove);
+        updateCounterMove(thread, height, bestMove);
+    }
 
     // Step 20. Store results of search into the Transposition Table. We do
     // not overwrite the Root entry from the first line of play we examined

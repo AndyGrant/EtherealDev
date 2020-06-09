@@ -25,73 +25,68 @@
 #include "thread.h"
 #include "types.h"
 
-void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
+void updateHistories(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
 
-    int entry, colour = thread->board.turn;
-    uint16_t bestMove = moves[length-1];
-
-    // Extract information from last move
+    // Lookup the previous two moves
+    ContSegment *cmhist, *fmhist;
     uint16_t counter = thread->moveStack[height-1];
+    uint16_t follow =  thread->moveStack[height-2];
+
+    // Lookup the previous two pieces moved
     int cmPiece = thread->pieceStack[height-1];
-    int cmTo = MoveTo(counter);
-
-    // Extract information from two moves ago
-    uint16_t follow = thread->moveStack[height-2];
     int fmPiece = thread->pieceStack[height-2];
-    int fmTo = MoveTo(follow);
 
-    // Cap update size to avoid saturation
-    bonus = length == 1 && bonus == 1
-          ? 0 : MIN(bonus, HistoryMax);
+    // Grab the table for counter moves if it exists
+    if (counter == NONE_MOVE || counter == NULL_MOVE) cmhist = NULL;
+    else cmhist = &thread->continuation[0][cmPiece][MoveTo(counter)];
 
-    for (int i = 0; i < length; i++) {
+    // Grab the table for followup moves if it exists
+    if (follow == NONE_MOVE || follow == NULL_MOVE) fmhist = NULL;
+    else fmhist = &thread->continuation[1][fmPiece][MoveTo(follow)];
 
-        // Apply a malus until the final move
-        int delta = (moves[i] == bestMove) ? bonus : -bonus;
+    for (int i = 0; i < length - 1; i++)
+        updateHistory(thread, cmhist, fmhist, moves[i], -bonus);
+    updateHistory(thread, cmhist, fmhist, moves[length-1], bonus);
+}
 
-        // Extract information from this move
-        int to = MoveTo(moves[i]);
-        int from = MoveFrom(moves[i]);
-        int piece = pieceType(thread->board.squares[from]);
+void updateHistory(Thread *thread, ContSegment *cmhist, ContSegment *fmhist, uint16_t move, int delta) {
 
-        // Update Butterfly History
-        entry = thread->history[colour][from][to];
+    int to = MoveTo(move);
+    int from = MoveFrom(move);
+    int piece = pieceType(thread->board.squares[from]);
+
+    int entry = thread->history[thread->board.turn][from][to];
+    entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+    thread->history[thread->board.turn][from][to] = entry;
+
+    if (cmhist != NULL) {
+        entry = (*cmhist)[piece][to];
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-        thread->history[colour][from][to] = entry;
-
-        // Update Counter Move History
-        if (counter != NONE_MOVE && counter != NULL_MOVE) {
-            entry = thread->continuation[0][cmPiece][cmTo][piece][to];
-            entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-            thread->continuation[0][cmPiece][cmTo][piece][to] = entry;
-        }
-
-        // Update Followup Move History
-        if (follow != NONE_MOVE && follow != NULL_MOVE) {
-            entry = thread->continuation[1][fmPiece][fmTo][piece][to];
-            entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-            thread->continuation[1][fmPiece][fmTo][piece][to] = entry;
-        }
+        (*cmhist)[piece][to] = entry;
     }
 
-    // Update Killer Moves (Avoid duplicates)
-    if (thread->killers[height][0] != bestMove) {
-        thread->killers[height][1] = thread->killers[height][0];
-        thread->killers[height][0] = bestMove;
+    if (fmhist != NULL) {
+        entry = (*fmhist)[piece][to];
+        entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
+        (*fmhist)[piece][to] = entry;
     }
-
-    // Update Counter Moves (BestMove refutes the previous move)
-    if (counter != NONE_MOVE && counter != NULL_MOVE)
-        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
 }
 
 void updateKillerMoves(Thread *thread, int height, uint16_t move) {
 
-    // Avoid saving the same Killer Move twice
     if (thread->killers[height][0] == move) return;
 
     thread->killers[height][1] = thread->killers[height][0];
     thread->killers[height][0] = move;
+}
+
+void updateCounterMove(Thread *thread, int height, uint16_t move) {
+
+    uint16_t counter = thread->moveStack[height-1];
+    int cmPiece = thread->pieceStack[height-1];
+
+    if (counter != NONE_MOVE && counter != NULL_MOVE)
+        thread->cmtable[thread->board.turn][cmPiece][MoveTo(counter)] = move;
 }
 
 
@@ -169,5 +164,5 @@ void getRefutationMoves(Thread *thread, int height, uint16_t *killer1, uint16_t 
 
     // Set Counter Move if one exists
     if (previous == NONE_MOVE || previous == NULL_MOVE) *counter = NONE_MOVE;
-    else *counter = thread->cmtable[!thread->board.turn][cmPiece][cmTo];
+    else *counter = thread->cmtable[thread->board.turn][cmPiece][cmTo];
 }
