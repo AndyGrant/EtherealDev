@@ -41,7 +41,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
 
     // Use a Pawn push to A1 (rare) as the history for Followup Moves
     if (follow == NONE_MOVE || follow == NULL_MOVE) fmPiece = 0, fmTo = 0;
-    else fmPiece = thread->pieceStack[height-1], fmTo = MoveTo(follow);
+    else fmPiece = thread->pieceStack[height-2], fmTo = MoveTo(follow);
 
     // Update Killer Moves (Avoid duplicates)
     if (thread->killers[height][0] != bestMove) {
@@ -118,11 +118,13 @@ void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhis
     *hist = thread->history[thread->board.turn][from][to];
 
     // Set Counter Move History if it exists
-    if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
+    if (counter == NONE_MOVE || counter == NULL_MOVE)
+        *cmhist = thread->continuation[0][0][0][piece][to];
     else *cmhist = thread->continuation[0][cmPiece][cmTo][piece][to];
 
     // Set Followup Move History if it exists
-    if (follow == NONE_MOVE || follow == NULL_MOVE) *fmhist = 0;
+    if (follow == NONE_MOVE || follow == NULL_MOVE)
+        *fmhist = thread->continuation[1][0][0][piece][to];
     else *fmhist = thread->continuation[1][fmPiece][fmTo][piece][to];
 }
 
@@ -151,10 +153,14 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         // Add Counter Move History if it exists
         if (counter != NONE_MOVE && counter != NULL_MOVE)
             scores[i] += thread->continuation[0][cmPiece][cmTo][piece][to];
+        else
+            scores[i] += thread->continuation[0][0][0][piece][to];
 
         // Add Followup Move History if it exists
         if (follow != NONE_MOVE && follow != NULL_MOVE)
             scores[i] += thread->continuation[1][fmPiece][fmTo][piece][to];
+        else
+            scores[i] += thread->continuation[1][0][0][piece][to];
     }
 }
 
