@@ -25,9 +25,9 @@
 #include "thread.h"
 #include "types.h"
 
-void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int bonus) {
+void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int depth) {
 
-    int entry, colour = thread->board.turn;
+    int entry, bonus, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
 
     // Extract information from last move
@@ -50,9 +50,9 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     if (counter != NONE_MOVE && counter != NULL_MOVE)
         thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
 
-    // If the 1st quiet move failed-high at depth 1, we don't update history tables
-    // Depth 0 gives no bonus in any case
-    if (length == 1 && bonus <= 1) return;
+
+    bonus = MIN(HistoryMax, depth * (depth - (length == 1)));
+    if (bonus <= 0) { assert(bonus == 0); return; }
 
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
