@@ -172,7 +172,7 @@ void runTexelTuning() {
 
 void initTexelEntries(TEntry *entries) {
 
-    int i, j, k;
+    int j, k;
     char line[128];
     TArray coeffs;
     FILE *fin = fopen("FENS", "r");
@@ -183,7 +183,7 @@ void initTexelEntries(TEntry *entries) {
     thread->limits = &limits; thread->depth = 0;
 
     // Create a TEntry for each FEN
-    for (i = 0; i < NPOSITIONS; i++) {
+    for (int i = 0; i < NPOSITIONS; i++) {
 
         // Read next position from the FEN file
         if (fgets(line, 128, fin) == NULL) {
@@ -193,33 +193,33 @@ void initTexelEntries(TEntry *entries) {
 
         // Occasional reporting for total completion
         if ((i + 1) % 100000 == 0 || i == NPOSITIONS - 1)
-            printf("\rINITIALIZING TEXEL ENTRIES FROM FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
+            printf("\rInitializing Tuning Entries from FENS...  [%7d OF %7d]", i + 1, NPOSITIONS);
 
         // Fetch and cap a white POV search
-        tes[i].eval = atoi(strstr(line, "] ") + 2);
-        if (strstr(line, " b ")) tes[i].eval *= -1;
+        entries[i].eval = atoi(strstr(line, "] ") + 2);
+        if (strstr(line, " b ")) entries[i].eval *= -1;
 
         // Determine the result of the game
-        if      (strstr(line, "[1.0]")) tes[i].result = 1.0;
-        else if (strstr(line, "[0.0]")) tes[i].result = 0.0;
-        else if (strstr(line, "[0.5]")) tes[i].result = 0.5;
+        if      (strstr(line, "[1.0]")) entries[i].result = 1.0;
+        else if (strstr(line, "[0.0]")) entries[i].result = 0.0;
+        else if (strstr(line, "[0.5]")) entries[i].result = 0.5;
         else    {printf("Cannot Parse %s\n", line); exit(EXIT_FAILURE);}
 
         // Setup the given position
         boardFromFEN(&thread->board, line, 0);
 
         // Determine the game phase based on remaining material
-        tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
-                          - 2 * popcount(thread->board.pieces[ROOK  ])
-                          - 1 * popcount(thread->board.pieces[BISHOP])
-                          - 1 * popcount(thread->board.pieces[KNIGHT]);
+        entries[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
+                              - 2 * popcount(thread->board.pieces[ROOK  ])
+                              - 1 * popcount(thread->board.pieces[BISHOP])
+                              - 1 * popcount(thread->board.pieces[KNIGHT]);
 
         // Compute phase factors for updating the gradients
-        tes[i].factors[MG] = 1 - tes[i].phase / 24.0;
-        tes[i].factors[EG] = 0 + tes[i].phase / 24.0;
+        entries[i].factors[MG] = 1 - entries[i].phase / 24.0;
+        entries[i].factors[EG] = 0 + entries[i].phase / 24.0;
 
         // Finish the phase calculation for the evaluation
-        tes[i].phase = (tes[i].phase * 256 + 12) / 24.0;
+        entries[i].phase = (entries[i].phase * 256 + 12) / 24.0;
 
         // Vectorize the evaluation coefficients
         T = EmptyTrace;
@@ -231,13 +231,13 @@ void initTexelEntries(TEntry *entries) {
             k += coeffs[j] != 0;
 
         // Allocate Tuples
-        updateMemory(&tes[i], k);
+        updateMemory(&entries[i], k);
 
         // Initialize the Texel Tuples
         for (k = 0, j = 0; j < NTERMS; j++) {
             if (coeffs[j] != 0){
-                tes[i].tuples[k].index = j;
-                tes[i].tuples[k++].coeff = coeffs[j];
+                entries[i].tuples[k].index = j;
+                entries[i].tuples[k++].coeff = coeffs[j];
             }
         }
     }
@@ -249,7 +249,7 @@ void updateMemory(TEntry *te, int size) {
 
     // First ensure we have enough Tuples left for this TEntry
     if (size > TupleStackSize) {
-        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
+        printf("\n\nAllocating memory for Tuning Tuple Stack [%dMB]...\n\n",
                 (int)(STACKSIZE * sizeof(TTuple) / (1024 * 1024)));
         TupleStackSize = STACKSIZE;
         TupleStack = calloc(STACKSIZE, sizeof(TTuple));
@@ -271,7 +271,7 @@ void initModeManager(TArray modes) {
 
     EXECUTE_ON_TERMS(INIT_MODE);
 
-    if (i != NTERMS){
+    if (i != NTERMS) {
         printf("Error in initModeManager(): i = %d ; NTERMS = %d\n", i, NTERMS);
         exit(EXIT_FAILURE);
     }
@@ -283,7 +283,7 @@ void initCoefficients(TArray coeffs) {
 
     EXECUTE_ON_TERMS(INIT_COEFF);
 
-    if (i != NTERMS){
+    if (i != NTERMS) {
         printf("Error in initCoefficients(): i = %d ; NTERMS = %d\n", i, NTERMS);
         exit(EXIT_FAILURE);
     }
@@ -295,7 +295,7 @@ void initCurrentParameters(TVector cparams) {
 
     EXECUTE_ON_TERMS(INIT_PARAM);
 
-    if (i != NTERMS){
+    if (i != NTERMS) {
         printf("Error in initCurrentParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
         exit(EXIT_FAILURE);
     }
@@ -351,7 +351,7 @@ double computeOptimalK(TEntry *tes) {
                 best = error, start = curr;
         }
 
-        printf("COMPUTING K ITERATION [%d] K = %f E = %f\n", i, start, best);
+        printf("Computing K iteration [%d] K = %f E = %f\n", i, start, best);
 
         end = start + delta;
         start = start - delta;
