@@ -41,7 +41,8 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     int fmTo = MoveTo(follow);
 
     // Cap update size to avoid saturation
-    bonus = MIN(bonus, HistoryMax);
+    bonus = length == 1 && bonus == 1
+          ? 0 : MIN(bonus, HistoryMax);
 
     for (int i = 0; i < length; i++) {
 
