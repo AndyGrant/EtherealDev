@@ -367,6 +367,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+
+        // Kill the picker if the TT heavily suggests we cannot beat rBeta
+        if (    ttHit && (ttBound & BOUND_UPPER)
+            &&  ttValue < beta || (ttValue < rBeta && ttDepth >= depth - 4))
+            movePicker.stage = STAGE_DONE;
+
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
