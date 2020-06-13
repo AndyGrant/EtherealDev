@@ -61,10 +61,16 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
     SearchInfo info = {0};
     pthread_t pthreads[threads->nthreads];
 
-    // If the root position can be found in the DTZ tablebases,
-    // then we simply return the move recommended by Syzygy/Fathom.
-    if (tablebasesProbeDTZ(board, best, ponder))
-        return;
+    // If specific moves were not provided, generate them all.
+    if (!limits->limitedByMoves)
+        genAllLegalMoves(board, limits->rootMoves);
+
+    // Allow Syzygy to refine the move list for optimal results
+    if (!limits->limitedByMoves && limits->multiPV == 1)
+        tablebasesProbeDTZ(board, limits);
+
+    // Cap MultiPV at the number of moves we are willing to try
+    limits->multiPV = MIN(limits->multiPV, movesInRootMoves(limits->rootMoves));
 
     // Minor house keeping for starting a search
     updateTT(); // Table has an age component

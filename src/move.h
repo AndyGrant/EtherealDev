@@ -55,7 +55,8 @@ void revertNullMove(Board *board, Undo *undo);
 
 int legalMoveCount(Board * board);
 int moveExaminedByMultiPV(Thread *thread, uint16_t move);
-int moveIsInRootMoves(Thread *thread, uint16_t moves);
+int moveIsInRootMoves(Thread *thread, uint16_t move);
+int movesInRootMoves(uint16_t *moves);
 int moveIsTactical(Board *board, uint16_t move);
 int moveEstimatedValue(Board *board, uint16_t move);
 int moveBestCaseValue(Board *board);

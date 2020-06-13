@@ -51,7 +51,6 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960);
 void uciPosition(char *str, Board *board, int chess960);
 
 void uciReport(Thread *threads, int alpha, int beta, int value);
-void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz);
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth);
 
 int strEquals(char *str1, char *str2);

@@ -190,15 +190,13 @@ void *uciGo(void *cargo) {
     limits.limitedByMoves = searchmoves;
     limits.timeLimit      = movetime;
     limits.depthLimit     = depth;
+    limits.multiPV        = multiPV;
 
     // Pick the time values for the colour we are playing as
     limits.start = (board->turn == WHITE) ? start : start;
     limits.time  = (board->turn == WHITE) ? wtime : btime;
     limits.inc   = (board->turn == WHITE) ?  winc :  binc;
     limits.mtg   = (board->turn == WHITE) ?   mtg :   mtg;
-
-    // Limit MultiPV to the number of legal moves
-    limits.multiPV = MIN(multiPV, legalMoveCount(board));
 
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);
@@ -380,26 +378,6 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
 
     // Send out a newline and flush
     puts(""); fflush(stdout);
-}
-
-void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
-
-    char moveStr[6];
-
-    // Convert result to a score. We place wins and losses just outside
-    // the range of possible mate scores, and move further from them
-    // as the depth to zero increases. Draws are of course, zero.
-    int score = wdl == TB_LOSS ? -MATE + MAX_PLY + dtz + 1
-              : wdl == TB_WIN  ?  MATE - MAX_PLY - dtz - 1 : 0;
-
-    printf("info depth %d seldepth %d multipv 1 score cp %d time 0 "
-           "nodes 0 tbhits 1 nps 0 hashfull %d pv ",
-           MAX_PLY - 1, MAX_PLY - 1, score, 0);
-
-    // Print out the given move
-    moveToString(move, moveStr, board->chess960);
-    puts(moveStr);
-    fflush(stdout);
 }
 
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) {

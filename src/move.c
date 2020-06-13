@@ -458,20 +458,27 @@ int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
     return 0;
 }
 
-int moveIsInRootMoves(Thread *thread, uint16_t moves) {
+int moveIsInRootMoves(Thread *thread, uint16_t move) {
 
     // At the Root Node, we have to check to see if we are apart of a
     // "go searchmoves <>" search. If we are in one of those searches,
     // and this move is not one of the selected moves, we reject it
 
-    if (!thread->limits->limitedByMoves)
-        return 1;
-
     for (int i = 0; i < MAX_MOVES; i++)
-        if (moves == thread->limits->rootMoves[i])
+        if (move == thread->limits->rootMoves[i])
             return 1;
 
     return 0;
+}
+
+int movesInRootMoves(uint16_t *moves) {
+
+    int count = 0;
+
+    for (int i = 0; i < MAX_MOVES; i++)
+        count += (moves[i] != NONE_MOVE);
+
+    return count;
 }
 
 int moveIsTactical(Board *board, uint16_t move) {
