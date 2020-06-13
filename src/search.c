@@ -63,14 +63,15 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
 
     // If specific moves were not provided, generate them all.
     if (!limits->limitedByMoves)
-        genAllLegalMoves(board, limits->rootMoves);
+        genAllMoves(board, limits->rootMoves);
 
     // Allow Syzygy to refine the move list for optimal results
     if (!limits->limitedByMoves && limits->multiPV == 1)
         tablebasesProbeDTZ(board, limits);
 
     // Cap MultiPV at the number of moves we are willing to try
-    limits->multiPV = MIN(limits->multiPV, movesInRootMoves(limits->rootMoves));
+    if (limits->multiPV != 1)
+        limits->multiPV = MIN(limits->multiPV, movesInRootMoves(limits->rootMoves));
 
     // Minor house keeping for starting a search
     updateTT(); // Table has an age component
