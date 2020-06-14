@@ -36,7 +36,8 @@ struct Limits {
     double start, time, inc, mtg, timeLimit;
     int limitedByNone, limitedByTime, limitedBySelf;
     int limitedByDepth, limitedByMoves, depthLimit, multiPV;
-    uint16_t searchMoves[MAX_MOVES], excludedMoves[MAX_MOVES];
+    uint16_t searchMoves[MAX_MOVES]; int searchSize;
+    uint16_t excludedMoves[MAX_MOVES]; int excludedSize;
 };
 
 struct UCIGoStruct {

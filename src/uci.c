@@ -150,7 +150,7 @@ void *uciGo(void *cargo) {
 
     uint16_t moves[MAX_MOVES];
     int size = genAllLegalMoves(board, moves);
-    int idx = 0, searchmoves = 0;
+    int searchmoves = 0;
 
     // Grab the ready lock, as we cannot be ready until we finish this search
     pthread_mutex_lock(&READYLOCK);
@@ -178,7 +178,7 @@ void *uciGo(void *cargo) {
 
         for (int i = 0; i < size; i++) {
             moveToString(moves[i], moveStr, board->chess960);
-            if (strEquals(ptr, moveStr)) limits.searchMoves[idx++] = moves[i];
+            if (strEquals(ptr, moveStr)) limits.searchMoves[limits.searchSize++] = moves[i];
         }
     }
 
@@ -198,7 +198,7 @@ void *uciGo(void *cargo) {
     limits.mtg   = (board->turn == WHITE) ?   mtg :   mtg;
 
     // Cap our MultiPV search based on the suggested or legal moves
-    limits.multiPV = MIN(multiPV, searchmoves ? idx : size);
+    limits.multiPV = MIN(multiPV, searchmoves ? limits.searchSize : size);
 
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);

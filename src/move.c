@@ -465,14 +465,14 @@ int moveIsInRootMoves(Thread *thread, uint16_t move) {
     // if we are doing a "go searchmoves <>"  command, in which case we have
     // to limit our search to the provided moves.
 
-    for (int i = 0; i < MAX_MOVES; i++)
+    for (int i = 0; i < thread->limits->excludedSize; i++)
         if (move == thread->limits->excludedMoves[i])
             return 0;
 
     if (!thread->limits->limitedByMoves)
         return 1;
 
-    for (int i = 0; i < MAX_MOVES; i++)
+    for (int i = 0; i < thread->limits->searchSize; i++)
         if (move == thread->limits->searchMoves[i])
             return 1;
 

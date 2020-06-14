@@ -86,8 +86,10 @@ void tablebasesProbeDTZ(Board *board, Limits *limits) {
             break;
 
         // Move fails to maintain the ideal WDL outcome
-        if (TB_GET_WDL(results[i]) != TB_GET_WDL(result))
+        if (TB_GET_WDL(results[i]) != TB_GET_WDL(result)) {
             removeBadWDL(board, &limits->excludedMoves[i], results[i]);
+            limits->excludedSize++;
+        }
     }
 }
 
