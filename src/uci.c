@@ -178,7 +178,7 @@ void *uciGo(void *cargo) {
 
         for (int i = 0; i < size; i++) {
             moveToString(moves[i], moveStr, board->chess960);
-            if (strEquals(ptr, moveStr)) limits.rootMoves[idx++] = moves[i];
+            if (strEquals(ptr, moveStr)) limits.searchMoves[idx++] = moves[i];
         }
     }
 
@@ -190,13 +190,15 @@ void *uciGo(void *cargo) {
     limits.limitedByMoves = searchmoves;
     limits.timeLimit      = movetime;
     limits.depthLimit     = depth;
-    limits.multiPV        = multiPV;
 
     // Pick the time values for the colour we are playing as
     limits.start = (board->turn == WHITE) ? start : start;
     limits.time  = (board->turn == WHITE) ? wtime : btime;
     limits.inc   = (board->turn == WHITE) ?  winc :  binc;
     limits.mtg   = (board->turn == WHITE) ?   mtg :   mtg;
+
+    // Cap our MultiPV search based on the suggested or legal moves
+    limits.multiPV = MIN(multiPV, searchmoves ? idx : size);
 
     // Execute search, return best and ponder moves
     getBestMove(threads, board, &limits, &bestMove, &ponderMove);

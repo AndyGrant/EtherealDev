@@ -32,26 +32,20 @@
 unsigned TB_PROBE_DEPTH;    // Set by UCI options
 extern unsigned TB_LARGEST; // Set by Fathom in tb_init()
 
-static void removeBadWDL(Board *board, uint16_t *moves, unsigned result) {
+static void removeBadWDL(Board *board, uint16_t *move, unsigned result) {
 
     // Extract Fathom's move representation
     unsigned to    = TB_GET_TO(result);
     unsigned from  = TB_GET_FROM(result);
     unsigned ep    = TB_GET_EP(result);
     unsigned promo = TB_GET_PROMOTES(result);
-    uint16_t move = NONE_MOVE;
 
     // Convert the move notation. Care that Fathom's promotion flags are inverted
-    if (ep == 0u && promo == 0u) move = MoveMake(from, to, NORMAL_MOVE);
-    else if (ep != 0u)           move = MoveMake(from, board->epSquare, ENPASS_MOVE);
-    else if (promo != 0u)        move = MoveMake(from, to, PROMOTION_MOVE | ((4 - promo) << 14));
+    if (ep == 0u && promo == 0u) *move = MoveMake(from, to, NORMAL_MOVE);
+    else if (ep != 0u)           *move = MoveMake(from, board->epSquare, ENPASS_MOVE);
+    else if (promo != 0u)        *move = MoveMake(from, to, PROMOTION_MOVE | ((4 - promo) << 14));
 
-    // As a final check, verify this move is seen by Ethereal too
-    for (int i = 0; i < MAX_MOVES; i++)
-        if (moves[i] == move)
-            moves[i] = NONE_MOVE;
-
-    char movestr[6]; moveToString(move, movestr, board->chess960);
+    char movestr[6]; moveToString(*move, movestr, board->chess960);
     printf("info string ignoring %s as per Syzygy\n", movestr);
     fflush(stdout);
 }
@@ -93,7 +87,7 @@ void tablebasesProbeDTZ(Board *board, Limits *limits) {
 
         // Move fails to maintain the ideal WDL outcome
         if (TB_GET_WDL(results[i]) != TB_GET_WDL(result))
-            removeBadWDL(board, limits->rootMoves, results[i]);
+            removeBadWDL(board, &limits->excludedMoves[i], results[i]);
     }
 }
 

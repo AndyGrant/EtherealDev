@@ -90,12 +90,6 @@ uint16_t * buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint
 }
 
 
-int genAllMoves(Board *board, uint16_t *moves) {
-
-    int size = genAllNoisyMoves(board, moves);
-    return size + genAllQuietMoves(board, moves + size);
-}
-
 int genAllLegalMoves(Board *board, uint16_t *moves) {
 
     Undo undo[1];

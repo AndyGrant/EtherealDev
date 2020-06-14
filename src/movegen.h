@@ -22,7 +22,6 @@
 
 #include "types.h"
 
-int genAllMoves(Board *board, uint16_t *moves);
 int genAllLegalMoves(Board *board, uint16_t *moves);
 int genAllNoisyMoves(Board *board, uint16_t *moves);
 int genAllQuietMoves(Board *board, uint16_t *moves);
