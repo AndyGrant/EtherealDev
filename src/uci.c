@@ -48,6 +48,14 @@ extern unsigned TB_PROBE_DEPTH;   // Defined by Syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by Search.c
 extern volatile int IS_PONDERING; // Defined by Search.c
 
+extern int BetaMargin;
+extern int ProbCutMargin;
+extern int FutilityMargin;
+extern int FutilityMarginNoHistory;
+extern int SEEQuietMargin;
+extern int SEENoisyMargin;
+extern int QFutilityMargin;
+
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -86,6 +94,13 @@ int main(int argc, char **argv) {
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
             printf("option name Ponder type check default false\n");
             printf("option name UCI_Chess960 type check default false\n");
+            printf("option name BetaMargin type spin default 85 min 65 max 105\n");
+            printf("option name ProbCutMargin type spin default 100 min 80 max 120\n");
+            printf("option name FutilityMargin type spin default 90 min 70 max 110\n");
+            printf("option name FutilityMarginNoHistory type spin default 256 min 128 max 384\n");
+            printf("option name SEEQuietMargin type spin default -80 min -100 max -60\n");
+            printf("option name SEENoisyMargin type spin default -18 min -24 max -12\n");
+            printf("option name QFutilityMargin type spin default 100 min 80 max 120\n");
             printf("uciok\n"), fflush(stdout);
         }
 
@@ -285,6 +300,27 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
         if (strStartsWith(str, "setoption name UCI_Chess960 value false"))
             printf("info string set UCI_Chess960 to false\n"), *chess960 = 0;
     }
+
+    if (strStartsWith(str, "setoption name BetaMargin value "))
+        BetaMargin = atoi(str + strlen("setoption name BetaMargin value "));
+
+    if (strStartsWith(str, "setoption name ProbCutMargin value "))
+        ProbCutMargin = atoi(str + strlen("setoption name ProbCutMargin value "));
+
+    if (strStartsWith(str, "setoption name FutilityMargin value "))
+        FutilityMargin = atoi(str + strlen("setoption name FutilityMargin value "));
+
+    if (strStartsWith(str, "setoption name FutilityMarginNoHistory value "))
+        FutilityMarginNoHistory = atoi(str + strlen("setoption name FutilityMarginNoHistory value "));
+
+    if (strStartsWith(str, "setoption name SEEQuietMargin value "))
+        SEEQuietMargin = atoi(str + strlen("setoption name SEEQuietMargin value "));
+
+    if (strStartsWith(str, "setoption name SEENoisyMargin value "))
+        SEENoisyMargin = atoi(str + strlen("setoption name SEENoisyMargin value "));
+
+    if (strStartsWith(str, "setoption name QFutilityMargin value "))
+        QFutilityMargin = atoi(str + strlen("setoption name QFutilityMargin value "));
 
     fflush(stdout);
 }

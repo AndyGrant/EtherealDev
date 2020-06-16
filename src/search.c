@@ -44,6 +44,17 @@
 #include "uci.h"
 #include "windows.h"
 
+
+int BetaMargin = 85;
+int ProbCutMargin = 100;
+int FutilityMargin = 90;
+int FutilityMarginNoHistory = 256;
+int SEEQuietMargin = -80;
+int SEENoisyMargin = -18;
+int QFutilityMargin = 100;
+
+
+
 int LMRTable[64][64];      // Late Move Reductions
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
