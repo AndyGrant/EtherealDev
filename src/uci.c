@@ -41,6 +41,16 @@
 #include "uci.h"
 #include "zobrist.h"
 
+extern int KSAttackValue;
+extern int KSWeakSquares;
+extern int KSFriendlyPawns;
+extern int KSNoEnemyQueens;
+extern int KSSafeQueenCheck;
+extern int KSSafeRookCheck;
+extern int KSSafeBishopCheck;
+extern int KSSafeKnightCheck;
+extern int KSAdjustment;
+
 extern int ContemptDrawPenalty;   // Defined by Thread.c
 extern int ContemptComplexity;    // Defined by Thread.c
 extern int MoveOverhead;          // Defined by Time.c
@@ -86,6 +96,15 @@ int main(int argc, char **argv) {
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
             printf("option name Ponder type check default false\n");
             printf("option name UCI_Chess960 type check default false\n");
+            printf("option name KSAttackValue type spin default 44 min 30 max 58\n");
+            printf("option name KSWeakSquares type spin default 38 min 20 max 56\n");
+            printf("option name KSFriendlyPawns type spin default -22 min -34 max -10\n");
+            printf("option name KSNoEnemyQueens type spin default -276 min -352 max -200\n");
+            printf("option name KSSafeQueenCheck type spin default 95 min 70 max 120\n");
+            printf("option name KSSafeRookCheck type spin default 94 min 70 max 118\n");
+            printf("option name KSSafeBishopCheck type spin default 51 min 30 max 72\n");
+            printf("option name KSSafeKnightCheck type spin default 123 min 80 max 166\n");
+            printf("option name KSAdjustment type spin default -18 min -36 max 0\n");
             printf("uciok\n"), fflush(stdout);
         }
 
@@ -285,6 +304,33 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
         if (strStartsWith(str, "setoption name UCI_Chess960 value false"))
             printf("info string set UCI_Chess960 to false\n"), *chess960 = 0;
     }
+
+    if (strStartsWith(str, "setoption name KSAttackValue value "))
+        KSAttackValue = atoi(str + strlen("setoption name KSAttackValue value "));
+
+    if (strStartsWith(str, "setoption name KSWeakSquares value "))
+        KSWeakSquares = atoi(str + strlen("setoption name KSWeakSquares value "));
+
+    if (strStartsWith(str, "setoption name KSFriendlyPawns value "))
+        KSFriendlyPawns = atoi(str + strlen("setoption name KSFriendlyPawns value "));
+
+    if (strStartsWith(str, "setoption name KSNoEnemyQueens value "))
+        KSNoEnemyQueens = atoi(str + strlen("setoption name KSNoEnemyQueens value "));
+
+    if (strStartsWith(str, "setoption name KSSafeQueenCheck value "))
+        KSSafeQueenCheck = atoi(str + strlen("setoption name KSSafeQueenCheck value "));
+
+    if (strStartsWith(str, "setoption name KSSafeRookCheck value "))
+        KSSafeRookCheck = atoi(str + strlen("setoption name KSSafeRookCheck value "));
+
+    if (strStartsWith(str, "setoption name KSSafeBishopCheck value "))
+        KSSafeBishopCheck = atoi(str + strlen("setoption name KSSafeBishopCheck value "));
+
+    if (strStartsWith(str, "setoption name KSSafeKnightCheck value "))
+        KSSafeKnightCheck = atoi(str + strlen("setoption name KSSafeKnightCheck value "));
+
+    if (strStartsWith(str, "setoption name KSAdjustment value "))
+        KSAdjustment = atoi(str + strlen("setoption name KSAdjustment value "));
 
     fflush(stdout);
 }
