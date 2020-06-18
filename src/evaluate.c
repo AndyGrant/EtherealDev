@@ -275,16 +275,23 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
+// (κ= 0.0): [47, 47, -17, -219, 116, 100, 44, 128, -17] = -0.018 ± 0.768 (ELO-diff -6.081 ± 362.113)
+// (κ= 0.1): [47, 47, -17, -302, 116, 100, 44, 114, -17] = -0.018 ± 0.768 (ELO-diff -6.081 ± 362.113)
+// (κ= 0.3): [47, 47, -17, -240, 116, 101, 44, 144, -17] = -0.018 ± 0.768 (ELO-diff -6.081 ± 362.113)
+// (κ= 1.0): [47, 47, -17, -244, 116, 100, 44,  83, -17] = -0.018 ± 0.768 (ELO-diff -6.081 ± 362.113)
+// (κ= 3.2): [47, 54, -20, -264, 115,  97, 47, 107, -12] = -0.018 ± 0.768 (ELO-diff -6.081 ± 362.113)
+// (κ=10.0): [47, 51, -19, -263, 115,  98, 45, 137, -15] = -0.018 ± 0.768 (ELO-diff -6.081 ± 362.113)
+
 const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   95;
-const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int KSAttackValue     =   47;
+const int KSWeakSquares     =   51;
+const int KSFriendlyPawns   =  -19;
+const int KSNoEnemyQueens   = -263;
+const int KSSafeQueenCheck  =  115;
+const int KSSafeRookCheck   =   98;
+const int KSSafeBishopCheck =   45;
+const int KSSafeKnightCheck =  137;
+const int KSAdjustment      =  -15;
 
 /* Passed Pawn Evaluation Terms */
 
