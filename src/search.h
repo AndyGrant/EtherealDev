@@ -60,13 +60,13 @@ static const int ProbCutMargin = 85;
 static const int FutilityMargin = 71;
 static const int FutilityMarginNoHistory = 215;
 static const int FutilityPruningDepth = 8;
-static const int FutilityPruningHistoryLimit[] = { 22500, 11500 };
+static const int FutilityPruningHistoryLimit[] = { 14000, 11000 };
 
 static const int CounterMovePruningDepth[] = { 3, 2 };
 static const int CounterMoveHistoryLimit[] = { -1600, -1700 };
 
 static const int FollowUpMovePruningDepth[] = { 3, 2 };
-static const int FollowUpMoveHistoryLimit[] = { -1700, -5100 };
+static const int FollowUpMoveHistoryLimit[] = { -1900, -4300 };
 
 static const int LateMovePruningDepth = 8;
 static const int LateMovePruningCounts[2][9] = {
@@ -82,7 +82,7 @@ static const int SEEPieceValues[] = {
     1300,    0,    0,    0,
 };
 
-static const int HistexLimit = 13250;
+static const int HistexLimit = 11000;
 
 static const int QSEEMargin = 1;
 static const int QFutilityMargin = 118;
