@@ -44,6 +44,12 @@
 #include "uci.h"
 #include "windows.h"
 
+
+int FutilityPruningHistoryLimit[] = { 12000, 6000 };
+int CounterMoveHistoryLimit[] = { 0, -1000 };
+int FollowUpMoveHistoryLimit[] = { -2000, -4000 };
+int HistexLimit = 10000;
+
 int LMRTable[64][64];      // Late Move Reductions
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads

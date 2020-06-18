@@ -41,6 +41,11 @@
 #include "uci.h"
 #include "zobrist.h"
 
+extern int FutilityPruningHistoryLimit[2];
+extern int CounterMoveHistoryLimit[2];
+extern int FollowUpMoveHistoryLimit[2];
+extern int HistexLimit;
+
 extern int ContemptDrawPenalty;   // Defined by Thread.c
 extern int ContemptComplexity;    // Defined by Thread.c
 extern int MoveOverhead;          // Defined by Time.c
@@ -86,6 +91,13 @@ int main(int argc, char **argv) {
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
             printf("option name Ponder type check default false\n");
             printf("option name UCI_Chess960 type check default false\n");
+            printf("option name FutilityPruningHistoryLimit_0 type spin default 12000 min 0 max 24000\n");
+            printf("option name FutilityPruningHistoryLimit_1 type spin default 6000 min 0 max 12000\n");
+            printf("option name CounterMoveHistoryLimit_0 type spin default 0 min -2000 max 0\n");
+            printf("option name CounterMoveHistoryLimit_1 type spin default -1000 min -2000 max 0\n");
+            printf("option name FollowUpMoveHistoryLimit_0 type spin default -2000 min -4000 max 0\n");
+            printf("option name FollowUpMoveHistoryLimit_1 type spin default -4000 min -8000 max 0\n");
+            printf("option name HistexLimit type spin default 10000 min 5000 max 15000\n");
             printf("uciok\n"), fflush(stdout);
         }
 
@@ -285,6 +297,30 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
         if (strStartsWith(str, "setoption name UCI_Chess960 value false"))
             printf("info string set UCI_Chess960 to false\n"), *chess960 = 0;
     }
+
+    if (strStartsWith(str, "setoption name FutilityPruningHistoryLimit_0 value "))
+        FutilityPruningHistoryLimit[0] = atoi(str + strlen("setoption name FutilityPruningHistoryLimit_0 value "));
+
+    if (strStartsWith(str, "setoption name FutilityPruningHistoryLimit_1 value "))
+        FutilityPruningHistoryLimit[1] = atoi(str + strlen("setoption name FutilityPruningHistoryLimit_1 value "));
+
+    if (strStartsWith(str, "setoption name CounterMoveHistoryLimit_0 value "))
+        CounterMoveHistoryLimit[0] = atoi(str + strlen("setoption name CounterMoveHistoryLimit_0 value "));
+
+    if (strStartsWith(str, "setoption name CounterMoveHistoryLimit_1 value "))
+        CounterMoveHistoryLimit[1] = atoi(str + strlen("setoption name CounterMoveHistoryLimit_1 value "));
+
+    if (strStartsWith(str, "setoption name FollowUpMoveHistoryLimit_0 value "))
+        FollowUpMoveHistoryLimit[0] = atoi(str + strlen("setoption name FollowUpMoveHistoryLimit_0 value "));
+
+    if (strStartsWith(str, "setoption name FollowUpMoveHistoryLimit_1 value "))
+        FollowUpMoveHistoryLimit[1] = atoi(str + strlen("setoption name FollowUpMoveHistoryLimit_1 value "));
+
+    if (strStartsWith(str, "setoption name HistexLimit value "))
+        HistexLimit = atoi(str + strlen("setoption name HistexLimit value "));
+
+
+
 
     fflush(stdout);
 }
