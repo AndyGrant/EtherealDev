@@ -196,7 +196,7 @@ const int RookMobility[15] = {
 
 /* Queen Evaluation Terms */
 
-const int QueenRelativePin = S(  -9, -5);
+const int QueenRelativePin = S( -20, -10);
 
 const int QueenMobility[28] = {
     S( -61,-263), S(-213,-388), S( -60,-200), S( -22,-191),
