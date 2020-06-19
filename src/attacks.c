@@ -248,9 +248,9 @@ uint64_t discoveredAttacks(Board *board, int sq, int US) {
     uint64_t rAttacks = rookAttacks(sq, occupied);
     uint64_t bAttacks = bishopAttacks(sq, occupied);
 
-    uint64_t rooks   = (enemy & board->pieces[ROOK  ]) & ~rAttacks;
-    uint64_t bishops = (enemy & board->pieces[BISHOP]) & ~bAttacks;
+    uint64_t rooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+    uint64_t bishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
 
-    return (  rooks &   rookAttacks(sq, occupied & ~rAttacks))
-         | (bishops & bishopAttacks(sq, occupied & ~bAttacks));
+    return (~rAttacks &   rooks &   rookAttacks(sq, occupied & ~rAttacks))
+         | (~bAttacks & bishops & bishopAttacks(sq, occupied & ~bAttacks));
 }
