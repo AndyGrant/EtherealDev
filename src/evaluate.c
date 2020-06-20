@@ -738,10 +738,9 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy[US][QUEEN] |= attacks;
 
         // Apply a penalty if the Queen is at risk for a discovered attack
-        if (discoveredAttacks(board, sq, US)) {
-            eval += QueenRelativePin;
-            if (TRACE) T.QueenRelativePin[US]++;
-        }
+        count = popcount(discoveredAttacks(board, sq, US));
+        eval += count * QueenRelativePin;
+        if (TRACE) T.QueenRelativePin[US] += count;
 
         // Apply a bonus (or penalty) based on the mobility of the queen
         count = popcount(ei->mobilityAreas[US] & attacks);
