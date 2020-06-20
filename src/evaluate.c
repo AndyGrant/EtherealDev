@@ -187,6 +187,8 @@ const int RookFile[2] = { S(  12,   3), S(  34,   3) };
 
 const int RookOnSeventh = S(  -4,  30);
 
+const int RookRelativePin = S( -10, -10);
+
 const int RookMobility[15] = {
     S(-159,-116), S( -58,-115), S( -18, -65), S(  -9, -21),
     S(  -9,   0), S( -10,  14), S(  -9,  26), S(  -2,  29),
@@ -693,6 +695,12 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             && relativeRankOf(US, ei->kingSquare[THEM]) >= 6) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[US]++;
+        }
+
+        // Apply a penalty if the Queen is at risk for a discovered attack
+        if (discoveredAttacks2(board, sq, US)) {
+            eval += RookRelativePin;
+            // if (TRACE) T.QueenRelativePin[US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
