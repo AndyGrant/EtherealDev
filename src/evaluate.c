@@ -216,6 +216,8 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
+const int KingRelativePin = S( -10,  -5);
+
 const int KingPawnFileProximity[FILE_NB] = {
     S(  40,  26), S(  29,  18), S(  10,   9), S( -24, -14),
     S( -28, -46), S( -21, -61), S( -17, -66), S( -11, -64),
@@ -781,6 +783,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     count = popcount(defenders & ei->kingAreas[US]);
     eval += KingDefenders[count];
     if (TRACE) T.KingDefenders[count][US]++;
+
+    count = popcount(discoveredAttacks2(board, kingSq, US));
+    eval += count * KingRelativePin;
+    // if (TRACE) T.KingRelativePin[US] += count;
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
