@@ -216,7 +216,7 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
-const int KingRelativePin = S( -10,  -5);
+const int KingRelativePin = S( -20, -10);
 
 const int KingPawnFileProximity[FILE_NB] = {
     S(  40,  26), S(  29,  18), S(  10,   9), S( -24, -14),
