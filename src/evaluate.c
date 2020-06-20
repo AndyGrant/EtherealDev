@@ -716,10 +716,11 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
     const int US = colour, THEM = !colour;
 
     int sq, count, eval = 0;
-    uint64_t tempQueens, attacks, occupied;
+    uint64_t tempQueens, attacks, occupied, rammed;
 
     tempQueens = board->pieces[QUEEN] & board->colours[US];
-    occupied = board->colours[WHITE] | board->colours[BLACK];
+    occupied   = board->colours[WHITE] | board->colours[BLACK];
+    rammed     = ei->rammedPawns[WHITE] | ei->rammedPawns[BLACK];
 
     ei->attackedBy[US][QUEEN] = 0ull;
 
@@ -738,7 +739,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy[US][QUEEN] |= attacks;
 
         // Apply a penalty if the Queen is at risk for a discovered attack
-        if (discoveredAttacks(board, sq, US)) {
+        if (discoveredAttacks(board, sq, colour, rammed)) {
             eval += QueenRelativePin;
             if (TRACE) T.QueenRelativePin[US]++;
         }

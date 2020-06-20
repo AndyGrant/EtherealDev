@@ -240,10 +240,10 @@ uint64_t attackersToKingSquare(Board *board) {
     return allAttackersToSquare(board, occupied, kingsq) & board->colours[!board->turn];
 }
 
-uint64_t discoveredAttacks(Board *board, int sq, int US) {
+uint64_t discoveredAttacks(Board *board, int sq, int colour, uint64_t blockades) {
 
-    uint64_t enemy    = board->colours[!US];
-    uint64_t occupied = board->colours[ US] | enemy;
+    uint64_t enemy    = board->colours[!colour];
+    uint64_t occupied = board->colours[ colour] | enemy;
 
     uint64_t rAttacks = rookAttacks(sq, occupied);
     uint64_t bAttacks = bishopAttacks(sq, occupied);
@@ -251,6 +251,6 @@ uint64_t discoveredAttacks(Board *board, int sq, int US) {
     uint64_t rooks   = (enemy & board->pieces[ROOK  ]) & ~rAttacks;
     uint64_t bishops = (enemy & board->pieces[BISHOP]) & ~bAttacks;
 
-    return (  rooks &   rookAttacks(sq, occupied & ~rAttacks))
-         | (bishops & bishopAttacks(sq, occupied & ~bAttacks));
+    return (  rooks &   rookAttacks(sq, blockades | (occupied & ~rAttacks)))
+         | (bishops & bishopAttacks(sq, blockades | (occupied & ~bAttacks)));
 }
