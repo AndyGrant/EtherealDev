@@ -262,7 +262,7 @@ uint64_t discoveredAttacks2(Board *board, int sq, int US) {
     uint64_t occupied = board->colours[ US] | enemy;
 
     uint64_t bAttacks = bishopAttacks(sq, occupied);
-    uint64_t bishops = (enemy & board->pieces[BISHOP]) & ~bAttacks;
+    uint64_t bishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
 
-    return bishops & bishopAttacks(sq, occupied & ~bAttacks);
+    return bishops & ~bAttacks & bishopAttacks(sq, occupied & ~bAttacks);
 }
