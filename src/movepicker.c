@@ -71,6 +71,10 @@ static void evaluateNoisyMoves(MovePicker *mp) {
         // We may flag a move with the value -1, to indicate that it was
         // designated as a bad noisy move while in STAGE_GENERATE_NOISY
         assert(mp->values[i] >= 0);
+
+        // Preflag the Rook & Bishop underpromotions as having failed SEE()
+        if ((mp->moves[i] & ROOK_PROMO_MOVE  ) == ROOK_PROMO_MOVE  ) mp->values[i] = -1;
+        if ((mp->moves[i] & BISHOP_PROMO_MOVE) == BISHOP_PROMO_MOVE) mp->values[i] = -1;
     }
 }
 
