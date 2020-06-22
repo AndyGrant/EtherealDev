@@ -196,7 +196,7 @@ const int RookMobility[15] = {
 
 /* Queen Evaluation Terms */
 
-const int QueenRelativePin = S( -20, -10);
+const int QueenRelativePin[2] = { S( -15, -15), S( -40, -40) };
 
 const int QueenMobility[28] = {
     S( -61,-263), S(-213,-388), S( -60,-200), S( -22,-191),
@@ -715,8 +715,8 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, count, eval = 0;
-    uint64_t tempQueens, attacks, occupied;
+    int sq, count, pin, eval = 0;
+    uint64_t tempQueens, attacks, occupied, discovered;
 
     tempQueens = board->pieces[QUEEN] & board->colours[US];
     occupied = board->colours[WHITE] | board->colours[BLACK];
@@ -738,9 +738,10 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         ei->attackedBy[US][QUEEN] |= attacks;
 
         // Apply a penalty if the Queen is at risk for a discovered attack
-        if (discoveredAttacks(board, sq, US)) {
-            eval += QueenRelativePin;
-            if (TRACE) T.QueenRelativePin[US]++;
+        if ((discovered = discoveredAttacks(board, sq, US))) {
+            pin = !!(discovered && attackRayMasks(ei->kingSquare[US], sq));
+            eval += QueenRelativePin[pin];
+            // if (TRACE) T.QueenRelativePin[pin][US]++;
         }
 
         // Apply a bonus (or penalty) based on the mobility of the queen
