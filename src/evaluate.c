@@ -1107,7 +1107,7 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
 
     // Avoid changing which side has the advantage
-    int v = sign * MAX(ScoreEG(complexity), -abs(eg));
+    int v = sign * MAX(ScoreEG(complexity), -abs(eg) / 2);
 
     return MakeScore(0, v);
 }
