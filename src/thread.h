@@ -45,6 +45,7 @@ struct Thread {
 
     int contempt;
     int depth, seldepth;
+    int failhigh, faillow;
     uint64_t nodes, tbhits;
 
     int *evalStack, _evalStack[STACK_SIZE];
