@@ -509,11 +509,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
 
-            // At the Root increase on Fail Highs
-            R += RootNode ? thread->failHigh : 0;
-
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Decreate Fail Lows at the Root
+            R -= RootNode ? thread->failLow : 0;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
