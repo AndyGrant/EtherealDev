@@ -170,9 +170,11 @@ void aspirationWindow(Thread *thread) {
             return;
         }
 
-        // Set the LMR Aspiration Hueristics
-        thread->failLow  = value >= beta;
-        thread->failHigh = value <= alpha;
+        // Set the LMR Aspiration Hueristics only once
+        if (!thread->failLow && !thread->failHigh) {
+            thread->failLow  = value >= beta;
+            thread->failHigh = value <= alpha;
+        }
 
         // Search failed low, adjust window and reset depth
         if (value <= alpha) {
