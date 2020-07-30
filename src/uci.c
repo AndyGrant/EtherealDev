@@ -352,6 +352,8 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
     int multiPV     = threads->multiPV + 1;
     int elapsed     = elapsedTime(threads->info);
     int bounded     = MAX(alpha, MIN(value, beta));
+    PVariation *pv  = &threads->pvs[threads->multiPV];
+
     uint64_t nodes  = nodesSearchedThreadPool(threads);
     uint64_t tbhits = tbhitsThreadPool(threads);
     int nps         = (int)(1000 * (nodes / (1 + elapsed)));
@@ -372,9 +374,9 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
            depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
 
     // Iterate over the PV and print each move
-    for (int i = 0; i < threads->pv.length; i++) {
+    for (int i = 0; i < pv->length; i++) {
         char moveStr[6];
-        moveToString(threads->pv.line[i], moveStr, threads->board.chess960);
+        moveToString(pv->line[i], moveStr, threads->board.chess960);
         printf("%s ", moveStr);
     }
 

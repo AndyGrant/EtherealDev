@@ -452,7 +452,7 @@ int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
     // best move in a previous iteration of this search depth
 
     for (int i = 0; i < thread->multiPV; i++)
-        if (thread->bestMoves[i] == move)
+        if (thread->pvs[i].line[0] == move)
             return 1;
 
     return 0;

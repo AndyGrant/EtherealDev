@@ -113,11 +113,15 @@ void* iterativeDeepening(void *vthread) {
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
 
-        // Update SearchInfo and report some results
+        // Update the primary Search Info structure with the results
         info->depth                    = thread->depth;
         info->values[info->depth]      = thread->values[0];
-        info->bestMoves[info->depth]   = thread->bestMoves[0];
-        info->ponderMoves[info->depth] = thread->ponderMoves[0];
+        info->bestMoves[info->depth]   = thread->pvs[0].line[0];
+        info->ponderMoves[info->depth] = thread->pvs[0].line[1];
+
+        // Quick check to ensure we don't print an invalid ponder move
+        if (thread->pvs[0].length <= 1)
+            info->ponderMoves[info->depth] = NONE_MOVE;
 
         // Update time allocation based on score and pv changes
         updateTimeManagment(info, limits);
@@ -138,9 +142,9 @@ void* iterativeDeepening(void *vthread) {
 
 void aspirationWindow(Thread *thread) {
 
-    PVariation *const pv = &thread->pv;
     const int multiPV    = thread->multiPV;
     const int mainThread = thread->index == 0;
+    PVariation *const pv = &thread->pvs[multiPV];
 
     int value, depth = thread->depth;
     int alpha = -MATE, beta = MATE, delta = WindowSize;
@@ -161,9 +165,7 @@ void aspirationWindow(Thread *thread) {
 
         // Search returned a result within our window
         if (value > alpha && value < beta) {
-            thread->values[multiPV]      = value;
-            thread->bestMoves[multiPV]   = pv->line[0];
-            thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : NONE_MOVE;
+            thread->values[multiPV] = value;
             return;
         }
 
