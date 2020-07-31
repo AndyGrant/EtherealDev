@@ -361,6 +361,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  abs(beta) < MATE_IN_MAX
         &&  eval + moveBestCaseValue(board) >= beta + ProbCutMargin) {
 
+        // Prelim Verify high depths except after NULL moves
+        int verify = depth >= 2 * ProbCutDepth
+                  && thread->moveStack[height-1] != NULL_MOVE;
+
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
@@ -370,11 +374,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             if (!apply(thread, board, move, height)) continue;
 
             // For high depths, verify the move first with a depth one search
-            if (depth >= 2 * ProbCutDepth)
+            if (verify)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, 1, height+1);
 
             // For low depths, or after the above, verify with a reduced search
-            if (depth < 2 * ProbCutDepth || value >= rBeta)
+            if (!verify || value >= rBeta)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
