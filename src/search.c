@@ -508,7 +508,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Increase Fail High resolutions. Less as we deepen
-            R += MAX(thread->consecutiveFailHighs - height, 0);
+            R += MAX(thread->consecutiveFailHighs - 2 * height, 0);
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
