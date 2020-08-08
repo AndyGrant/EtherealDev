@@ -142,8 +142,10 @@ void aspirationWindow(Thread *thread) {
     const int multiPV    = thread->multiPV;
     const int mainThread = thread->index == 0;
 
-    int value, depth = thread->depth;
-    int alpha = -MATE, beta = MATE, delta = WindowSize;
+    int value, alpha = -MATE, beta = MATE, delta = WindowSize;
+
+    // Reset Aspiration Tracker
+    thread->consecutiveFailHighs = 0;
 
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
@@ -154,7 +156,7 @@ void aspirationWindow(Thread *thread) {
     while (1) {
 
         // Perform a search and consider reporting results
-        value = search(thread, pv, alpha, beta, MAX(1, depth), 0);
+        value = search(thread, pv, alpha, beta, thread->depth, 0);
         if (   (mainThread && value > alpha && value < beta)
             || (mainThread && elapsedTime(thread->info) >= WindowTimerMS))
             uciReport(thread->threads, alpha, beta, value);
@@ -167,17 +169,17 @@ void aspirationWindow(Thread *thread) {
             return;
         }
 
-        // Search failed low, adjust window and reset depth
+        // Search failed low, adjust window
         if (value <= alpha) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
-            depth = thread->depth;
+            thread->consecutiveFailHighs = 0;
         }
 
-        // Search failed high, adjust window and reduce depth
+        // Search failed high adjust window
         else if (value >= beta) {
             beta = MIN(MATE, beta + delta);
-            depth = depth - (abs(value) <= MATE / 2);
+            thread->consecutiveFailHighs++;
         }
 
         // Expand the search window
@@ -504,6 +506,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Increase when resolving a Fail High
+            R += RootNode ? thread->consecutiveFailHighs : 0;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
