@@ -107,6 +107,7 @@ int main(int argc, char **argv) {
             uciGoStruct.board   = &board;
             uciGoStruct.threads = threads;
             pthread_create(&pthreadsgo, NULL, &uciGo, &uciGoStruct);
+            pthread_join(pthreadsgo, NULL);
         }
 
         else if (strEquals(str, "ponderhit"))
@@ -114,7 +115,6 @@ int main(int argc, char **argv) {
 
         else if (strEquals(str, "stop")) {
             ABORT_SIGNAL = 1, IS_PONDERING = 0;
-            pthread_join(pthreadsgo, NULL);
         }
 
         else if (strEquals(str, "quit"))
