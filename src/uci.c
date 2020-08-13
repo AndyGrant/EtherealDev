@@ -89,8 +89,11 @@ int main(int argc, char **argv) {
             printf("uciok\n"), fflush(stdout);
         }
 
-        else if (strEquals(str, "isready"))
+        else if (strEquals(str, "isready")) {
+            pthread_mutex_lock(&READYLOCK);
             printf("readyok\n"), fflush(stdout);
+            pthread_mutex_unlock(&READYLOCK);
+        }
 
         else if (strEquals(str, "ucinewgame"))
             resetThreadPool(threads), clearTT();
@@ -102,20 +105,19 @@ int main(int argc, char **argv) {
             uciPosition(str, &board, chess960);
 
         else if (strStartsWith(str, "go")) {
-            strncpy(uciGoStruct.str, str, 512);
+            pthread_mutex_lock(&READYLOCK);
             uciGoStruct.multiPV = multiPV;
             uciGoStruct.board   = &board;
             uciGoStruct.threads = threads;
+            strncpy(uciGoStruct.str, str, 512);
             pthread_create(&pthreadsgo, NULL, &uciGo, &uciGoStruct);
         }
 
         else if (strEquals(str, "ponderhit"))
             IS_PONDERING = 0;
 
-        else if (strEquals(str, "stop")) {
+        else if (strEquals(str, "stop"))
             ABORT_SIGNAL = 1, IS_PONDERING = 0;
-            pthread_join(pthreadsgo, NULL);
-        }
 
         else if (strEquals(str, "quit"))
             break;
@@ -151,9 +153,6 @@ void *uciGo(void *cargo) {
     uint16_t moves[MAX_MOVES];
     int size = genAllLegalMoves(board, moves);
     int idx = 0, searchmoves = 0;
-
-    // Grab the ready lock, as we cannot be ready until we finish this search
-    pthread_mutex_lock(&READYLOCK);
 
     // Reset global signals
     IS_PONDERING = 0;
