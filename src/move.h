@@ -22,20 +22,18 @@
 
 #include "types.h"
 
-enum {
-    NONE_MOVE = 0, NULL_MOVE = 11,
+constexpr uint16_t  NONE_MOVE = 0, NULL_MOVE = 11;
 
-    NORMAL_MOVE = 0 << 12, CASTLE_MOVE    = 1 << 12,
-    ENPASS_MOVE = 2 << 12, PROMOTION_MOVE = 3 << 12,
+constexpr uint16_t  NORMAL_MOVE = 0 << 12, CASTLE_MOVE    = 1 << 12;
+constexpr uint16_t  ENPASS_MOVE = 2 << 12, PROMOTION_MOVE = 3 << 12;
 
-    PROMOTE_TO_KNIGHT = 0 << 14, PROMOTE_TO_BISHOP = 1 << 14,
-    PROMOTE_TO_ROOK   = 2 << 14, PROMOTE_TO_QUEEN  = 3 << 14,
+constexpr uint16_t  PROMOTE_TO_KNIGHT = 0 << 14, PROMOTE_TO_BISHOP = 1 << 14;
+constexpr uint16_t  PROMOTE_TO_ROOK   = 2 << 14, PROMOTE_TO_QUEEN  = 3 << 14;
 
-    KNIGHT_PROMO_MOVE = PROMOTION_MOVE | PROMOTE_TO_KNIGHT,
-    BISHOP_PROMO_MOVE = PROMOTION_MOVE | PROMOTE_TO_BISHOP,
-    ROOK_PROMO_MOVE   = PROMOTION_MOVE | PROMOTE_TO_ROOK,
-    QUEEN_PROMO_MOVE  = PROMOTION_MOVE | PROMOTE_TO_QUEEN
-};
+constexpr uint16_t  KNIGHT_PROMO_MOVE = PROMOTION_MOVE | PROMOTE_TO_KNIGHT;
+constexpr uint16_t  BISHOP_PROMO_MOVE = PROMOTION_MOVE | PROMOTE_TO_BISHOP;
+constexpr uint16_t  ROOK_PROMO_MOVE   = PROMOTION_MOVE | PROMOTE_TO_ROOK;
+constexpr uint16_t  QUEEN_PROMO_MOVE  = PROMOTION_MOVE | PROMOTE_TO_QUEEN;
 
 int castleKingTo(int king, int rook);
 int castleRookTo(int king, int rook);

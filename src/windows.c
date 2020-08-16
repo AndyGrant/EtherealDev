@@ -51,7 +51,7 @@ static int bestGroup(int index) {
 
     // Once we know returnLength, allocate the buffer
     SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *buffer, *ptr;
-    ptr = buffer = malloc(returnLength);
+    ptr = buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *) malloc(returnLength);
 
     // Second call, now we expect to succeed
     if (!fun1(RelationAll, buffer, &returnLength))

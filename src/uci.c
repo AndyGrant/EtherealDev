@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdint.h>
@@ -153,7 +154,7 @@ int main(int argc, char **argv) {
             break;
 
         else if (strStartsWith(str, "perft"))
-            printf("%"PRIu64"\n", perft(&board, atoi(str + strlen("perft ")))), fflush(stdout);
+            std::cout << perft(&board, atoi(str + strlen("perft "))) << std::endl, fflush(stdout);
 
         else if (strStartsWith(str, "print"))
             printBoard(&board), fflush(stdout);
@@ -167,7 +168,7 @@ void *uciGo(void *cargo) {
     // Get our starting time as soon as possible
     double start = getRealTime();
 
-    Limits limits = {0};
+    Limits limits = {};
     uint16_t bestMove, ponderMove;
     char moveStr[6];
 
@@ -397,15 +398,17 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
                 : bounded <= -MATE_IN_MAX ? -(bounded + MATE)     / 2 : bounded;
 
     // Two possible score types, mate and cp = centipawns
-    char *type  = abs(bounded) >= MATE_IN_MAX ? "mate" : "cp";
+    const char *type= abs(bounded) >= MATE_IN_MAX ? "mate " : "cp ";
 
     // Partial results from a windowed search have bounds
-    char *bound = bounded >=  beta ? " lowerbound "
-                : bounded <= alpha ? " upperbound " : " ";
+    const char *bound = bounded >=  beta ? " lowerbound"
+                      : bounded <= alpha ? " upperbound" : "";
 
-    printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
-           "nodes %"PRIu64" nps %d tbhits %"PRIu64" hashfull %d pv ",
-           depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
+    std::cout << "info depth " << depth     << " seldepth " << seldepth
+              << " multipv "   << multiPV   << " score "    << type << score << bound
+              << " time "      << elapsed   << " nodes "    << nodes
+              << " nps "       << nps       << " tbhits "   << tbhits
+              << " hashfull "  << hashfull  << " pv ";
 
     // Iterate over the PV and print each move
     for (int i = 0; i < threads->pv.length; i++) {
@@ -427,15 +430,15 @@ void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) 
 
 }
 
-int strEquals(char *str1, char *str2) {
+int strEquals(const char *str1, const char *str2) {
     return strcmp(str1, str2) == 0;
 }
 
-int strStartsWith(char *str, char *key) {
+int strStartsWith(const char *str, const char *key) {
     return strstr(str, key) == str;
 }
 
-int strContains(char *str, char *key) {
+int strContains(const char *str, const char *key) {
     return strstr(str, key) != NULL;
 }
 
