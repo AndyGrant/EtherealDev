@@ -32,23 +32,23 @@ int PSQT[32][SQUARE_NB];
 
 #define S(mg, eg) (MakeScore((mg), (eg)))
 
-/* Material Value Evaluation Terms */
+const int PawnValue = S(  99, 136);
 
-const int PawnValue   = S( 100, 137);
 const int KnightValue = S( 455, 412);
-const int BishopValue = S( 478, 428);
-const int RookValue   = S( 666, 700);
-const int QueenValue  = S(1303,1350);
-const int KingValue   = S(   0,   0);
 
-/* Piece Square Evaluation Terms */
+const int BishopValue = S( 478, 428);
+
+const int RookValue = S( 666, 701);
+
+const int QueenValue = S(1303,1350);
+const int KingValue = S(0,0);
 
 const int PawnPSQT32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S( -22,   8), S(   4,   3), S( -10,   4), S(  -6,  -5),
-    S( -25,   1), S( -12,   2), S( -15,  -6), S(  -8, -13),
-    S( -21,  11), S( -14,  14), S(   5, -11), S(   5, -22),
-    S( -12,  18), S(  -4,  13), S(  -9,  -1), S(  -3, -17),
+    S( -21,   8), S(   3,   3), S( -11,   4), S(  -7,  -5),
+    S( -25,   1), S( -13,   2), S( -15,  -6), S(  -9, -13),
+    S( -21,  11), S( -14,  14), S(   5, -11), S(   6, -22),
+    S( -12,  18), S(  -4,  13), S(  -9,  -1), S(  -2, -17),
     S(  -7,  30), S(  -2,  26), S(   2,  16), S(  30, -11),
     S( -21, -60), S( -60, -29), S(   2, -43), S(  45, -58),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
@@ -67,8 +67,8 @@ const int KnightPSQT32[32] = {
 
 const int BishopPSQT32[32] = {
     S(   8, -26), S(  13, -18), S(  -2,  -9), S(  10, -12),
-    S(  31, -34), S(  14, -36), S(  25, -20), S(  15, -11),
-    S(  17, -12), S(  28, -14), S(   4, -16), S(  23,  -3),
+    S(  31, -34), S(  14, -36), S(  25, -20), S(  14, -11),
+    S(  17, -12), S(  28, -14), S(   4, -16), S(  24,  -3),
     S(  16,  -7), S(  18,  -3), S(  15,   6), S(  23,   6),
     S(  -9,  14), S(  17,   5), S(   5,  14), S(  11,  17),
     S(   4,   7), S(  -4,  17), S(  -2,   5), S(  14,  14),
@@ -88,7 +88,7 @@ const int RookPSQT32[32] = {
 };
 
 const int QueenPSQT32[32] = {
-    S(  31, -66), S(   7, -45), S(  14, -59), S(  27, -43),
+    S(  31, -66), S(   7, -45), S(  14, -59), S(  26, -43),
     S(  15, -42), S(  28, -58), S(  33, -69), S(  23, -26),
     S(  13, -30), S(  26, -20), S(   6,   7), S(   7,   1),
     S(  18,  -8), S(  15,  12), S(  -4,  24), S( -22,  64),
@@ -109,8 +109,6 @@ const int KingPSQT32[32] = {
     S(   4,-123), S(  73, -63), S( -23, -23), S( -20, -19),
 };
 
-/* Pawn Evaluation Terms */
-
 const int PawnCandidatePasser[2][RANK_NB] = {
    {S(   0,   0), S( -27, -10), S( -10,   9), S( -17,  32),
     S(   2,  60), S(  39,  65), S(   0,   0), S(   0,   0)},
@@ -118,29 +116,27 @@ const int PawnCandidatePasser[2][RANK_NB] = {
     S(  19,  86), S(  38,  62), S(   0,   0), S(   0,   0)},
 };
 
-const int PawnIsolated = S(  -5, -12);
+const int PawnIsolated = S(  -7, -13);
 
-const int PawnStacked[2] = { S(  -6, -18), S(  -7,  -9) };
+const int PawnStacked[2] = { S(  -6, -19), S(  -8,  -9) };
 
 const int PawnBackwards[2][RANK_NB] = {
-   {S(   0,   0), S(   3,  -7), S(  10,  -5), S(   8, -11),
+   {S(   0,   0), S(   4,  -6), S(   9,  -5), S(   9, -11),
     S(   7, -12), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S( -10, -28), S(  -5, -24), S(   3, -27),
+   {S(   0,   0), S( -10, -28), S(  -5, -24), S(   4, -27),
     S(  28, -30), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(  -2,  -6), S(  12,   0), S(   2,   1), S(   6,  12),
+    S(  -2,  -6), S(  11,   0), S(   2,   1), S(   6,  12),
     S(  14,   0), S(  27,  -4), S(  21,   4), S(  23,  11),
     S(   8,  -1), S(  24,   1), S(  10,   8), S(  16,  15),
-    S(  10,   9), S(  21,  14), S(  25,  20), S(  30,  19),
+    S(  10,   9), S(  21,  14), S(  25,  20), S(  31,  19),
     S(  57,  19), S(  42,  44), S(  62,  55), S(  75,  60),
     S( 110, -10), S( 202,  -6), S( 226,  24), S( 235,  38),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
-
-/* Knight Evaluation Terms */
 
 const int KnightOutpost[2][2] = {
    {S(  10, -27), S(  35,  -3)},
@@ -150,16 +146,14 @@ const int KnightOutpost[2][2] = {
 const int KnightBehindPawn = S(   4,  20);
 
 const int KnightInSiberia[4] = {
-    S(  -8,  -1), S( -11,  -6), S( -22,  -3), S( -25,  -6),
+    S(  -9,  -1), S( -11,  -6), S( -22,  -3), S( -25,  -6),
 };
 
 const int KnightMobility[9] = {
     S( -78,-106), S( -31,-102), S( -15, -42), S(  -4, -15),
-    S(   8,  -6), S(  12,  10), S(  20,  13), S(  30,  12),
+    S(   8,  -6), S(  13,  10), S(  21,  13), S(  30,  12),
     S(  43,  -4),
 };
-
-/* Bishop Evaluation Terms */
 
 const int BishopPair = S(  21,  68);
 
@@ -170,33 +164,29 @@ const int BishopOutpost[2][2] = {
    {S(   6, -12), S(  10,  -4)},
 };
 
-const int BishopBehindPawn = S(   2,  19);
+const int BishopBehindPawn = S(   3,  19);
 
 const int BishopLongDiagonal = S(  21,  10);
 
 const int BishopMobility[14] = {
-    S( -69,-149), S( -33, -99), S( -12, -54), S(  -2, -28),
-    S(   9, -17), S(  17,  -3), S(  20,   7), S(  21,  12),
+    S( -69,-149), S( -33, -99), S( -11, -54), S(  -1, -28),
+    S(   9, -17), S(  16,  -3), S(  19,   7), S(  21,  12),
     S(  20,  18), S(  25,  20), S(  24,  20), S(  46,   8),
     S(  47,  19), S(  75, -17),
 };
 
-/* Rook Evaluation Terms */
-
-const int RookFile[2] = { S(  12,   3), S(  34,   3) };
+const int RookFile[2] = { S(  13,   4), S(  33,   3) };
 
 const int RookOnSeventh = S(  -4,  30);
 
 const int RookMobility[15] = {
-    S(-159,-116), S( -58,-115), S( -18, -65), S(  -9, -21),
+    S(-159,-116), S( -58,-115), S( -17, -65), S(  -9, -21),
     S(  -9,   0), S( -10,  14), S(  -9,  26), S(  -2,  29),
-    S(   6,  33), S(   9,  37), S(  13,  43), S(  19,  47),
+    S(   5,  33), S(   9,  37), S(  13,  43), S(  19,  47),
     S(  21,  51), S(  37,  39), S( 106,  -8),
 };
 
-/* Queen Evaluation Terms */
-
-const int QueenRelativePin = S( -20, -10);
+const int QueenRelativePin = S( -19, -10);
 
 const int QueenMobility[28] = {
     S( -61,-263), S(-213,-388), S( -60,-200), S( -22,-191),
@@ -207,8 +197,6 @@ const int QueenMobility[28] = {
     S(  16,   8), S(  30, -15), S(  31, -45), S(  30, -62),
     S(   8, -78), S(  19,-107), S( -55, -37), S( -32, -63),
 };
-
-/* King Evaluation Terms */
 
 const int KingDefenders[12] = {
     S( -26,   2), S(  -6,  -1), S(   2,   4), S(   9,   6),
@@ -246,7 +234,7 @@ const int KingShelter[2][FILE_NB][RANK_NB] = {
     S(  21,  -3), S( -87,  48), S( -84, -74), S( -19,  -2)},
    {S(   0,   0), S( -10,   9), S(  -6,  -2), S( -25,   5),
     S( -27,   4), S(-100,  30), S(   7, -40), S( -22,  -4)},
-   {S(   0,   0), S(  14,   2), S(  12,  -6), S(  15, -13),
+   {S(   0,   0), S(  13,   2), S(  12,  -6), S(  15, -13),
     S(  17, -31), S( -57,  14), S(-101, -60), S(  -2,  -3)},
    {S(   0,   0), S(   1,  -6), S( -26,   2), S( -23,  -9),
     S(  23, -23), S( -37,   3), S(  55,  39), S( -17,  -4)},
@@ -264,7 +252,7 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
    {S(   3,  43), S(   4,  28), S( -22,  20), S( -10,   7),
     S(   3,   1), S(   7,   0), S(  12,  -6), S(   6,   2)},
    {S(  -7,  28), S(   4,  25), S( -22,   9), S( -14,   0),
-    S( -12,   1), S(   9, -12), S(   3,  -9), S( -12,   4)}},
+    S( -12,   1), S(   9, -12), S(   3,  -9), S( -12,   5)}},
   {{S(   0,   0), S( -18, -16), S( -16,  -2), S(  22, -20),
     S(  10,  -7), S(   6, -21), S(   4,   1), S(  16,  29)},
    {S(   0,   0), S( -17, -37), S(   3, -11), S(  44, -13),
@@ -274,21 +262,6 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
    {S(   0,   0), S(  -2, -19), S( -20, -16), S( -14,  -2),
     S(  -3,  -7), S(   2, -23), S(  73, -12), S(  15,  20)}},
 };
-
-/* King Safety Evaluation Terms */
-
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   95;
-const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
-
-/* Passed Pawn Evaluation Terms */
 
 const int PassedPawn[2][2][RANK_NB] = {
   {{S(   0,   0), S( -36,   1), S( -48,  26), S( -73,  31),
@@ -303,36 +276,41 @@ const int PassedPawn[2][2][RANK_NB] = {
 
 const int PassedFriendlyDistance[FILE_NB] = {
     S(   0,   0), S(   1,   1), S(   4,  -4), S(   6, -11),
-    S(   4, -14), S( -10, -10), S( -17,  -1), S(   0,   0),
+    S(   4, -13), S( -10, -10), S( -17,  -1), S(   0,   0),
 };
 
 const int PassedEnemyDistance[FILE_NB] = {
-    S(   0,   0), S(   3,  -1), S(   4,   0), S(   9,   8),
-    S(   1,  20), S(   6,  28), S(  27,  25), S(   0,   0),
+    S(   0,   0), S(   2,  -2), S(   4,  -1), S(   9,   8),
+    S(   2,  22), S(   7,  29), S(  27,  25), S(   0,   0),
 };
 
 const int PassedSafePromotionPath = S( -19,  38);
 
-/* Threat Evaluation Terms */
+const int ThreatWeakPawn = S(  -9, -27);
 
-const int ThreatWeakPawn             = S( -12, -28);
-const int ThreatMinorAttackedByPawn  = S( -53, -57);
-const int ThreatMinorAttackedByMinor = S( -24, -37);
-const int ThreatMinorAttackedByMajor = S( -27, -46);
-const int ThreatRookAttackedByLesser = S( -49, -22);
-const int ThreatMinorAttackedByKing  = S( -16, -16);
-const int ThreatRookAttackedByKing   = S( -18, -16);
-const int ThreatQueenAttackedByOne   = S( -49, -26);
-const int ThreatOverloadedPieces     = S(  -8, -13);
-const int ThreatByPawnPush           = S(  14,  24);
+const int ThreatMinorAttackedByPawn = S( -51, -57);
 
-/* Space Evaluation Terms */
+const int ThreatMinorAttackedByMinor = S( -23, -37);
 
-const int SpaceRestrictPiece = S(  -3,  -1);
-const int SpaceRestrictEmpty = S(  -4,  -2);
-const int SpaceCenterControl = S(   5,  -5);
+const int ThreatMinorAttackedByMajor = S( -26, -45);
 
-/* Closedness Evaluation Terms */
+const int ThreatRookAttackedByLesser = S( -48, -21);
+
+const int ThreatMinorAttackedByKing = S( -16, -16);
+
+const int ThreatRookAttackedByKing = S( -18, -16);
+
+const int ThreatQueenAttackedByOne = S( -47, -26);
+
+const int ThreatOverloadedPieces = S(  -7, -13);
+
+const int ThreatByPawnPush = S(  15,  24);
+
+const int SpaceRestrictPiece = S(  -3,   0);
+
+const int SpaceRestrictEmpty = S(  -5,  -2);
+
+const int SpaceCenterControl = S(   2,  -4);
 
 const int ClosednessKnightAdjustment[9] = {
     S(  -9,  -7), S(  -6,   8), S(  -7,  16), S(  -3,  16),
@@ -341,19 +319,32 @@ const int ClosednessKnightAdjustment[9] = {
 };
 
 const int ClosednessRookAdjustment[9] = {
-    S(  67, -15), S(   5,  34), S(   4,  18), S(  -2,   1),
+    S(  67, -14), S(   5,  34), S(   4,  18), S(  -2,   1),
     S( -10,   6), S( -10, -12), S( -12, -12), S( -23, -16),
     S( -35, -21),
 };
 
-/* Complexity Evaluation Terms */
+const int ComplexityTotalPawns = S(   0,   9);
 
-const int ComplexityTotalPawns  = S(   0,   9);
-const int ComplexityPawnFlanks  = S(   0,  71);
+const int ComplexityPawnFlanks = S(   0,  71);
+
 const int ComplexityPawnEndgame = S(   0,  51);
-const int ComplexityAdjustment  = S(   0,-144);
 
-/* General Evaluation Terms */
+const int ComplexityAdjustment = S(   0,-144);
+
+
+const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
+const int KSAttackValue     =   44;
+const int KSWeakSquares     =   38;
+const int KSFriendlyPawns   =  -22;
+const int KSNoEnemyQueens   = -276;
+const int KSSafeQueenCheck  =   95;
+const int KSSafeRookCheck   =   94;
+const int KSSafeBishopCheck =   51;
+const int KSSafeKnightCheck =  123;
+const int KSAdjustment      =  -18;
+
+
 
 const int Tempo = 20;
 
