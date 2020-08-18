@@ -144,6 +144,7 @@ void aspirationWindow(Thread *thread) {
     const int multiPV    = thread->multiPV;
     const int mainThread = thread->index == 0;
 
+    int failHighs = 0, failLows = 0;
     int value, depth = thread->depth;
     int alpha = -MATE, beta = MATE, delta = WindowSize;
 
@@ -174,16 +175,22 @@ void aspirationWindow(Thread *thread) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
             depth = thread->depth;
+            failLows++;
         }
 
         // Search failed high, adjust window and reduce depth
         else if (value >= beta) {
             beta = MIN(MATE, beta + delta);
             depth = depth - (abs(value) <= MATE / 2);
+            failHighs++;
         }
 
         // Expand the search window
         delta = delta + delta / 2;
+
+        // If we are bouncing expand further
+        if (failHighs && failLows)
+            delta = delta + delta / 2;
     }
 }
 
