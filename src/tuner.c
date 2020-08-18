@@ -413,9 +413,9 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
 
         if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
             gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
-
-        if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
-            gradient[index][EG] += egBase * wcoeff * sign * entry->scaleFactor / SCALE_NORMAL;
+        //
+        // if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
+        //     gradient[index][EG] += egBase * wcoeff * sign;// * entry->scaleFactor / SCALE_NORMAL;
     }
 }
 
