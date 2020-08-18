@@ -218,6 +218,9 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
         // Defer the set to another function
         initTunerEntry(&entries[i], &thread->board, methods);
 
+        entries[i].eval = atoi(strstr(line, "] ") + 2);
+        if (strstr(line, " b ")) entries[i].eval *= -1;
+
         // Occasional reporting for total completion
         if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
             printf("\rSetting up Entries from FENs [%7d of %7d]", i + 1, NPOSITIONS);
@@ -359,8 +362,8 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradient
         eg[methods[i]] -= (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][EG];
     }
 
-    normal[MG] = (double) ScoreMG(entry->eval) + mg[NORMAL];
-    normal[EG] = (double) ScoreEG(entry->eval) + eg[NORMAL];
+    normal[MG] = (double) entry->eval + mg[NORMAL];
+    normal[EG] = (double) entry->eval + eg[NORMAL];
     complexity = (double) ScoreEG(entry->complexity) + eg[COMPLEXITY];
     sign       = (normal[EG] > 0.0) - (normal[EG] < 0.0);
 
