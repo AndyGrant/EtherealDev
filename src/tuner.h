@@ -29,7 +29,7 @@
 
 #define LEARNING     (    0.1) // Learning rate
 #define LRDROPRATE   (   1.25) // Cut LR by this each failure
-#define MAXEPOCHS    (  10000) // Max number of epochs allowed
+#define MAXEPOCHS    (1000000) // Max number of epochs allowed
 #define BATCHSIZE    (  16384) // FENs per mini-batch
 #define NPOSITIONS   (5832688) // Total FENS in the book
 
