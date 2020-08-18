@@ -1102,10 +1102,10 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
-    if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
-    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
-    if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
-    if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
+    if (TRACE) T.ComplexityTotalPawns[WHITE]  += abs(sign) * popcount(board->pieces[PAWN]);
+    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += abs(sign) * pawnsOnBothFlanks;
+    if (TRACE) T.ComplexityPawnEndgame[WHITE] += abs(sign) * !(knights | bishops | rooks | queens);
+    if (TRACE) T.ComplexityAdjustment[WHITE]  += abs(sign);
 
     // Avoid changing which side has the advantage
     int v = sign * MAX(ScoreEG(complexity), -abs(eg));

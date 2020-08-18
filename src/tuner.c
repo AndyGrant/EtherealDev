@@ -128,6 +128,30 @@ void runTuner() {
     initMethodManager(methods);
     initTunerEntries(entries, thread, methods);
     K = computeOptimalK(entries);
+
+    for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
+
+        if (epoch % REPORTING == 0) {
+
+            error = tunedEvaluationErrors(entries, params, methods, K);
+            if (error > best) rate = rate / LRDROPRATE;
+            best = error;
+
+            printParameters(params, cparams);
+            printf("\nEpoch [%d] Error = [%g]\n", epoch, error);
+        }
+
+        for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
+
+            TVector gradient = {0};
+            computeGradient(entries, gradient, params, methods, K, batch);
+
+            for (int i = 0; i < NTERMS; i++) {
+                params[i][MG] += (2.0 / BATCHSIZE) * rate * gradient[i][MG];
+                params[i][EG] += (2.0 / BATCHSIZE) * rate * gradient[i][EG];
+            }
+        }
+    }
 }
 
 void initCurrentParameters(TVector cparams) {
@@ -195,7 +219,7 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
         initTunerEntry(&entries[i], &thread->board, methods);
 
         // Occasional reporting for total completion
-        if ((i + 1) % 100000 == 0 || i == NPOSITIONS - 1)
+        if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
             printf("\rSetting up Entries from FENs [%7d of %7d]", i + 1, NPOSITIONS);
     }
 
@@ -310,7 +334,7 @@ double tunedEvaluationErrors(TEntry *entries, TVector params, TArray methods, do
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(entries[i].result - sigmoid(K, linearEvaluation(&entries[i], params, methods)), 2);
+            total += pow(entries[i].result - sigmoid(K, linearEvaluation(&entries[i], params, methods, NULL)), 2);
     }
 
     return total / (double) NPOSITIONS;
@@ -321,7 +345,7 @@ double sigmoid(double K, double E) {
 }
 
 
-double linearEvaluation(TEntry *entry, TVector params, TArray methods) {
+double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradientData *data) {
 
     int sign;
     double midgame, endgame;
@@ -338,13 +362,157 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods) {
     normal[MG] = (double) ScoreMG(entry->eval) + mg[NORMAL];
     normal[EG] = (double) ScoreEG(entry->eval) + eg[NORMAL];
     complexity = (double) ScoreEG(entry->complexity) + eg[COMPLEXITY];
-    sign = (normal[EG] > 0.0) - (normal[EG] < 0.0);
+    sign       = (normal[EG] > 0.0) - (normal[EG] < 0.0);
 
     midgame = normal[MG];
     endgame = normal[EG] + sign * fmax(-fabs(normal[EG]), complexity);
 
+    if (data != NULL)
+        *data = (TGradientData) { midgame, endgame, complexity };
+
     return (midgame * (256 - entry->phase)
          +  endgame * entry->phase * entry->scaleFactor / SCALE_NORMAL) / 256;
+}
+
+void computeGradient(TEntry *entries, TVector gradient, TVector params, TArray methods, double K, int batch) {
+
+    #pragma omp parallel shared(gradient)
+    {
+        TVector local = {0};
+
+        #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
+        for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; i++)
+            updateSingleGradient(&entries[i], local, params, methods, K);
+
+        for (int i = 0; i < NTERMS; i++) {
+            gradient[i][MG] += local[i][MG];
+            gradient[i][EG] += local[i][EG];
+        }
+    }
+}
+
+void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArray methods, double K) {
+
+    TGradientData data;
+    double E = linearEvaluation(entry, params, methods, &data);
+    double S = sigmoid(K, E);
+    double A = (entry->result - S) * S * (1 - S);
+
+    double mgBase = A * entry->pfactors[MG];
+    double egBase = A * entry->pfactors[EG];
+    double sign = (data.complexity > 0.0) - (data.complexity < 0.0);
+
+    for (int i = 0; i < entry->ntuples; i++) {
+
+        int index  = entry->tuples[i].index;
+        int wcoeff = entry->tuples[i].wcoeff;
+        int bcoeff = entry->tuples[i].bcoeff;
+
+        if (methods[index] == NORMAL)
+            gradient[index][MG] += mgBase * (wcoeff - bcoeff);
+
+        if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
+            gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
+
+        if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
+            gradient[index][EG] += egBase * wcoeff * sign * entry->scaleFactor / SCALE_NORMAL;
+    }
+}
+
+
+void printParameters(TVector params, TVector cparams) {
+
+    TVector tparams;
+
+    // Combine updated and current parameters
+    for (int j = 0; j < NTERMS; j++) {
+        tparams[j][MG] = round(params[j][MG] + cparams[j][MG]);
+        tparams[j][EG] = round(params[j][EG] + cparams[j][EG]);
+    }
+
+    int i = 0; // EXECUTE_ON_TERMS will update i accordingly
+
+    EXECUTE_ON_TERMS(PRINT);
+
+    if (i != NTERMS) {
+        printf("Error in printParameters(): i = %d ; NTERMS = %d\n", i, NTERMS);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void print_0(char *name, TVector params, int i, char *S) {
+
+    printf("const int %s%s = S(%4d,%4d);\n\n", name, S, (int) params[i][MG], (int) params[i][EG]);
+
+}
+
+void print_1(char *name, TVector params, int i, int A, char *S) {
+
+    printf("const int %s%s = { ", name, S);
+
+    if (A >= 3) {
+
+        for (int a = 0; a < A; a++, i++) {
+            if (a % 4 == 0) printf("\n    ");
+            printf("S(%4d,%4d), ", (int) params[i][MG], (int) params[i][EG]);
+        }
+
+        printf("\n};\n\n");
+    }
+
+    else {
+
+        for (int a = 0; a < A; a++, i++) {
+            printf("S(%4d,%4d)", (int) params[i][MG], (int) params[i][EG]);
+            if (a != A - 1) printf(", "); else printf(" };\n\n");
+        }
+    }
+
+}
+
+void print_2(char *name, TVector params, int i, int A, int B, char *S) {
+
+    printf("const int %s%s = {\n", name, S);
+
+    for (int a = 0; a < A; a++) {
+
+        printf("   {");
+
+        for (int b = 0; b < B; b++, i++) {
+            if (b && b % 4 == 0) printf("\n    ");
+            printf("S(%4d,%4d)", (int) params[i][MG], (int) params[i][EG]);
+            printf("%s", b == B - 1 ? "" : ", ");
+        }
+
+        printf("},\n");
+    }
+
+    printf("};\n\n");
+
+}
+
+void print_3(char *name, TVector params, int i, int A, int B, int C, char *S) {
+
+    printf("const int %s%s = {\n", name, S);
+
+    for (int a = 0; a < A; a++) {
+
+        for (int b = 0; b < B; b++) {
+
+            printf("%s", b ? "   {" : "  {{");;
+
+            for (int c = 0; c < C; c++, i++) {
+                if (c &&  c % 4 == 0) printf("\n    ");
+                printf("S(%4d,%4d)", (int) params[i][MG], (int) params[i][EG]);
+                printf("%s", c == C - 1 ? "" : ", ");
+            }
+
+            printf("%s", b == B - 1 ? "}},\n" : "},\n");
+        }
+
+    }
+
+    printf("};\n\n");
 }
 
 #endif
