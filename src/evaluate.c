@@ -382,6 +382,7 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
 
     // Scale evaluation based on remaining material
     factor = evaluateScaleFactor(board, eval);
+    if (TRACE) T.scaleFactor = factor;
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -390,7 +391,7 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
     // Factor in the Tempo after interpolation and scaling, so that
     // in the search we can assume that if a null move is made, then
     // then `eval = last_eval + 2 * Tempo`
-    eval += board->turn == WHITE ? Tempo : -Tempo;
+    // eval += board->turn == WHITE ? Tempo : -Tempo;
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
@@ -1109,6 +1110,8 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     // Avoid changing which side has the advantage
     int v = sign * MAX(ScoreEG(complexity), -abs(eg));
 
+    if (TRACE) T.eval       = eval;
+    if (TRACE) T.complexity = complexity;
     return MakeScore(0, v);
 }
 
