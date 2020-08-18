@@ -144,9 +144,8 @@ void aspirationWindow(Thread *thread) {
     const int multiPV    = thread->multiPV;
     const int mainThread = thread->index == 0;
 
-    int failHighs = 0, failLows = 0;
-    int value, depth = thread->depth;
-    int alpha = -MATE, beta = MATE, delta = WindowSize;
+    int value, alpha = -MATE, beta = MATE, delta = WindowSize;
+    thread->failHighs = thread->failLows = 0;
 
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
@@ -157,7 +156,7 @@ void aspirationWindow(Thread *thread) {
     while (1) {
 
         // Perform a search and consider reporting results
-        value = search(thread, pv, alpha, beta, MAX(1, depth), 0);
+        value = search(thread, pv, alpha, beta, thread->depth, 0);
         if (   (mainThread && value > alpha && value < beta)
             || (mainThread && elapsedTime(thread->info) >= WindowTimerMS))
             uciReport(thread->threads, alpha, beta, value);
@@ -170,27 +169,21 @@ void aspirationWindow(Thread *thread) {
             return;
         }
 
-        // Search failed low, adjust window and reset depth
+        // Search failed low, adjust window
         if (value <= alpha) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
-            depth = thread->depth;
-            failLows++;
+            thread->failLows++;
         }
 
-        // Search failed high, adjust window and reduce depth
+        // Search failed high, adjust window
         else if (value >= beta) {
             beta = MIN(MATE, beta + delta);
-            depth = depth - (abs(value) <= MATE / 2);
-            failHighs++;
+            thread->failHighs++;
         }
 
         // Expand the search window
         delta = delta + delta / 2;
-
-        // If we are bouncing expand further
-        if (failHighs && failLows)
-            delta = delta + delta / 2;
     }
 }
 
@@ -510,6 +503,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
+
+            R += (RootNode && !thread->failLows) * thread->failHighs;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
