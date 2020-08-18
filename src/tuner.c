@@ -216,7 +216,7 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
             applyMove(&thread->board, thread->pv.line[pvidx], &undo);
 
         // Defer the set to another function
-        initTunerEntry(&entries[i], &thread->board, methods);
+        initTunerEntry(&entries[i], &thread->board, methods, line);
 
         // Occasional reporting for total completion
         if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
@@ -226,7 +226,7 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
     fclose(fin);
 }
 
-void initTunerEntry(TEntry *entry, Board *board, TArray methods) {
+void initTunerEntry(TEntry *entry, Board *board, TArray methods, char *line) {
 
     // Use the same phase calculation as evaluate()
     int phase = 24 - 4 * popcount(board->pieces[QUEEN ])
@@ -252,6 +252,16 @@ void initTunerEntry(TEntry *entry, Board *board, TArray methods) {
     entry->eval        = T.eval;
     entry->complexity  = T.complexity;
     entry->scaleFactor = T.scaleFactor;
+
+    int searched = atoi(strstr(line, "] ") + 2);
+    if (strstr(line, " b ")) searched *= -1;
+
+    int delta = searched - entry->seval;
+
+    int _mg = delta + ScoreMG(entry->eval);
+    int _eg = delta + ScoreEG(entry->eval);
+    entry->eval = MakeScore(_mg, _eg);
+
 }
 
 void initTunerTuples(TEntry *entry, TVector coeffs, TArray methods) {
@@ -413,9 +423,9 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
 
         if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
             gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
-
-        if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
-            gradient[index][EG] += egBase * wcoeff * sign * entry->scaleFactor / SCALE_NORMAL;
+        //
+        // if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
+        //     gradient[index][EG] += egBase * wcoeff * sign;// * entry->scaleFactor / SCALE_NORMAL;
     }
 }
 
