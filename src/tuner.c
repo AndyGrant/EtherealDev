@@ -368,7 +368,7 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradient
     endgame = normal[EG] + sign * fmax(-fabs(normal[EG]), complexity);
 
     if (data != NULL)
-        *data = (TGradientData) { midgame, endgame, complexity };
+        *data = (TGradientData) { normal[MG], normal[EG], complexity };
 
     return (midgame * (256 - entry->phase)
          +  endgame * entry->phase * entry->scaleFactor / SCALE_NORMAL) / 256;
@@ -411,23 +411,8 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
         if (methods[index] == NORMAL)
             gradient[index][MG] += mgBase * (wcoeff - bcoeff);
 
-        // if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
-        //     gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
-
-        if (methods[index] == NORMAL) {
-
-            if (data.egeval == 0.0)
-                gradient[index][EG] += egBase * entry->scaleFactor / SCALE_NORMAL * 0.0;
-
-            else if (fabs(data.egeval) + data.complexity >= 0)
-                gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
-
-            else if (data.egeval > 0)
-                gradient[index][EG] += egBase * (wcoeff - bcoeff) * (1 - sign) * entry->scaleFactor / SCALE_NORMAL;
-
-            else if (data.egeval < 0)
-                gradient[index][EG] += egBase * (wcoeff - bcoeff) * (sign + 1) * entry->scaleFactor / SCALE_NORMAL;
-        }
+        if (methods[index] == NORMAL && data.egeval != 0.0 && fabs(data.egeval) >= -data.complexity)
+            gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
 
         if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
             gradient[index][EG] += egBase * wcoeff * sign * entry->scaleFactor / SCALE_NORMAL;
