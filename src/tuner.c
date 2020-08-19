@@ -147,8 +147,8 @@ void runTuner() {
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
-                params[i][MG] += (2.0 / NPOSITIONS) * rate * gradient[i][MG];
-                params[i][EG] += (2.0 / NPOSITIONS) * rate * gradient[i][EG];
+                params[i][MG] += (2.0 / BATCHSIZE) * rate * gradient[i][MG];
+                params[i][EG] += (2.0 / BATCHSIZE) * rate * gradient[i][EG];
             }
         }
     }
@@ -411,8 +411,23 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
         if (methods[index] == NORMAL)
             gradient[index][MG] += mgBase * (wcoeff - bcoeff);
 
-        if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
-            gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
+        // if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
+        //     gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
+
+        if (methods[index] == NORMAL) {
+
+            if (data.egeval == 0.0)
+                gradient[index][EG] += egBase * entry->scaleFactor / SCALE_NORMAL * 0.0;
+
+            else if (fabs(data.egeval) + data.complexity >= 0)
+                gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
+
+            else if (data.egeval > 0)
+                gradient[index][EG] += egBase * (wcoeff - bcoeff) * (1 - sign) * entry->scaleFactor / SCALE_NORMAL;
+
+            else if (data.egeval < 0)
+                gradient[index][EG] += egBase * (wcoeff - bcoeff) * (sign + 1) * entry->scaleFactor / SCALE_NORMAL;
+        }
 
         if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
             gradient[index][EG] += egBase * wcoeff * sign * entry->scaleFactor / SCALE_NORMAL;
