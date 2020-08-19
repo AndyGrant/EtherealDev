@@ -138,7 +138,7 @@ void runTuner() {
             best = error;
 
             printParameters(params, cparams);
-            printf("\nEpoch [%d] Error = [%g]\n", epoch, error);
+            printf("\nEpoch [%d] Error = [%g] Rate = [%g]\n", epoch, error, rate);
         }
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
