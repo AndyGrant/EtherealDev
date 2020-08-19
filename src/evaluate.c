@@ -348,10 +348,10 @@ const int ClosednessRookAdjustment[9] = {
 
 /* Complexity Evaluation Terms */
 
-const int ComplexityTotalPawns  = S(   0,   9);
-const int ComplexityPawnFlanks  = S(   0,  71);
-const int ComplexityPawnEndgame = S(   0,  51);
-const int ComplexityAdjustment  = S(   0,-144);
+const int ComplexityTotalPawns  = S(   0,   4);
+const int ComplexityPawnFlanks  = S(   0,  94);
+const int ComplexityPawnEndgame = S(   0,  57);
+const int ComplexityAdjustment  = S(   0,-102);
 
 /* General Evaluation Terms */
 
@@ -1102,10 +1102,10 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
-    if (TRACE) T.ComplexityTotalPawns[WHITE]  += abs(sign) * popcount(board->pieces[PAWN]);
-    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += abs(sign) * pawnsOnBothFlanks;
-    if (TRACE) T.ComplexityPawnEndgame[WHITE] += abs(sign) * !(knights | bishops | rooks | queens);
-    if (TRACE) T.ComplexityAdjustment[WHITE]  += abs(sign);
+    if (TRACE) T.ComplexityTotalPawns[WHITE]  += popcount(board->pieces[PAWN]);
+    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += pawnsOnBothFlanks;
+    if (TRACE) T.ComplexityPawnEndgame[WHITE] += !(knights | bishops | rooks | queens);
+    if (TRACE) T.ComplexityAdjustment[WHITE]  += 1;
 
     // Avoid changing which side has the advantage
     int v = sign * MAX(ScoreEG(complexity), -abs(eg));

@@ -138,7 +138,7 @@ void runTuner() {
             best = error;
 
             printParameters(params, cparams);
-            printf("\nEpoch [%d] Error = [%g]\n", epoch, error);
+            printf("\nEpoch [%d] Error = [%g] Learning = [%g]\n", epoch, error, rate);
         }
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
@@ -147,8 +147,8 @@ void runTuner() {
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
-                params[i][MG] += (2.0 / BATCHSIZE) * rate * gradient[i][MG];
-                params[i][EG] += (2.0 / BATCHSIZE) * rate * gradient[i][EG];
+                params[i][MG] += (2.0 / NPOSITIONS) * rate * gradient[i][MG];
+                params[i][EG] += (2.0 / NPOSITIONS) * rate * gradient[i][EG];
             }
         }
     }
@@ -400,7 +400,7 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
 
     double mgBase = A * entry->pfactors[MG];
     double egBase = A * entry->pfactors[EG];
-    double sign = (data.complexity > 0.0) - (data.complexity < 0.0);
+    double sign = (data.egeval > 0.0) - (data.egeval < 0.0);
 
     for (int i = 0; i < entry->ntuples; i++) {
 
