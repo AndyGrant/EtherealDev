@@ -131,6 +131,16 @@ void runTuner() {
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
+        if (NPOSITIONS != BATCHSIZE) {
+            for (int i = 0; i < NPOSITIONS; i++) {
+                int A = rand64() % NPOSITIONS;
+                int B = rand64() % NPOSITIONS;
+                TEntry tmp = entries[A];
+                entries[A] = entries[B];
+                entries[B] = tmp;
+            }
+        }
+
         if (epoch % REPORTING == 0) {
 
             error = tunedEvaluationErrors(entries, params, methods, K);
@@ -216,7 +226,7 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
             applyMove(&thread->board, thread->pv.line[pvidx], &undo);
 
         // Defer the set to another function
-        initTunerEntry(&entries[i], &thread->board, methods);
+        initTunerEntry(&entries[i], &thread->board, methods, line);
 
         // Occasional reporting for total completion
         if ((i + 1) % 10000 == 0 || i == NPOSITIONS - 1)
@@ -226,13 +236,19 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
     fclose(fin);
 }
 
-void initTunerEntry(TEntry *entry, Board *board, TArray methods) {
+void initTunerEntry(TEntry *entry, Board *board, TArray methods, char *line) {
+
+    int searched, phase, premixed;
+
+    // Fetch the score (Search) association with the line
+    searched = atoi(strstr(line, "] ") + strlen("] "));
+    if (strstr(line, " b ")) searched = -searched;
 
     // Use the same phase calculation as evaluate()
-    int phase = 24 - 4 * popcount(board->pieces[QUEEN ])
-                   - 2 * popcount(board->pieces[ROOK  ])
-                   - 1 * popcount(board->pieces[BISHOP])
-                   - 1 * popcount(board->pieces[KNIGHT]);
+    phase = 24 - 4 * popcount(board->pieces[QUEEN ])
+               - 2 * popcount(board->pieces[ROOK  ])
+               - 1 * popcount(board->pieces[BISHOP])
+               - 1 * popcount(board->pieces[KNIGHT]);
 
     // Save time by computing phase scalars now
     entry->pfactors[MG] = 1 - phase / 24.0;
@@ -248,10 +264,14 @@ void initTunerEntry(TEntry *entry, Board *board, TArray methods) {
     initCoefficients(coeffs);
     initTunerTuples(entry, coeffs, methods);
 
-    // We must save the pre-mixed evaluation
-    entry->eval        = T.eval;
+    // Save some of the evaluation modifiers
     entry->complexity  = T.complexity;
-    entry->scaleFactor = T.scaleFactor;
+    entry->sfactor     = T.scaleFactor / (double) SCALE_NORMAL;
+
+    // ..... ???
+    premixed = (ScoreMG(T.eval) * (256 - entry->phase)
+             +  ScoreEG(T.eval) * entry->phase * entry->sfactor) / 256;
+    entry->eval = T.eval + MakeScore(searched - premixed, searched - premixed);
 }
 
 void initTunerTuples(TEntry *entry, TVector coeffs, TArray methods) {
@@ -368,10 +388,10 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradient
     endgame = normal[EG] + sign * fmax(-fabs(normal[EG]), complexity);
 
     if (data != NULL)
-        *data = (TGradientData) { midgame, endgame, complexity };
+        *data = (TGradientData) { normal[MG], normal[EG], complexity };
 
     return (midgame * (256 - entry->phase)
-         +  endgame * entry->phase * entry->scaleFactor / SCALE_NORMAL) / 256;
+         +  endgame * entry->phase * entry->sfactor) / 256;
 }
 
 void computeGradient(TEntry *entries, TVector gradient, TVector params, TArray methods, double K, int batch) {
@@ -400,7 +420,7 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
 
     double mgBase = A * entry->pfactors[MG];
     double egBase = A * entry->pfactors[EG];
-    double sign = (data.complexity > 0.0) - (data.complexity < 0.0);
+    double sign = (data.egeval > 0.0) - (data.egeval < 0.0);
 
     for (int i = 0; i < entry->ntuples; i++) {
 
@@ -412,10 +432,10 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
             gradient[index][MG] += mgBase * (wcoeff - bcoeff);
 
         if (methods[index] == NORMAL && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
-            gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->scaleFactor / SCALE_NORMAL;
+            gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->sfactor;
 
         if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
-            gradient[index][EG] += egBase * wcoeff * sign * entry->scaleFactor / SCALE_NORMAL;
+            gradient[index][EG] += egBase * wcoeff * sign * entry->sfactor;
     }
 }
 

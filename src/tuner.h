@@ -24,22 +24,22 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define REPORTING    (     50) // How often to report progress
-#define NTERMS       (    642) // Total terms in the Tuner (647)
+#define REPORTING    (      1) // How often to report progress
+#define NTERMS       (    647) // Total terms in the Tuner (647)
 
-#define LEARNING     (   10.0) // Learning rate
+#define LEARNING     (    1.0) // Learning rate
 #define LRDROPRATE   (   2.00) // Cut LR by this each failure
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
 #define BATCHSIZE    (  16384) // FENs per mini-batch
-#define NPOSITIONS   (5832688) // Total FENS in the book
+#define NPOSITIONS   (9991378) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 8))
 
-#define TunePawnValue                   (0)
-#define TuneKnightValue                 (0)
-#define TuneBishopValue                 (0)
-#define TuneRookValue                   (0)
-#define TuneQueenValue                  (0)
+#define TunePawnValue                   (1)
+#define TuneKnightValue                 (1)
+#define TuneBishopValue                 (1)
+#define TuneRookValue                   (1)
+#define TuneQueenValue                  (1)
 #define TunePawnPSQT32                  (1)
 #define TuneKnightPSQT32                (1)
 #define TuneBishopPSQT32                (1)
@@ -104,8 +104,8 @@ typedef struct TTuple {
 
 typedef struct TEntry {
     int ntuples, seval, phase;
-    int eval, complexity, scaleFactor;
-    double result, pfactors[PHASE_NB];
+    int eval, complexity;
+    double result, sfactor, pfactors[PHASE_NB];
     TTuple *tuples;
 } TEntry;
 
@@ -123,7 +123,7 @@ void initCurrentParameters(TVector cparams);
 void initMethodManager(TArray methods);
 void initCoefficients(TVector coeffs);
 void initTunerEntries(TEntry *entries, Thread *thread, TArray methods);
-void initTunerEntry(TEntry *entry, Board *board, TArray methods);
+void initTunerEntry(TEntry *entry, Board *board, TArray methods, char *line);
 void initTunerTuples(TEntry *entry, TVector coeffs, TArray methods);
 
 double computeOptimalK(TEntry *entries);
