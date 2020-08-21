@@ -98,6 +98,7 @@ struct EvalTrace {
     int ComplexityPawnFlanks[COLOUR_NB];
     int ComplexityPawnEndgame[COLOUR_NB];
     int ComplexityAdjustment[COLOUR_NB];
+    int eval, complexity, factor;
 };
 
 struct EvalInfo {

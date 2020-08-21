@@ -348,7 +348,7 @@ const int ClosednessRookAdjustment[9] = {
 
 /* Complexity Evaluation Terms */
 
-const int ComplexityTotalPawns  = S(   0,   9);
+const int ComplexityTotalPawns  = S(   0,   8);
 const int ComplexityPawnFlanks  = S(   0,  73);
 const int ComplexityPawnEndgame = S(   0,  65);
 const int ComplexityAdjustment  = S(   0,-146);
@@ -382,6 +382,7 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
 
     // Scale evaluation based on remaining material
     factor = evaluateScaleFactor(board, eval);
+    if (TRACE) T.factor = factor;
 
     // Compute the interpolated and scaled evaluation
     eval = (ScoreMG(eval) * (256 - phase)
@@ -1101,14 +1102,16 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
-    if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
-    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
-    if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
-    if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
+    if (TRACE) T.ComplexityTotalPawns[WHITE]  += popcount(board->pieces[PAWN]);
+    if (TRACE) T.ComplexityPawnFlanks[WHITE]  += pawnsOnBothFlanks;
+    if (TRACE) T.ComplexityPawnEndgame[WHITE] += !(knights | bishops | rooks | queens);
+    if (TRACE) T.ComplexityAdjustment[WHITE]  += 1;
 
     // Avoid changing which side has the advantage
     int v = sign * MAX(ScoreEG(complexity), -abs(eg));
 
+    if (TRACE) T.eval       = eval;
+    if (TRACE) T.complexity = complexity;
     return MakeScore(0, v);
 }
 
