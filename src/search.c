@@ -389,7 +389,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
 
     static const int AlphaTrimmingDepth = 6;
-    static const int AlphaTrimmingMargin = 32;
+    static const int AlphaTrimmingMargin = 16;
 
     if (   !PvNode
         &&  ttMove == NONE_MOVE
