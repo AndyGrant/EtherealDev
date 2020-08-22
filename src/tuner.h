@@ -33,7 +33,7 @@
 #define LRSTEPRATE   (    250) // Cut LR after this many epochs
 
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
-#define BATCHSIZE    (9999740) // FENs per mini-batch
+#define BATCHSIZE    (  16384) // FENs per mini-batch
 #define NPOSITIONS   (9999740) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
