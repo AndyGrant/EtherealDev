@@ -387,6 +387,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         }
     }
 
+
+    static const int AlphaTrimmingDepth = 6;
+    static const int AlphaTrimmingMargin = 32;
+
+    if (   !PvNode
+        &&  ttMove == NONE_MOVE
+        &&  depth >= AlphaTrimmingDepth
+        &&  alpha < eval + AlphaTrimmingMargin * depth)
+        depth -= 1;
+
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
