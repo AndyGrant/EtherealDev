@@ -110,7 +110,7 @@ void runTuner() {
     TArray methods = {0};
     TVector params = {0}, cparams = {0};
     Thread *thread = createThreadPool(1);
-    double K, error, best = 1e6, rate = LEARNING;
+    double K, error, rate = LEARNING;
 
     const int tentryMB = (int)(NPOSITIONS * sizeof(TEntry) / (1 << 20));
     const int ttupleMB = (int)(STACKSIZE  * sizeof(TTuple) / (1 << 20));
@@ -132,11 +132,6 @@ void runTuner() {
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
-        TVector originalParams;
-        for (int i = 0; i < NTERMS; i++)
-            for (int j = MG; j <= EG; j++)
-                originalParams[i][j] = params[i][j];
-
         if (NPOSITIONS != BATCHSIZE) {
             for (int i = 0; i < NPOSITIONS; i++) {
                 int A = rand64() % NPOSITIONS;
@@ -146,6 +141,9 @@ void runTuner() {
                 entries[B] = tmp;
             }
         }
+
+        if (epoch && epoch % LRSTEPRATE == 0)
+            rate = rate / LRDROPRATE;
 
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
@@ -158,17 +156,8 @@ void runTuner() {
             }
         }
 
-        error = tunedEvaluationErrors(entries, params, methods, K);
-
-        if (error > best) {
-            rate = rate / LRDROPRATE;
-            for (int i = 0; i < NTERMS; i++)
-                for (int j = MG; j <= EG; j++)
-                    params[i][j] = originalParams[i][j];
-        }
-
-        best = MIN(error, best);
         printParameters(params, cparams);
+        error = tunedEvaluationErrors(entries, params, methods, K);
         printf("\nEpoch [%d] Error = [%g], Rate = [%g]\n", epoch, error, rate);
     }
 }
