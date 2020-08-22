@@ -24,7 +24,7 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define NTERMS       (    643) // Total terms in the Tuner (647)
+#define NTERMS       (     13) // Total terms in the Tuner (660)
 #define QSRESOLVE    (      0) // Whether to resolve via a qsearch()
 #define REPORTING    (     50) // How often to print the new parameters
 
@@ -38,66 +38,79 @@
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 32))
 
-#define TunePawnValue                   (1)
-#define TuneKnightValue                 (1)
-#define TuneBishopValue                 (1)
-#define TuneRookValue                   (1)
-#define TuneQueenValue                  (1)
-#define TunePawnPSQT32                  (1)
-#define TuneKnightPSQT32                (1)
-#define TuneBishopPSQT32                (1)
-#define TuneRookPSQT32                  (1)
-#define TuneQueenPSQT32                 (1)
-#define TuneKingPSQT32                  (1)
-#define TunePawnCandidatePasser         (1)
-#define TunePawnIsolated                (1)
-#define TunePawnStacked                 (1)
-#define TunePawnBackwards               (1)
-#define TunePawnConnected32             (1)
-#define TuneKnightOutpost               (1)
-#define TuneKnightBehindPawn            (1)
-#define TuneKnightInSiberia             (1)
-#define TuneKnightMobility              (1)
-#define TuneBishopPair                  (1)
-#define TuneBishopRammedPawns           (1)
-#define TuneBishopOutpost               (1)
-#define TuneBishopBehindPawn            (1)
-#define TuneBishopLongDiagonal          (1)
-#define TuneBishopMobility              (1)
-#define TuneRookFile                    (1)
-#define TuneRookOnSeventh               (1)
-#define TuneRookMobility                (1)
-#define TuneQueenRelativePin            (1)
-#define TuneQueenMobility               (1)
-#define TuneKingDefenders               (1)
-#define TuneKingPawnFileProximity       (1)
-#define TuneKingShelter                 (1)
-#define TuneKingStorm                   (1)
-#define TunePassedPawn                  (1)
-#define TunePassedFriendlyDistance      (1)
-#define TunePassedEnemyDistance         (1)
-#define TunePassedSafePromotionPath     (1)
-#define TuneThreatWeakPawn              (1)
-#define TuneThreatMinorAttackedByPawn   (1)
-#define TuneThreatMinorAttackedByMinor  (1)
-#define TuneThreatMinorAttackedByMajor  (1)
-#define TuneThreatRookAttackedByLesser  (1)
-#define TuneThreatMinorAttackedByKing   (1)
-#define TuneThreatRookAttackedByKing    (1)
-#define TuneThreatQueenAttackedByOne    (1)
-#define TuneThreatOverloadedPieces      (1)
-#define TuneThreatByPawnPush            (1)
-#define TuneSpaceRestrictPiece          (1)
-#define TuneSpaceRestrictEmpty          (1)
-#define TuneSpaceCenterControl          (1)
-#define TuneClosednessKnightAdjustment  (1)
-#define TuneClosednessRookAdjustment    (1)
+#define TunePawnValue                   (0)
+#define TuneKnightValue                 (0)
+#define TuneBishopValue                 (0)
+#define TuneRookValue                   (0)
+#define TuneQueenValue                  (0)
+#define TunePawnPSQT32                  (0)
+#define TuneKnightPSQT32                (0)
+#define TuneBishopPSQT32                (0)
+#define TuneRookPSQT32                  (0)
+#define TuneQueenPSQT32                 (0)
+#define TuneKingPSQT32                  (0)
+#define TunePawnCandidatePasser         (0)
+#define TunePawnIsolated                (0)
+#define TunePawnStacked                 (0)
+#define TunePawnBackwards               (0)
+#define TunePawnConnected32             (0)
+#define TuneKnightOutpost               (0)
+#define TuneKnightBehindPawn            (0)
+#define TuneKnightInSiberia             (0)
+#define TuneKnightMobility              (0)
+#define TuneBishopPair                  (0)
+#define TuneBishopRammedPawns           (0)
+#define TuneBishopOutpost               (0)
+#define TuneBishopBehindPawn            (0)
+#define TuneBishopLongDiagonal          (0)
+#define TuneBishopMobility              (0)
+#define TuneRookFile                    (0)
+#define TuneRookOnSeventh               (0)
+#define TuneRookMobility                (0)
+#define TuneQueenRelativePin            (0)
+#define TuneQueenMobility               (0)
+#define TuneKingDefenders               (0)
+#define TuneKingPawnFileProximity       (0)
+#define TuneKingShelter                 (0)
+#define TuneKingStorm                   (0)
+#define TuneSafetyKnightWeight          (1)
+#define TuneSafetyBishopWeight          (1)
+#define TuneSafetyRookWeight            (1)
+#define TuneSafetyQueenWeight           (1)
+#define TuneSafetyAttackValue           (1)
+#define TuneSafetyWeakSquares           (1)
+#define TuneSafetyFriendlyPawns         (1)
+#define TuneSafetyNoEnemyQueens         (1)
+#define TuneSafetySafeQueenCheck        (1)
+#define TuneSafetySafeRookCheck         (1)
+#define TuneSafetySafeBishopCheck       (1)
+#define TuneSafetySafeKnightCheck       (1)
+#define TuneSafetyAdjustment            (1)
+#define TunePassedPawn                  (0)
+#define TunePassedFriendlyDistance      (0)
+#define TunePassedEnemyDistance         (0)
+#define TunePassedSafePromotionPath     (0)
+#define TuneThreatWeakPawn              (0)
+#define TuneThreatMinorAttackedByPawn   (0)
+#define TuneThreatMinorAttackedByMinor  (0)
+#define TuneThreatMinorAttackedByMajor  (0)
+#define TuneThreatRookAttackedByLesser  (0)
+#define TuneThreatMinorAttackedByKing   (0)
+#define TuneThreatRookAttackedByKing    (0)
+#define TuneThreatQueenAttackedByOne    (0)
+#define TuneThreatOverloadedPieces      (0)
+#define TuneThreatByPawnPush            (0)
+#define TuneSpaceRestrictPiece          (0)
+#define TuneSpaceRestrictEmpty          (0)
+#define TuneSpaceCenterControl          (0)
+#define TuneClosednessKnightAdjustment  (0)
+#define TuneClosednessRookAdjustment    (0)
 #define TuneComplexityTotalPawns        (0)
 #define TuneComplexityPawnFlanks        (0)
 #define TuneComplexityPawnEndgame       (0)
 #define TuneComplexityAdjustment        (0)
 
-enum { NORMAL, COMPLEXITY, METHOD_NB };
+enum { NORMAL, COMPLEXITY, SAFETY, METHOD_NB };
 
 typedef struct TTuple {
     uint16_t index;
@@ -107,13 +120,15 @@ typedef struct TTuple {
 
 typedef struct TEntry {
     int ntuples, seval, phase, turn;
-    int eval, complexity;
+    int eval, safety[COLOUR_NB], complexity;
     double result, sfactor, pfactors[PHASE_NB];
     TTuple *tuples;
 } TEntry;
 
 typedef struct TGradientData {
-    double mgeval, egeval, complexity;
+    double egeval, complexity;
+    double wsafetymg, bsafetymg;
+    double wsafetyeg, bsafetyeg;
 } TGradientData;
 
 typedef int TArray[NTERMS];
@@ -277,6 +292,19 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_1(F, KingPawnFileProximity, 8, NORMAL, "[FILE_NB]");             \
     ENABLE_3(F, KingShelter, 2, 8, 8, NORMAL, "[2][FILE_NB][RANK_NB]");     \
     ENABLE_3(F, KingStorm, 2, 4, 8, NORMAL, "[2][FILE_NB/2][RANK_NB]");     \
+    ENABLE_0(F, SafetyKnightWeight, SAFETY, "");                            \
+    ENABLE_0(F, SafetyBishopWeight, SAFETY, "");                            \
+    ENABLE_0(F, SafetyRookWeight, SAFETY, "");                              \
+    ENABLE_0(F, SafetyQueenWeight, SAFETY, "");                             \
+    ENABLE_0(F, SafetyAttackValue, SAFETY, "");                             \
+    ENABLE_0(F, SafetyWeakSquares, SAFETY, "");                             \
+    ENABLE_0(F, SafetyFriendlyPawns, SAFETY, "");                           \
+    ENABLE_0(F, SafetyNoEnemyQueens, SAFETY, "");                           \
+    ENABLE_0(F, SafetySafeQueenCheck, SAFETY, "");                          \
+    ENABLE_0(F, SafetySafeRookCheck, SAFETY, "");                           \
+    ENABLE_0(F, SafetySafeBishopCheck, SAFETY, "");                         \
+    ENABLE_0(F, SafetySafeKnightCheck, SAFETY, "");                         \
+    ENABLE_0(F, SafetyAdjustment, SAFETY, "");                              \
     ENABLE_3(F, PassedPawn, 2, 2, 8, NORMAL, "[2][2][RANK_NB]");            \
     ENABLE_1(F, PassedFriendlyDistance, 8, NORMAL, "[FILE_NB]");            \
     ENABLE_1(F, PassedEnemyDistance, 8, NORMAL, "[FILE_NB]");               \

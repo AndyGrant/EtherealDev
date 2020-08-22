@@ -78,6 +78,19 @@ extern const int KingDefenders[12];
 extern const int KingPawnFileProximity[8];
 extern const int KingShelter[2][8][8];
 extern const int KingStorm[2][4][8];
+extern const int SafetyKnightWeight;
+extern const int SafetyBishopWeight;
+extern const int SafetyRookWeight;
+extern const int SafetyQueenWeight;
+extern const int SafetyAttackValue;
+extern const int SafetyWeakSquares;
+extern const int SafetyFriendlyPawns;
+extern const int SafetyNoEnemyQueens;
+extern const int SafetySafeQueenCheck;
+extern const int SafetySafeRookCheck;
+extern const int SafetySafeBishopCheck;
+extern const int SafetySafeKnightCheck;
+extern const int SafetyAdjustment;
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
 extern const int PassedEnemyDistance[8];
@@ -156,7 +169,7 @@ void runTuner() {
         }
 
         error = tunedEvaluationErrors(entries, params, methods, K);
-        printf("\nEpoch [%d] Error = [%g], Rate = [%g]\n", epoch, error, rate);
+        printf("Epoch [%d] Error = [%g], Rate = [%g]\n", epoch, error, rate);
 
         if (epoch && epoch % LRSTEPRATE == 0) rate = rate / LRDROPRATE;
         if (epoch % REPORTING == 0) printParameters(params, cparams);
@@ -266,6 +279,10 @@ void initTunerEntry(TEntry *entry, Board *board, TArray methods) {
     entry->complexity  = T.complexity;
     entry->sfactor     = T.factor / (double) SCALE_NORMAL;
     entry->turn        = board->turn;
+
+    // Save the Linear version of King Safety
+    entry->safety[WHITE] = T.safety[WHITE];
+    entry->safety[BLACK] = T.safety[BLACK];
 }
 
 void initTunerTuples(TEntry *entry, TVector coeffs, TArray methods) {
@@ -362,27 +379,51 @@ double sigmoid(double K, double E) {
 double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradientData *data) {
 
     int sign, mixed;
-    double midgame, endgame;
-    double normal[PHASE_NB], complexity;
-    double mg[METHOD_NB] = {0}, eg[METHOD_NB] = {0};
+    double midgame, endgame, wsafety[2], bsafety[2];
+    double normal[PHASE_NB], safety[PHASE_NB], complexity;
+    double mg[METHOD_NB][COLOUR_NB] = {0}, eg[METHOD_NB][COLOUR_NB] = {0};
 
+    // Save any modifications for MG or EG for each evaluation type
     for (int i = 0; i < entry->ntuples; i++) {
-        mg[methods[i]] += (double) entry->tuples[i].wcoeff * params[entry->tuples[i].index][MG];
-        mg[methods[i]] -= (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][MG];
-        eg[methods[i]] += (double) entry->tuples[i].wcoeff * params[entry->tuples[i].index][EG];
-        eg[methods[i]] -= (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][EG];
+        mg[methods[i]][WHITE] += (double) entry->tuples[i].wcoeff * params[entry->tuples[i].index][MG];
+        mg[methods[i]][BLACK] += (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][MG];
+        eg[methods[i]][WHITE] += (double) entry->tuples[i].wcoeff * params[entry->tuples[i].index][EG];
+        eg[methods[i]][BLACK] += (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][EG];
     }
 
-    normal[MG] = (double) ScoreMG(entry->eval) + mg[NORMAL];
-    normal[EG] = (double) ScoreEG(entry->eval) + eg[NORMAL];
-    complexity = (double) ScoreEG(entry->complexity) + eg[COMPLEXITY];
-    sign       = (normal[EG] > 0.0) - (normal[EG] < 0.0);
+    // Grab the original "normal" evaluations and add the modified parameters
+    normal[MG] = (double) ScoreMG(entry->eval) + mg[NORMAL][WHITE] - mg[NORMAL][BLACK];
+    normal[EG] = (double) ScoreEG(entry->eval) + eg[NORMAL][WHITE] - eg[NORMAL][BLACK];
 
-    midgame = normal[MG];
-    endgame = normal[EG] + sign * fmax(-fabs(normal[EG]), complexity);
+    // Grab the original "safety" evaluations and add the modified parameters
+    wsafety[MG] = (double) ScoreMG(entry->safety[WHITE]) + mg[SAFETY][WHITE];
+    wsafety[EG] = (double) ScoreEG(entry->safety[WHITE]) + eg[SAFETY][WHITE];
+    bsafety[MG] = (double) ScoreMG(entry->safety[BLACK]) + mg[SAFETY][BLACK];
+    bsafety[EG] = (double) ScoreEG(entry->safety[BLACK]) + eg[SAFETY][BLACK];
 
+    // Remove the original "safety" evaluation that was double counted into the "normal" evaluation
+    normal[MG] -= MIN(0, -ScoreMG(entry->safety[WHITE]) * fabs(ScoreMG(entry->safety[WHITE])) / 720)
+                - MIN(0, -ScoreMG(entry->safety[BLACK]) * fabs(ScoreMG(entry->safety[BLACK])) / 720);
+    normal[EG] -= MIN(0, -ScoreEG(entry->safety[WHITE]) / 20) - MIN(0, -ScoreEG(entry->safety[BLACK]) / 20);
+
+    // Compute the new, true "safety" evaluations for each side
+    safety[MG] = MIN(0, -wsafety[MG] * fabs(-wsafety[MG]) / 720)
+               - MIN(0, -bsafety[MG] * fabs(-bsafety[MG]) / 720);
+    safety[EG] = MIN(0, -wsafety[EG] / 20) - MIN(0, -bsafety[EG] / 20);
+
+    // Grab the original "complexity" evaluation and add the modified parameters
+    complexity = (double) ScoreEG(entry->complexity) + eg[COMPLEXITY][WHITE];
+    sign       = (normal[EG] + safety[EG] > 0.0) - (normal[EG] + safety[EG] < 0.0);
+
+    // Save this information since we need it to compute the gradients
     if (data != NULL)
-        *data = (TGradientData) { normal[MG], normal[EG], complexity };
+        *data = (TGradientData) {
+            normal[EG] + safety[EG], complexity,
+            wsafety[MG], bsafety[MG], wsafety[EG], bsafety[EG]
+        };
+
+    midgame = normal[MG] + safety[MG];
+    endgame = normal[EG] + safety[EG] + sign * fmax(-fabs(normal[EG] + safety[EG]), complexity);
 
     mixed = (midgame * (256 - entry->phase)
           +  endgame * entry->phase * entry->sfactor) / 256;
@@ -416,7 +457,8 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
 
     double mgBase = A * entry->pfactors[MG];
     double egBase = A * entry->pfactors[EG];
-    double sign = (data.egeval > 0.0) - (data.egeval < 0.0);
+
+    double complexitySign = (data.egeval > 0.0) - (data.egeval < 0.0);
 
     for (int i = 0; i < entry->ntuples; i++) {
 
@@ -431,7 +473,13 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
             gradient[index][EG] += egBase * (wcoeff - bcoeff) * entry->sfactor;
 
         if (methods[index] == COMPLEXITY && data.complexity >= -fabs(data.egeval))
-            gradient[index][EG] += egBase * wcoeff * sign * entry->sfactor;
+            gradient[index][EG] += egBase * wcoeff * complexitySign * entry->sfactor;
+
+        if (methods[index] == SAFETY)
+            gradient[index][MG] += (mgBase / 360.0) * (fmax(data.bsafetymg, 0) * bcoeff - (fmax(data.wsafetymg, 0) * wcoeff));
+
+        if (methods[index] == SAFETY && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
+            gradient[index][EG] += (egBase /  20.0) * ((data.bsafetyeg > 0.0) * bcoeff - (data.wsafetyeg > 0.0) * wcoeff);
     }
 }
 

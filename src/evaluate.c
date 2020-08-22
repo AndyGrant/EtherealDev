@@ -34,297 +34,301 @@ int PSQT[32][SQUARE_NB];
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S(  95, 130);
-const int KnightValue = S( 439, 421);
-const int BishopValue = S( 453, 442);
-const int RookValue   = S( 621, 712);
-const int QueenValue  = S(1276,1364);
+const int PawnValue   = S(  98, 126);
+const int KnightValue = S( 452, 409);
+const int BishopValue = S( 472, 426);
+const int RookValue   = S( 652, 689);
+const int QueenValue  = S(1301,1346);
 const int KingValue   = S(   0,   0);
 
 /* Piece Square Evaluation Terms */
 
 const int PawnPSQT32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S( -15,   7), S(   1,   0), S(  -9,   2), S(  -8,   1),
-    S( -22,   5), S( -14,   3), S( -11,  -8), S(  -4, -14),
-    S( -16,  11), S( -11,   9), S(   4, -13), S(   5, -26),
-    S( -12,  16), S(  -8,   7), S( -15,  -8), S(  -8, -26),
-    S( -11,  37), S( -12,  32), S(  -8,  18), S(  14,  -9),
-    S( -18, -51), S( -46, -17), S(   2, -30), S(  43, -46),
+    S( -15,   6), S(   1,   1), S(  -9,   4), S(  -6,   1),
+    S( -23,   5), S( -15,   4), S( -11,  -6), S(  -3, -13),
+    S( -17,  12), S( -13,  10), S(   4, -11), S(   6, -25),
+    S( -12,  15), S(  -8,   8), S( -13,  -7), S(  -8, -22),
+    S(  -8,  32), S(  -5,  26), S(   0,  16), S(  25, -11),
+    S( -21, -61), S( -59, -28), S(   2, -42), S(  45, -57),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 const int KnightPSQT32[32] = {
-    S( -53, -38), S(  -4, -32), S( -15, -28), S(   0, -14),
-    S(  -1, -15), S(  -1, -15), S(   1, -30), S(   6, -16),
-    S(  11, -31), S(  15, -19), S(  11, -15), S(  19,   0),
-    S(  17,   6), S(  20,  10), S(  26,  21), S(  27,  28),
-    S(  22,  14), S(  26,  11), S(  38,  30), S(  29,  43),
-    S( -15,  10), S(  -7,  18), S(  23,  35), S(  23,  33),
-    S(  15, -15), S(  -7,  -1), S(  31, -20), S(  33,   7),
-    S(-174, -24), S( -84,  -5), S(-108,  22), S( -29,   1),
+    S( -48, -31), S(  -3, -29), S( -11, -28), S(   2, -15),
+    S(   1, -19), S(   2, -12), S(   4, -29), S(   9, -16),
+    S(  13, -28), S(  19, -21), S(  15, -16), S(  23,  -3),
+    S(  20,   2), S(  25,   6), S(  31,  18), S(  32,  25),
+    S(  25,  13), S(  31,   8), S(  43,  27), S(  34,  39),
+    S( -18,  11), S(   1,  13), S(  30,  29), S(  30,  28),
+    S(  13, -13), S(  -4,  -2), S(  31, -22), S(  40,   1),
+    S(-178, -25), S( -85,  -4), S(-111,  18), S( -33,  -3),
 };
 
 const int BishopPSQT32[32] = {
-    S(  11, -30), S(   8, -12), S(  -7, -12), S(   3,  -8),
-    S(  22, -38), S(  10, -38), S(  16, -20), S(   7,  -9),
-    S(  12, -11), S(  20, -12), S(   0, -18), S(  17,  -1),
-    S(   7,  -5), S(  15,  -1), S(  12,   9), S(  19,  11),
-    S( -14,  16), S(  14,  11), S(   2,  17), S(  10,  24),
-    S(  -2,  10), S( -13,  23), S(  -4,   8), S(   4,  19),
-    S( -50,  19), S( -42,   1), S( -10,   9), S( -27,  16),
-    S( -51,  -2), S( -44,  10), S( -85,  22), S( -94,  31),
+    S(  10, -26), S(  12, -17), S(  -3, -14), S(   9, -11),
+    S(  27, -36), S(  13, -37), S(  21, -22), S(  12, -11),
+    S(  17, -13), S(  26, -15), S(   3, -17), S(  22,  -4),
+    S(  12,  -8), S(  20,  -3), S(  17,   5), S(  26,   6),
+    S( -10,  14), S(  20,   6), S(   6,  14), S(  17,  18),
+    S(   2,   8), S(  -5,  17), S(  -1,   6), S(  13,  14),
+    S( -44,  15), S( -49,   5), S(  -7,   8), S( -23,  13),
+    S( -58,  -6), S( -45,   6), S( -84,  16), S( -90,  27),
 };
 
 const int RookPSQT32[32] = {
-    S( -14, -29), S( -13, -21), S(  -5, -21), S(   1, -26),
-    S( -47, -18), S( -10, -33), S( -10, -32), S(  -3, -33),
-    S( -26, -19), S(  -6, -12), S( -18, -15), S(  -4, -22),
-    S( -19,  -3), S( -13,   8), S( -12,   7), S(   1,  -1),
-    S(  -7,  13), S(  10,   8), S(  18,   8), S(  35,   4),
-    S( -20,  24), S(  25,   8), S(   7,  22), S(  34,   5),
-    S(  -1,   8), S( -10,  14), S(  10,   6), S(  24,   7),
-    S(  36,  22), S(  27,  28), S(  -1,  37), S(   6,  33),
+    S( -13, -30), S( -12, -21), S(  -3, -21), S(   3, -28),
+    S( -52, -14), S(  -9, -33), S(  -9, -32), S(   1, -36),
+    S( -28, -15), S(  -5, -12), S( -16, -16), S(   0, -25),
+    S( -18,  -2), S( -11,   7), S(  -7,   3), S(   6,  -4),
+    S(  -5,  11), S(  11,   7), S(  22,   5), S(  40,  -1),
+    S( -16,  21), S(  29,   5), S(   7,  20), S(  38,   2),
+    S(   1,   6), S( -11,  14), S(  12,   5), S(  27,   6),
+    S(  35,  22), S(  28,  25), S(   1,  34), S(   9,  29),
 };
 
 const int QueenPSQT32[32] = {
-    S(  29, -67), S(   5, -47), S(  12, -60), S(  20, -44),
-    S(  12, -41), S(  24, -53), S(  26, -68), S(  17, -28),
-    S(   9, -30), S(  23, -19), S(   7,   4), S(   5,   0),
-    S(  11, -10), S(  17,  10), S(  -1,  21), S( -15,  65),
-    S(  -6,  15), S(  -6,  42), S( -16,  30), S( -32,  82),
-    S( -25,  25), S( -18,  18), S( -25,  27), S( -12,  26),
-    S(  -6,  26), S( -60,  65), S(  -8,  15), S( -40,  60),
-    S(  -2,  19), S(  25,  10), S(  11,  20), S(   1,  29),
+    S(  31, -66), S(   6, -45), S(  13, -59), S(  21, -44),
+    S(  14, -42), S(  27, -58), S(  28, -71), S(  18, -27),
+    S(  11, -30), S(  25, -20), S(   7,   6), S(   6,   0),
+    S(  12,  -8), S(  18,  12), S(   0,  24), S( -13,  65),
+    S(  -4,  15), S(  -6,  47), S( -12,  23), S( -28,  76),
+    S( -25,  31), S( -16,  20), S( -23,  25), S( -11,  27),
+    S(  -2,  26), S( -63,  67), S(  -4,  12), S( -37,  53),
+    S( -10,  19), S(  20,   9), S(  10,  11), S(  -4,  22),
 };
 
 const int KingPSQT32[32] = {
-    S(  56, -80), S(  46, -54), S( -11, -15), S( -20, -34),
-    S(  31, -20), S( -16, -16), S( -43,   8), S( -69,  12),
-    S( -11, -23), S(  -2, -23), S(   9,   0), S( -20,  18),
-    S( -15, -29), S(  84, -34), S(  49,   5), S( -15,  31),
-    S(   5, -10), S( 108, -27), S(  58,  16), S(   2,  25),
-    S(  51, -24), S( 137, -14), S( 104,  10), S(  40,   5),
-    S(   8, -57), S(  50,  -3), S(  34,   8), S(   9,  -2),
-    S(   4,-120), S(  73, -62), S( -23, -25), S( -20, -19),
+    S(  50, -77), S(  41, -50), S( -17, -11), S( -29, -25),
+    S(  27, -20), S( -17, -12), S( -45,  11), S( -66,  13),
+    S(  -5, -22), S(   3, -21), S(  12,   1), S( -17,  19),
+    S(   0, -30), S(  94, -34), S(  46,   7), S(  -4,  29),
+    S(  10, -13), S( 108, -29), S(  56,  15), S(  12,  21),
+    S(  50, -26), S( 134, -19), S( 105,   6), S(  43,   2),
+    S(   7, -58), S(  48,  -8), S(  32,   5), S(   9,  -3),
+    S(   4,-123), S(  73, -63), S( -23, -23), S( -20, -19),
 };
 
 /* Pawn Evaluation Terms */
 
 const int PawnCandidatePasser[2][RANK_NB] = {
-   {S(   0,   0), S( -30, -12), S( -15,  12), S( -19,  30),
-    S(  -3,  57), S(  39,  53), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S( -19,  18), S(  -5,  23), S(   1,  49),
-    S(  23,  98), S(  43,  61), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -27, -10), S( -10,   9), S( -18,  32),
+    S(  -1,  59), S(  38,  64), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -15,  19), S(  -4,  22), S(   3,  47),
+    S(  21,  88), S(  38,  62), S(   0,   0), S(   0,   0)},
 };
 
 const int PawnIsolated = S(  -5, -12);
 
-const int PawnStacked[2] = { S(  -2, -23), S(  -5,  -9) };
+const int PawnStacked[2] = { S(  -3, -21), S(  -5,  -9) };
 
 const int PawnBackwards[2][RANK_NB] = {
-   {S(   0,   0), S(   2,  -5), S(  10,  -6), S(   9, -13),
-    S(   9, -20), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S( -14, -27), S(  -5, -25), S(   3, -25),
-    S(  33, -33), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(   3,  -4), S(  10,  -6), S(   9, -13),
+    S(   6, -13), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S( -14, -27), S(  -6, -25), S(   3, -26),
+    S(  29, -29), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
 const int PawnConnected32[32] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(  -5,  -8), S(  11,  -1), S(   1,  -1), S(   9,  12),
-    S(  12,   1), S(  23,  -4), S(  23,   4), S(  25,  11),
-    S(   8,  -1), S(  22,   0), S(   9,   6), S(  16,  15),
-    S(   6,  11), S(  20,  16), S(  28,  20), S(  30,  18),
-    S(  40,  25), S(  36,  53), S(  61,  58), S(  69,  71),
-    S( 114,   2), S( 208,   9), S( 228,  35), S( 237,  46),
+    S(  -5,  -9), S(  11,  -2), S(   1,   0), S(   8,  13),
+    S(  12,   0), S(  24,  -5), S(  23,   3), S(  25,  11),
+    S(   8,  -2), S(  23,  -1), S(   9,   6), S(  17,  14),
+    S(   9,  10), S(  20,  15), S(  27,  20), S(  30,  17),
+    S(  55,  19), S(  41,  45), S(  62,  56), S(  75,  62),
+    S( 110, -10), S( 202,  -5), S( 226,  24), S( 235,  38),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
 /* Knight Evaluation Terms */
 
 const int KnightOutpost[2][2] = {
-   {S(  12, -28), S(  37,  -2)},
-   {S(   3, -22), S(  20,  -7)},
+   {S(  11, -27), S(  37,  -1)},
+   {S(   3, -23), S(  19,  -5)},
 };
 
-const int KnightBehindPawn = S(   3,  22);
+const int KnightBehindPawn = S(   3,  23);
 
 const int KnightInSiberia[4] = {
-    S(  -8,  -3), S(  -9, -12), S( -19, -15), S( -36, -13),
+    S(  -8,  -2), S( -11, -10), S( -22,  -6), S( -26,  -6),
 };
 
 const int KnightMobility[9] = {
-    S( -82,-109), S( -41,-101), S( -23, -37), S( -11,  -8),
-    S(   2,   0), S(   5,  17), S(  12,  20), S(  22,  19),
-    S(  35,   1),
+    S( -78,-106), S( -33,-103), S( -15, -43), S(  -3, -15),
+    S(   9,  -6), S(  12,  11), S(  19,  14), S(  29,  13),
+    S(  42,  -5),
 };
 
 /* Bishop Evaluation Terms */
 
-const int BishopPair = S(  17,  70);
+const int BishopPair = S(  18,  68);
 
-const int BishopRammedPawns = S(  -7, -15);
+const int BishopRammedPawns = S(  -7, -14);
 
 const int BishopOutpost[2][2] = {
-   {S(  16, -15), S(  45,  -2)},
-   {S(   5,  -9), S(  -4,  -4)},
+   {S(  15, -13), S(  45,  -1)},
+   {S(   6, -11), S(   9,  -4)},
 };
 
 const int BishopBehindPawn = S(   3,  19);
 
-const int BishopLongDiagonal = S(  19,  15);
+const int BishopLongDiagonal = S(  21,  12);
 
 const int BishopMobility[14] = {
-    S( -72,-155), S( -37,-105), S( -19, -51), S( -12, -23),
-    S(  -1, -11), S(   7,   4), S(   9,  15), S(  10,  20),
-    S(   8,  27), S(  15,  28), S(  14,  29), S(  36,  14),
-    S(  47,  27), S(  73, -13),
+    S( -69,-149), S( -32,-100), S( -11, -56), S(  -3, -29),
+    S(   8, -18), S(  16,  -3), S(  18,   8), S(  19,  13),
+    S(  18,  20), S(  26,  20), S(  24,  21), S(  46,   7),
+    S(  47,  20), S(  75, -17),
 };
 
 /* Rook Evaluation Terms */
 
 const int RookFile[2] = { S(   9,   6), S(  30,   5) };
 
-const int RookOnSeventh = S(  -5,  35);
+const int RookOnSeventh = S(  -3,  34);
 
 const int RookMobility[15] = {
-    S(-164,-119), S( -71,-120), S( -18, -67), S(  -9, -20),
-    S(  -9,   1), S( -13,  18), S( -11,  31), S(  -5,  34),
-    S(   3,  38), S(   7,  41), S(   9,  49), S(  15,  53),
-    S(  16,  57), S(  33,  45), S(  98,   0),
+    S(-159,-116), S( -59,-115), S( -17, -66), S(  -7, -23),
+    S(  -7,  -2), S( -11,  15), S( -10,  28), S(  -3,  31),
+    S(   5,  34), S(   9,  37), S(  11,  45), S(  18,  48),
+    S(  19,  52), S(  36,  40), S( 105,  -9),
 };
 
 /* Queen Evaluation Terms */
 
-const int QueenRelativePin = S( -19, -12);
+const int QueenRelativePin = S( -19, -11);
 
 const int QueenMobility[28] = {
-    S( -61,-263), S(-214,-388), S( -60,-200), S( -25,-190),
-    S( -10,-147), S(  -4, -85), S(  -1, -44), S(  -2, -11),
-    S(   4,  -8), S(   5,  13), S(  10,  17), S(  11,  34),
-    S(  15,  26), S(  16,  37), S(  15,  39), S(  13,  44),
-    S(  15,  41), S(   6,  42), S(   8,  39), S(   8,  28),
-    S(  18,   9), S(  32, -17), S(  33, -39), S(  31, -59),
-    S(   9, -74), S(  18,-104), S( -54, -37), S( -31, -62),
+    S( -61,-263), S(-213,-388), S( -60,-200), S( -22,-191),
+    S(  -7,-144), S(  -4, -80), S(   1, -44), S(   0, -12),
+    S(   6, -11), S(   7,  11), S(  12,  14), S(  14,  32),
+    S(  17,  23), S(  19,  34), S(  17,  38), S(  15,  44),
+    S(  16,  41), S(   7,  44), S(   8,  41), S(   7,  31),
+    S(  17,   8), S(  30, -15), S(  31, -45), S(  30, -62),
+    S(   8, -78), S(  19,-107), S( -55, -37), S( -32, -63),
 };
 
 /* King Evaluation Terms */
 
 const int KingDefenders[12] = {
-    S( -28,  -3), S( -10,  -1), S(   1,   5), S(  10,   8),
-    S(  17,   8), S(  29,   3), S(  34,  -5), S(  12,  -1),
+    S( -27,  -2), S( -10,   0), S(   2,   5), S(  10,   7),
+    S(  18,   7), S(  29,   1), S(  30,  -4), S(  12,  -1),
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
 const int KingPawnFileProximity[FILE_NB] = {
-    S(  42,  43), S(  32,  31), S(  12,  17), S( -24, -18),
-    S( -28, -58), S( -24, -72), S( -19, -79), S( -11, -66),
+    S(  41,  31), S(  29,  22), S(  10,   9), S( -24, -17),
+    S( -28, -49), S( -21, -63), S( -17, -67), S( -11, -64),
 };
 
 const int KingShelter[2][FILE_NB][RANK_NB] = {
-  {{S(  -8,   1), S(  15, -28), S(  22,  -7), S(  19,   7),
-    S(   9,   3), S(   1,   0), S(  -2, -34), S( -56,  24)},
-   {S(  16,  -6), S(  23, -18), S(   0,  -3), S( -17,   4),
-    S( -30,  14), S( -71,  68), S(  91,  80), S( -25,   4)},
-   {S(  36,  -2), S(   9,  -7), S( -28,   3), S( -14, -10),
-    S( -24,  -3), S( -12,   5), S(   2,  69), S( -14,   1)},
-   {S(   8,  11), S(  28, -15), S(   6, -18), S(  15, -23),
-    S(  21, -37), S( -63,   5), S(-135,  50), S(   5,  -6)},
-   {S( -15,  13), S(   4,  -3), S( -34,   3), S( -19,   8),
-    S( -17,  -5), S( -44,  -3), S(  33, -18), S(  -7,   1)},
-   {S(  49, -14), S(  19, -11), S( -20,   3), S(  -7, -23),
-    S(  10, -36), S(  26, -23), S(  41, -33), S( -23,   3)},
-   {S(  34, -16), S(   0, -19), S( -30,  -4), S( -20, -14),
-    S( -30,   0), S( -36,  32), S(   2,  45), S( -13,   2)},
-   {S(   0, -17), S(   5, -22), S(   8,   1), S(  -2,  10),
-    S( -14,  15), S( -13,  42), S(-188,  88), S( -17,  17)}},
-  {{S(   0,   0), S( -15, -29), S(   1, -20), S( -43,  18),
-    S( -20,   5), S(   5,  45), S(-167,  -7), S( -45,  16)},
-   {S(   0,   0), S(  22, -20), S(  12, -11), S( -20,   1),
-    S(   1, -17), S(  28,  66), S(-184,  -3), S( -34,   9)},
-   {S(   0,   0), S(  22, -10), S(   1, -14), S(  10, -29),
-    S(  19,  -1), S( -85,  51), S( -85, -74), S( -21,   0)},
-   {S(   0,   0), S(  -6,   5), S(  -5,  -5), S( -27,   8),
-    S( -30,   5), S(-100,  31), S(   6, -41), S( -22,  -3)},
-   {S(   0,   0), S(  13,   0), S(  12, -11), S(  15, -14),
-    S(  12, -27), S( -58,  11), S(-101, -59), S(  -3,  -2)},
-   {S(   0,   0), S(  -2,  -5), S( -22,   1), S( -15,  -9),
-    S(  22, -23), S( -37,   3), S(  55,  39), S( -16,  -3)},
-   {S(   0,   0), S(  25, -16), S(  15, -15), S(  -9, -11),
-    S( -28,   8), S( -11,  21), S( -55, -48), S( -34,  17)},
-   {S(   0,   0), S(  15, -45), S(  20, -33), S( -16, -13),
-    S( -29,  17), S( -10,  23), S(-227, -55), S( -20,   7)}},
+  {{S(  -9,   2), S(  14, -26), S(  23,  -9), S(  18,   6),
+    S(  14,   3), S(  -1,  -1), S(  -3, -34), S( -53,  21)},
+   {S(  16,  -6), S(  22, -18), S(   2,  -5), S( -15,   4),
+    S( -30,  16), S( -73,  67), S(  91,  81), S( -20,   0)},
+   {S(  35,  -3), S(   9,  -8), S( -30,   7), S( -14,  -8),
+    S( -17,  -5), S( -12,   1), S(   0,  68), S( -13,   0)},
+   {S(   2,  13), S(  26, -13), S(   7, -14), S(  16, -22),
+    S(  28, -39), S( -59,   3), S(-135,  51), S(   5,  -6)},
+   {S( -17,  13), S(   3,  -2), S( -32,   4), S( -20,   8),
+    S( -21,  -6), S( -45,  -5), S(  32, -18), S(  -8,   1)},
+   {S(  48, -16), S(  20, -13), S( -21,   3), S(  -8, -22),
+    S(   7, -27), S(  20, -21), S(  40, -32), S( -23,   1)},
+   {S(  32, -15), S(   0, -17), S( -28,  -2), S( -22,  -8),
+    S( -31,  -5), S( -41,  30), S(   1,  44), S( -10,   1)},
+   {S(  -7, -13), S(   5, -21), S(   8,   2), S(  -2,  12),
+    S( -12,  17), S( -10,  37), S(-190,  89), S( -19,  16)}},
+  {{S(   0,   0), S( -13, -26), S(   7, -23), S( -39,  20),
+    S( -23,   1), S(   3,  42), S(-167,  -7), S( -43,  11)},
+   {S(   0,   0), S(  22, -22), S(   9,  -7), S( -16,   0),
+    S(   3, -18), S(  26,  65), S(-184,  -3), S( -31,   6)},
+   {S(   0,   0), S(  24, -12), S(  -1, -10), S(   5, -20),
+    S(  21,  -3), S( -87,  48), S( -84, -74), S( -19,  -2)},
+   {S(   0,   0), S( -10,   9), S(  -6,  -2), S( -25,   5),
+    S( -27,   4), S(-100,  30), S(   7, -40), S( -22,  -4)},
+   {S(   0,   0), S(  13,   1), S(  13,  -8), S(  16, -13),
+    S(  17, -31), S( -57,  14), S(-101, -60), S(  -2,  -3)},
+   {S(   0,   0), S(   0,  -7), S( -26,   2), S( -22,  -8),
+    S(  23, -23), S( -37,   3), S(  55,  39), S( -17,  -4)},
+   {S(   0,   0), S(  25, -16), S(  14, -15), S( -11,  -8),
+    S( -29,  13), S(  -8,  19), S( -57, -50), S( -33,  14)},
+   {S(   0,   0), S(  14, -44), S(  21, -33), S( -19,  -7),
+    S( -20,  19), S(  -8,  21), S(-228, -56), S( -23,   4)}},
 };
 
 const int KingStorm[2][FILE_NB/2][RANK_NB] = {
-  {{S( -17,  31), S( 118, -10), S( -19,  20), S( -12,   0),
-    S( -14,  -1), S(  -8,  -3), S( -16,   7), S( -26,  -2)},
-   {S( -14,  53), S(  58,  10), S( -14,  17), S(  -1,   7),
-    S(  -1,   5), S(   5,  -3), S(  -1,   2), S( -14,   6)},
-   {S(  -2,  42), S(   8,  25), S( -17,  16), S( -10,   6),
-    S(   3,   2), S(   9,   1), S(  10,  -8), S(   3,   5)},
-   {S(  -7,  24), S(   7,  20), S( -24,   7), S( -16,  -1),
-    S( -11,   2), S(   9,  -9), S(   2,  -4), S( -14,   7)}},
-  {{S(   0,   0), S( -18, -16), S( -16,   0), S(  25, -21),
-    S(  11,  -3), S(   8, -15), S(   7,  10), S(  19,  29)},
-   {S(   0,   0), S( -17, -38), S(   0, -12), S(  44, -11),
-    S(   0,   4), S(  16, -25), S(  -3,  -3), S( -19,   0)},
-   {S(   0,   0), S( -29, -53), S( -24, -10), S(  13,  -9),
-    S(   7,   1), S(  -4, -14), S(  -1, -14), S( -10,   5)},
-   {S(   0,   0), S(  -2, -19), S( -15, -20), S( -13,   0),
-    S(  -3,  -7), S(   4, -27), S(  68, -14), S(  14,  20)}},
+  {{S( -13,  33), S( 112,  -6), S( -23,  23), S( -12,   2),
+    S( -13,  -1), S(  -6,  -4), S( -15,   6), S( -27,   1)},
+   {S(  -8,  53), S(  51,  14), S( -20,  20), S(  -3,   8),
+    S(  -1,   5), S(   5,  -3), S(  -1,   2), S( -13,   6)},
+   {S(   3,  43), S(   4,  28), S( -22,  18), S( -11,   7),
+    S(   2,   3), S(   9,   1), S(  11, -10), S(   4,   5)},
+   {S(  -7,  27), S(   4,  24), S( -22,   8), S( -15,  -1),
+    S( -10,   1), S(  11, -12), S(   3,  -9), S( -14,   7)}},
+  {{S(   0,   0), S( -18, -16), S( -16,  -2), S(  23, -22),
+    S(  11,  -6), S(   6, -20), S(   5,   2), S(  16,  29)},
+   {S(   0,   0), S( -17, -37), S(   2, -12), S(  44, -13),
+    S(   3,  -3), S(  17, -25), S(  -6,  -5), S( -19,   0)},
+   {S(   0,   0), S( -28, -52), S( -24,  -9), S(  16, -12),
+    S(   7,  -2), S(  -8, -13), S(  -9, -12), S( -11,   6)},
+   {S(   0,   0), S(  -2, -19), S( -20, -17), S( -13,  -2),
+    S(  -2,  -8), S(   1, -24), S(  73, -12), S(  15,  20)}},
 };
 
 /* King Safety Evaluation Terms */
 
-const int KSAttackWeight[]  = { 0, 16, 6, 10, 8, 0 };
-const int KSAttackValue     =   44;
-const int KSWeakSquares     =   38;
-const int KSFriendlyPawns   =  -22;
-const int KSNoEnemyQueens   = -276;
-const int KSSafeQueenCheck  =   95;
-const int KSSafeRookCheck   =   94;
-const int KSSafeBishopCheck =   51;
-const int KSSafeKnightCheck =  123;
-const int KSAdjustment      =  -18;
+const int SafetyKnightWeight    = S(  16,  22);
+const int SafetyBishopWeight    = S(   6,  14);
+const int SafetyRookWeight      = S(   9,  15);
+const int SafetyQueenWeight     = S(   8,  10);
+
+const int SafetyAttackValue     = S(  43,  48);
+const int SafetyWeakSquares     = S(  40,  43);
+const int SafetyFriendlyPawns   = S( -21, -12);
+const int SafetyNoEnemyQueens   = S(-267,-274);
+const int SafetySafeQueenCheck  = S(  88,  94);
+const int SafetySafeRookCheck   = S(  92,  95);
+const int SafetySafeBishopCheck = S(  58,  52);
+const int SafetySafeKnightCheck = S( 115, 122);
+const int SafetyAdjustment      = S( -14, -15);
 
 /* Passed Pawn Evaluation Terms */
 
 const int PassedPawn[2][2][RANK_NB] = {
-  {{S(   0,   0), S( -38,  -2), S( -46,  31), S( -67,  34),
-    S(  11,  20), S(  88,  -8), S( 159,  51), S(   0,   0)},
-   {S(   0,   0), S( -29,  17), S( -43,  44), S( -63,  47),
-    S(  -1,  51), S( 109,  38), S( 204,  92), S(   0,   0)}},
-  {{S(   0,   0), S( -27,  29), S( -48,  40), S( -66,  55),
-    S(  10,  56), S( 108,  51), S( 268, 113), S(   0,   0)},
-   {S(   0,   0), S( -32,  25), S( -43,  39), S( -62,  60),
-    S(  10,  78), S( 105, 135), S( 159, 279), S(   0,   0)}},
+  {{S(   0,   0), S( -36,   1), S( -48,  26), S( -72,  30),
+    S(   8,  10), S(  82, -16), S( 158,  41), S(   0,   0)},
+   {S(   0,   0), S( -28,  13), S( -45,  38), S( -65,  40),
+    S(   0,  38), S( 106,  24), S( 190,  88), S(   0,   0)}},
+  {{S(   0,   0), S( -24,  26), S( -48,  33), S( -67,  47),
+    S(  10,  43), S( 103,  37), S( 271,  98), S(   0,   0)},
+   {S(   0,   0), S( -29,  22), S( -43,  32), S( -63,  51),
+    S(  11,  62), S( 104, 118), S( 157, 267), S(   0,   0)}},
 };
 
 const int PassedFriendlyDistance[FILE_NB] = {
-    S(   0,   0), S(  -1,   2), S(   3,  -4), S(   7, -12),
-    S(   4, -17), S( -10, -15), S( -16,  -7), S(   0,   0),
+    S(   0,   0), S(  -1,   3), S(   3,  -4), S(   7, -12),
+    S(   5, -16), S( -11, -12), S( -17,  -4), S(   0,   0),
 };
 
 const int PassedEnemyDistance[FILE_NB] = {
-    S(   0,   0), S(   4,  -2), S(   5,  -2), S(   8,   8),
-    S(   1,  21), S(   5,  31), S(  22,  31), S(   0,   0),
+    S(   0,   0), S(   4,  -2), S(   4,  -1), S(   8,   9),
+    S(   0,  23), S(   6,  32), S(  26,  30), S(   0,   0),
 };
 
-const int PassedSafePromotionPath = S( -39,  47);
+const int PassedSafePromotionPath = S( -22,  43);
 
 /* Threat Evaluation Terms */
 
-const int ThreatWeakPawn             = S( -11, -31);
-const int ThreatMinorAttackedByPawn  = S( -51, -65);
-const int ThreatMinorAttackedByMinor = S( -23, -39);
+const int ThreatWeakPawn             = S( -12, -31);
+const int ThreatMinorAttackedByPawn  = S( -53, -58);
+const int ThreatMinorAttackedByMinor = S( -23, -38);
 const int ThreatMinorAttackedByMajor = S( -28, -47);
-const int ThreatRookAttackedByLesser = S( -46, -25);
-const int ThreatMinorAttackedByKing  = S( -31, -19);
-const int ThreatRookAttackedByKing   = S( -22, -18);
-const int ThreatQueenAttackedByOne   = S( -48, -14);
-const int ThreatOverloadedPieces     = S(  -7, -14);
-const int ThreatByPawnPush           = S(  13,  27);
+const int ThreatRookAttackedByLesser = S( -48, -22);
+const int ThreatMinorAttackedByKing  = S( -17, -18);
+const int ThreatRookAttackedByKing   = S( -18, -17);
+const int ThreatQueenAttackedByOne   = S( -46, -24);
+const int ThreatOverloadedPieces     = S(  -7, -13);
+const int ThreatByPawnPush           = S(  14,  26);
 
 /* Space Evaluation Terms */
 
@@ -335,15 +339,15 @@ const int SpaceCenterControl = S(   4,  -3);
 /* Closedness Evaluation Terms */
 
 const int ClosednessKnightAdjustment[9] = {
-    S( -17,  -1), S( -13,  14), S( -15,  22), S( -11,  20),
-    S( -10,  25), S(  -7,  19), S(  -6,  13), S( -17,  27),
-    S( -15,   9),
+    S(  -9,  -7), S(  -5,   9), S(  -7,  16), S(  -3,  15),
+    S(  -1,  20), S(   1,  14), S(   5,   5), S(  -8,  24),
+    S(  -7,   9),
 };
 
 const int ClosednessRookAdjustment[9] = {
-    S(  47,   5), S(  -2,  39), S(  -2,  23), S( -11,  11),
-    S( -20,  10), S( -14,  -8), S( -16, -14), S( -26, -15),
-    S( -42, -25),
+    S(  64,  -9), S(   4,  34), S(   3,  18), S(  -2,   2),
+    S( -12,   5), S( -10, -12), S( -12, -12), S( -23, -16),
+    S( -35, -21),
 };
 
 /* Complexity Evaluation Terms */
@@ -433,7 +437,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
 
     // Update King Safety calculations
     attacks = ei->pawnAttacks[US] & ei->kingAreas[THEM];
-    ei->kingAttacksCount[US] += popcount(attacks);
+    ei->kingAttacksCount[THEM] += popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
     if (ei->pkentry != NULL) return eval;
@@ -567,9 +571,10 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[KNIGHT];
+            ei->kingAttacksCount[THEM] += popcount(attacks);
+            ei->kingAttackersCount[THEM] += 1;
+            ei->kingAttackersWeight[THEM] += SafetyKnightWeight;
+            if (TRACE) T.SafetyKnightWeight[THEM]++;
         }
     }
 
@@ -644,9 +649,10 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[BISHOP];
+            ei->kingAttacksCount[THEM] += popcount(attacks);
+            ei->kingAttackersCount[THEM] += 1;
+            ei->kingAttackersWeight[THEM] += SafetyBishopWeight;
+            if (TRACE) T.SafetyBishopWeight[THEM]++;
         }
     }
 
@@ -703,9 +709,10 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[ROOK];
+            ei->kingAttacksCount[THEM] += popcount(attacks);
+            ei->kingAttackersCount[THEM] += 1;
+            ei->kingAttackersWeight[THEM] += SafetyRookWeight;
+            if (TRACE) T.SafetyRookWeight[THEM]++;
         }
     }
 
@@ -751,9 +758,10 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
-            ei->kingAttacksCount[US] += popcount(attacks);
-            ei->kingAttackersCount[US] += 1;
-            ei->kingAttackersWeight[US] += KSAttackWeight[QUEEN];
+            ei->kingAttacksCount[THEM] += popcount(attacks);
+            ei->kingAttackersCount[THEM] += 1;
+            ei->kingAttackersWeight[THEM] += SafetyQueenWeight;
+            if (TRACE) T.SafetyQueenWeight[THEM]++;
         }
     }
 
@@ -764,7 +772,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int count, dist, blocked, eval = 0;
+    int count, safety, mg, eg, dist, blocked, eval = 0;
 
     uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
     uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
@@ -785,7 +793,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     // Perform King Safety when we have two attackers, or
     // one attacker with a potential for a Queen attacker
-    if (ei->kingAttackersCount[THEM] > 1 - popcount(enemyQueens)) {
+    if (ei->kingAttackersCount[US] > 1 - popcount(enemyQueens)) {
 
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
@@ -795,7 +803,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Usually the King Area is 9 squares. Scale are attack counts to account for
         // when the king is in an open area and expects more attacks, or the opposite
-        float scaledAttackCounts = 9.0 * ei->kingAttacksCount[THEM] / popcount(ei->kingAreas[US]);
+        int scaledAttackCounts = 9.0 * ei->kingAttacksCount[US] / popcount(ei->kingAreas[US]);
 
         // Safe target squares are defended or are weak and attacked by two.
         // We exclude squares containing pieces which we cannot capture.
@@ -816,20 +824,37 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
-        count  = ei->kingAttackersCount[THEM] * ei->kingAttackersWeight[THEM];
+        safety  = ei->kingAttackersCount[US] * ei->kingAttackersWeight[US];
 
-        count += KSAttackValue     * scaledAttackCounts
-               + KSWeakSquares     * popcount(weak & ei->kingAreas[US])
-               + KSFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
-               + KSNoEnemyQueens   * !enemyQueens
-               + KSSafeQueenCheck  * popcount(queenChecks)
-               + KSSafeRookCheck   * popcount(rookChecks)
-               + KSSafeBishopCheck * popcount(bishopChecks)
-               + KSSafeKnightCheck * popcount(knightChecks)
-               + KSAdjustment;
+        safety += SafetyAttackValue     * scaledAttackCounts
+                + SafetyWeakSquares     * popcount(weak & ei->kingAreas[US])
+                + SafetyFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
+                + SafetyNoEnemyQueens   * !enemyQueens
+                + SafetySafeQueenCheck  * popcount(queenChecks)
+                + SafetySafeRookCheck   * popcount(rookChecks)
+                + SafetySafeBishopCheck * popcount(bishopChecks)
+                + SafetySafeKnightCheck * popcount(knightChecks)
+                + SafetyAdjustment;
 
-        // Convert safety to an MG and EG score, if we are unsafe
-        if (count > 0) eval -= MakeScore(count * count / 720, count / 20);
+        if (TRACE) T.SafetyKnightWeight[US]   *= ei->kingAttackersCount[US];
+        if (TRACE) T.SafetyBishopWeight[US]   *= ei->kingAttackersCount[US];
+        if (TRACE) T.SafetyRookWeight[US]     *= ei->kingAttackersCount[US];
+        if (TRACE) T.SafetyQueenWeight[US]    *= ei->kingAttackersCount[US];
+
+        if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
+        if (TRACE) T.SafetyWeakSquares[US]     = popcount(weak & ei->kingAreas[US]);
+        if (TRACE) T.SafetyFriendlyPawns[US]   = popcount(myPawns & ei->kingAreas[US] & ~weak);
+        if (TRACE) T.SafetyNoEnemyQueens[US]   = !enemyQueens;
+        if (TRACE) T.SafetySafeQueenCheck[US]  = popcount(queenChecks);
+        if (TRACE) T.SafetySafeRookCheck[US]   = popcount(rookChecks);
+        if (TRACE) T.SafetySafeBishopCheck[US] = popcount(bishopChecks);
+        if (TRACE) T.SafetySafeKnightCheck[US] = popcount(knightChecks);
+        if (TRACE) T.SafetyAdjustment[US]      = 1;
+
+        // Convert safety to an MG and EG score
+        mg = ScoreMG(safety), eg = ScoreEG(safety);
+        eval += MakeScore(MIN(0, -mg * abs(mg) / 720), MIN(0, -eg / 20));
+        if (TRACE) T.safety[US] = safety;
     }
 
     // Everything else is stored in the Pawn King Table
