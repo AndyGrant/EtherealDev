@@ -108,9 +108,9 @@ void runTuner() {
 
     TEntry *entries;
     TArray methods = {0};
-    TVector params = {0}, cparams = {0};
+    TVector params = {0}, cparams = {0}, adagrad = {0};
     Thread *thread = createThreadPool(1);
-    double K, error, rate = LEARNING;
+    double K, error, rate = LRRATE;
 
     const int tentryMB = (int)(NPOSITIONS * sizeof(TEntry) / (1 << 20));
     const int ttupleMB = (int)(STACKSIZE  * sizeof(TTuple) / (1 << 20));
@@ -142,23 +142,24 @@ void runTuner() {
             }
         }
 
-        if (epoch && epoch % LRSTEPRATE == 0)
-            rate = rate / LRDROPRATE;
-
         for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
 
             TVector gradient = {0};
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
-                params[i][MG] += (2.0 / BATCHSIZE) * rate * gradient[i][MG];
-                params[i][EG] += (2.0 / BATCHSIZE) * rate * gradient[i][EG];
+                adagrad[i][MG] += pow(2.0 * gradient[i][MG] / BATCHSIZE, 2.0);
+                adagrad[i][EG] += pow(2.0 * gradient[i][EG] / BATCHSIZE, 2.0);
+                params[i][MG] += (2.0 / BATCHSIZE) * gradient[i][MG] * (rate / sqrt(1e-8 + adagrad[i][MG]));
+                params[i][EG] += (2.0 / BATCHSIZE) * gradient[i][EG] * (rate / sqrt(1e-8 + adagrad[i][EG]));
             }
         }
 
-        printParameters(params, cparams);
         error = tunedEvaluationErrors(entries, params, methods, K);
         printf("\nEpoch [%d] Error = [%g], Rate = [%g]\n", epoch, error, rate);
+
+        if (epoch && epoch % LRSTEPRATE == 0) rate = rate / LRDROPRATE;
+        if (epoch % REPORTING == 0) printParameters(params, cparams);
     }
 }
 
