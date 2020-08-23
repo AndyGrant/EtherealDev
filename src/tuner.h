@@ -25,7 +25,7 @@
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
 
-#define QSRESOLVE    (      0) // Whether to resolve via a qsearch()
+#define QSRESOLVE    (      1) // Whether to resolve via a qsearch()
 #define PRETTYIFY    (      1) // Whether to format as if we tune everything
 #define REPORTING    (     50) // How often to print the new parameters
 
