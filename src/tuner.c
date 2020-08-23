@@ -84,6 +84,7 @@ extern const int SafetyRookWeight;
 extern const int SafetyQueenWeight;
 extern const int SafetyAttackValue;
 extern const int SafetyWeakSquares;
+extern const int SafetyFriendlyPawns;
 extern const int SafetyNoEnemyQueens;
 extern const int SafetySafeQueenCheck;
 extern const int SafetySafeRookCheck;
@@ -160,10 +161,15 @@ void runTuner() {
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
+
                 adagrad[i][MG] += pow(2.0 * gradient[i][MG] / BATCHSIZE, 2.0);
                 adagrad[i][EG] += pow(2.0 * gradient[i][EG] / BATCHSIZE, 2.0);
-                params[i][MG] += (2.0 / BATCHSIZE) * gradient[i][MG] * (rate / sqrt(1e-8 + adagrad[i][MG]));
-                params[i][EG] += (2.0 / BATCHSIZE) * gradient[i][EG] * (rate / sqrt(1e-8 + adagrad[i][EG]));
+
+                const int mgRate = rate / sqrt(1e-8 + adagrad[i][MG]);
+                const int egRate = rate / sqrt(1e-8 + adagrad[i][EG]);
+
+                params[i][MG] += (2.0 / BATCHSIZE) * gradient[i][MG] * (USEADAGRAD ? mgRate : rate);
+                params[i][EG] += (2.0 / BATCHSIZE) * gradient[i][EG] * (USEADAGRAD ? egRate : rate);
             }
         }
 
@@ -234,7 +240,7 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
         boardFromFEN(&thread->board, line, 0);
 
         // Resolve the position to mitigate tactics
-        if (QSRESOLVE) {
+        if (USEQRESOLVE) {
             qsearch(thread, &thread->pv, -MATE, MATE, 0);
             for (int pvidx = 0; pvidx < thread->pv.length; pvidx++)
                 applyMove(&thread->board, thread->pv.line[pvidx], &undo);

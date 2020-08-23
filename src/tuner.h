@@ -24,13 +24,15 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define NTERMS       (      0) // Total terms in the Tuner (659)
-#define QSRESOLVE    (      0) // Whether to resolve via a qsearch()
 #define REPORTING    (     50) // How often to print the new parameters
+#define NTERMS       (     13) // Total terms in the Tuner (660)
 
-#define LRRATE       (   1.00) // Global Learning rate
-#define LRDROPRATE   (   1.00) // Cut LR by this each LR-step
-#define LRSTEPRATE   (    500) // Cut LR after this many epochs
+#define USEADAGRAD   (      1) // Whether to use AdaGrad in tuning
+#define USEQRESOLVE  (      0) // Whether to resolve via a qsearch()
+
+#define LRRATE       (   0.10) // Global Learning rate
+#define LRDROPRATE   (   2.00) // Cut LR by this each LR-step
+#define LRSTEPRATE   (   1000) // Cut LR after this many epochs
 
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
 #define BATCHSIZE    (9999740) // FENs per mini-batch
@@ -73,18 +75,19 @@
 #define TuneKingPawnFileProximity       (0)
 #define TuneKingShelter                 (0)
 #define TuneKingStorm                   (0)
-#define TuneSafetyKnightWeight          (0)
-#define TuneSafetyBishopWeight          (0)
-#define TuneSafetyRookWeight            (0)
-#define TuneSafetyQueenWeight           (0)
-#define TuneSafetyAttackValue           (0)
-#define TuneSafetyWeakSquares           (0)
-#define TuneSafetyNoEnemyQueens         (0)
-#define TuneSafetySafeQueenCheck        (0)
-#define TuneSafetySafeRookCheck         (0)
-#define TuneSafetySafeBishopCheck       (0)
-#define TuneSafetySafeKnightCheck       (0)
-#define TuneSafetyAdjustment            (0)
+#define TuneSafetyKnightWeight          (1)
+#define TuneSafetyBishopWeight          (1)
+#define TuneSafetyRookWeight            (1)
+#define TuneSafetyQueenWeight           (1)
+#define TuneSafetyAttackValue           (1)
+#define TuneSafetyWeakSquares           (1)
+#define TuneSafetyFriendlyPawns         (1)
+#define TuneSafetyNoEnemyQueens         (1)
+#define TuneSafetySafeQueenCheck        (1)
+#define TuneSafetySafeRookCheck         (1)
+#define TuneSafetySafeBishopCheck       (1)
+#define TuneSafetySafeKnightCheck       (1)
+#define TuneSafetyAdjustment            (1)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
@@ -297,6 +300,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, SafetyQueenWeight, SAFETY, "");                             \
     ENABLE_0(F, SafetyAttackValue, SAFETY, "");                             \
     ENABLE_0(F, SafetyWeakSquares, SAFETY, "");                             \
+    ENABLE_0(F, SafetyFriendlyPawns, SAFETY, "");                           \
     ENABLE_0(F, SafetyNoEnemyQueens, SAFETY, "");                           \
     ENABLE_0(F, SafetySafeQueenCheck, SAFETY, "");                          \
     ENABLE_0(F, SafetySafeRookCheck, SAFETY, "");                           \

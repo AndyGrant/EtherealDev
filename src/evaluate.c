@@ -277,19 +277,20 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int SafetyKnightWeight    = S(  47,  41);
-const int SafetyBishopWeight    = S(  23,  35);
-const int SafetyRookWeight      = S(  35,   8);
-const int SafetyQueenWeight     = S(  29,   6);
+const int SafetyKnightWeight    = S(  53,  44);
+const int SafetyBishopWeight    = S(  29,  38);
+const int SafetyRookWeight      = S(  38,   7);
+const int SafetyQueenWeight     = S(  35,   9);
 
-const int SafetyAttackValue     = S(  44,  33);
-const int SafetyWeakSquares     = S(  41,  40);
-const int SafetyNoEnemyQueens   = S(-238,-259);
-const int SafetySafeQueenCheck  = S(  92,  83);
-const int SafetySafeRookCheck   = S(  89,  98);
-const int SafetySafeBishopCheck = S(  59,  59);
-const int SafetySafeKnightCheck = S( 111, 117);
-const int SafetyAdjustment      = S( -75, -27);
+const int SafetyAttackValue     = S(  45,  33);
+const int SafetyWeakSquares     = S(  40,  41);
+const int SafetyFriendlyPawns   = S( -14,  -4);
+const int SafetyNoEnemyQueens   = S(-243,-259);
+const int SafetySafeQueenCheck  = S(  91,  84);
+const int SafetySafeRookCheck   = S(  87,  98);
+const int SafetySafeBishopCheck = S(  58,  60);
+const int SafetySafeKnightCheck = S( 112, 116);
+const int SafetyAdjustment      = S( -70, -23);
 
 /* Passed Pawn Evaluation Terms */
 
@@ -827,6 +828,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         safety += SafetyAttackValue     * scaledAttackCounts
                 + SafetyWeakSquares     * popcount(weak & ei->kingAreas[US])
+                + SafetyFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                 + SafetyNoEnemyQueens   * !enemyQueens
                 + SafetySafeQueenCheck  * popcount(queenChecks)
                 + SafetySafeRookCheck   * popcount(rookChecks)
@@ -836,6 +838,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
         if (TRACE) T.SafetyWeakSquares[US]     = popcount(weak & ei->kingAreas[US]);
+        if (TRACE) T.SafetyFriendlyPawns[US]   = popcount(myPawns & ei->kingAreas[US] & ~weak);
         if (TRACE) T.SafetyNoEnemyQueens[US]   = !enemyQueens;
         if (TRACE) T.SafetySafeQueenCheck[US]  = popcount(queenChecks);
         if (TRACE) T.SafetySafeRookCheck[US]   = popcount(rookChecks);
