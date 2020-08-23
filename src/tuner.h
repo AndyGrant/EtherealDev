@@ -28,8 +28,8 @@
 #define QSRESOLVE    (      0) // Whether to resolve via a qsearch()
 #define REPORTING    (     50) // How often to print the new parameters
 
-#define LRRATE       (   1.00) // Global Learning rate
-#define LRDROPRATE   (   1.00) // Cut LR by this each LR-step
+#define LRRATE       (  10.00) // Global Learning rate
+#define LRDROPRATE   (   2.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (    250) // Cut LR after this many epochs
 
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed

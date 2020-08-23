@@ -141,7 +141,7 @@ void runTuner() {
     initCurrentParameters(cparams);
     initMethodManager(methods);
     initTunerEntries(entries, thread, methods);
-    K = computeOptimalK(entries);
+    K = 3.141486; //computeOptimalK(entries);
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
@@ -478,8 +478,8 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
         if (methods[index] == SAFETY)
             gradient[index][MG] += (mgBase / 360.0) * (fmax(data.bsafetymg, 0) * bcoeff - (fmax(data.wsafetymg, 0) * wcoeff));
 
-        // if (methods[index] == SAFETY && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
-        //     gradient[index][EG] += (egBase /  20.0) * ((data.bsafetyeg > 0.0) * bcoeff - (data.wsafetyeg > 0.0) * wcoeff);
+        if (methods[index] == SAFETY && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
+            gradient[index][EG] += (egBase /  20.0) * ((data.bsafetyeg > 0.0) * bcoeff - (data.wsafetyeg > 0.0) * wcoeff);
     }
 }
 
