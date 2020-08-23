@@ -277,20 +277,19 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* King Safety Evaluation Terms */
 
-const int SafetyKnightWeight    = S(  16,   8);
-const int SafetyBishopWeight    = S(   5,  10);
-const int SafetyRookWeight      = S(  10, -23);
-const int SafetyQueenWeight     = S(   9,  52);
+const int SafetyKnightWeight    = S(  47,  41);
+const int SafetyBishopWeight    = S(  23,  35);
+const int SafetyRookWeight      = S(  35,   8);
+const int SafetyQueenWeight     = S(  29,   6);
 
-const int SafetyAttackValue     = S(  43,  12);
-const int SafetyWeakSquares     = S(  39,  18);
-const int SafetyFriendlyPawns   = S( -22,  30);
-const int SafetyNoEnemyQueens   = S(-214, -76);
-const int SafetySafeQueenCheck  = S(  90,  59);
-const int SafetySafeRookCheck   = S(  86,  21);
-const int SafetySafeBishopCheck = S(  57,  16);
-const int SafetySafeKnightCheck = S( 113,  -4);
-const int SafetyAdjustment      = S(  -8,   4);
+const int SafetyAttackValue     = S(  44,  33);
+const int SafetyWeakSquares     = S(  41,  40);
+const int SafetyNoEnemyQueens   = S(-238,-259);
+const int SafetySafeQueenCheck  = S(  92,  83);
+const int SafetySafeRookCheck   = S(  89,  98);
+const int SafetySafeBishopCheck = S(  59,  59);
+const int SafetySafeKnightCheck = S( 111, 117);
+const int SafetyAdjustment      = S( -75, -27);
 
 /* Passed Pawn Evaluation Terms */
 
@@ -824,11 +823,10 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
-        safety  = ei->kingAttackersCount[US] * ei->kingAttackersWeight[US];
+        safety  = ei->kingAttackersWeight[US];
 
         safety += SafetyAttackValue     * scaledAttackCounts
                 + SafetyWeakSquares     * popcount(weak & ei->kingAreas[US])
-                + SafetyFriendlyPawns   * popcount(myPawns & ei->kingAreas[US] & ~weak)
                 + SafetyNoEnemyQueens   * !enemyQueens
                 + SafetySafeQueenCheck  * popcount(queenChecks)
                 + SafetySafeRookCheck   * popcount(rookChecks)
@@ -836,14 +834,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                 + SafetySafeKnightCheck * popcount(knightChecks)
                 + SafetyAdjustment;
 
-        if (TRACE) T.SafetyKnightWeight[US]   *= ei->kingAttackersCount[US];
-        if (TRACE) T.SafetyBishopWeight[US]   *= ei->kingAttackersCount[US];
-        if (TRACE) T.SafetyRookWeight[US]     *= ei->kingAttackersCount[US];
-        if (TRACE) T.SafetyQueenWeight[US]    *= ei->kingAttackersCount[US];
-
         if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
         if (TRACE) T.SafetyWeakSquares[US]     = popcount(weak & ei->kingAreas[US]);
-        if (TRACE) T.SafetyFriendlyPawns[US]   = popcount(myPawns & ei->kingAreas[US] & ~weak);
         if (TRACE) T.SafetyNoEnemyQueens[US]   = !enemyQueens;
         if (TRACE) T.SafetySafeQueenCheck[US]  = popcount(queenChecks);
         if (TRACE) T.SafetySafeRookCheck[US]   = popcount(rookChecks);
@@ -855,6 +847,13 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         mg = ScoreMG(safety), eg = ScoreEG(safety);
         eval += MakeScore(MIN(0, -mg * abs(mg) / 720), MIN(0, -eg / 20));
         if (TRACE) T.safety[US] = safety;
+    }
+
+    else if (TRACE) {
+        T.SafetyKnightWeight[US] = 0;
+        T.SafetyBishopWeight[US] = 0;
+        T.SafetyRookWeight[US]   = 0;
+        T.SafetyQueenWeight[US]  = 0;
     }
 
     // Everything else is stored in the Pawn King Table

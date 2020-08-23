@@ -24,13 +24,13 @@
 
 #define NPARTITIONS  (     64) // Total thread partitions
 #define KPRECISION   (     10) // Iterations for computing K
-#define NTERMS       (     13) // Total terms in the Tuner (660)
+#define NTERMS       (     12) // Total terms in the Tuner (660)
 #define QSRESOLVE    (      0) // Whether to resolve via a qsearch()
 #define REPORTING    (     50) // How often to print the new parameters
 
-#define LRRATE       (  10.00) // Global Learning rate
-#define LRDROPRATE   (   2.00) // Cut LR by this each LR-step
-#define LRSTEPRATE   (    250) // Cut LR after this many epochs
+#define LRRATE       (   1.00) // Global Learning rate
+#define LRDROPRATE   (   1.00) // Cut LR by this each LR-step
+#define LRSTEPRATE   (    500) // Cut LR after this many epochs
 
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
 #define BATCHSIZE    (9999740) // FENs per mini-batch
@@ -79,7 +79,6 @@
 #define TuneSafetyQueenWeight           (1)
 #define TuneSafetyAttackValue           (1)
 #define TuneSafetyWeakSquares           (1)
-#define TuneSafetyFriendlyPawns         (1)
 #define TuneSafetyNoEnemyQueens         (1)
 #define TuneSafetySafeQueenCheck        (1)
 #define TuneSafetySafeRookCheck         (1)
@@ -298,7 +297,6 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, SafetyQueenWeight, SAFETY, "");                             \
     ENABLE_0(F, SafetyAttackValue, SAFETY, "");                             \
     ENABLE_0(F, SafetyWeakSquares, SAFETY, "");                             \
-    ENABLE_0(F, SafetyFriendlyPawns, SAFETY, "");                           \
     ENABLE_0(F, SafetyNoEnemyQueens, SAFETY, "");                           \
     ENABLE_0(F, SafetySafeQueenCheck, SAFETY, "");                          \
     ENABLE_0(F, SafetySafeRookCheck, SAFETY, "");                           \
