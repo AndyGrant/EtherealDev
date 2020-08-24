@@ -34,11 +34,11 @@ int PSQT[32][SQUARE_NB];
 
 /* Material Value Evaluation Terms */
 
-const int PawnValue   = S(  98, 126);
-const int KnightValue = S( 451, 409);
-const int BishopValue = S( 471, 427);
-const int RookValue   = S( 651, 689);
-const int QueenValue  = S(1301,1346);
+const int PawnValue   = S( 101, 134);
+const int KnightValue = S( 445, 411);
+const int BishopValue = S( 464, 427);
+const int RookValue   = S( 643, 696);
+const int QueenValue  = S(1293,1339);
 const int KingValue   = S(   0,   0);
 
 /* Piece Square Evaluation Terms */
@@ -339,10 +339,10 @@ const int SpaceCenterControl = S(   4,  -3);
 
 const int MaterialImbalance[5][5] = {
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   1), S(   2,  -4), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(  -2,   0), S(   3,   1), S(   0,   3), S(   0,   0), S(   0,   0)},
-   {S(  -2,   3), S(  12, -10), S(  19,  -7), S(   7, -11), S(   0,   0)},
+   {S(   0,   3), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   4), S(   2,  -3), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -3,   4), S(   3,   0), S(   2,   0), S(   0,   0), S(   0,   0)},
+   {S(   2,   5), S(   6,  -4), S(   6,   4), S(   1,   2), S(   0,   0)},
 };
 
 /* Closedness Evaluation Terms */
