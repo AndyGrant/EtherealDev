@@ -277,19 +277,20 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* Safety Evaluation Terms */
 
-const int SafetyKnightWeight    = S(  48,  41);
-const int SafetyBishopWeight    = S(  24,  35);
-const int SafetyRookWeight      = S(  36,   8);
-const int SafetyQueenWeight     = S(  30,   6);
+const int SafetyKnightWeight    = S(  47,  41);
+const int SafetyBishopWeight    = S(  23,  35);
+const int SafetyRookWeight      = S(  35,   8);
+const int SafetyQueenWeight     = S(  29,   6);
 
-const int SafetyAttackValue     = S(  45,  34);
-const int SafetyWeakSquares     = S(  42,  41);
-const int SafetyNoEnemyQueens   = S(-237,-259);
-const int SafetySafeQueenCheck  = S(  93,  83);
-const int SafetySafeRookCheck   = S(  90,  98);
+const int SafetyAttackValue     = S(  44,  33);
+const int SafetyWeakSquares     = S(  41,  40);
+const int SafetyNoEnemyQueens   = S(-238,-259);
+const int SafetySafeQueenCheck  = S(  92,  83);
+const int SafetySafeRookCheck   = S(  89,  98);
 const int SafetySafeBishopCheck = S(  59,  59);
-const int SafetySafeKnightCheck = S( 112, 117);
-const int SafetyAdjustment      = S( -74, -26);
+const int SafetySafeKnightCheck = S( 111, 117);
+const int SafetyUnsafeCheck     = S(   0,  18);
+const int SafetyAdjustment      = S( -75, -26);
 
 /* Passed Pawn Evaluation Terms */
 
@@ -818,29 +819,32 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Identify if there are pieces which can move to the checking squares safely.
         // We consider forking a Queen to be a safe check, even with our own Queen.
-        uint64_t knightChecks = knightThreats & safe & ei->attackedBy[THEM][KNIGHT];
-        uint64_t bishopChecks = bishopThreats & safe & ei->attackedBy[THEM][BISHOP];
-        uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
-        uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
+        uint64_t knightChecks =  knightThreats & ei->attackedBy[THEM][KNIGHT];
+        uint64_t bishopChecks =  bishopThreats & ei->attackedBy[THEM][BISHOP];
+        uint64_t rookChecks   =  rookThreats   & ei->attackedBy[THEM][ROOK  ];
+        uint64_t queenChecks  =  queenThreats  & ei->attackedBy[THEM][QUEEN ];
+        uint64_t unsafeChecks = (knightChecks | bishopChecks | rookChecks | queenChecks) & ~safe;
 
         safety  = ei->kingAttackersWeight[US];
 
         safety += SafetyAttackValue     * scaledAttackCounts
                 + SafetyWeakSquares     * popcount(weak & ei->kingAreas[US])
                 + SafetyNoEnemyQueens   * !enemyQueens
-                + SafetySafeQueenCheck  * popcount(queenChecks)
-                + SafetySafeRookCheck   * popcount(rookChecks)
-                + SafetySafeBishopCheck * popcount(bishopChecks)
-                + SafetySafeKnightCheck * popcount(knightChecks)
+                + SafetySafeQueenCheck  * popcount(safe & queenChecks)
+                + SafetySafeRookCheck   * popcount(safe & rookChecks)
+                + SafetySafeBishopCheck * popcount(safe & bishopChecks)
+                + SafetySafeKnightCheck * popcount(safe & knightChecks)
+                + SafetyUnsafeCheck     * popcount(unsafeChecks)
                 + SafetyAdjustment;
 
         if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
         if (TRACE) T.SafetyWeakSquares[US]     = popcount(weak & ei->kingAreas[US]);
         if (TRACE) T.SafetyNoEnemyQueens[US]   = !enemyQueens;
-        if (TRACE) T.SafetySafeQueenCheck[US]  = popcount(queenChecks);
-        if (TRACE) T.SafetySafeRookCheck[US]   = popcount(rookChecks);
-        if (TRACE) T.SafetySafeBishopCheck[US] = popcount(bishopChecks);
-        if (TRACE) T.SafetySafeKnightCheck[US] = popcount(knightChecks);
+        if (TRACE) T.SafetySafeQueenCheck[US]  = popcount(safe & queenChecks);
+        if (TRACE) T.SafetySafeRookCheck[US]   = popcount(safe & rookChecks);
+        if (TRACE) T.SafetySafeBishopCheck[US] = popcount(safe & bishopChecks);
+        if (TRACE) T.SafetySafeKnightCheck[US] = popcount(safe & knightChecks);
+        if (TRACE) T.SafetyUnsafeCheck[US]     = popcount(unsafeChecks);
         if (TRACE) T.SafetyAdjustment[US]      = 1;
 
         // Convert safety to an MG and EG score
