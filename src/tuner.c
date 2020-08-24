@@ -403,12 +403,12 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradient
     // Remove the original "safety" evaluation that was double counted into the "normal" evaluation
     normal[MG] -= MIN(0, -ScoreMG(entry->safety[WHITE]) * fabs(ScoreMG(entry->safety[WHITE])) / 720)
                 - MIN(0, -ScoreMG(entry->safety[BLACK]) * fabs(ScoreMG(entry->safety[BLACK])) / 720);
-    normal[EG] -= MIN(0, -ScoreEG(entry->safety[WHITE]) / 20) - MIN(0, -ScoreEG(entry->safety[BLACK]) / 20);
+    normal[EG] -= -ScoreEG(entry->safety[WHITE]) / 20 + ScoreEG(entry->safety[BLACK] / 20);
 
     // Compute the new, true "safety" evaluations for each side
     safety[MG] = MIN(0, -wsafety[MG] * fabs(-wsafety[MG]) / 720)
                - MIN(0, -bsafety[MG] * fabs(-bsafety[MG]) / 720);
-    safety[EG] = MIN(0, -wsafety[EG] / 20) - MIN(0, -bsafety[EG] / 20);
+    safety[EG] = -wsafety[EG] / 20 + bsafety[EG] / 20;
 
     // Grab the original "complexity" evaluation and add the modified parameters
     complexity = (double) ScoreEG(entry->complexity) + eg[COMPLEXITY][WHITE];
