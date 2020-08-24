@@ -31,7 +31,7 @@
 
 #define LRRATE       (   1.00) // Global Learning rate
 #define LRDROPRATE   (   2.00) // Cut LR by this each LR-step
-#define LRSTEPRATE   (   1000) // Cut LR after this many epochs
+#define LRSTEPRATE   (    500) // Cut LR after this many epochs
 
 #define NTERMS       (     25) // Total terms in the Tuner (684)
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed

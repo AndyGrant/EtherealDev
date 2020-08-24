@@ -338,11 +338,11 @@ const int SpaceCenterControl = S(   4,  -3);
 /* Material Imbalance Terms */
 
 const int MaterialImbalance[5][5] = {
-   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(   0,   1), S(   2,  -4), S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S(  -2,   0), S(   3,   1), S(   0,   3), S(   0,   0), S(   0,   0)},
-   {S(  -2,   3), S(  12, -10), S(  19,  -7), S(   7, -11), S(   0,   0)},
+   {S(  -1,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -1,   4), S(  -5,   2), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -1,   3), S( -11,   8), S(  -5,   4), S(   0,   0), S(   0,   0)},
+   {S(  -1,   6), S(  -7,  10), S(  -6,  11), S(  -8,   4), S(   0,   0)},
+   {S(  10,  -7), S(  -9,   2), S( -12,  -5), S( -11,  -9), S(   3,  41)},
 };
 
 /* Closedness Evaluation Terms */
@@ -1119,13 +1119,13 @@ int evaluateMaterialImbalance(EvalInfo *ei, Board *board) {
 
     for (int p1 = PAWN; p1 <= QUEEN; p1++) {
 
-        for (int p2 = PAWN; p2 < p1; p2++) {
+        for (int p2 = PAWN; p2 <= p1; p2++) {
 
             int wcount = popcount(board->colours[WHITE] & board->pieces[p1])
-                       * popcount(board->colours[BLACK] & board->pieces[p2]);
+                       * popcount(board->colours[WHITE] & board->pieces[p2]);
 
-            int bcount = popcount(board->colours[WHITE] & board->pieces[p2])
-                       * popcount(board->colours[BLACK] & board->pieces[p1]);
+            int bcount = popcount(board->colours[BLACK] & board->pieces[p1])
+                       * popcount(board->colours[BLACK] & board->pieces[p2]);
 
             eval += (wcount - bcount) * MaterialImbalance[p1][p2];
             if (TRACE) T.MaterialImbalance[p1][p2][WHITE] += wcount;

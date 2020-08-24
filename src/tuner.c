@@ -543,7 +543,7 @@ void print_2(char *name, TVector params, int i, int A, int B, char *S) {
         printf("   {");
 
         for (int b = 0; b < B; b++, i++) {
-            if (b && b % 4 == 0) printf("\n    ");
+            if (b && B != 5 && b % 4 == 0) printf("\n    ");
             printf("S(%4d,%4d)", (int) params[i][MG], (int) params[i][EG]);
             printf("%s", b == B - 1 ? "" : ", ");
         }
