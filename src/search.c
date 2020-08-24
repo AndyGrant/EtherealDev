@@ -207,7 +207,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
     if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta, height);
+        return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
@@ -586,11 +586,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
 
     Board *const board = &thread->board;
 
-    int eval, value, best, margin;
+    int eval, value, best, margin, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
@@ -661,8 +661,12 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move, height)) continue;
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         revert(thread, board, move, height);
+
+        // Prune after a few moves have been tried
+        if (played++ > MAX(2, 4 - abs(depth)))
+            break;
 
         // Improved current value
         if (value > best) {
