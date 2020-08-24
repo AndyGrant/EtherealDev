@@ -335,6 +335,16 @@ const int SpaceRestrictPiece = S(  -3,  -1);
 const int SpaceRestrictEmpty = S(  -4,  -2);
 const int SpaceCenterControl = S(   4,  -3);
 
+/* Material Imbalance Terms */
+
+const int MaterialImbalance[5][5] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   1), S(   2,  -4), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -2,   0), S(   3,   1), S(   0,   3), S(   0,   0), S(   0,   0)},
+   {S(  -2,   3), S(  12, -10), S(  19,  -7), S(   7, -11), S(   0,   0)},
+};
+
 /* Closedness Evaluation Terms */
 
 const int ClosednessKnightAdjustment[9] = {
@@ -374,6 +384,7 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
     eval  += pkeval + board->psqtmat;
     eval  += contempt;
     eval  += evaluateClosedness(&ei, board);
+    eval  += evaluateMaterialImbalance(&ei, board);
     eval  += evaluateComplexity(&ei, board, eval);
 
     // Calculate the game phase based on remaining material (Fruit Method)
@@ -1096,6 +1107,31 @@ int evaluateClosedness(EvalInfo *ei, Board *board) {
     count = popcount(white & rooks) - popcount(black & rooks);
     eval += count * ClosednessRookAdjustment[closedness];
     if (TRACE) T.ClosednessRookAdjustment[closedness][WHITE] += count;
+
+    return eval;
+}
+
+int evaluateMaterialImbalance(EvalInfo *ei, Board *board) {
+
+    (void) ei; // Silence compiler warning
+
+    int eval = 0;
+
+    for (int p1 = PAWN; p1 <= QUEEN; p1++) {
+
+        for (int p2 = PAWN; p2 < p1; p2++) {
+
+            int wcount = popcount(board->colours[WHITE] & board->pieces[p1])
+                       * popcount(board->colours[BLACK] & board->pieces[p2]);
+
+            int bcount = popcount(board->colours[WHITE] & board->pieces[p2])
+                       * popcount(board->colours[BLACK] & board->pieces[p1]);
+
+            eval += (wcount - bcount) * MaterialImbalance[p1][p2];
+            if (TRACE) T.MaterialImbalance[p1][p2][WHITE] += wcount;
+            if (TRACE) T.MaterialImbalance[p1][p2][BLACK] += bcount;
+        }
+    }
 
     return eval;
 }

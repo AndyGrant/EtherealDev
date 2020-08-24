@@ -29,11 +29,11 @@
 #define PRETTYIFY    (      1) // Whether to format as if we tune everything
 #define REPORTING    (     50) // How often to print the new parameters
 
-#define LRRATE       (   0.01) // Global Learning rate
-#define LRDROPRATE   (   5.00) // Cut LR by this each LR-step
+#define LRRATE       (   1.00) // Global Learning rate
+#define LRDROPRATE   (   2.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (   1000) // Cut LR after this many epochs
 
-#define NTERMS       (      0) // Total terms in the Tuner (659)
+#define NTERMS       (     25) // Total terms in the Tuner (684)
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
 #define BATCHSIZE    (9999740) // FENs per mini-batch
 #define NPOSITIONS   (9999740) // Total FENS in the book
@@ -106,6 +106,7 @@
 #define TuneSpaceCenterControl          (0)
 #define TuneClosednessKnightAdjustment  (0)
 #define TuneClosednessRookAdjustment    (0)
+#define TuneMaterialImbalance           (1)
 #define TuneComplexityTotalPawns        (0)
 #define TuneComplexityPawnFlanks        (0)
 #define TuneComplexityPawnEndgame       (0)
@@ -356,6 +357,9 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     COMMENTS(F, "\n/* Closedness Evaluation Terms */\n\n");                 \
     ENABLE_1(F, ClosednessKnightAdjustment, 9, NORMAL, "[9]");              \
     ENABLE_1(F, ClosednessRookAdjustment, 9, NORMAL, "[9]");                \
+                                                                            \
+    COMMENTS(F, "\n/* Material Imbalance Terms */\n\n");                    \
+    ENABLE_2(F, MaterialImbalance, 5, 5, NORMAL, "[5][5]");                 \
                                                                             \
     COMMENTS(F, "/* Complexity Evaluation Terms */\n\n");                   \
     ENABLE_0(F, ComplexityTotalPawns, COMPLEXITY, " ");                     \

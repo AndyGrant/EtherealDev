@@ -109,6 +109,7 @@ extern const int SpaceRestrictEmpty;
 extern const int SpaceCenterControl;
 extern const int ClosednessKnightAdjustment[9];
 extern const int ClosednessRookAdjustment[9];
+extern const int MaterialImbalance[5][5];
 extern const int ComplexityTotalPawns;
 extern const int ComplexityPawnFlanks;
 extern const int ComplexityPawnEndgame;
