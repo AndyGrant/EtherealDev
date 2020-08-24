@@ -665,7 +665,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int 
         revert(thread, board, move, height);
 
         // Prune after a few moves have been tried
-        if (played++ > MAX(2, 4 - abs(depth)))
+        if (played++ > MAX(2, 5 - abs(depth)))
             break;
 
         // Improved current value
