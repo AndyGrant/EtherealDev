@@ -387,6 +387,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         }
     }
 
+
+    int odepth = depth;
+
     if (PvNode && !ttHit && depth >= 6)
         depth -= 1;
 
@@ -486,7 +489,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
                   : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
 
-        newDepth = depth + (extension && !RootNode);
+        newDepth = odepth + (extension && !RootNode);
 
         // Step 14. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
