@@ -20,8 +20,6 @@
 
 #include "types.h"
 
-enum { NORMAL_PICKER, NOISY_PICKER };
-
 enum {
     STAGE_TABLE,
     STAGE_GENERATE_NOISY, STAGE_GOOD_NOISY,
@@ -33,7 +31,7 @@ enum {
 
 struct MovePicker {
     int split, noisySize, quietSize;
-    int stage, height, type, threshold;
+    int stage, height, threshold;
     int values[MAX_MOVES];
     uint16_t moves[MAX_MOVES];
     uint16_t tableMove, killer1, killer2, counter;

@@ -204,10 +204,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     MovePicker movePicker;
     PVariation lpv;
 
-    // Step 1. Quiescence Search. Perform a search using mostly tactical
-    // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta, height);
+    // Step 1. Quiescence Search. Perform a search using only captures,
+    // promotions, and check-evasions to reach a more stable position.
+    if (depth <= 0) return qsearch(thread, pv, alpha, beta, 0, height);
 
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
@@ -367,6 +366,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+
+            // Do not even consider a bad capture
+            if (movePicker.stage == STAGE_BAD_NOISY) break;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move, height)) continue;
@@ -586,11 +588,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     return best;
 }
 
-int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
 
     Board *const board = &thread->board;
+    const int InCheck  = !!board->kingAttackers;
 
-    int eval, value, best, margin;
+    int eval, value, best = -MATE, played = 0, margin;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
@@ -643,12 +646,14 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+    if (!InCheck) {
+        alpha = MAX(alpha, eval);
+        if (alpha >= beta) return eval;
+    }
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional boost of the futility margin would still fail
+    // combo with the additional boost of the futility margin would still fail.
+    // We allow even InCheck nodes to take this cutoff, as the position is "bad"
     margin = alpha - eval - QFutilityMargin;
     if (moveBestCaseValue(board) < margin)
         return eval;
@@ -657,26 +662,29 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
     initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
-    while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+    while ((move = selectNextMove(&movePicker, board, !InCheck || played)) != NONE_MOVE) {
+
+        // Do not even consider a bad capture if we have not yet evaded checkmate
+        if (  (played || !InCheck)
+            && movePicker.stage == STAGE_BAD_NOISY)
+            break;
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move, height)) continue;
-        value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+        value = -qsearch(thread, &lpv, -beta, -alpha, depth-1, height+1);
         revert(thread, board, move, height);
+        played++;
 
-        // Improved current value
-        if (value > best) {
-            best = value;
+        best = MAX(best, value);
 
-            // Improved current lower bound
-            if (value > alpha) {
-                alpha = value;
+        // Improved current lower bound
+        if (best > alpha) {
+            alpha = best;
 
-                // Update the Principle Variation
-                pv->length = 1 + lpv.length;
-                pv->line[0] = move;
-                memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
-            }
+            // Update the Principle Variation
+            pv->length = 1 + lpv.length;
+            pv->line[0] = move;
+            memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
         }
 
         // Search has failed high
@@ -684,7 +692,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
             return best;
     }
 
-    return best;
+    return InCheck ? (played ? best : -MATE + height) : MAX(best, eval);
 }
 
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
