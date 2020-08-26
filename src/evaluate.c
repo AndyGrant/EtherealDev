@@ -284,13 +284,13 @@ const int SafetyQueenWeight     = S(  30,   6);
 
 const int SafetyAttackValue     = S(  45,  34);
 const int SafetyWeakSquares     = S(  42,  41);
-const int SafetyStrongSquares   = S( -15,  -1);
+const int SafetyStrongSquares   = S(  -7,  -4);
 const int SafetyNoEnemyQueens   = S(-237,-259);
 const int SafetySafeQueenCheck  = S(  93,  83);
 const int SafetySafeRookCheck   = S(  90,  98);
 const int SafetySafeBishopCheck = S(  59,  59);
 const int SafetySafeKnightCheck = S( 112, 117);
-const int SafetyAdjustment      = S( -74, -26);
+const int SafetyAdjustment      = S( -88, -30);
 
 /* Passed Pawn Evaluation Terms */
 

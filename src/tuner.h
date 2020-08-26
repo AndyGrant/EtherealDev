@@ -33,7 +33,7 @@
 #define LRDROPRATE   (   5.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (   1000) // Cut LR after this many epochs
 
-#define NTERMS       (      1) // Total terms in the Tuner (660)
+#define NTERMS       (      2) // Total terms in the Tuner (660)
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
 #define BATCHSIZE    (9999740) // FENs per mini-batch
 #define NPOSITIONS   (9999740) // Total FENS in the book
@@ -87,7 +87,7 @@
 #define TuneSafetySafeRookCheck         (0)
 #define TuneSafetySafeBishopCheck       (0)
 #define TuneSafetySafeKnightCheck       (0)
-#define TuneSafetyAdjustment            (0)
+#define TuneSafetyAdjustment            (1)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
