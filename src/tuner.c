@@ -401,14 +401,28 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradient
     bsafety[EG] = (double) ScoreEG(entry->safety[BLACK]) + eg[SAFETY][BLACK];
 
     // Remove the original "safety" evaluation that was double counted into the "normal" evaluation
-    normal[MG] -= MIN(0, -ScoreMG(entry->safety[WHITE]) * fabs(ScoreMG(entry->safety[WHITE])) / 720)
-                - MIN(0, -ScoreMG(entry->safety[BLACK]) * fabs(ScoreMG(entry->safety[BLACK])) / 720);
-    normal[EG] -= MIN(0, -ScoreEG(entry->safety[WHITE]) / 20) - MIN(0, -ScoreEG(entry->safety[BLACK]) / 20);
+    // normal[MG] -= MIN(0, -ScoreMG(entry->safety[WHITE]) * fabs(ScoreMG(entry->safety[WHITE])) / 720)
+    //             - MIN(0, -ScoreMG(entry->safety[BLACK]) * fabs(ScoreMG(entry->safety[BLACK])) / 720);
+    // normal[EG] -= MIN(0, -ScoreEG(entry->safety[WHITE]) / 20) - MIN(0, -ScoreEG(entry->safety[BLACK]) / 20);
+    //
+    // // Compute the new, true "safety" evaluations for each side
+    // safety[MG] = MIN(0, -wsafety[MG] * fabs(-wsafety[MG]) / 720)
+    //            - MIN(0, -bsafety[MG] * fabs(-bsafety[MG]) / 720);
+    // safety[EG] = MIN(0, -wsafety[EG] / 20) - MIN(0, -bsafety[EG] / 20);
 
-    // Compute the new, true "safety" evaluations for each side
-    safety[MG] = MIN(0, -wsafety[MG] * fabs(-wsafety[MG]) / 720)
-               - MIN(0, -bsafety[MG] * fabs(-bsafety[MG]) / 720);
-    safety[EG] = MIN(0, -wsafety[EG] / 20) - MIN(0, -bsafety[EG] / 20);
+    // eval += MakeScore(-mg * MAX(0, mg) / 720, -MAX(0, eg) / 20);
+
+    normal[MG] -= -ScoreMG(entry->safety[WHITE]) * MAX(0, ScoreMG(entry->safety[WHITE])) / 720;
+    normal[MG] += -ScoreMG(entry->safety[BLACK]) * MAX(0, ScoreMG(entry->safety[BLACK])) / 720;
+
+    normal[EG] -= -MAX(0, ScoreEG(entry->safety[WHITE])) / 20;
+    normal[EG] += -MAX(0, ScoreEG(entry->safety[BLACK])) / 20;
+
+    safety[MG]  = -wsafety[MG] * MAX(0, wsafety[MG]) / 720;
+    safety[MG] -= -bsafety[MG] * MAX(0, bsafety[MG]) / 720;
+
+    safety[EG]  = -MAX(0, wsafety[EG]) / 20;
+    safety[EG] -= -MAX(0, bsafety[EG]) / 20;
 
     // Grab the original "complexity" evaluation and add the modified parameters
     complexity = (double) ScoreEG(entry->complexity) + eg[COMPLEXITY][WHITE];
@@ -475,7 +489,7 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
             gradient[index][EG] += egBase * wcoeff * complexitySign * entry->sfactor;
 
         if (methods[index] == SAFETY)
-            gradient[index][MG] += (mgBase / 360.0) * (fmax(data.bsafetymg, 0) * bcoeff - (fmax(data.wsafetymg, 0) * wcoeff));
+            gradient[index][MG] += (mgBase / 360.0) * (fmax(data.bsafetymg, 0) * bcoeff - fmax(data.wsafetymg, 0) * wcoeff);
 
         if (methods[index] == SAFETY && (data.egeval == 0.0 || data.complexity >= -fabs(data.egeval)))
             gradient[index][EG] += (egBase /  20.0) * ((data.bsafetyeg > 0.0) * bcoeff - (data.wsafetyeg > 0.0) * wcoeff);
