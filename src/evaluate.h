@@ -86,6 +86,7 @@ struct EvalTrace {
     int SafetySafeRookCheck[COLOUR_NB];
     int SafetySafeBishopCheck[COLOUR_NB];
     int SafetySafeKnightCheck[COLOUR_NB];
+    int SafetyContactCheck[COLOUR_NB];
     int SafetyAdjustment[COLOUR_NB];
     int PassedPawn[2][2][8][COLOUR_NB];
     int PassedFriendlyDistance[8][COLOUR_NB];

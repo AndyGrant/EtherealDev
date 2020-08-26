@@ -26,14 +26,14 @@
 #define KPRECISION   (     10) // Iterations for computing K
 
 #define QSRESOLVE    (      0) // Whether to resolve via a qsearch()
-#define PRETTYIFY    (      1) // Whether to format as if we tune everything
+#define PRETTYIFY    (      0) // Whether to format as if we tune everything
 #define REPORTING    (     50) // How often to print the new parameters
 
-#define LRRATE       (   0.01) // Global Learning rate
+#define LRRATE       (   1.00) // Global Learning rate
 #define LRDROPRATE   (   5.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (   1000) // Cut LR after this many epochs
 
-#define NTERMS       (      0) // Total terms in the Tuner (659)
+#define NTERMS       (      6) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (  10000) // Max number of epochs allowed
 #define BATCHSIZE    (9999740) // FENs per mini-batch
 #define NPOSITIONS   (9999740) // Total FENS in the book
@@ -82,11 +82,12 @@
 #define TuneSafetyAttackValue           (0)
 #define TuneSafetyWeakSquares           (0)
 #define TuneSafetyNoEnemyQueens         (0)
-#define TuneSafetySafeQueenCheck        (0)
-#define TuneSafetySafeRookCheck         (0)
-#define TuneSafetySafeBishopCheck       (0)
-#define TuneSafetySafeKnightCheck       (0)
-#define TuneSafetyAdjustment            (0)
+#define TuneSafetySafeQueenCheck        (1)
+#define TuneSafetySafeRookCheck         (1)
+#define TuneSafetySafeBishopCheck       (1)
+#define TuneSafetySafeKnightCheck       (1)
+#define TuneSafetyContactCheck          (1)
+#define TuneSafetyAdjustment            (1)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
@@ -328,6 +329,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, SafetySafeRookCheck, SAFETY, "  ");                         \
     ENABLE_0(F, SafetySafeBishopCheck, SAFETY, "");                         \
     ENABLE_0(F, SafetySafeKnightCheck, SAFETY, "");                         \
+    ENABLE_0(F, SafetyContactCheck, SAFETY, "   ");                         \
     ENABLE_0(F, SafetyAdjustment, SAFETY, "     ");                         \
                                                                             \
     COMMENTS(F, "\n/* Passed Pawn Evaluation Terms */\n\n");                \

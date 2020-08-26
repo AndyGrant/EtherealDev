@@ -89,6 +89,7 @@ extern const int SafetySafeQueenCheck;
 extern const int SafetySafeRookCheck;
 extern const int SafetySafeBishopCheck;
 extern const int SafetySafeKnightCheck;
+extern const int SafetyContactCheck;
 extern const int SafetyAdjustment;
 extern const int PassedPawn[2][2][8];
 extern const int PassedFriendlyDistance[8];
