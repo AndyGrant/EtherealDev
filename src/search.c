@@ -635,33 +635,34 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int 
             return ttValue;
     }
 
-    // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
-    // can recompute the eval as `eval = -last_eval + 2 * Tempo`
-    eval = thread->evalStack[height] =
-           ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
-                                                    : -thread->evalStack[height-1] + 2 * Tempo;
-
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
     if (!InCheck) {
+
+        // Save a history of the static evaluations. We can reuse a TT entry if the given
+        // evaluation has been set. Also, if we made a NULL move on the previous ply, we
+        // can recompute the eval as `eval = -last_eval + 2 * Tempo`
+        eval = thread->evalStack[height] =
+               ttHit && ttEval != VALUE_NONE            ?  ttEval
+             : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
+                                                        : -thread->evalStack[height-1] + 2 * Tempo;
+
+        // Step 5. Eval Pruning. If a static evaluation of the board will
+        // exceed beta, then we can stop the search here. Also, if the static
+        // eval exceeds alpha, we can call our static eval the new alpha
         alpha = MAX(alpha, eval);
         if (alpha >= beta) return eval;
-    }
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional boost of the futility margin would still fail.
-    // We allow even InCheck nodes to take this cutoff, as the position is "bad"
-    margin = alpha - eval - QFutilityMargin;
-    if (moveBestCaseValue(board) < margin)
-        return eval;
+        // Step 6. Delta Pruning. Even the best possible capture and or promotion
+        // combo with the additional boost of the futility margin would still fail.
+        // We allow even InCheck nodes to take this cutoff, as the position is "bad"
+        margin = alpha - eval - QFutilityMargin;
+        if (moveBestCaseValue(board) < margin && !InCheck)
+            return eval;
+    }
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
+    initNoisyMovePicker(&movePicker, thread, InCheck ? 0 : MAX(QSEEMargin, margin));
     while ((move = selectNextMove(&movePicker, board, !InCheck || played)) != NONE_MOVE) {
 
         // Do not even consider a bad capture if we have not yet evaded checkmate
