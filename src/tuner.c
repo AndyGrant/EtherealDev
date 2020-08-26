@@ -84,6 +84,7 @@ extern const int SafetyRookWeight;
 extern const int SafetyQueenWeight;
 extern const int SafetyAttackValue;
 extern const int SafetyWeakSquares;
+extern const int SafetyStrongSquares;
 extern const int SafetyNoEnemyQueens;
 extern const int SafetySafeQueenCheck;
 extern const int SafetySafeRookCheck;

@@ -284,6 +284,7 @@ const int SafetyQueenWeight     = S(  30,   6);
 
 const int SafetyAttackValue     = S(  45,  34);
 const int SafetyWeakSquares     = S(  42,  41);
+const int SafetyStrongSquares   = S( -15,  -1);
 const int SafetyNoEnemyQueens   = S(-237,-259);
 const int SafetySafeQueenCheck  = S(  93,  83);
 const int SafetySafeRookCheck   = S(  90,  98);
@@ -794,6 +795,9 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // one attacker with a potential for a Queen attacker
     if (ei->kingAttackersCount[US] > 1 - popcount(enemyQueens)) {
 
+        uint64_t strong =  ei->attackedBy[US][PAWN]
+                        & (ei->attackedBy[US][KNIGHT] | ei->attackedBy[US][BISHOP]);
+
         // Weak squares are attacked by the enemy, defended no more
         // than once and only defended by our Queens or our King
         uint64_t weak =   ei->attacked[THEM]
@@ -827,6 +831,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         safety += SafetyAttackValue     * scaledAttackCounts
                 + SafetyWeakSquares     * popcount(weak & ei->kingAreas[US])
+                + SafetyStrongSquares   * popcount(strong & ei->kingAreas[US])
                 + SafetyNoEnemyQueens   * !enemyQueens
                 + SafetySafeQueenCheck  * popcount(queenChecks)
                 + SafetySafeRookCheck   * popcount(rookChecks)
@@ -836,6 +841,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
         if (TRACE) T.SafetyWeakSquares[US]     = popcount(weak & ei->kingAreas[US]);
+        if (TRACE) T.SafetyStrongSquares[US]   = popcount(strong & ei->kingAreas[US]);
         if (TRACE) T.SafetyNoEnemyQueens[US]   = !enemyQueens;
         if (TRACE) T.SafetySafeQueenCheck[US]  = popcount(queenChecks);
         if (TRACE) T.SafetySafeRookCheck[US]   = popcount(rookChecks);

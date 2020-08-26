@@ -81,6 +81,7 @@ struct EvalTrace {
     int SafetyQueenWeight[COLOUR_NB];
     int SafetyAttackValue[COLOUR_NB];
     int SafetyWeakSquares[COLOUR_NB];
+    int SafetyStrongSquares[COLOUR_NB];
     int SafetyNoEnemyQueens[COLOUR_NB];
     int SafetySafeQueenCheck[COLOUR_NB];
     int SafetySafeRookCheck[COLOUR_NB];
