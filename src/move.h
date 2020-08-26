@@ -57,6 +57,8 @@ int legalMoveCount(Board * board);
 int moveExaminedByMultiPV(Thread *thread, uint16_t move);
 int moveIsInRootMoves(Thread *thread, uint16_t move);
 int moveIsTactical(Board *board, uint16_t move);
+int moveIsPawnCapture(Board *board, uint16_t move);
+
 int moveEstimatedValue(Board *board, uint16_t move);
 int moveBestCaseValue(Board *board);
 int moveIsPseudoLegal(Board *board, uint16_t move);

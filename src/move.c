@@ -493,6 +493,12 @@ int moveIsTactical(Board *board, uint16_t move) {
         || (move & ENPASS_MOVE & PROMOTION_MOVE);
 }
 
+int moveIsPawnCapture(Board *board, uint16_t move) {
+
+    return MoveType(move) == ENPASS_MOVE
+        || pieceType(board->squares[MoveTo(move)]) == PAWN;
+}
+
 int moveEstimatedValue(Board *board, uint16_t move) {
 
     // Start with the value of the piece on the target square

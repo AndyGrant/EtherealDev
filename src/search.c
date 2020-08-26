@@ -590,7 +590,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     Board *const board = &thread->board;
 
-    int eval, value, best, margin;
+    int eval, value, best, margin, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
@@ -659,10 +659,15 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
+        // Skip ?xP after a few moves have been tried
+        if (played > 2 && moveIsPawnCapture(board, move))
+            continue;
+
         // Search the next ply if the move is legal
         if (!apply(thread, board, move, height)) continue;
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
+        played++;
 
         // Improved current value
         if (value > best) {
