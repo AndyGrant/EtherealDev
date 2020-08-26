@@ -640,7 +640,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int 
         // Save a history of the static evaluations. We can reuse a TT entry if the given
         // evaluation has been set. Also, if we made a NULL move on the previous ply, we
         // can recompute the eval as `eval = -last_eval + 2 * Tempo`
-        eval = thread->evalStack[height] =
+        best = eval = thread->evalStack[height] =
                ttHit && ttEval != VALUE_NONE            ?  ttEval
              : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
                                                         : -thread->evalStack[height-1] + 2 * Tempo;
@@ -693,7 +693,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int 
             return best;
     }
 
-    return InCheck ? (played ? best : -MATE + height) : MAX(best, eval);
+    return InCheck ? (played ? best : -MATE + height) : best;
 }
 
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
