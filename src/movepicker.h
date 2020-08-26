@@ -20,7 +20,7 @@
 
 #include "types.h"
 
-enum { NORMAL_PICKER, NOISY_PICKER };
+enum { NORMAL_PICKER, PROBCUT_PICKER, QSEARCH_PICKER };
 
 enum {
     STAGE_TABLE,
@@ -42,5 +42,5 @@ struct MovePicker {
 
 void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height);
 void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height);
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold);
+void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold, int type);
 uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets);

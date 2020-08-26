@@ -98,7 +98,7 @@ void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int
 
 }
 
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
+void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold, int type) {
 
     // Start with just the noisy moves
     mp->stage = STAGE_GENERATE_NOISY;
@@ -110,7 +110,7 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
     mp->threshold = threshold;
     mp->thread = thread;
     mp->height = 0;
-    mp->type = NOISY_PICKER;
+    mp->type = type;
 }
 
 uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
@@ -152,7 +152,8 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
                     // Skip moves which fail to beat our SEE margin. We flag those moves
                     // as failed with the value (-1), and then repeat the selection process
-                    if (!staticExchangeEvaluation(board, mp->moves[best], mp->threshold)) {
+                    if (    mp->type != QSEARCH_PICKER
+                        && !staticExchangeEvaluation(board, mp->moves[best], mp->threshold)) {
                         mp->values[best] = -1;
                         return selectNextMove(mp, board, skipQuiets);
                     }
@@ -257,7 +258,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_BAD_NOISY:
 
             // Check to see if there are still more noisy moves
-            if (mp->noisySize && mp->type != NOISY_PICKER) {
+            if (mp->noisySize && mp->type == NORMAL_PICKER) {
 
                 // Reduce effective move list size
                 bestMove = popMove(&mp->noisySize, mp->moves, mp->values, 0);
