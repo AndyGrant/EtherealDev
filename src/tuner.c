@@ -59,13 +59,13 @@ extern const int PawnIsolated;
 extern const int PawnStacked[2];
 extern const int PawnBackwards[2][8];
 extern const int PawnConnected32[32];
-extern const int KnightOutpost[2][2];
+extern const int KnightOutpost[2][4];
 extern const int KnightBehindPawn;
 extern const int KnightInSiberia[4];
 extern const int KnightMobility[9];
 extern const int BishopPair;
 extern const int BishopRammedPawns;
-extern const int BishopOutpost[2][2];
+extern const int BishopOutpost[2][4];
 extern const int BishopBehindPawn;
 extern const int BishopLongDiagonal;
 extern const int BishopMobility[14];
@@ -160,15 +160,15 @@ void runTuner() {
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
-                adagrad[i][MG] += pow(2.0 * gradient[i][MG] / BATCHSIZE, 2.0);
-                adagrad[i][EG] += pow(2.0 * gradient[i][EG] / BATCHSIZE, 2.0);
-                params[i][MG] += (2.0 / BATCHSIZE) * gradient[i][MG] * (rate / sqrt(1e-8 + adagrad[i][MG]));
-                params[i][EG] += (2.0 / BATCHSIZE) * gradient[i][EG] * (rate / sqrt(1e-8 + adagrad[i][EG]));
+                adagrad[i][MG] += pow((K / 200.0) * gradient[i][MG] / BATCHSIZE, 2.0);
+                adagrad[i][EG] += pow((K / 200.0) * gradient[i][EG] / BATCHSIZE, 2.0);
+                params[i][MG] += (K / 200.0) * (gradient[i][MG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][MG]));
+                params[i][EG] += (K / 200.0) * (gradient[i][EG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][EG]));
             }
         }
 
         error = tunedEvaluationErrors(entries, params, methods, K);
-        printf("Epoch [%d] Error = [%g], Rate = [%g]\n", epoch, error, rate);
+        printf("Epoch [%d] Error = [%.9f], Rate = [%g]\n", epoch, error, rate);
 
         if (epoch && epoch % LRSTEPRATE == 0) rate = rate / LRDROPRATE;
         if (epoch % REPORTING == 0) printParameters(params, cparams);
