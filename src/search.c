@@ -643,17 +643,14 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int 
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    if (!InCheck) {
-        alpha = MAX(alpha, eval);
-        if (alpha >= beta) return eval;
-    }
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo with the additional boost of the futility margin would still fail.
-    // We allow even InCheck nodes to take this cutoff, as the position is "bad"
+    if (!InCheck)
+        alpha = MAX(alpha, eval);
+
+    if (  (!InCheck && eval >= beta)
+        || eval - 128 * abs(depth) > beta)
+        return eval;
+
     margin = alpha - eval - QFutilityMargin;
     if (moveBestCaseValue(board) < margin)
         return eval;
