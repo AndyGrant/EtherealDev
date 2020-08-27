@@ -140,7 +140,7 @@ void runTuner() {
     initCurrentParameters(cparams);
     initMethodManager(methods);
     initTunerEntries(entries, thread, methods);
-    K = computeOptimalK(entries);
+    K = 3.21664; // computeOptimalK(entries);
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
@@ -160,10 +160,10 @@ void runTuner() {
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
-                adagrad[i][MG] += pow(2.0 * gradient[i][MG] / BATCHSIZE, 2.0);
-                adagrad[i][EG] += pow(2.0 * gradient[i][EG] / BATCHSIZE, 2.0);
-                params[i][MG] += (2.0 / BATCHSIZE) * gradient[i][MG] * (rate / sqrt(1e-8 + adagrad[i][MG]));
-                params[i][EG] += (2.0 / BATCHSIZE) * gradient[i][EG] * (rate / sqrt(1e-8 + adagrad[i][EG]));
+                adagrad[i][MG] += pow((K / 200.0) * gradient[i][MG] / BATCHSIZE, 2.0);
+                adagrad[i][EG] += pow((K / 200.0) * gradient[i][EG] / BATCHSIZE, 2.0);
+                params[i][MG] += (K / 200.0) * (gradient[i][MG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][MG]));
+                params[i][EG] += (K / 200.0) * (gradient[i][EG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][EG]));
             }
         }
 
