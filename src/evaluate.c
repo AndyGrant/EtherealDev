@@ -277,19 +277,19 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* Safety Evaluation Terms */
 
-const int SafetyKnightWeight    = S(  48,  41);
-const int SafetyBishopWeight    = S(  24,  35);
-const int SafetyRookWeight      = S(  36,   8);
+const int SafetyKnightWeight    = S(  50,  42);
+const int SafetyBishopWeight    = S(  25,  36);
+const int SafetyRookWeight      = S(  34,   8);
 const int SafetyQueenWeight     = S(  30,   6);
 
-const int SafetyAttackValue     = S(  45,  34);
-const int SafetyWeakSquares     = S(  42,  41);
-const int SafetyNoEnemyQueens   = S(-237,-259);
-const int SafetySafeQueenCheck  = S(  93,  83);
-const int SafetySafeRookCheck   = S(  90,  98);
-const int SafetySafeBishopCheck = S(  59,  59);
-const int SafetySafeKnightCheck = S( 112, 117);
-const int SafetyAdjustment      = S( -74, -26);
+const int SafetyAttackValue     = S(  45,  36);
+const int SafetyWeakSquares     = S(  41,  42);
+const int SafetyNoEnemyQueens   = S(-236,-259);
+const int SafetySafeQueenCheck  = S(  89,  83);
+const int SafetySafeRookCheck   = S(  88,  98);
+const int SafetySafeBishopCheck = S(  60,  59);
+const int SafetySafeKnightCheck = S( 108, 117);
+const int SafetyAdjustment      = S( -79, -25);
 
 /* Passed Pawn Evaluation Terms */
 
