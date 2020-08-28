@@ -73,7 +73,7 @@ struct EvalTrace {
     int QueenMobility[28][COLOUR_NB];
     int KingPawnFileProximity[8][COLOUR_NB];
     int KingDefenders[12][COLOUR_NB];
-    int KingShelter[2][8][8][COLOUR_NB];
+    int KingShelter[2][4][8][COLOUR_NB];
     int KingStorm[2][4][8][COLOUR_NB];
     int SafetyKnightWeight[COLOUR_NB];
     int SafetyBishopWeight[COLOUR_NB];

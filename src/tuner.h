@@ -29,11 +29,11 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    1.00) // Global Learning rate
-#define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
+#define LRRATE       (   10.00) // Global Learning rate
+#define LRDROPRATE   (    2.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (659)
+#define NTERMS       (      64) // Total terms in the Tuner (659-64)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (19288162) // FENs per mini-batch
 #define NPOSITIONS   (19288162) // Total FENS in the book
@@ -73,7 +73,7 @@
 #define TuneQueenMobility               (0)
 #define TuneKingDefenders               (0)
 #define TuneKingPawnFileProximity       (0)
-#define TuneKingShelter                 (0)
+#define TuneKingShelter                 (1)
 #define TuneKingStorm                   (0)
 #define TuneSafetyKnightWeight          (0)
 #define TuneSafetyBishopWeight          (0)
@@ -313,7 +313,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     COMMENTS(F, "/* King Evaluation Terms */\n\n");                         \
     ENABLE_1(F, KingDefenders, 12, NORMAL, "[12]");                         \
     ENABLE_1(F, KingPawnFileProximity, 8, NORMAL, "[FILE_NB]");             \
-    ENABLE_3(F, KingShelter, 2, 8, 8, NORMAL, "[2][FILE_NB][RANK_NB]");     \
+    ENABLE_3(F, KingShelter, 2, 4, 8, NORMAL, "[2][FILE_NB/2][RANK_NB]");   \
     ENABLE_3(F, KingStorm, 2, 4, 8, NORMAL, "[2][FILE_NB/2][RANK_NB]");     \
                                                                             \
     COMMENTS(F, "/* Safety Evaluation Terms */\n\n");                       \
