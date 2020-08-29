@@ -649,14 +649,14 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo with the additional boost of the futility margin would still fail
-    margin = alpha - eval;
+    margin = alpha - eval - QFutilityMargin;
     if (moveBestCaseValue(board) < margin)
         return eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin - QFutilityMargin));
+    initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, alpha - eval));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Search the next ply if the move is legal
