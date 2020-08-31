@@ -33,7 +33,7 @@
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (659)
+#define NTERMS       (       4) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (19288162) // FENs per mini-batch
 #define NPOSITIONS   (19288162) // Total FENS in the book
@@ -106,10 +106,10 @@
 #define TuneSpaceCenterControl          (0)
 #define TuneClosednessKnightAdjustment  (0)
 #define TuneClosednessRookAdjustment    (0)
-#define TuneComplexityTotalPawns        (0)
-#define TuneComplexityPawnFlanks        (0)
-#define TuneComplexityPawnEndgame       (0)
-#define TuneComplexityAdjustment        (0)
+#define TuneComplexityTotalPawns        (1)
+#define TuneComplexityPawnFlanks        (1)
+#define TuneComplexityPawnEndgame       (1)
+#define TuneComplexityAdjustment        (1)
 
 enum { NORMAL, COMPLEXITY, SAFETY, METHOD_NB };
 
