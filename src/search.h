@@ -84,7 +84,7 @@ static const int SEEPieceValues[] = {
 
 static const int HistexLimit = 10000;
 
-static const int QSSeeMargin = 118;
+static const int QSSeeMargin = 75;
 static const int QSDeltaMargin = 150;
 
 static const int SingularQuietLimit = 6;
