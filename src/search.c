@@ -650,7 +650,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
     // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
+    if (QSDeltaBase + moveBestCaseValue(board) < alpha - eval)
         return eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
