@@ -150,10 +150,10 @@ void runTuner() {
             computeGradient(entries, gradient, params, methods, K, batch);
 
             for (int i = 0; i < NTERMS; i++) {
-                adagrad[i][MG] += pow((K / 200.0) * gradient[i][MG] / BATCHSIZE, 2.0);
-                adagrad[i][EG] += pow((K / 200.0) * gradient[i][EG] / BATCHSIZE, 2.0);
-                params[i][MG] += (K / 200.0) * (gradient[i][MG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][MG]));
-                params[i][EG] += (K / 200.0) * (gradient[i][EG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][EG]));
+                adagrad[i][MG] += pow((K / 400.0) * gradient[i][MG] / BATCHSIZE, 2.0);
+                adagrad[i][EG] += pow((K / 400.0) * gradient[i][EG] / BATCHSIZE, 2.0);
+                params[i][MG] += (K / 400.0) * (gradient[i][MG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][MG]));
+                params[i][EG] += (K / 400.0) * (gradient[i][EG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][EG]));
             }
         }
 
@@ -340,7 +340,7 @@ double staticEvaluationErrors(TEntry *entries, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(entries[i].result - sigmoid(K, entries[i].seval), 2);
+            total += fabs(entries[i].result - sigmoid(K, entries[i].seval));
     }
 
     return total / (double) NPOSITIONS;
@@ -354,7 +354,7 @@ double tunedEvaluationErrors(TEntry *entries, TVector params, TArray methods, do
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; i++)
-            total += pow(entries[i].result - sigmoid(K, linearEvaluation(&entries[i], params, methods, NULL)), 2);
+            total += fabs(entries[i].result - sigmoid(K, linearEvaluation(&entries[i], params, methods, NULL)));
     }
 
     return total / (double) NPOSITIONS;
@@ -442,7 +442,7 @@ void updateSingleGradient(TEntry *entry, TVector gradient, TVector params, TArra
     TGradientData data;
     double E = linearEvaluation(entry, params, methods, &data);
     double S = sigmoid(K, E);
-    double A = (entry->result - S) * S * (1 - S);
+    double A = ((entry->result - S) >= 0.0 ? 1 : -1) * S * (1 - S);
 
     double mgBase = A * entry->pfactors[MG];
     double egBase = A * entry->pfactors[EG];
