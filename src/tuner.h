@@ -35,8 +35,8 @@
 
 #define NTERMS       (       0) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
-#define BATCHSIZE    ( 2498186) // FENs per mini-batch
-#define NPOSITIONS   ( 2498186) // Total FENS in the book
+#define BATCHSIZE    (12489256) // FENs per mini-batch
+#define NPOSITIONS   (12489256) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
 
@@ -115,8 +115,8 @@ enum { NORMAL, COMPLEXITY, SAFETY, METHOD_NB };
 
 typedef struct TTuple {
     uint16_t index;
-    int16_t wcoeff;
-    int16_t bcoeff;
+    int8_t wcoeff;
+    int8_t bcoeff;
 } TTuple;
 
 typedef struct TEntry {
