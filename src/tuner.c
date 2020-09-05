@@ -107,6 +107,8 @@ extern const int ThreatByPawnPush;
 extern const int SpaceRestrictPiece;
 extern const int SpaceRestrictEmpty;
 extern const int SpaceCenterControl;
+extern const int MaterialSynergy[5][5];
+extern const int MaterialImbalance[5][5];
 extern const int ClosednessKnightAdjustment[9];
 extern const int ClosednessRookAdjustment[9];
 extern const int ComplexityTotalPawns;
@@ -140,7 +142,7 @@ void runTuner() {
     initCurrentParameters(cparams);
     initMethodManager(methods);
     initTunerEntries(entries, thread, methods);
-    K = computeOptimalK(entries);
+    K = computeOptimalK(entries); puts("\n");
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
@@ -158,10 +160,10 @@ void runTuner() {
         }
 
         error = tunedEvaluationErrors(entries, params, methods, K);
-        printf("Epoch [%d] Error = [%.9f], Rate = [%g]\n", epoch, error, rate);
+        printf("\rEpoch [%d] Error = [%.9f], Rate = [%g]", epoch, error, rate);
 
         if (epoch && epoch % LRSTEPRATE == 0) rate = rate / LRDROPRATE;
-        if (epoch % REPORTING == 0) printParameters(params, cparams);
+        if (epoch % REPORTING == 0) puts("\n"), printParameters(params, cparams), puts("\n");
     }
 }
 
@@ -532,7 +534,7 @@ void print_2(char *name, TVector params, int i, int A, int B, char *S) {
         printf("   {");
 
         for (int b = 0; b < B; b++, i++) {
-            if (b && b % 4 == 0) printf("\n    ");
+            if (B != 5 && b && b % 4 == 0) printf("\n    ");
             printf("S(%4d,%4d)", (int) params[i][MG], (int) params[i][EG]);
             printf("%s", b == B - 1 ? "" : ", ");
         }

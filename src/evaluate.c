@@ -335,6 +335,24 @@ const int SpaceRestrictPiece = S(  -3,   0);
 const int SpaceRestrictEmpty = S(  -4,  -2);
 const int SpaceCenterControl = S(   4,   0);
 
+/* Material Imbalance Terms */
+
+const int MaterialSynergy[5][5] = {
+   {S(   0,   1), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -1,   7), S(  -3,  -2), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -1,   4), S(  -5,   3), S(  -2,   1), S(   0,   0), S(   0,   0)},
+   {S(  -4,  10), S(  -1,   5), S(   1,   5), S(   3,  -6), S(   0,   0)},
+   {S(  -1,   7), S(  -3,   1), S(  -5,  -3), S(  -7,  -6), S(  -4,   1)},
+};
+
+const int MaterialImbalance[5][5] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   3), S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   6), S(   0,  -3), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -3,   8), S(   1,   1), S(  -1,   0), S(   0,   0), S(   0,   0)},
+   {S(  -8,  24), S(   2,   2), S(   2,   3), S(  -6,   6), S(   0,   0)},
+};
+
 /* Closedness Evaluation Terms */
 
 const int ClosednessKnightAdjustment[9] = {
@@ -373,6 +391,8 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
     eval  += pkeval + board->psqtmat;
     eval  += contempt;
+
+    eval  += evaluateMaterial(&ei, board);
     eval  += evaluateClosedness(&ei, board);
     eval  += evaluateComplexity(&ei, board, eval);
 
@@ -1066,6 +1086,45 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
         count = popcount(~ei->attacked[THEM] & (ei->attacked[US] | friendly) & CENTER_BIG);
         eval += count * SpaceCenterControl;
         if (TRACE) T.SpaceCenterControl[US] += count;
+    }
+
+    return eval;
+}
+
+int evaluateMaterial(EvalInfo *ei, Board *board) {
+
+    (void) ei; // Silence compiler warning
+
+    int eval = 0, coeff;
+    int counts[COLOUR_NB][QUEEN+1];
+
+    // One-time compute for popcnts. Material-Table faster (???)
+    for (int colour = WHITE; colour <= BLACK; colour++)
+        for (int piece = PAWN; piece <= QUEEN; piece++)
+            counts[colour][piece] = popcount(board->colours[colour] & board->pieces[piece]);
+
+    for (int pt1 = PAWN; pt1 <= QUEEN; pt1++) {
+
+        // Evaluate Synergy between own same pieces
+        coeff = counts[WHITE][pt1] * counts[WHITE][pt1]
+              - counts[BLACK][pt1] * counts[BLACK][pt1];
+        eval += coeff * MaterialSynergy[pt1][pt1];
+        if (TRACE) T.MaterialSynergy[pt1][pt1][WHITE] += coeff;
+
+        for (int pt2 = PAWN; pt2 < pt1; pt2++) {
+
+            // Evaluate Synergy between our pieces
+            coeff = counts[WHITE][pt1] * counts[WHITE][pt2]
+                  - counts[BLACK][pt1] * counts[BLACK][pt2];
+            eval += coeff * MaterialSynergy[pt1][pt2];
+            if (TRACE) T.MaterialSynergy[pt1][pt2][WHITE] += coeff;
+
+            // Evaluate Imbalance against their pieces
+            coeff = counts[WHITE][pt1] * counts[BLACK][pt2]
+                  - counts[BLACK][pt1] * counts[WHITE][pt2];
+            eval += coeff * MaterialImbalance[pt1][pt2];
+            if (TRACE) T.MaterialImbalance[pt1][pt2][WHITE] += coeff;
+        }
     }
 
     return eval;

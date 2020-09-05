@@ -26,17 +26,17 @@
 #define KPRECISION   (      10) // Iterations for computing K
 
 #define QSRESOLVE    (       0) // Whether to resolve via a qsearch()
-#define PRETTYIFY    (       1) // Whether to format as if we tune everything
+#define PRETTYIFY    (       0) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    1.00) // Global Learning rate
-#define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
+#define LRRATE       (   10.00) // Global Learning rate
+#define LRDROPRATE   (    2.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (659)
+#define NTERMS       (      50) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
-#define BATCHSIZE    ( 2498186) // FENs per mini-batch
-#define NPOSITIONS   ( 2498186) // Total FENS in the book
+#define BATCHSIZE    (19996623) // FENs per mini-batch
+#define NPOSITIONS   (19996623) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
 
@@ -104,6 +104,8 @@
 #define TuneSpaceRestrictPiece          (0)
 #define TuneSpaceRestrictEmpty          (0)
 #define TuneSpaceCenterControl          (0)
+#define TuneMaterialSynergy             (1)
+#define TuneMaterialImbalance           (1)
 #define TuneClosednessKnightAdjustment  (0)
 #define TuneClosednessRookAdjustment    (0)
 #define TuneComplexityTotalPawns        (0)
@@ -352,6 +354,10 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, SpaceRestrictPiece, NORMAL, "");                            \
     ENABLE_0(F, SpaceRestrictEmpty, NORMAL, "");                            \
     ENABLE_0(F, SpaceCenterControl, NORMAL, "");                            \
+                                                                            \
+    COMMENTS(F, "\n/* Material Balance Terms */\n\n");                      \
+    ENABLE_2(F, MaterialSynergy, 5, 5, NORMAL, "[5][5]");                   \
+    ENABLE_2(F, MaterialImbalance, 5, 5, NORMAL, "[5][5]");                 \
                                                                             \
     COMMENTS(F, "\n/* Closedness Evaluation Terms */\n\n");                 \
     ENABLE_1(F, ClosednessKnightAdjustment, 9, NORMAL, "[9]");              \

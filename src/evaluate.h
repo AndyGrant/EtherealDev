@@ -104,6 +104,8 @@ struct EvalTrace {
     int SpaceRestrictPiece[COLOUR_NB];
     int SpaceRestrictEmpty[COLOUR_NB];
     int SpaceCenterControl[COLOUR_NB];
+    int MaterialSynergy[5][5][COLOUR_NB];
+    int MaterialImbalance[5][5][COLOUR_NB];
     int ClosednessKnightAdjustment[9][COLOUR_NB];
     int ClosednessRookAdjustment[9][COLOUR_NB];
     int ComplexityTotalPawns[COLOUR_NB];
@@ -145,6 +147,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassed(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
 int evaluateSpace(EvalInfo *ei, Board *board, int colour);
+int evaluateMaterial(EvalInfo *ei, Board *board);
 int evaluateClosedness(EvalInfo *ei, Board *board);
 int evaluateComplexity(EvalInfo *ei, Board *board, int eval);
 int evaluateScaleFactor(Board *board, int eval);
