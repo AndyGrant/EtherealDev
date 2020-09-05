@@ -35,8 +35,8 @@
 
 #define NTERMS       (      50) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
-#define BATCHSIZE    (19996623) // FENs per mini-batch
-#define NPOSITIONS   (19996623) // Total FENS in the book
+#define BATCHSIZE    (12489256) // FENs per mini-batch
+#define NPOSITIONS   (12489256) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
 
