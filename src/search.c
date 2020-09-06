@@ -199,7 +199,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha, bestPossibleCapture;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, nmpFutilityMargin, seeMargin[2];
+    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
@@ -308,9 +308,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // Look for the highest value piece on the board
     bestPossibleCapture = moveBestCaseValue(board);
 
-    // Futility Pruning Margins
-    futilityMargin      = FutilityMargin * depth;
-    nmpFutilityMargin   = MAX(bestPossibleCapture, 2 * SEEPieceValues[PAWN]) + SEEPieceValues[PAWN];
+    // Futility Pruning Margin
+    futilityMargin = FutilityMargin * depth;
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -451,9 +450,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // Step 11F (). Null Futility Pruning. If even an extremely liberal
             // estimate of our best possible capure falls below alpha, and we have
             // finished trying all the good tactical responses to the NULL, give up.
-            if (   eval + nmpFutilityMargin < alpha
-                && movePicker.stage > STAGE_GOOD_NOISY
-                && thread->moveStack[height-1] == NULL_MOVE)
+            if (   movePicker.stage > STAGE_GOOD_NOISY
+                && thread->moveStack[height-1] == NULL_MOVE
+                && eval + MAX(futilityMargin, bestPossibleCapture) < alpha)
                 break;
         }
 
