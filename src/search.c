@@ -310,7 +310,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
     // Futility Pruning Margins
     futilityMargin      = FutilityMargin * depth;
-    nmpFutilityMargin   = MAX(bestPossibleCapture, 3 * SEEPieceValues[PAWN]);
+    nmpFutilityMargin   = MAX(bestPossibleCapture, 2 * SEEPieceValues[PAWN]) + SEEPieceValues[PAWN];
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
