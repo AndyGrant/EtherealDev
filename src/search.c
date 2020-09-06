@@ -196,7 +196,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int ttHit, ttValue = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
@@ -248,7 +248,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     }
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttDepth, &ttBound))) {
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -287,7 +287,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             || (ttBound == BOUND_LOWER && value >= beta)
             || (ttBound == BOUND_UPPER && value <= alpha)) {
 
-            storeTTEntry(board->hash, NONE_MOVE, valueToTT(value, height), VALUE_NONE, depth, ttBound);
+            storeTTEntry(board->hash, NONE_MOVE, valueToTT(value, height), depth, ttBound);
             return value;
         }
     }
@@ -301,8 +301,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // evaluation has been set. Also, if we made a NULL move on the previous ply, we
     // can recompute the eval as `eval = -last_eval + 2 * Tempo`
     eval = thread->evalStack[height] =
-           ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(thread, board, &thread->pktable, thread->contempt)
+           thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(thread, board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
     // Futility Pruning Margin
@@ -580,7 +579,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (!RootNode || !thread->multiPV) {
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
+        storeTTEntry(board->hash, bestMove, valueToTT(best, height), depth, ttBound);
     }
 
     return best;
@@ -591,7 +590,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     Board *const board = &thread->board;
 
     int eval, value, best;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int ttHit, ttValue = 0, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE;
     MovePicker movePicker;
     PVariation lpv;
@@ -621,7 +620,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         return evaluateBoard(thread, board, &thread->pktable, thread->contempt);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttDepth, &ttBound))) {
 
         ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -636,8 +635,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     // evaluation has been set. Also, if we made a NULL move on the previous ply, we
     // can recompute the eval as `eval = -last_eval + 2 * Tempo`
     eval = thread->evalStack[height] =
-           ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(thread, board, &thread->pktable, thread->contempt)
+           thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(thread, board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
