@@ -445,6 +445,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 continue;
         }
 
+        static const int NullFutilityMargin = 16;
+
+        // Don't even consider losing capture responses to a NULL move. We
+        // limit the pruning by depth to avoid completely exposing tactics
+        if (    best > -MATE_IN_MAX
+            &&  movePicker.stage == STAGE_BAD_NOISY
+            &&  thread->moveStack[height-1] == NULL_MOVE
+            &&  eval + NullFutilityMargin * depth <= alpha)
+            break;
+
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
