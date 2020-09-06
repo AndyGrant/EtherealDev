@@ -18,10 +18,12 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
+#include "evalcache.h"
 #include "evaluate.h"
 #include "masks.h"
 #include "transposition.h"
@@ -362,10 +364,14 @@ const int Tempo = 20;
 
 #undef S
 
-int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
+int evaluateBoard(Thread *thread, Board *board, PKTable *pktable, int contempt) {
 
     EvalInfo ei;
-    int phase, factor, eval, pkeval;
+    int phase, factor, eval, pkeval, hashed;
+
+    // Check for this evaluation being cached already
+    if (getCachedEvaluation(thread, board, &hashed))
+        return hashed;
 
     // Setup and perform all evaluations
     initEvalInfo(&ei, board, pktable);
@@ -387,21 +393,22 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
     factor = evaluateScaleFactor(board, eval);
     if (TRACE) T.factor = factor;
 
-    // Compute the interpolated and scaled evaluation
+    // Compute the interpolated and scaled evaluation from white's POV
     eval = (ScoreMG(eval) * (256 - phase)
          +  ScoreEG(eval) * phase * factor / SCALE_NORMAL) / 256;
+    storeCachedEvaluation(thread, board, eval);
 
     // Factor in the Tempo after interpolation and scaling, so that
     // in the search we can assume that if a null move is made, then
     // then `eval = last_eval + 2 * Tempo`
-    eval += board->turn == WHITE ? Tempo : -Tempo;
+    eval = Tempo + (board->turn == WHITE ? eval : -eval);
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == NULL && pktable != NULL)
         storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
-    return board->turn == WHITE ? eval : -eval;
+    return eval;
 }
 
 int evaluatePieces(EvalInfo *ei, Board *board) {
