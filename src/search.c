@@ -639,7 +639,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     // Grab an evaluation, but be lazy outside of [deltaPruneValue, beta]
     const int QSLazyMargin = 256;
-    int deltaPruneValue = alpha + MAX(QSDeltaMargin, moveBestCaseValue(board));
+    int deltaPruneValue = alpha - MAX(QSDeltaMargin, moveBestCaseValue(board));
     eval = evaluateLazyQS(thread, height, deltaPruneValue, beta, QSLazyMargin, ttHit, ttEval);
 
     // If we fall outside [deltaPruneValue, beta] we can prune somewhat safely
