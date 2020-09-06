@@ -643,7 +643,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     eval = evaluateLazyQS(thread, height, deltaPruneValue, beta, QSLazyMargin, ttHit, ttEval);
 
     // If we fall outside [deltaPruneValue, beta] we can prune somewhat safely
-    if (eval < deltaPruneValue || eval > beta) return eval;
+    if (eval <= deltaPruneValue || eval >= beta) return eval;
     best = thread->evalStack[height] = eval; alpha = MAX(alpha, eval);
 
     // Step 6. Move Generation and Looping. Generate all tactical moves
