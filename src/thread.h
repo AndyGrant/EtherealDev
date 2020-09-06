@@ -22,6 +22,7 @@
 #include <stdint.h>
 
 #include "board.h"
+#include "material.h"
 #include "search.h"
 #include "transposition.h"
 #include "types.h"
@@ -52,6 +53,7 @@ struct Thread {
     Undo undoStack[STACK_SIZE];
 
     PKTable pktable;
+    MatTable mtable;
     KillerTable killers;
     CounterMoveTable cmtable;
     HistoryTable history;

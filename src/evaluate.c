@@ -24,6 +24,8 @@
 #include "board.h"
 #include "evaluate.h"
 #include "masks.h"
+#include "material.h"
+#include "thread.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -380,21 +382,18 @@ const int Tempo = 20;
 
 #undef S
 
-int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
+int evaluateBoard(Thread *thread, Board *board) {
 
     EvalInfo ei;
-    int phase, factor, eval, pkeval;
+    int phase, factor, eval = board->psqtmat + thread->contempt;
 
     // Setup and perform all evaluations
-    initEvalInfo(&ei, board, pktable);
-    eval   = evaluatePieces(&ei, board);
-    pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-    eval  += pkeval + board->psqtmat;
-    eval  += contempt;
-
-    eval  += evaluateMaterial(&ei, board);
-    eval  += evaluateClosedness(&ei, board);
-    eval  += evaluateComplexity(&ei, board, eval);
+    initEvalInfo(thread, board, &ei);
+    eval += evaluatePieces(&ei, board);
+    eval += evaluateMaterial(&ei, board);
+    eval += ei.pkeval[WHITE] - ei.pkeval[BLACK] + ei.mateval;
+    eval += evaluateClosedness(&ei, board);
+    eval += evaluateComplexity(&ei, board, eval);
 
     // Calculate the game phase based on remaining material (Fruit Method)
     phase = 24 - 4 * popcount(board->pieces[QUEEN ])
@@ -417,8 +416,13 @@ int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
     eval += board->turn == WHITE ? Tempo : -Tempo;
 
     // Store a new Pawn King Entry if we did not have one
-    if (ei.pkentry == NULL && pktable != NULL)
-        storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+    if (ei.pkentry == NULL) {
+        int pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
+        storePKEntry(&thread->pktable, board->pkhash, ei.passedPawns, pkeval);
+    }
+
+    if (ei.mentry == NULL)
+        storeMaterialEntry(&thread->mtable, board->mhash, ei.mateval);
 
     // Return the evaluation relative to the side to move
     return board->turn == WHITE ? eval : -eval;
@@ -1093,10 +1097,11 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour) {
 
 int evaluateMaterial(EvalInfo *ei, Board *board) {
 
-    (void) ei; // Silence compiler warning
-
     int eval = 0, coeff;
     int counts[COLOUR_NB][QUEEN+1];
+
+    // We've already computed this and stored it
+    if (ei->mentry != NULL) return eval;
 
     // One-time compute for popcnts. Material-Table faster (???)
     for (int colour = WHITE; colour <= BLACK; colour++)
@@ -1108,7 +1113,7 @@ int evaluateMaterial(EvalInfo *ei, Board *board) {
         // Evaluate Synergy between own same pieces
         coeff = counts[WHITE][pt1] * counts[WHITE][pt1]
               - counts[BLACK][pt1] * counts[BLACK][pt1];
-        eval += coeff * MaterialSynergy[pt1][pt1];
+        ei->mateval += coeff * MaterialSynergy[pt1][pt1];
         if (TRACE) T.MaterialSynergy[pt1][pt1][WHITE] += coeff;
 
         for (int pt2 = PAWN; pt2 < pt1; pt2++) {
@@ -1116,13 +1121,13 @@ int evaluateMaterial(EvalInfo *ei, Board *board) {
             // Evaluate Synergy between our pieces
             coeff = counts[WHITE][pt1] * counts[WHITE][pt2]
                   - counts[BLACK][pt1] * counts[BLACK][pt2];
-            eval += coeff * MaterialSynergy[pt1][pt2];
+            ei->mateval += coeff * MaterialSynergy[pt1][pt2];
             if (TRACE) T.MaterialSynergy[pt1][pt2][WHITE] += coeff;
 
             // Evaluate Imbalance against their pieces
             coeff = counts[WHITE][pt1] * counts[BLACK][pt2]
                   - counts[BLACK][pt1] * counts[WHITE][pt2];
-            eval += coeff * MaterialImbalance[pt1][pt2];
+            ei->mateval += coeff * MaterialImbalance[pt1][pt2];
             if (TRACE) T.MaterialImbalance[pt1][pt2][WHITE] += coeff;
         }
     }
@@ -1261,7 +1266,7 @@ int evaluateScaleFactor(Board *board, int eval) {
     return SCALE_NORMAL;
 }
 
-void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
+void initEvalInfo(Thread *thread, Board *board, EvalInfo *ei) {
 
     uint64_t white   = board->colours[WHITE];
     uint64_t black   = board->colours[BLACK];
@@ -1311,10 +1316,14 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
     // Try to read a hashed Pawn King Eval. Otherwise, start from scratch
-    ei->pkentry       =     pktable == NULL ? NULL : getPKEntry(pktable, board->pkhash);
+    ei->pkentry       = getPKEntry(&thread->pktable, board->pkhash);
     ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
     ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
+
+    // Try to read a hashed Material Eval. Otherwise, start from scratch
+    ei->mentry  = getMaterialEntry(&thread->mtable, board->mhash);
+    ei->mateval = ei->mentry == NULL ? 0 : ei->mentry->eval;
 }
 
 void initEval() {

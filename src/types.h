@@ -89,6 +89,8 @@ typedef struct TTBucket TTBucket;
 typedef struct TTable TTable;
 typedef struct PKEntry PKEntry;
 typedef struct PKTable PKTable;
+typedef struct MatEntry MatEntry;
+typedef struct MatTable MatTable;
 typedef struct Limits Limits;
 typedef struct UCIGoStruct UCIGoStruct;
 

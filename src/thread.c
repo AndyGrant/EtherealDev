@@ -22,6 +22,7 @@
 #include "board.h"
 #include "evaluate.h"
 #include "history.h"
+#include "material.h"
 #include "search.h"
 #include "thread.h"
 #include "transposition.h"
@@ -59,6 +60,7 @@ void resetThreadPool(Thread *threads) {
 
     for (int i = 0; i < threads->nthreads; i++) {
         memset(&threads[i].pktable, 0, sizeof(PKTable));
+        memset(&threads[i].mtable , 0, sizeof(MatTable));
         memset(&threads[i].killers, 0, sizeof(KillerTable));
         memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));
         memset(&threads[i].history, 0, sizeof(HistoryTable));

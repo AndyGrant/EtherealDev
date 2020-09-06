@@ -28,6 +28,7 @@
 #include "board.h"
 #include "evaluate.h"
 #include "masks.h"
+#include "material.h"
 #include "move.h"
 #include "movegen.h"
 #include "search.h"
@@ -68,6 +69,7 @@ static void setSquare(Board *board, int colour, int piece, int sq) {
     board->hash ^= ZobristKeys[board->squares[sq]][sq];
     if (piece == PAWN || piece == KING)
         board->pkhash ^= ZobristKeys[board->squares[sq]][sq];
+    board->mhash += MaterialPrimes[makePiece(piece, colour)];
 }
 
 static int stringToSquare(char *str) {
@@ -271,8 +273,15 @@ void printBoard(Board *board) {
     printf("\n        A    B    C    D    E    F    G    H\n");
 
     // Print FEN
-    boardToFEN(board, fen);
-    printf("\n%s\n\n", fen);
+    boardToFEN(board, fen); printf("\n%s\n\n", fen);
+
+    // Print all the keys
+    printf("Hash          : 0x%"PRIx64"\n", board->hash);
+    printf("Pawn Hash     : 0x%"PRIx64"\n", board->pkhash);
+    printf("Material Hash : 0x%"PRIx64"\n", board->mhash);
+    printf("Material Hash : 0x%"PRIx64"\n", computeMaterialHash(board));
+    printf("\n");
+
 }
 
 int boardHasNonPawnMaterial(Board *board, int turn) {
