@@ -197,9 +197,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     int hist = 0, cmhist = 0, fmhist = 0;
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha, bestPossibleCapture;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
+    int eval, value = -MATE, best = -MATE, futilityMargin, nmpFutilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE, quietsTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
@@ -305,8 +305,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
-    // Futility Pruning Margin
-    futilityMargin = FutilityMargin * depth;
+    // Look for the highest value piece on the board
+    bestPossibleCapture = moveBestCaseValue(board);
+
+    // Futility Pruning Margins
+    futilityMargin      = FutilityMargin * depth;
+    nmpFutilityMargin   = MAX(bestPossibleCapture, 3 * SEEPieceValues[PAWN]);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -361,7 +365,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        && (eval >= beta || eval + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
+        && (eval >= beta || eval + bestPossibleCapture >= beta + ProbCutMargin)) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
@@ -443,17 +447,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && fmhist < FollowUpMoveHistoryLimit[improving]
                 && depth - R <= FollowUpMovePruningDepth[improving])
                 continue;
+
+            // Step 11F (). Null Futility Pruning. If even an extremely liberal
+            // estimate of our best possible capure falls below alpha, and we have
+            // finished trying all the good tactical responses to the NULL, give up.
+            if (   eval + nmpFutilityMargin < alpha
+                && movePicker.stage > STAGE_GOOD_NOISY
+                && thread->moveStack[height-1] == NULL_MOVE)
+                break;
         }
-
-        static const int NullFutilityMargin = 16;
-
-        // Don't even consider losing capture responses to a NULL move. We
-        // limit the pruning by depth to avoid completely exposing tactics
-        if (    best > -MATE_IN_MAX
-            &&  movePicker.stage == STAGE_BAD_NOISY
-            &&  thread->moveStack[height-1] == NULL_MOVE
-            &&  eval + NullFutilityMargin * depth <= alpha)
-            break;
 
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
