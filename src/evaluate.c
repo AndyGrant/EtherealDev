@@ -365,9 +365,9 @@ const int Tempo = 20;
 #undef S
 
 
-int evaluateLazyQS(Thread *thread, int height, int lower, int upper, int margin, int ttHit, int ttEval) {
+int evaluateLazyQS(Thread *thread, int height, int lower, int upper, int ttHit, int ttEval) {
 
-    int eval;
+    int eval, phase;
     PKEntry *pkentry;
 
     // No need to be Lazy if we have the true value
@@ -382,10 +382,21 @@ int evaluateLazyQS(Thread *thread, int height, int lower, int upper, int margin,
     if ((pkentry = getPKEntry(&thread->pktable, thread->board.pkhash)) == NULL)
         return evaluateBoard(&thread->board, &thread->pktable, thread->contempt);
 
-    // Try a cheap evaluation using only the Pawk-King eval and the PSQT + Material
-    eval = ScoreEG(pkentry->eval) + ScoreEG(thread->board.psqtmat);
+    // Calculate the game phase based on remaining material (Fruit Method)
+    phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
+               - 2 * popcount(thread->board.pieces[ROOK  ])
+               - 1 * popcount(thread->board.pieces[KNIGHT]
+                             |thread->board.pieces[BISHOP]);
+    phase = (phase * 256 + 12) / 24;
+
+    // Compute the interpolated and scaled evaluation
+    eval = pkentry->eval + thread->board.psqtmat;
+    eval = (ScoreMG(eval) * (256 - phase) + ScoreEG(eval) * phase) / 256;
     eval = (thread->board.turn == WHITE) ? eval : -eval;
-    if (eval + margin < lower || eval - margin > upper) return eval;
+
+    // ...
+    if (eval < lower || eval > upper)
+        return eval;
 
     // Failed to short-circuit the evaluation, just return as normal
     return evaluateBoard(&thread->board, &thread->pktable, thread->contempt);
