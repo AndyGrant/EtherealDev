@@ -17,6 +17,7 @@
 */
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "board.h"
 #include "material.h"
