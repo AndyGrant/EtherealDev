@@ -632,28 +632,21 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
             return ttValue;
     }
 
-    // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
-    // can recompute the eval as `eval = -last_eval + 2 * Tempo`
-    eval = thread->evalStack[height] =
-           ttHit && ttEval != VALUE_NONE            ?  ttEval
-         : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(board, &thread->pktable, thread->contempt)
-                                                    : -thread->evalStack[height-1] + 2 * Tempo;
+    // Step 5. Short-cicuited Stand-pat and Delta Pruning. If the evaluation is far
+    // lower than what the best possible capture could aware, or is better than the
+    // beta margin, we will prune. evaluateForQS() will attempt to be Lazy with the
+    // evaluation if the expected evaluation is well outide the windows.
 
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+    // Grab an evaluation, but be lazy outside of [deltaPruneValue, beta]
+    const int QSLazyMargin = 256;
+    int deltaPruneValue = alpha + MAX(QSDeltaMargin, moveBestCaseValue(board));
+    eval = evaluateLazyQS(thread, height, deltaPruneValue, beta, QSLazyMargin, ttHit, ttEval);
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo, with a minor boost for pawn captures, would still fail to cover
-    // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
+    // If we fall outside [deltaPruneValue, beta] we can prune somewhat safely
+    if (eval < deltaPruneValue || eval > beta) return eval;
+    best = thread->evalStack[height] = eval; alpha = MAX(alpha, eval);
 
-    // Step 7. Move Generation and Looping. Generate all tactical moves
+    // Step 6. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));

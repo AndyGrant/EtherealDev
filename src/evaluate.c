@@ -24,6 +24,8 @@
 #include "board.h"
 #include "evaluate.h"
 #include "masks.h"
+#include "move.h"
+#include "thread.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -361,6 +363,33 @@ const int ComplexityAdjustment  = S(   0,-157);
 const int Tempo = 20;
 
 #undef S
+
+
+int evaluateLazyQS(Thread *thread, int height, int lower, int upper, int margin, int ttHit, int ttEval) {
+
+    int eval;
+    PKEntry *pkentry;
+
+    // No need to be Lazy if we have the true value
+    if (ttHit && ttEval != VALUE_NONE)
+        return ttEval;
+
+    // No need to be Lazy if we have the true value
+    if (thread->moveStack[height-1] == NULL_MOVE)
+        return -thread->evalStack[height-1] + 2 * Tempo;
+
+    // If we don't have a Pawn-King evaluation, just do the full evaluation
+    if ((pkentry = getPKEntry(&thread->pktable, thread->board.pkhash)) == NULL)
+        return evaluateBoard(&thread->board, &thread->pktable, thread->contempt);
+
+    // Try a cheap evaluation using only the Pawk-King eval and the PSQT + Material
+    eval = ScoreEG(pkentry->eval) + ScoreEG(thread->board.psqtmat);
+    eval = (thread->board.turn == WHITE) ? eval : -eval;
+    if (eval + margin < lower || eval - margin > upper) return eval;
+
+    // Failed to short-circuit the evaluation, just return as normal
+    return evaluateBoard(&thread->board, &thread->pktable, thread->contempt);
+}
 
 int evaluateBoard(Board *board, PKTable *pktable, int contempt) {
 
