@@ -28,17 +28,26 @@ int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
     uint64_t key1, key2;
 
     key1 =  board->turn ? board->hash ^ ZobristTurnKey : board->hash;
-    eve  =  thread->evtable[key1 & 0xFFFF];
+    eve  =  thread->evtable[key1 & EVAL_CACHE_MASK];
     key2 = (eve & ~0xFFFF) | (key1 & 0xFFFF);
 
     *eval = (int16_t)((uint16_t)(eve & 0xFFFF));
     *eval = Tempo + (board->turn == WHITE ? *eval : -*eval);
-
     return key1 == key2;
 }
 
 void storeCachedEvaluation(Thread *thread, Board *board, int eval) {
-
     uint64_t key1 =  board->turn ? board->hash ^ ZobristTurnKey : board->hash;
-    thread->evtable[key1 & 0xFFFF] = (key1 & ~0xFFFF) | (uint16_t)((int16_t)eval);
+    thread->evtable[key1 & EVAL_CACHE_MASK] = (key1 & ~0xFFFF) | (uint16_t)((int16_t)eval);
+}
+
+
+PKEntry* getCachedPawnKingEval(Thread *thread, Board *board) {
+    PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
+    return pke->pkhash == board->pkhash ? pke : NULL;
+}
+
+void storeCachedPawnKingEval(Thread *thread, Board *board, uint64_t passed, int eval) {
+    PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
+    *pke = (PKEntry) {board->pkhash, passed, eval};
 }

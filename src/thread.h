@@ -52,12 +52,12 @@ struct Thread {
     int *pieceStack, _pieceStack[STACK_SIZE];
     Undo undoStack[STACK_SIZE];
 
-    EvalTable evtable;
-    PKTable pktable;
-    KillerTable killers;
-    CounterMoveTable cmtable;
-    HistoryTable history;
-    ContinuationTable continuation;
+    ALIGN64 EvalTable evtable;
+    ALIGN64 PKTable pktable;
+    ALIGN64 KillerTable killers;
+    ALIGN64 CounterMoveTable cmtable;
+    ALIGN64 HistoryTable history;
+    ALIGN64 ContinuationTable continuation;
 
     int index, nthreads;
     Thread *threads;
