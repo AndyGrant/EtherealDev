@@ -323,7 +323,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (     ttHit && ttValue != VALUE_NONE
         && ((ttValue <= eval && (ttBound & BOUND_UPPER))
         ||  (ttValue >= eval && (ttBound & BOUND_LOWER))))
-        adjusted = eval;
+        adjusted = ttValue;
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
