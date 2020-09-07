@@ -33,7 +33,7 @@
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (    8192) // Total terms in the Tuner (659)
+#define NTERMS       (     128) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (34984065) // FENs per mini-batch
 #define NPOSITIONS   (34984065) // Total FENS in the book
@@ -287,7 +287,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_1(F, PawnStacked, 2, NORMAL, "[2]");                             \
     ENABLE_2(F, PawnBackwards, 2, 8, NORMAL, "[2][RANK_NB]");               \
     ENABLE_1(F, PawnConnected32, 32, NORMAL, "[32]");                       \
-    ENABLE_3(F, PawnKingPSQT, 2, 64, 64, NORMAL, "[2][64][64]");            \
+    ENABLE_3(F, PawnKingPSQT, 2, 8, 8, NORMAL, "[2][8][8]");                \
                                                                             \
     COMMENTS(F, "/* Knight Evaluation Terms */\n\n");                       \
     ENABLE_2(F, KnightOutpost, 2, 2, NORMAL, "[2][2]");                     \
