@@ -477,11 +477,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         // Step 13 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
-        // extend for any position where our King is checked. We also selectivly extend moves
-        // with very strong continuation histories, so long as they are along the PV line
+        // extend for any position where our King is checked by one. We also selectivly extend
+        // moves with very strong continuation histories, so long as they are along the PV line
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
-                  : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
+                  :    (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit)
+                    || (inCheck && !several(board->kingAttackers));
 
         newDepth = depth + (extension && !RootNode);
 
