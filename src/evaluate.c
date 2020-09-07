@@ -2422,8 +2422,8 @@ int evaluateBoard(Thread *thread, Board *board) {
     int phase, factor, eval, pkeval, hashed;
 
     // Check for this evaluation being cached already
-    // if (!TRACE && getCachedEvaluation(thread, board, &hashed))
-    //     return hashed;
+    if (!TRACE && getCachedEvaluation(thread, board, &hashed))
+        return hashed;
 
     initEvalInfo(thread, board, &ei);
     eval   = evaluatePieces(&ei, board);
