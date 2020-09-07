@@ -29,16 +29,16 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    1.00) // Global Learning rate
+#define LRRATE       (   10.00) // Global Learning rate
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (659)
+#define NTERMS       (    8192) // Total terms in the Tuner (659)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
-#define BATCHSIZE    ( 2498186) // FENs per mini-batch
-#define NPOSITIONS   ( 2498186) // Total FENS in the book
+#define BATCHSIZE    (34984065) // FENs per mini-batch
+#define NPOSITIONS   (34984065) // Total FENS in the book
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 1024))
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
@@ -56,6 +56,7 @@
 #define TunePawnStacked                 (0)
 #define TunePawnBackwards               (0)
 #define TunePawnConnected32             (0)
+#define TunePawnKingPSQT                (1)
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
 #define TuneKnightInSiberia             (0)
@@ -286,6 +287,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_1(F, PawnStacked, 2, NORMAL, "[2]");                             \
     ENABLE_2(F, PawnBackwards, 2, 8, NORMAL, "[2][RANK_NB]");               \
     ENABLE_1(F, PawnConnected32, 32, NORMAL, "[32]");                       \
+    ENABLE_3(F, PawnKingPSQT, 2, 64, 64, NORMAL, "[2][64][64]");            \
                                                                             \
     COMMENTS(F, "/* Knight Evaluation Terms */\n\n");                       \
     ENABLE_2(F, KnightOutpost, 2, 2, NORMAL, "[2][2]");                     \
