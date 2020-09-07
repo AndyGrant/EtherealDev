@@ -144,36 +144,36 @@ const int PawnConnected32[32] = {
 };
 
 const int PawnKingPSQT[2][8][8] = {
-  {{S(   0,   0), S(   5,  -1), S(   5,   2), S(   0,   2),
-    S(  -8,   3), S(  -5,   0), S(  -4,   1), S(  -2,  -3)},
-   {S(   4,   1), S(   3,   0), S(   4,   1), S(   3,   1),
-    S(  -3,   1), S(  -3,   1), S(  -2,   0), S(  -2,  -2)},
-   {S(   5,  -1), S(   3,   1), S(   5,   1), S(   0,   1),
-    S(   0,   0), S(  -2,  -1), S(  -1,   0), S(   1,  -2)},
-   {S(   3,   0), S(   1,   1), S(   1,  -2), S(   0,  -1),
-    S(   1,  -4), S(   1,  -2), S(   2,  -1), S(   1,  -1)},
-   {S(   0,   1), S(  -1,   0), S(  -1,  -3), S(  -3,  -5),
-    S(  -1,  -2), S(   1,  -3), S(   1,   2), S(   1,   3)},
-   {S(  -1,   3), S(   2,   4), S(  -5,   1), S(   1,   0),
-    S(   0,  -2), S(  -1,  -1), S(   8,   5), S(   4,   4)},
-   {S(   1,   1), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(   1,   1), S(   3,   3), S(   2,   2), S(   0,   1)},
+  {{S(   0,   0), S(   5,   0), S(   4,   2), S(   0,   2),
+    S(  -6,   2), S(  -4,  -1), S(  -3,   0), S(  -2,  -2)},
+   {S(   4,   1), S(   3,   0), S(   4,   1), S(   3,   2),
+    S(  -2,   1), S(  -3,   1), S(  -2,   0), S(  -2,  -2)},
+   {S(   5,   0), S(   3,   1), S(   5,   1), S(   0,   1),
+    S(   1,   0), S(  -2,  -1), S(  -1,   0), S(   1,  -1)},
+   {S(   2,   1), S(   0,   1), S(   1,  -2), S(   0,  -1),
+    S(   1,  -3), S(   1,  -1), S(   1,  -1), S(   1,   0)},
+   {S(   0,   1), S(  -1,   1), S(  -2,  -2), S(  -3,  -4),
+    S(  -2,  -1), S(   0,  -2), S(   0,   2), S(   1,   1)},
+   {S(  -1,   1), S(   2,   2), S(  -2,   0), S(   1,   0),
+    S(   0,  -1), S(  -1,   0), S(   5,   3), S(   1,   1)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,   0), S(   1,   1), S(   0,   0), S(   0,   0)},
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)}},
-  {{S(   0,   0), S(   1,   0), S(   2,  -1), S(   3,  -3),
-    S(   2,  -1), S(   1,   0), S(  -1,  -2), S(  -1,   0)},
-   {S(  -2,   2), S(   0,   5), S(   2,  -2), S(   4,  -2),
-    S(   3,  -1), S(   0,   0), S(  -2,   1), S(  -3,  -1)},
-   {S(  -5,   3), S(   4,  -1), S(   6,   0), S(   1,  -1),
-    S(  -1,   2), S(  -4,   3), S(  -2,   3), S(  -1,   0)},
-   {S(  -3,   0), S(   3,   0), S(   1,   0), S(  -1,   1),
-    S(   1,   1), S(  -2,   3), S(  -1,   3), S(  -2,   2)},
-   {S(  -2,   0), S(   2,   0), S(   2,   0), S(   0,   0),
-    S(   0,  -1), S(   2,   1), S(   1,   3), S(   1,   0)},
-   {S(  -1,   0), S(   1,   0), S(   1,   2), S(  -1,   0),
-    S(   2,  -1), S(   2,   0), S(   2,   1), S(   2,  -2)},
-   {S(  -1,   0), S(   1,  -1), S(  -1,   1), S(  -1,   0),
-    S(   1,  -2), S(   5,  -2), S(   2,   0), S(   3,  -2)},
+  {{S(   0,   0), S(   0,   0), S(   0,  -1), S(   0,  -3),
+    S(   0,  -1), S(   0,   0), S(   0,  -1), S(   0,   0)},
+   {S(   0,   1), S(   0,   2), S(   1,  -1), S(   1,  -2),
+    S(   1,  -1), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(  -3,   2), S(   3,  -1), S(   4,   1), S(   1,  -1),
+    S(  -1,   1), S(  -2,   2), S(   0,   2), S(   0,   0)},
+   {S(  -3,  -1), S(   3,  -1), S(   1,  -1), S(  -1,   0),
+    S(   1,   1), S(  -1,   3), S(   0,   2), S(  -1,   1)},
+   {S(  -2,   0), S(   2,  -1), S(   2,   0), S(   0,   0),
+    S(   0,  -1), S(   2,   1), S(   1,   2), S(   1,   0)},
+   {S(  -1,  -1), S(   1,   0), S(   0,   2), S(  -1,   0),
+    S(   2,  -1), S(   2,   0), S(   2,   1), S(   1,   0)},
+   {S(  -2,   0), S(   1,  -1), S(  -2,   1), S(  -1,   1),
+    S(   1,  -2), S(   4,  -1), S(   1,  -1), S(   1,  -1)},
    {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)}},
 };
@@ -483,8 +483,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     myPawns = tempPawns = pawns & board->colours[US];
     enemyPawns = pawns & board->colours[THEM];
 
-    ourKing   = relativeSquare(US, ei->kingSquare[US]);
-    theirKing = relativeSquare(US, ei->kingSquare[THEM]);
+    ourKing   = ei->kingSquare[US];
+    theirKing = ei->kingSquare[THEM];
 
     // Evaluate each pawn (but not for being passed)
     while (tempPawns) {
@@ -549,11 +549,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
             if (TRACE) T.PawnConnected32[relativeSquare32(US, sq)][US]++;
         }
 
-        int ourRankDist = abs(rankOf(ourKing) - rankOf(relativeSquare(US, sq)));
-        int ourFileDist = abs(fileOf(ourKing) - fileOf(relativeSquare(US, sq)));
+        int ourRankDist = abs(rankOf(ourKing) - rankOf(sq));
+        int ourFileDist = abs(fileOf(ourKing) - fileOf(sq));
 
-        int theirRankDist = abs(rankOf(theirKing) - rankOf(relativeSquare(US, sq)));
-        int theirFileDist = abs(fileOf(theirKing) - fileOf(relativeSquare(US, sq)));
+        int theirRankDist = abs(rankOf(theirKing) - rankOf(sq));
+        int theirFileDist = abs(fileOf(theirKing) - fileOf(sq));
 
         pkeval += PawnKingPSQT[0][ourRankDist][ourFileDist];
         pkeval += PawnKingPSQT[1][theirRankDist][theirFileDist];

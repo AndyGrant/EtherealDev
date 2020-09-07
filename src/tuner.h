@@ -38,7 +38,7 @@
 #define BATCHSIZE    (34984065) // FENs per mini-batch
 #define NPOSITIONS   (34984065) // Total FENS in the book
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 1024))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
