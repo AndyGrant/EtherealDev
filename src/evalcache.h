@@ -21,15 +21,15 @@
 #include "types.h"
 
 enum {
-    EVAL_CACHE_KEY_SIZE = 16,
-    EVAL_CACHE_MASK     = 0xFFFF,
+    EVAL_CACHE_KEY_SIZE = 18,
     EVAL_CACHE_SIZE     = 1 << EVAL_CACHE_KEY_SIZE,
+    EVAL_CACHE_MASK     = EVAL_CACHE_SIZE - 1,
 };
 
 enum {
-    PK_CACHE_KEY_SIZE   = 16,
-    PK_CACHE_MASK       = 0xFFFF,
+    PK_CACHE_KEY_SIZE   = 14,
     PK_CACHE_SIZE       = 1 << PK_CACHE_KEY_SIZE,
+    PK_CACHE_MASK       = PK_CACHE_SIZE - 1,
 };
 
 typedef uint64_t EvalEntry;

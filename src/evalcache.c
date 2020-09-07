@@ -33,6 +33,7 @@ int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
 
     *eval = (int16_t)((uint16_t)(eve & 0xFFFF));
     *eval = Tempo + (board->turn == WHITE ? *eval : -*eval);
+
     return key1 == key2;
 }
 
