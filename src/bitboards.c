@@ -61,12 +61,6 @@ int relativeSquare(int colour, int sq) {
     return square(relativeRankOf(colour, sq), fileOf(sq));
 }
 
-int relativeSquare32(int colour, int sq) {
-    assert(0 <= colour && colour < COLOUR_NB);
-    assert(0 <= sq && sq < SQUARE_NB);
-    return 4 * relativeRankOf(colour, sq) + mirrorFile(fileOf(sq));
-}
-
 uint64_t squaresOfMatchingColour(int sq) {
     assert(0 <= sq && sq < SQUARE_NB);
     return testBit(WHITE_SQUARES, sq) ? WHITE_SQUARES : BLACK_SQUARES;

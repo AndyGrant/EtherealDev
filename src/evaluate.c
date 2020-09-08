@@ -180,14 +180,22 @@ const int PawnBackwards[2][RANK_NB] = {
     S(  34, -32), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
-const int PawnConnected32[32] = {
+const int PawnConnected[SQUARE_NB] = {
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
-    S(  -1,  -4), S(  11,  -5), S(   4,   1), S(   8,  11),
-    S(  11,   2), S(  24,  -5), S(  26,   4), S(  25,  12),
-    S(   6,  -2), S(  18,   0), S(  10,   5), S(  17,  12),
-    S(   6,  13), S(  18,  17), S(  28,  22), S(  32,  14),
-    S(  48,  25), S(  45,  48), S(  63,  61), S(  73,  68),
-    S( 111,  -7), S( 203,  -1), S( 226,  25), S( 235,  40),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,  -2), S(   9,  -6), S(   6,   5), S(   7,   6),
+    S(   9,  12), S(   2,  -1), S(  12,  -2), S(  -3,  -9),
+    S(  10,   2), S(  24,  -5), S(  26,   5), S(  24,  11),
+    S(  25,  11), S(  25,   4), S(  22,  -4), S(  10,   2),
+    S(   6,  -1), S(  17,   0), S(  11,   4), S(  16,  13),
+    S(  17,  13), S(   9,   5), S(  16,   1), S(   7,  -2),
+    S(   6,  13), S(  17,  18), S(  28,  21), S(  31,  16),
+    S(  34,  16), S(  27,  20), S(  18,  18), S(   4,  14),
+    S(  39,  29), S(  35,  55), S(  57,  62), S(  71,  72),
+    S(  69,  71), S(  65,  60), S(  39,  52), S(  40,  28),
+    S( 116,  45), S( 207,  39), S( 214,  62), S( 201,  68),
+    S( 233,  51), S( 177,  54), S( 244,  14), S( 123,  19),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
     S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
 };
 
@@ -555,8 +563,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // Apply a bonus if the pawn is connected and not backwards. We consider a
         // pawn to be connected when there is a pawn lever or the pawn is supported
         else if (pawnConnectedMasks(US, sq) & myPawns) {
-            pkeval += PawnConnected32[relativeSquare32(US, sq)];
-            if (TRACE) T.PawnConnected32[relativeSquare32(US, sq)][US]++;
+            pkeval += PawnConnected[relativeSquare(US, sq)];
+            if (TRACE) T.PawnConnected[relativeSquare(US, sq)][US]++;
         }
     }
 
