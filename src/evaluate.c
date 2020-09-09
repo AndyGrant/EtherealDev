@@ -169,15 +169,57 @@ const int PawnCandidatePasser[2][RANK_NB] = {
     S(  27,  93), S(  39,  63), S(   0,   0), S(   0,   0)},
 };
 
-const int PawnIsolated[FILE_NB] = {
+const int PawnIsolated[SQUARE_NB] = {
+    S(  -4, -12), S(  -5, -12), S(  -6, -13), S(  -5, -14),
+    S(  -6, -14), S(  -5, -14), S(  -5, -12), S(  -4, -11),
+    S(  -4, -12), S(  -8, -10), S(  -7, -15), S(  -7, -12),
+    S(  -6, -13), S(  -7, -14), S(  -6, -12), S(  -4, -10),
+    S(  -4, -10), S(  -3, -11), S(  -6, -11), S(  -4, -13),
+    S(  -4, -15), S(  -2, -13), S(  -6, -12), S(  -7, -10),
+    S(  -4, -11), S(  -5, -12), S(  -6, -13), S(  -6, -14),
+    S(  -8, -14), S(  -5, -14), S(  -3, -12), S(  -4, -12),
+    S(  -2, -13), S(  -3, -13), S(  -2, -15), S(  -5, -16),
+    S(  -8, -14), S(  -3, -12), S(  -5, -10), S(  -6, -11),
+    S(   4, -17), S(   4, -18), S(   0, -15), S(   4, -18),
+    S(   1, -16), S(   5, -15), S(   7, -17), S(   0, -16),
+    S(   7, -21), S(  25, -28), S(  17, -23), S(   2, -17),
+    S(  11, -19), S(   4, -15), S(  13, -24), S(  -9, -16),
     S(  -4, -12), S(  -5, -12), S(  -6, -13), S(  -5, -14),
     S(  -6, -14), S(  -5, -14), S(  -5, -12), S(  -4, -11),
 };
 
-const int PawnStacked[2][FILE_NB] = {
+const int PawnStacked[2][SQUARE_NB] = {
    {S(  -4, -28), S(  -3, -21), S(   1, -22), S(   1, -18),
+    S(   0, -18), S(  -4, -22), S(  -2, -23), S(   3, -30),
+    S( -11, -28), S(   1, -21), S(   9, -22), S(   1, -19),
+    S(   7, -26), S(   3, -18), S(   3, -23), S(  -8, -26),
+    S(  -2, -33), S(   6, -27), S(   1, -28), S(  -2, -30),
+    S(  -4, -25), S(  -3, -29), S(   0, -26), S(   9, -38),
+    S(   2, -29), S(  -4, -26), S(   0, -28), S(   6, -22),
+    S(  -2, -17), S(  -5, -27), S(  -4, -28), S(  10, -35),
+    S(  -4, -27), S(  -8, -16), S(   0, -12), S(   0, -10),
+    S(   2, -14), S(  -9, -17), S(   0, -18), S(   7, -27),
+    S(  -4, -21), S(  -5, -15), S( -13,  -6), S(  -9, -10),
+    S(  -3, -11), S( -11, -13), S( -11, -18), S(   4, -21),
+    S(  -4, -18), S( -23,  -6), S( -40, -11), S( -17, -12),
+    S( -17, -14), S(  -9, -10), S( -24,  -9), S(  11, -23),
+    S(  -4, -28), S(  -3, -21), S(   1, -22), S(   1, -18),
     S(   0, -18), S(  -4, -22), S(  -2, -23), S(   3, -30)},
    {S(  -7, -14), S(  -3, -10), S(  -5,  -8), S(  -7,  -6),
+    S(  -7,  -5), S(  -4,  -9), S(  -2, -11), S(  -5, -16),
+    S( -14, -12), S(  -4, -10), S(  -1,  -5), S(  -4,  -7),
+    S( -10,  -3), S(  -3,  -5), S(   0, -11), S(  -7, -17),
+    S(  -5, -16), S(  -3, -12), S(  -8, -11), S( -10,  -8),
+    S( -10,  -6), S(  -8, -12), S(  -1, -13), S(  -6, -21),
+    S(  -1, -18), S(  -5, -12), S(  -6,  -9), S(  -4,  -9),
+    S(  -4, -11), S(  -1, -11), S(  -9,  -9), S(  -2, -13),
+    S(  -6, -11), S(   0,  -8), S(  -2,  -8), S(  -7,  -3),
+    S(  -4,  -2), S(  -6,  -5), S(  -3,  -9), S(   7, -14),
+    S(  12, -19), S( -11,   1), S( -15,   2), S( -12,   1),
+    S(  -5, -14), S( -19,  -3), S( -16,  -2), S(  15, -20),
+    S(  -7, -14), S(  -3, -10), S(  -5,  -8), S(  -7,  -6),
+    S(  -7,  -5), S(  -4,  -9), S(  -2, -11), S(  -5, -16),
+    S(  -7, -14), S(  -3, -10), S(  -5,  -8), S(  -7,  -6),
     S(  -7,  -5), S(  -4,  -9), S(  -2, -11), S(  -5, -16)},
 };
 
@@ -536,8 +578,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         // are able to capture another pawn to not be isolated, as they may
         // have the potential to deisolate by capturing, or be traded away
         if (!threats && !neighbors) {
-            pkeval += PawnIsolated[fileOf(sq)];
-            if (TRACE) T.PawnIsolated[fileOf(sq)][US]++;
+            pkeval += PawnIsolated[relativeSquare(US, sq)];
+            if (TRACE) T.PawnIsolated[relativeSquare(US, sq)][US]++;
         }
 
         // Apply a penalty if the pawn is stacked. We adjust the bonus for when
@@ -547,8 +589,8 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
         if (several(Files[fileOf(sq)] & myPawns)) {
             flag = (stoppers && (threats || neighbors))
                 || (stoppers & ~forwardFileMasks(US, sq));
-            pkeval += PawnStacked[flag][fileOf(sq)];
-            if (TRACE) T.PawnStacked[flag][fileOf(sq)][US]++;
+            pkeval += PawnStacked[flag][relativeSquare(US, sq)];
+            if (TRACE) T.PawnStacked[flag][relativeSquare(US, sq)][US]++;
         }
 
         // Apply a penalty if the pawn is backward. We follow the usual definition
