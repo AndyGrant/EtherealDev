@@ -33,7 +33,7 @@
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (872)
+#define NTERMS       (      16) // Total terms in the Tuner (872+14)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -66,7 +66,7 @@
 #define TuneBishopBehindPawn            (0)
 #define TuneBishopLongDiagonal          (0)
 #define TuneBishopMobility              (0)
-#define TuneRookFile                    (0)
+#define TuneRookFile                    (1)
 #define TuneRookOnSeventh               (0)
 #define TuneRookMobility                (0)
 #define TuneQueenRelativePin            (0)
@@ -302,7 +302,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_1(F, BishopMobility, 14, NORMAL, "[14]");                        \
                                                                             \
     COMMENTS(F, "/* Rook Evaluation Terms */\n\n");                         \
-    ENABLE_1(F, RookFile, 2, NORMAL, "[2]");                                \
+    ENABLE_2(F, RookFile, 2, 8, NORMAL, "[2][FILE_NB]");                    \
     ENABLE_0(F, RookOnSeventh, NORMAL, ""); NEWLINE(F);                     \
     ENABLE_1(F, RookMobility, 15, NORMAL, "[15]");                          \
                                                                             \
