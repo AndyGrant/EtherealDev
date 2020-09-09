@@ -170,6 +170,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
 int genAllQuietMoves(Board *board, uint16_t *moves) {
 
     const uint16_t *start = moves;
+    const int InCheck = !!board->kingAttackers;
 
     const int Forward = board->turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
@@ -181,15 +182,18 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     uint64_t occupied = us | board->colours[!board->turn];
     uint64_t castles  = us & board->castleRooks;
 
-    uint64_t pawns   = us & (board->pieces[PAWN  ]);
-    uint64_t knights = us & (board->pieces[KNIGHT]);
-    uint64_t bishops = us & (board->pieces[BISHOP]);
-    uint64_t rooks   = us & (board->pieces[ROOK  ]);
-    uint64_t kings   = us & (board->pieces[KING  ]);
+    uint64_t moveable = InCheck ? us & ~pinnedPieces(board) : us;
+
+    uint64_t pawns   = moveable & board->pieces[PAWN  ];
+    uint64_t knights = moveable & board->pieces[KNIGHT];
+    uint64_t bishops = moveable & board->pieces[BISHOP];
+    uint64_t rooks   = moveable & board->pieces[ROOK  ];
+    uint64_t kings   = moveable & board->pieces[KING  ];
+
 
     // Merge together duplicate piece ideas
-    bishops |= us & board->pieces[QUEEN];
-    rooks   |= us & board->pieces[QUEEN];
+    bishops |= moveable & board->pieces[QUEEN];
+    rooks   |= moveable & board->pieces[QUEEN];
 
     // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers))
