@@ -29,13 +29,13 @@
 #define PRETTYIFY    (       0) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (   10.00) // Global Learning rate
+#define LRRATE       (    1.00) // Global Learning rate
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
 #define NTERMS       (      64) // Total terms in the Tuner (883)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
-#define BATCHSIZE    (   16384) // FENs per mini-batch
+#define BATCHSIZE    (32488736) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
