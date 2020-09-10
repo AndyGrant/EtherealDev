@@ -255,29 +255,3 @@ uint64_t discoveredAttacks(Board *board, int sq, int US) {
     return (  rooks &   rookAttacks(sq, occupied & ~rAttacks))
          | (bishops & bishopAttacks(sq, occupied & ~bAttacks));
 }
-
-uint64_t pinnedPieces(Board *board, int colour) {
-
-    const int US = colour, THEM = !colour;
-
-    uint64_t friendly = board->colours[  US];
-    uint64_t enemy    = board->colours[THEM];
-
-    int sq, kingsq = getlsb(friendly & board->pieces[KING]);
-
-    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
-    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
-
-    uint64_t pinners = (bishopAttacks(kingsq, enemy) & (enemy & bishops))
-                     | (  rookAttacks(kingsq, enemy) & (enemy &   rooks));
-
-    uint64_t pinned = 0ull;
-
-    while (pinners) {
-        sq = poplsb(&pinners);
-        if (onlyOne(bitsBetweenMasks(kingsq, sq) & friendly))
-            pinned |= bitsBetweenMasks(kingsq, sq) & friendly;
-    }
-
-    return pinned;
-}
