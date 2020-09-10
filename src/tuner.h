@@ -33,7 +33,7 @@
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (872)
+#define NTERMS       (       1) // Total terms in the Tuner (872)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -86,6 +86,7 @@
 #define TuneSafetySafeRookCheck         (0)
 #define TuneSafetySafeBishopCheck       (0)
 #define TuneSafetySafeKnightCheck       (0)
+#define TuneSafetyPinnedPiece           (1)
 #define TuneSafetyAdjustment            (0)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
@@ -328,6 +329,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, SafetySafeRookCheck, SAFETY, "  ");                         \
     ENABLE_0(F, SafetySafeBishopCheck, SAFETY, "");                         \
     ENABLE_0(F, SafetySafeKnightCheck, SAFETY, "");                         \
+    ENABLE_0(F, SafetyPinnedPiece, SAFETY, "    ");                         \
     ENABLE_0(F, SafetyAdjustment, SAFETY, "     ");                         \
                                                                             \
     COMMENTS(F, "\n/* Passed Pawn Evaluation Terms */\n\n");                \
