@@ -349,7 +349,7 @@ const int SafetySafeQueenCheck  = S(  93,  83);
 const int SafetySafeRookCheck   = S(  90,  98);
 const int SafetySafeBishopCheck = S(  59,  59);
 const int SafetySafeKnightCheck = S( 112, 117);
-const int SafetyPinnedPiece     = S(  15,   4);
+const int SafetyPinnedPiece     = S(  15,  24);
 const int SafetyAdjustment      = S( -74, -26);
 
 /* Passed Pawn Evaluation Terms */
@@ -884,6 +884,8 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         uint64_t rookChecks   = rookThreats   & safe & ei->attackedBy[THEM][ROOK  ];
         uint64_t queenChecks  = queenThreats  & safe & ei->attackedBy[THEM][QUEEN ];
 
+        uint64_t rammed = ei->rammedPawns[WHITE] | ei->rammedPawns[BLACK];
+
         safety  = ei->kingAttackersWeight[US];
 
         safety += SafetyAttackValue     * scaledAttackCounts
@@ -893,7 +895,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                 + SafetySafeRookCheck   * popcount(rookChecks)
                 + SafetySafeBishopCheck * popcount(bishopChecks)
                 + SafetySafeKnightCheck * popcount(knightChecks)
-                + SafetyPinnedPiece     * popcount(discoveredAttacks(board, kingSq, US))
+                + SafetyPinnedPiece     * popcount(discoveredAttacks(board, kingSq, US) & ~rammed)
                 + SafetyAdjustment;
 
         if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
@@ -903,7 +905,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.SafetySafeRookCheck[US]   = popcount(rookChecks);
         if (TRACE) T.SafetySafeBishopCheck[US] = popcount(bishopChecks);
         if (TRACE) T.SafetySafeKnightCheck[US] = popcount(knightChecks);
-        if (TRACE) T.SafetyPinnedPiece[US]     = popcount(discoveredAttacks(board, kingSq, US));
+        if (TRACE) T.SafetyPinnedPiece[US]     = popcount(discoveredAttacks(board, kingSq, US) & ~rammed);
         if (TRACE) T.SafetyAdjustment[US]      = 1;
 
         // Convert safety to an MG and EG score
