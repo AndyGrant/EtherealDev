@@ -27,6 +27,7 @@
 
 int DistanceBetween[SQUARE_NB][SQUARE_NB];
 int KingPawnFileDistance[FILE_NB][1 << FILE_NB];
+uint64_t BitsInLine[SQUARE_NB][SQUARE_NB];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
 uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t ForwardRanksMasks[COLOUR_NB][RANK_NB];
@@ -64,6 +65,20 @@ void initMasks() {
             KingPawnFileDistance[file][mask] = dist;
         }
     }
+
+    // Init a table of bitmasks for the squares between two given ones (aligned on diagonal)
+    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
+        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+            if (testBit(bishopAttacks(sq1, 0ull), sq2))
+                BitsInLine[sq1][sq2] = ((1ull << sq1) | bishopAttacks(sq1, 0ull))
+                                     & ((1ull << sq2) | bishopAttacks(sq2, 1ull << sq1));
+
+    // Init a table of bitmasks for the squares between two given ones (aligned on a straight)
+    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
+        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+            if (testBit(rookAttacks(sq1, 0ull), sq2))
+                BitsInLine[sq1][sq2] = ((1ull << sq1) | rookAttacks(sq1, 0ull))
+                                     & ((1ull << sq2) | rookAttacks(sq2, 1ull << sq1));
 
     // Init a table of bitmasks for the squares between two given ones (aligned on diagonal)
     for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
@@ -153,6 +168,12 @@ int kingPawnFileDistance(uint64_t pawns, int ksq) {
 int openFileCount(uint64_t pawns) {
     pawns |= pawns >> 8; pawns |= pawns >> 16; pawns |= pawns >> 32;
     return popcount(~pawns & 0xFF);
+}
+
+uint64_t bitsInLine(int sq1, int sq2) {
+    assert(0 <= sq1 && sq1 < SQUARE_NB);
+    assert(0 <= sq2 && sq2 < SQUARE_NB);
+    return BitsInLine[sq1][sq2];
 }
 
 uint64_t bitsBetweenMasks(int s1, int s2) {
