@@ -395,6 +395,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // MultiPV and searchmoves may limit our search options
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
+        if (!moveIsLegal(board, move)) continue;
 
         // For quiet moves we fetch various history scores
         if ((isQuiet = !moveIsTactical(board, move))) {
@@ -454,13 +455,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
-        // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
-            continue;
-
+        // Apply move and update counters
+        applyLegal(thread, board, move, height);
+        if (isQuiet) quietsTried[quietsPlayed++] = move;
         played += 1;
-        if (isQuiet)
-            quietsTried[quietsPlayed++] = move;
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
