@@ -62,17 +62,17 @@ int apply(Thread *thread, MovePicker *mp, Board *board, uint16_t move, int heigh
     thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 
 
-    int generated = mp->stage == STAGE_GOOD_NOISY
-                 || mp->stage == STAGE_BAD_NOISY
-                 || mp->stage == STAGE_QUIET;
-
-    int knownLegal = generated && MoveType(move) != ENPASS_MOVE
-                 && (board->kingAttackers || !testBit(board->pinned, MoveFrom(move)));
+    // int generated = mp->stage == STAGE_GOOD_NOISY
+    //              || mp->stage == STAGE_BAD_NOISY
+    //              || mp->stage == STAGE_QUIET;
+    //
+    // int knownLegal = generated && MoveType(move) != ENPASS_MOVE
+    //              && (board->kingAttackers || !testBit(board->pinned, MoveFrom(move)));
 
 
     // Apply the move and reject if illegal
     applyMove(board, move, &thread->undoStack[height]);
-    if (!knownLegal && !moveWasLegal(board)) {
+    if (!moveWasLegal(board)) {
 
         revertMove(board, move, &thread->undoStack[height]);
 
