@@ -348,7 +348,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
-        apply(thread, board, NULL_MOVE, height);
+        apply(thread, &movePicker, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
         revert(thread, board, NULL_MOVE, height);
 
@@ -369,7 +369,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
-            if (!apply(thread, board, move, height)) continue;
+            if (!apply(thread, &movePicker, board, move, height)) continue;
 
             // For high depths, verify the move first with a depth one search
             if (depth >= 2 * ProbCutDepth)
@@ -455,7 +455,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             continue;
 
         // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
+        if (!apply(thread, &movePicker, board, move, height))
             continue;
 
         played += 1;
@@ -660,7 +660,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Search the next ply if the move is legal
-        if (!apply(thread, board, move, height)) continue;
+        if (!apply(thread, &movePicker, board, move, height)) continue;
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
 
@@ -801,7 +801,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         assert(move != mp->tableMove); // Skip the table move
 
         // Perform a reduced depth search on a null rbeta window
-        if (!apply(thread, board, move, mp->height)) continue;
+        if (!apply(thread, &movePicker, board, move, mp->height)) continue;
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, mp->height+1);
         revert(thread, board, move, mp->height);
 

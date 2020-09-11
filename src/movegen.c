@@ -140,15 +140,18 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     uint64_t them     = board->colours[!board->turn];
     uint64_t occupied = us | them;
 
-    uint64_t pawns   = us & (board->pieces[PAWN  ]);
-    uint64_t knights = us & (board->pieces[KNIGHT]);
-    uint64_t bishops = us & (board->pieces[BISHOP]);
-    uint64_t rooks   = us & (board->pieces[ROOK  ]);
-    uint64_t kings   = us & (board->pieces[KING  ]);
+    // Our pinned pieces cannot move when in check
+    uint64_t moveable = board->kingAttackers ? us & ~board->pinned : us;
+
+    uint64_t pawns   = moveable & board->pieces[PAWN  ];
+    uint64_t knights = moveable & board->pieces[KNIGHT];
+    uint64_t bishops = moveable & board->pieces[BISHOP];
+    uint64_t rooks   = moveable & board->pieces[ROOK  ];
+    uint64_t kings   = moveable & board->pieces[KING  ];
 
     // Merge together duplicate piece ideas
-    bishops |= us & board->pieces[QUEEN];
-    rooks   |= us & board->pieces[QUEEN];
+    bishops |= moveable & board->pieces[QUEEN];
+    rooks   |= moveable & board->pieces[QUEEN];
 
     // When checked, we may only uncheck by capturing the checker
     targets = board->kingAttackers ? board->kingAttackers : them;
@@ -162,9 +165,9 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
 
     // Compute bitboards for each type of Pawn movement
     pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
-    pawnLeft         = pawnLeftAttacks(pawns, them, board->turn);
-    pawnRight        = pawnRightAttacks(pawns, them, board->turn);
-    pawnPromoForward = pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS;
+    pawnLeft         = pawnLeftAttacks(pawns, targets, board->turn);
+    pawnRight        = pawnRightAttacks(pawns, targets, board->turn);
+    pawnPromoForward = pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS & targets;
     pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS;
     pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS;
 
@@ -252,8 +255,8 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
         mask &= ~((1ull << king) | (1ull << rook));
         if (occupied & mask) continue;
 
-        // Castle is illegal if we move through a checking threat
-        mask = bitsBetweenMasks(king, kingTo);
+        // Castle is illegal if we move through or to a checking threat
+        mask = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
         while (mask)
             if (squareIsAttacked(board, board->turn, poplsb(&mask)))
                 { attacked = 1; break; }

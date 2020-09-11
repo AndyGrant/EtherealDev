@@ -28,13 +28,12 @@
 #include "masks.h"
 #include "move.h"
 #include "movegen.h"
+#include "movepicker.h"
 #include "search.h"
 #include "thread.h"
 #include "types.h"
 #include "uci.h"
 #include "zobrist.h"
-
-int WAS_LEGAL, WAS_ILLEGAL;
 
 static void updateCastleZobrist(Board *board, uint64_t oldRooks, uint64_t newRooks) {
     uint64_t diff = oldRooks ^ newRooks;
@@ -50,27 +49,56 @@ int castleRookTo(int king, int rook) {
     return square(rankOf(king), (rook > king) ? 5 : 3);
 }
 
-int apply(Thread *thread, Board *board, uint16_t move, int height) {
+int apply(Thread *thread, MovePicker *mp, Board *board, uint16_t move, int height) {
 
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
         thread->moveStack[height] = NULL_MOVE;
-        applyNullMove(board, &thread->undoStack[height]);
-        return 1;
+        return applyNullMove(board, &thread->undoStack[height]), 1;
     }
 
     // Track some move information for history lookups
     thread->moveStack[height] = move;
     thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 
+
+    int generated = mp->stage == STAGE_GOOD_NOISY
+                 || mp->stage == STAGE_BAD_NOISY
+                 || mp->stage == STAGE_QUIET;
+
+    int knownLegal = generated && MoveType(move) != ENPASS_MOVE
+                 && (board->kingAttackers || !testBit(board->pinned, MoveFrom(move)));
+
+
     // Apply the move and reject if illegal
     applyMove(board, move, &thread->undoStack[height]);
-    if (!moveWasLegal(board)) {
-        WAS_ILLEGAL++;
-        return revertMove(board, move, &thread->undoStack[height]), 0;
+    if (!knownLegal && !moveWasLegal(board)) {
+
+        revertMove(board, move, &thread->undoStack[height]);
+
+        // if (knownLegal) {
+        //
+        //     printBoard(board);
+        //
+        //     uint64_t kings = board->pieces[KING] & board->colours[board->turn];
+        //
+        //     printf("\n%d %d\n", MoveFrom(move), MoveTo(move));
+        //     printf("%d %d\n", getlsb(kings), getlsb(board->kingAttackers));
+        //
+        //     printBitboard(bitsBetweenMasks(getlsb(kings), getlsb(board->kingAttackers)));
+        //
+        //     printBitboard(board->pinned);
+        //
+        //     exit(EXIT_FAILURE);
+        // }
+
+
+
+        return 0;
+
+
     }
 
-    WAS_LEGAL++;
     return 1;
 }
 
@@ -657,8 +685,8 @@ int moveIsPseudoLegal(Board *board, uint16_t move) {
         mask &= ~((1ull << king) | (1ull << rook));
         if (occupied & mask) return 0;
 
-        // Castle is illegal if we move through a checking threat
-        mask = bitsBetweenMasks(king, kingTo);
+        // Castle is illegal if we move through or to a checking threat
+        mask = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
         while (mask)
             if (squareIsAttacked(board, board->turn, poplsb(&mask)))
                 return 0;

@@ -40,7 +40,7 @@ enum {
 int castleKingTo(int king, int rook);
 int castleRookTo(int king, int rook);
 
-int apply(Thread *thread, Board *board, uint16_t move, int height);
+int apply(Thread *thread, MovePicker *mp, Board *board, uint16_t move, int height);
 void applyLegal(Thread *thread, Board *board, uint16_t move, int height);
 void applyMove(Board *board, uint16_t move, Undo *undo);
 void applyNormalMove(Board *board, uint16_t move, Undo *undo);
