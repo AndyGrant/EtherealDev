@@ -167,7 +167,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
     pawnLeft         = pawnLeftAttacks(pawns, targets, board->turn);
     pawnRight        = pawnRightAttacks(pawns, targets, board->turn);
-    pawnPromoForward = board->kingAttackers ? 0ull : pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS;
+    pawnPromoForward = pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS;
     pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS;
     pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS;
 
