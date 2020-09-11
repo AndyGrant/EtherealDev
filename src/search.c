@@ -194,8 +194,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     Board *const board = &thread->board;
 
     unsigned tbresult;
-    int hist = 0, cmhist = 0, fmhist = 0;
-    int quietsSeen = 0, quietsPlayed = 0, played = 0;
+    int hist = 0, cmhist = 0, fmhist = 0, quietsPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -372,11 +371,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             if (!apply(thread, board, move, height)) continue;
 
             // For high depths, verify the move first with a depth one search
-            if (depth >= 2 * ProbCutDepth && !inCheck)
+            if (depth >= 2 * ProbCutDepth)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, 1, height+1);
 
             // For low depths, or after the above, verify with a reduced search
-            if (depth < 2 * ProbCutDepth || inCheck || value >= rBeta)
+            if (depth < 2 * ProbCutDepth || value >= rBeta)
                 value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 
             // Revert the board state
@@ -397,10 +396,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
 
         // For quiet moves we fetch various history scores
-        if ((isQuiet = !moveIsTactical(board, move))) {
+        if ((isQuiet = !moveIsTactical(board, move)))
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
-            quietsSeen++;
-        }
 
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
@@ -427,7 +424,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             // have tried many quiets in this position already, and we don't expect
             // anything from this move, we can skip all the remaining quiets
             if (   depth <= LateMovePruningDepth
-                && quietsSeen >= LateMovePruningCounts[improving][depth])
+                && quietsPlayed >= LateMovePruningCounts[improving][depth])
                 skipQuiets = 1;
 
             // Step 11D (~8 elo). Counter Move Pruning. Moves with poor counter
