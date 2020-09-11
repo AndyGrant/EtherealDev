@@ -179,7 +179,7 @@ void aspirationWindow(Thread *thread) {
         // Search failed high, adjust window and reduce depth
         else if (value >= beta) {
             beta = MIN(MATE, beta + delta);
-            depth = depth - (abs(value) <= MATE / 2);
+            depth = MAX(thread->depth - 3, depth - 1);
         }
 
         // Expand the search window
