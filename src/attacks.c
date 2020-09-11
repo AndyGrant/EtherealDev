@@ -26,6 +26,7 @@
 #include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
+#include "masks.h"
 #include "types.h"
 
 ALIGN64 uint64_t PawnAttacks[COLOUR_NB][SQUARE_NB];
@@ -196,9 +197,17 @@ uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour) {
 
 int squareIsAttacked(Board *board, int colour, int sq) {
 
-    uint64_t enemy    = board->colours[!colour];
-    uint64_t occupied = board->colours[ colour] | enemy;
+    uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+    return squareIsAttacked2(board, colour, sq, occupied);
+}
 
+int squareIsAttacked2(Board *board, int colour, int sq, uint64_t occupied) {
+
+    // Typically, occupied will be the same as the pieces on the board. However,
+    // we can call this function with a custom occupied bitboard, to see how the
+    // pieces would move if we allowed pieces to attack through some of the blockers
+
+    uint64_t enemy        = board->colours[!colour];
     uint64_t enemyPawns   = enemy &  board->pieces[PAWN  ];
     uint64_t enemyKnights = enemy &  board->pieces[KNIGHT];
     uint64_t enemyBishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
@@ -253,4 +262,30 @@ uint64_t discoveredAttacks(Board *board, int sq, int US) {
 
     return (  rooks &   rookAttacks(sq, occupied & ~rAttacks))
          | (bishops & bishopAttacks(sq, occupied & ~bAttacks));
+}
+
+uint64_t pinnedPieces(Board *board, int colour) {
+
+    const int US = colour, THEM = !colour;
+
+    uint64_t friendly = board->colours[  US];
+    uint64_t enemy    = board->colours[THEM];
+
+    int sq, kingsq = getlsb(friendly & board->pieces[KING]);
+
+    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
+
+    uint64_t pinners = (bishopAttacks(kingsq, enemy) & (enemy & bishops))
+                     | (  rookAttacks(kingsq, enemy) & (enemy &   rooks));
+
+    uint64_t pinned = 0ull;
+
+    while (pinners) {
+        sq = poplsb(&pinners);
+        if (onlyOne(bitsBetweenMasks(kingsq, sq) & friendly))
+            pinned |= bitsBetweenMasks(kingsq, sq) & friendly;
+    }
+
+    return pinned;
 }

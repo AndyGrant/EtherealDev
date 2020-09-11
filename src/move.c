@@ -57,14 +57,13 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
         return 1;
     }
 
+    if (!moveIsLegal(board, move))
+        return 0;
+
     // Track some move information for history lookups
     thread->moveStack[height] = move;
     thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
-
-    // Apply the move and reject if illegal
     applyMove(board, move, &thread->undoStack[height]);
-    if (!moveWasLegal(board))
-        return revertMove(board, move, &thread->undoStack[height]), 0;
 
     return 1;
 }
@@ -91,6 +90,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->hash            = board->hash;
     undo->pkhash          = board->pkhash;
     undo->kingAttackers   = board->kingAttackers;
+    undo->pinned          = board->pinned;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
@@ -114,8 +114,9 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // No function updates this so we do it here
     board->turn = !board->turn;
 
-    // Need king attackers to verify move legality
+    // Need king attackers and pinned pieces to filter movegen
     board->kingAttackers = attackersToKingSquare(board);
+    board->pinned = pinnedPieces(board, board->turn);
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
@@ -316,6 +317,7 @@ void applyNullMove(Board *board, Undo *undo) {
     undo->hash            = board->hash;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
+    undo->pinned          = board->pinned;
 
     // NULL moves simply swap the turn only
     board->turn = !board->turn;
@@ -328,6 +330,9 @@ void applyNullMove(Board *board, Undo *undo) {
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
         board->epSquare = -1;
     }
+
+    // Need pinned pieces to filter movegen
+    board->pinned = pinnedPieces(board, board->turn);
 }
 
 void revert(Thread *thread, Board *board, uint16_t move, int height) {
@@ -344,6 +349,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->hash            = undo->hash;
     board->pkhash          = undo->pkhash;
     board->kingAttackers   = undo->kingAttackers;
+    board->pinned          = undo->pinned;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -430,6 +436,7 @@ void revertNullMove(Board *board, Undo *undo) {
     // We may, and have to, zero out the king attacks
     board->hash            = undo->hash;
     board->kingAttackers   = 0ull;
+    board->pinned          = undo->pinned;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 
@@ -644,8 +651,8 @@ int moveIsPseudoLegal(Board *board, uint16_t move) {
         mask &= ~((1ull << king) | (1ull << rook));
         if (occupied & mask) return 0;
 
-        // Castle is illegal if we move through a checking threat
-        mask = bitsBetweenMasks(king, kingTo);
+        // Castle is illegal if we move through or to a checking threat
+        mask = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
         while (mask)
             if (squareIsAttacked(board, board->turn, poplsb(&mask)))
                 return 0;
@@ -654,6 +661,53 @@ int moveIsPseudoLegal(Board *board, uint16_t move) {
     }
 
     return 0;
+}
+
+int moveIsLegal(Board *board, uint16_t move) {
+
+    assert(moveIsPseudoLegal(board, move));
+
+    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+
+    const uint64_t friendly = board->colours[ board->turn];
+    const uint64_t enemy    = board->colours[!board->turn];
+
+    const int kingsq = getlsb(friendly & board->pieces[KING]);
+
+    const int type  = MoveType(move);
+    const int from  = MoveFrom(move);
+    const int to    = MoveTo(move);
+
+    if (type == ENPASS_MOVE) {
+
+        const int ep = to - 8 + (board->turn << 4);
+
+        const uint64_t rooks   = board->pieces[  ROOK] | board->pieces[QUEEN];
+        const uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+
+        const uint64_t updated = (occupied ^ (1ull << from) ^ (1ull << ep)) | (1ull << to);
+
+        return !(  rookAttacks(kingsq, updated) & (enemy &   rooks))
+            && !(bishopAttacks(kingsq, updated) & (enemy & bishops));
+    }
+
+    if (type == CASTLE_MOVE && !board->chess960)
+        return !board->kingAttackers;
+
+    if (pieceType(board->squares[from]) == KING)
+        return !squareIsAttacked2(board, board->turn, to, occupied ^ (1ull << from));
+
+    if (testBit(board->kingAttackers, to))
+        return !testBit(board->pinned, from)
+            && !several(board->kingAttackers);
+
+    if (board->kingAttackers)
+        return !testBit(board->pinned, from)
+            && !several(board->kingAttackers)
+            &&  testBit(bitsBetweenMasks(kingsq, getlsb(board->kingAttackers)), to);
+
+    return !testBit(board->pinned, from)
+        ||  testBit(bitsInLine(kingsq, from), to);
 }
 
 void moveToString(uint16_t move, char *str, int chess960) {
