@@ -407,7 +407,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (isQuiet && best > -MATE_IN_MAX) {
 
             // Base LMR value that we expect to use later
-            R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played * (1 + inCheck), 63)];
 
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
@@ -499,7 +499,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played * (1 + inCheck), 63)];
 
             // Increase for non PV, non improving, and extended nodes
             R += !PvNode + !improving + extension;
