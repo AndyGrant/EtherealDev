@@ -29,11 +29,11 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    0.10) // Global Learning rate
+#define LRRATE       (    1.25) // Global Learning rate
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (872)
+#define NTERMS       (      66) // Total terms in the Tuner (872)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -59,18 +59,18 @@
 #define TuneKnightOutpost               (0)
 #define TuneKnightBehindPawn            (0)
 #define TuneKnightInSiberia             (0)
-#define TuneKnightMobility              (0)
+#define TuneKnightMobility              (1)
 #define TuneBishopPair                  (0)
 #define TuneBishopRammedPawns           (0)
 #define TuneBishopOutpost               (0)
 #define TuneBishopBehindPawn            (0)
 #define TuneBishopLongDiagonal          (0)
-#define TuneBishopMobility              (0)
+#define TuneBishopMobility              (1)
 #define TuneRookFile                    (0)
 #define TuneRookOnSeventh               (0)
-#define TuneRookMobility                (0)
+#define TuneRookMobility                (1)
 #define TuneQueenRelativePin            (0)
-#define TuneQueenMobility               (0)
+#define TuneQueenMobility               (1)
 #define TuneKingDefenders               (0)
 #define TuneKingPawnFileProximity       (0)
 #define TuneKingShelter                 (0)
