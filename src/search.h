@@ -70,8 +70,8 @@ static const int FollowUpMoveHistoryLimit[] = { -2000, -4000 };
 
 static const int LateMovePruningDepth = 8;
 static const int LateMovePruningCounts[2][9] = {
-    {  0,  3,  4,  6, 10, 14, 19, 25, 31},
-    {  0,  5,  7, 11, 17, 26, 36, 48, 63},
+    {  0,  2,  3,  5,  9, 13, 18, 24, 30},
+    {  0,  4,  6, 10, 16, 25, 35, 47, 62},
 };
 
 static const int SEEPruningDepth = 9;
