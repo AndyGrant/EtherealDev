@@ -594,12 +594,17 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.KnightValue[US]++;
         if (TRACE) T.KnightPSQT[relativeSquare(US, sq)][US]++;
 
-        // Compute possible attacks and store off information for king safety
-
+        // Apply a bonus (or penalty) based on the mobility of the knight
         attacks = knightAttacks(sq);
+        count = popcount(ei->mobilityAreas[US] & attacks);
+        eval += KnightMobility[count];
+        if (TRACE) T.KnightMobility[count][US]++;
+
+        // Filter out moves denied by a pinner
         if (testBit(board->pinned, sq))
             attacks &= bitsInLine(ei->kingSquare[US], sq);
 
+        // Update computations for Threats and Safety
         ei->attackedBy2[US]        |= attacks & ei->attacked[US];
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][KNIGHT] |= attacks;
@@ -626,11 +631,6 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
             eval += KnightInSiberia[kingDistance - 4];
             if (TRACE) T.KnightInSiberia[kingDistance - 4][US]++;
         }
-
-        // Apply a bonus (or penalty) based on the mobility of the knight
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += KnightMobility[count];
-        if (TRACE) T.KnightMobility[count][US]++;
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
@@ -670,12 +670,17 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.BishopValue[US]++;
         if (TRACE) T.BishopPSQT[relativeSquare(US, sq)][US]++;
 
-        // Compute possible attacks and store off information for king safety
-
+        // Apply a bonus (or penalty) based on the mobility of the bishop
         attacks = bishopAttacks(sq, ei->occupiedMinusBishops[US]);
+        count = popcount(ei->mobilityAreas[US] & attacks);
+        eval += BishopMobility[count];
+        if (TRACE) T.BishopMobility[count][US]++;
+
+        // Filter out moves denied by a pinner
         if (testBit(board->pinned, sq))
             attacks &= bitsInLine(ei->kingSquare[US], sq);
 
+        // Update computations for Threats and Safety
         ei->attackedBy2[US]        |= attacks & ei->attacked[US];
         ei->attacked[US]           |= attacks;
         ei->attackedBy[US][BISHOP] |= attacks;
@@ -708,11 +713,6 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
             eval += BishopLongDiagonal;
             if (TRACE) T.BishopLongDiagonal[US]++;
         }
-
-        // Apply a bonus (or penalty) based on the mobility of the bishop
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += BishopMobility[count];
-        if (TRACE) T.BishopMobility[count][US]++;
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
@@ -747,12 +747,17 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.RookValue[US]++;
         if (TRACE) T.RookPSQT[relativeSquare(US, sq)][US]++;
 
-        // Compute possible attacks and store off information for king safety
-
+        // Apply a bonus (or penalty) based on the mobility of the rook
         attacks = rookAttacks(sq, ei->occupiedMinusRooks[US]);
+        count = popcount(ei->mobilityAreas[US] & attacks);
+        eval += RookMobility[count];
+        if (TRACE) T.RookMobility[count][US]++;
+
+        // Filter out moves denied by a pinner
         if (testBit(board->pinned, sq))
             attacks &= bitsInLine(ei->kingSquare[US], sq);
 
+        // Update computations for Threats and Safety
         ei->attackedBy2[US]      |= attacks & ei->attacked[US];
         ei->attacked[US]         |= attacks;
         ei->attackedBy[US][ROOK] |= attacks;
@@ -772,11 +777,6 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
             eval += RookOnSeventh;
             if (TRACE) T.RookOnSeventh[US]++;
         }
-
-        // Apply a bonus (or penalty) based on the mobility of the rook
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += RookMobility[count];
-        if (TRACE) T.RookMobility[count][US]++;
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
@@ -810,12 +810,17 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenValue[US]++;
         if (TRACE) T.QueenPSQT[relativeSquare(US, sq)][US]++;
 
-        // Compute possible attacks and store off information for king safety
-
+        // Apply a bonus (or penalty) based on the mobility of the queen
         attacks = queenAttacks(sq, occupied);
+        count = popcount(ei->mobilityAreas[US] & attacks);
+        eval += QueenMobility[count];
+        if (TRACE) T.QueenMobility[count][US]++;
+
+        // Filter out moves denied by a pinner
         if (testBit(board->pinned, sq))
             attacks &= bitsInLine(ei->kingSquare[US], sq);
 
+        // Update computations for Threats and Safety
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
@@ -825,11 +830,6 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
             eval += QueenRelativePin;
             if (TRACE) T.QueenRelativePin[US]++;
         }
-
-        // Apply a bonus (or penalty) based on the mobility of the queen
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += QueenMobility[count];
-        if (TRACE) T.QueenMobility[count][US]++;
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
