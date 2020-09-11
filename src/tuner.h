@@ -29,11 +29,11 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    0.10) // Global Learning rate
+#define LRRATE       (    1.00) // Global Learning rate
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (872)
+#define NTERMS       (      12) // Total terms in the Tuner (872)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -75,18 +75,18 @@
 #define TuneKingPawnFileProximity       (0)
 #define TuneKingShelter                 (0)
 #define TuneKingStorm                   (0)
-#define TuneSafetyKnightWeight          (0)
-#define TuneSafetyBishopWeight          (0)
-#define TuneSafetyRookWeight            (0)
-#define TuneSafetyQueenWeight           (0)
-#define TuneSafetyAttackValue           (0)
-#define TuneSafetyWeakSquares           (0)
-#define TuneSafetyNoEnemyQueens         (0)
-#define TuneSafetySafeQueenCheck        (0)
-#define TuneSafetySafeRookCheck         (0)
-#define TuneSafetySafeBishopCheck       (0)
-#define TuneSafetySafeKnightCheck       (0)
-#define TuneSafetyAdjustment            (0)
+#define TuneSafetyKnightWeight          (1)
+#define TuneSafetyBishopWeight          (1)
+#define TuneSafetyRookWeight            (1)
+#define TuneSafetyQueenWeight           (1)
+#define TuneSafetyAttackValue           (1)
+#define TuneSafetyWeakSquares           (1)
+#define TuneSafetyNoEnemyQueens         (1)
+#define TuneSafetySafeQueenCheck        (1)
+#define TuneSafetySafeRookCheck         (1)
+#define TuneSafetySafeBishopCheck       (1)
+#define TuneSafetySafeKnightCheck       (1)
+#define TuneSafetyAdjustment            (1)
 #define TunePassedPawn                  (0)
 #define TunePassedFriendlyDistance      (0)
 #define TunePassedEnemyDistance         (0)
