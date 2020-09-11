@@ -30,12 +30,15 @@
 #include "tuner.h"
 #include "uci.h"
 
+extern int WAS_LEGAL, WAS_ILLEGAL;
+
 void handleCommandLine(int argc, char **argv) {
 
     // Benchmarker is being run from the command line
     // USAGE: ./Ethereal bench <depth> <threads> <hash>
     if (argc > 1 && strEquals(argv[1], "bench")) {
         runBenchmark(argc, argv);
+        printf("LEGAL   : %d\nILLEGAL : %d\n", WAS_LEGAL, WAS_ILLEGAL);
         exit(EXIT_SUCCESS);
     }
 

@@ -34,6 +34,8 @@
 #include "uci.h"
 #include "zobrist.h"
 
+int WAS_LEGAL, WAS_ILLEGAL;
+
 static void updateCastleZobrist(Board *board, uint64_t oldRooks, uint64_t newRooks) {
     uint64_t diff = oldRooks ^ newRooks;
     while (diff)
@@ -63,9 +65,12 @@ int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
     // Apply the move and reject if illegal
     applyMove(board, move, &thread->undoStack[height]);
-    if (!moveWasLegal(board))
+    if (!moveWasLegal(board)) {
+        WAS_ILLEGAL++;
         return revertMove(board, move, &thread->undoStack[height]), 0;
+    }
 
+    WAS_LEGAL++;
     return 1;
 }
 
@@ -91,6 +96,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->hash            = board->hash;
     undo->pkhash          = board->pkhash;
     undo->kingAttackers   = board->kingAttackers;
+    undo->pinned          = board->pinned;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
@@ -114,8 +120,9 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // No function updates this so we do it here
     board->turn = !board->turn;
 
-    // Need king attackers to verify move legality
+    // Need king attackers and pinned pieces to filter movegen
     board->kingAttackers = attackersToKingSquare(board);
+    board->pinned = pinnedPieces(board, board->turn);
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
@@ -316,6 +323,7 @@ void applyNullMove(Board *board, Undo *undo) {
     undo->hash            = board->hash;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
+    undo->pinned          = board->pinned;
 
     // NULL moves simply swap the turn only
     board->turn = !board->turn;
@@ -328,6 +336,9 @@ void applyNullMove(Board *board, Undo *undo) {
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
         board->epSquare = -1;
     }
+
+    // Need pinned pieces to filter movegen
+    board->pinned = pinnedPieces(board, board->turn);
 }
 
 void revert(Thread *thread, Board *board, uint16_t move, int height) {
@@ -344,6 +355,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->hash            = undo->hash;
     board->pkhash          = undo->pkhash;
     board->kingAttackers   = undo->kingAttackers;
+    board->pinned          = undo->pinned;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -430,6 +442,7 @@ void revertNullMove(Board *board, Undo *undo) {
     // We may, and have to, zero out the king attacks
     board->hash            = undo->hash;
     board->kingAttackers   = 0ull;
+    board->pinned          = undo->pinned;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 

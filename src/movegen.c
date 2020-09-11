@@ -104,6 +104,7 @@ uint64_t filtererKingAttacks(Board *board, int ksq, uint64_t targets) {
     return result;
 }
 
+
 int genAllLegalMoves(Board *board, uint16_t *moves) {
 
     Undo undo[1];
@@ -198,15 +199,18 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     uint64_t occupied = us | board->colours[!board->turn];
     uint64_t castles  = us & board->castleRooks;
 
-    uint64_t pawns   = us & (board->pieces[PAWN  ]);
-    uint64_t knights = us & (board->pieces[KNIGHT]);
-    uint64_t bishops = us & (board->pieces[BISHOP]);
-    uint64_t rooks   = us & (board->pieces[ROOK  ]);
-    uint64_t kings   = us & (board->pieces[KING  ]);
+    // Our pinned pieces cannot move when in check
+    uint64_t moveable = board->kingAttackers ? us & ~board->pinned : us;
+
+    uint64_t pawns   = moveable & board->pieces[PAWN  ];
+    uint64_t knights = moveable & board->pieces[KNIGHT];
+    uint64_t bishops = moveable & board->pieces[BISHOP];
+    uint64_t rooks   = moveable & board->pieces[ROOK  ];
+    uint64_t kings   = moveable & board->pieces[KING  ];
 
     // Merge together duplicate piece ideas
-    bishops |= us & board->pieces[QUEEN];
-    rooks   |= us & board->pieces[QUEEN];
+    bishops |= moveable & board->pieces[QUEEN];
+    rooks   |= moveable & board->pieces[QUEEN];
 
     // When checked, we must block the checker with non-King pieces
     targets = !board->kingAttackers ? ~occupied
