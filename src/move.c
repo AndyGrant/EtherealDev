@@ -91,6 +91,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->hash            = board->hash;
     undo->pkhash          = board->pkhash;
     undo->kingAttackers   = board->kingAttackers;
+    undo->pinned          = board->pinned;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
@@ -116,6 +117,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
 
     // Need king attackers to verify move legality
     board->kingAttackers = attackersToKingSquare(board);
+    board->pinned        = pinnedPieces(board);
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
@@ -316,6 +318,7 @@ void applyNullMove(Board *board, Undo *undo) {
     undo->hash            = board->hash;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
+    undo->pinned          = board->pinned;
 
     // NULL moves simply swap the turn only
     board->turn = !board->turn;
@@ -344,6 +347,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->hash            = undo->hash;
     board->pkhash          = undo->pkhash;
     board->kingAttackers   = undo->kingAttackers;
+    board->pinned          = undo->pinned;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -430,6 +434,7 @@ void revertNullMove(Board *board, Undo *undo) {
     // We may, and have to, zero out the king attacks
     board->hash            = undo->hash;
     board->kingAttackers   = 0ull;
+    board->pinned          = undo->pinned;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 

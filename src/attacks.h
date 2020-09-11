@@ -49,8 +49,10 @@ int squareIsAttacked(Board *board, int colour, int sq);
 uint64_t attackersToSquare(Board *board, int colour, int sq);
 uint64_t allAttackersToSquare(Board *board, uint64_t occupied, int sq);
 uint64_t attackersToKingSquare(Board *board);
-
 uint64_t discoveredAttacks(Board *board, int sq, int US);
+
+uint64_t pinnedPieces(Board *board);
+uint64_t pinnedPiecesForColour(Board *board, int colour);
 
 static const uint64_t RookMagics[SQUARE_NB] = {
     0xA180022080400230ull, 0x0040100040022000ull, 0x0080088020001002ull, 0x0080080280841000ull,

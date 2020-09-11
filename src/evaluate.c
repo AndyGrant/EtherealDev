@@ -624,9 +624,11 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus (or penalty) based on the mobility of the knight
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += KnightMobility[count];
-        if (TRACE) T.KnightMobility[count][US]++;
+        if (!testBit(board->pinned, sq)) {
+            count = popcount(ei->mobilityAreas[US] & attacks);
+            eval += KnightMobility[count];
+            if (TRACE) T.KnightMobility[count][US]++;
+        }
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
@@ -702,9 +704,11 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus (or penalty) based on the mobility of the bishop
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += BishopMobility[count];
-        if (TRACE) T.BishopMobility[count][US]++;
+        if (!testBit(board->pinned, sq)) {
+            count = popcount(ei->mobilityAreas[US] & attacks);
+            eval += BishopMobility[count];
+            if (TRACE) T.BishopMobility[count][US]++;
+        }
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
@@ -762,9 +766,11 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus (or penalty) based on the mobility of the rook
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += RookMobility[count];
-        if (TRACE) T.RookMobility[count][US]++;
+        if (!testBit(board->pinned, sq)) {
+            count = popcount(ei->mobilityAreas[US] & attacks);
+            eval += RookMobility[count];
+            if (TRACE) T.RookMobility[count][US]++;
+        }
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
@@ -811,9 +817,11 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus (or penalty) based on the mobility of the queen
-        count = popcount(ei->mobilityAreas[US] & attacks);
-        eval += QueenMobility[count];
-        if (TRACE) T.QueenMobility[count][US]++;
+        if (!testBit(board->pinned, sq)) {
+            count = popcount(ei->mobilityAreas[US] & attacks);
+            eval += QueenMobility[count];
+            if (TRACE) T.QueenMobility[count][US]++;
+        }
 
         // Update King Safety calculations
         if ((attacks &= ei->kingAreas[THEM] & ~ei->pawnAttacksBy2[THEM])) {
