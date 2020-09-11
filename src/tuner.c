@@ -140,7 +140,7 @@ void runTuner() {
     initCurrentParameters(cparams);
     initMethodManager(methods);
     initTunerEntries(entries, thread, methods);
-    K = computeOptimalK(entries);
+    K = 3.1459; // computeOptimalK(entries);
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
