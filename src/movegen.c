@@ -90,6 +90,20 @@ uint16_t * buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint
 }
 
 
+uint64_t filtererKingAttacks(Board *board, int ksq, uint64_t targets) {
+
+    uint64_t result = 0ull, attacks = kingAttacks(ksq) & targets;
+    uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+
+    while (attacks) {
+        int sq = poplsb(&attacks);
+        if (!squareIsAttacked2(board, board->turn, sq, occupied ^ (1ull << ksq)))
+            setBit(&result, sq);
+    }
+
+    return result;
+}
+
 int genAllLegalMoves(Board *board, uint16_t *moves) {
 
     Undo undo[1];
@@ -118,7 +132,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     const int Right   = board->turn == WHITE ? -9 : 9;
     const int Forward = board->turn == WHITE ? -8 : 8;
 
-    uint64_t destinations, pawnEnpass, pawnLeft, pawnRight;
+    uint64_t targets, ktargets, pawnEnpass, pawnLeft, pawnRight;
     uint64_t pawnPromoForward, pawnPromoLeft, pawnPromoRight;
 
     uint64_t us       = board->colours[board->turn];
@@ -135,12 +149,15 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     bishops |= us & board->pieces[QUEEN];
     rooks   |= us & board->pieces[QUEEN];
 
+    // When checked, we may only uncheck by capturing the checker
+    targets = board->kingAttackers ? board->kingAttackers : them;
+
+    // King is able to move to any non-attacked enemy square
+    ktargets = filtererKingAttacks(board, getlsb(kings), them);
+
     // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers))
-        return buildJumperMoves(&kingAttacks, moves, kings, them) - start;
-
-    // When checked, we may only uncheck by capturing the checker
-    destinations = board->kingAttackers ? board->kingAttackers : them;
+        return buildJumperMoves(&kingAttacks, moves, kings, ktargets) - start;
 
     // Compute bitboards for each type of Pawn movement
     pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
@@ -152,17 +169,17 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
 
     // Generate moves for all the Pawns, so long as they are noisy
     moves = buildEnpassMoves(moves, pawnEnpass, board->epSquare);
-    moves = buildPawnMoves(moves, pawnLeft & destinations, Left);
-    moves = buildPawnMoves(moves, pawnRight & destinations, Right);
+    moves = buildPawnMoves(moves, pawnLeft & targets, Left);
+    moves = buildPawnMoves(moves, pawnRight & targets, Right);
     moves = buildPawnPromotions(moves, pawnPromoForward, Forward);
     moves = buildPawnPromotions(moves, pawnPromoLeft, Left);
     moves = buildPawnPromotions(moves, pawnPromoRight, Right);
 
     // Generate moves for the remainder of the pieces, so long as they are noisy
-    moves = buildJumperMoves(&knightAttacks, moves, knights, destinations);
-    moves = buildSliderMoves(&bishopAttacks, moves, bishops, destinations, occupied);
-    moves = buildSliderMoves(&rookAttacks, moves, rooks, destinations, occupied);
-    moves = buildJumperMoves(&kingAttacks, moves, kings, them);
+    moves = buildJumperMoves(&knightAttacks, moves, knights, targets);
+    moves = buildSliderMoves(&bishopAttacks, moves, bishops, targets, occupied);
+    moves = buildSliderMoves(&rookAttacks, moves, rooks, targets, occupied);
+    moves = buildJumperMoves(&kingAttacks, moves, kings, ktargets);
 
     return moves - start;
 }
@@ -175,7 +192,7 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
 
     int rook, king, rookTo, kingTo, attacked;
-    uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
+    uint64_t targets, ktargets, pawnForwardOne, pawnForwardTwo, mask;
 
     uint64_t us       = board->colours[board->turn];
     uint64_t occupied = us | board->colours[!board->turn];
@@ -191,27 +208,30 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     bishops |= us & board->pieces[QUEEN];
     rooks   |= us & board->pieces[QUEEN];
 
+    // When checked, we must block the checker with non-King pieces
+    targets = !board->kingAttackers ? ~occupied
+            : ~occupied & bitsBetweenMasks(getlsb(kings), getlsb(board->kingAttackers));
+
+    // King is able to move to any non-attacked empty square
+    ktargets = filtererKingAttacks(board, getlsb(kings), ~occupied);
+
     // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers))
-        return buildJumperMoves(&kingAttacks, moves, kings, ~occupied) - start;
-
-    // When checked, we must block the checker with non-King pieces
-    destinations = !board->kingAttackers ? ~occupied
-                 : ~occupied & bitsBetweenMasks(getlsb(kings), getlsb(board->kingAttackers));
+        return buildJumperMoves(&kingAttacks, moves, kings, ktargets) - start;
 
     // Compute bitboards for each type of Pawn movement
     pawnForwardOne = pawnAdvance(pawns, occupied, board->turn) & ~PROMOTION_RANKS;
     pawnForwardTwo = pawnAdvance(pawnForwardOne & Rank3Relative, occupied, board->turn);
 
     // Generate moves for all the pawns, so long as they are quiet
-    moves = buildPawnMoves(moves, pawnForwardOne & destinations, Forward);
-    moves = buildPawnMoves(moves, pawnForwardTwo & destinations, Forward * 2);
+    moves = buildPawnMoves(moves, pawnForwardOne & targets, Forward);
+    moves = buildPawnMoves(moves, pawnForwardTwo & targets, Forward * 2);
 
     // Generate moves for the remainder of the pieces, so long as they are quiet
-    moves = buildJumperMoves(&knightAttacks, moves, knights, destinations);
-    moves = buildSliderMoves(&bishopAttacks, moves, bishops, destinations, occupied);
-    moves = buildSliderMoves(&rookAttacks, moves, rooks, destinations, occupied);
-    moves = buildJumperMoves(&kingAttacks, moves, kings, ~occupied);
+    moves = buildJumperMoves(&knightAttacks, moves, knights, targets);
+    moves = buildSliderMoves(&bishopAttacks, moves, bishops, targets, occupied);
+    moves = buildSliderMoves(&rookAttacks, moves, rooks, targets, occupied);
+    moves = buildJumperMoves(&kingAttacks, moves, kings, ktargets);
 
     // Attempt to generate a castle move for each rook
     while (castles && !board->kingAttackers) {
