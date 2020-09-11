@@ -651,13 +651,13 @@ int moveIsPseudoLegal(Board *board, uint16_t move) {
         mask &= ~((1ull << king) | (1ull << rook));
         if (occupied & mask) return 0;
 
-        // Castle is illegal if we move through or to a checking threat
-        mask = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
+        // Castle is illegal if we move through a checking threat
+        mask = bitsBetweenMasks(king, kingTo);
         while (mask)
             if (squareIsAttacked(board, board->turn, poplsb(&mask)))
                 return 0;
 
-        return 1; // All requirments are met
+        return 1; // All basic requirements met
     }
 
     return 0;
@@ -667,10 +667,9 @@ int moveIsLegal(Board *board, uint16_t move) {
 
     assert(moveIsPseudoLegal(board, move));
 
-    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
-
     const uint64_t friendly = board->colours[ board->turn];
     const uint64_t enemy    = board->colours[!board->turn];
+    const uint64_t occupied = friendly | enemy;
 
     const int kingsq = getlsb(friendly & board->pieces[KING]);
 
@@ -691,8 +690,8 @@ int moveIsLegal(Board *board, uint16_t move) {
             && !(bishopAttacks(kingsq, updated) & (enemy & bishops));
     }
 
-    if (type == CASTLE_MOVE && !board->chess960)
-        return !board->kingAttackers;
+    if (type == CASTLE_MOVE)
+        return !squareIsAttacked(board, board->turn, castleKingTo(from, to));
 
     if (pieceType(board->squares[from]) == KING)
         return !squareIsAttacked2(board, board->turn, to, occupied ^ (1ull << from));

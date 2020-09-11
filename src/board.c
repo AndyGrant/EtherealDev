@@ -337,17 +337,21 @@ uint64_t perft(Board *board, int depth) {
     uint64_t found = 0ull;
     uint16_t moves[MAX_MOVES];
 
-    if (depth == 0) return 1ull;
-
     // Call genAllNoisyMoves() & genAllNoisyMoves()
     size += genAllNoisyMoves(board, moves);
     size += genAllQuietMoves(board, moves + size);
 
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
-        applyMove(board, moves[size], undo);
-        if (moveWasLegal(board)) found += perft(board, depth-1);
-        revertMove(board, moves[size], undo);
+
+        if (depth == 1)
+            found += moveIsLegal(board, moves[size]);
+
+        else if (moveIsLegal(board, moves[size])) {
+            applyMove(board, moves[size], undo);
+            found += perft(board, depth-1);
+            revertMove(board, moves[size], undo);
+        }
     }
 
     return found;
