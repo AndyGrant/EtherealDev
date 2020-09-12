@@ -33,7 +33,7 @@
 #define LRDROPRATE   (    2.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (      15) // Total terms in the Tuner (887)
+#define NTERMS       (      21) // Total terms in the Tuner (887)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -102,6 +102,7 @@
 #define TuneThreatOverloadedPieces      (0)
 #define TuneThreatByPawnPush            (0)
 #define TunePinnedPieceByPiece          (1)
+#define TunePinnedDiscoveredCheck       (1)
 #define TuneSpaceRestrictPiece          (0)
 #define TuneSpaceRestrictEmpty          (0)
 #define TuneSpaceCenterControl          (0)
@@ -351,6 +352,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
                                                                             \
     COMMENTS(F, "\n/* Pinned Evaluation Terms */\n\n");                     \
     ENABLE_2(F, PinnedPieceByPiece, 5, 3, NORMAL, "[5][3]");                \
+    ENABLE_2(F, PinnedDiscoveredCheck, 3, 2, NORMAL, "[3][2]");             \
                                                                             \
     COMMENTS(F, "/* Space Evaluation Terms */\n\n");                        \
     ENABLE_0(F, SpaceRestrictPiece, NORMAL, "");                            \

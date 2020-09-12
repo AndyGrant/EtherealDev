@@ -394,9 +394,15 @@ const int ThreatByPawnPush           = S(  14,  29);
 const int PinnedPieceByPiece[5][3] = {
    {S(  -4, -11), S(  -9,   7), S(  -2,   3)},
    {S( -13, -22), S( -13,  -5), S( -11,   7)},
-   {S(  -5,  -5), S( -14,  -6), S(  -4,  -3)},
-   {S( -14, -17), S( -11,   9), S(  -2, -22)},
-   {S(  -3, -32), S(   2, -36), S(  -6,   3)},
+   {S(  -5,  -6), S( -14,  -6), S(  -4,  -3)},
+   {S( -14, -18), S( -11,   9), S(  -2, -22)},
+   {S(  -1, -38), S(   4, -40), S(  -6,   3)},
+};
+
+const int PinnedDiscoveredCheck[3][2] = {
+   {S( -17, -10), S(  -9,  -4)},
+   {S(  -7,   0), S(   0,  -2)},
+   {S(  -9,  -6), S(  -2,   5)},
 };
 
 /* Space Evaluation Terms */
@@ -1113,30 +1119,34 @@ int evaluatePinned(EvalInfo *ei, Board *board, int colour) {
     uint64_t pinline;
     uint64_t friendly = board->colours[  US];
     uint64_t enemy    = board->colours[THEM];
-
-    uint64_t bishops  = enemy & board->pieces[BISHOP];
-    uint64_t rooks    = enemy & board->pieces[ROOK  ];
-    uint64_t queens   = enemy & board->pieces[QUEEN ];
+    uint64_t occupied = friendly | enemy;
 
     int sq, pinned, pinner, eval = 0, kingsq = ei->kingSquare[US];
 
-    uint64_t pinners = (bishopAttacks(kingsq, enemy) & (bishops | queens))
-                     | (  rookAttacks(kingsq, enemy) & ( rooks  | queens));
+    uint64_t attacks = discoveredAttacks2(board, kingsq, US);
 
-    while (pinners) {
+    while (attacks) {
 
-        sq = poplsb(&pinners);
+        sq = poplsb(&attacks);
         pinline = bitsBetweenMasks(kingsq, sq);
-        if (!onlyOne(pinline & friendly)) continue;
 
         pinner = pieceType(board->squares[sq]);
-        pinned = pieceType(board->squares[getlsb(pinline & friendly)]);
+        pinned = pieceType(board->squares[getlsb(pinline & occupied)]);
 
+        assert(onlyOne(pinline & occupied));
         assert(BISHOP <= pinner && pinner <= QUEEN);
-        assert(  PAWN <= pinned && pinned <= QUEEN);
+        assert(  PAWN <= pinned && pinned <=  KING);
 
-        eval += PinnedPieceByPiece[pinned][pinner - BISHOP];
-        if (TRACE) T.PinnedPieceByPiece[pinned][pinner - BISHOP][US]++;
+        if (pinline & friendly) {
+            assert(pinned != KING);
+            eval += PinnedPieceByPiece[pinned][pinner - BISHOP];
+            if (TRACE) T.PinnedPieceByPiece[pinned][pinner - BISHOP][US]++;
+        }
+
+        else if (pinline & enemy) {
+            eval += PinnedDiscoveredCheck[pinner - BISHOP][pinned == PAWN];
+            if (TRACE) T.PinnedDiscoveredCheck[pinner - BISHOP][pinned == PAWN][US]++;
+        }
     }
 
     return eval;

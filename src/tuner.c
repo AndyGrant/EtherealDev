@@ -105,6 +105,7 @@ extern const int ThreatQueenAttackedByOne;
 extern const int ThreatOverloadedPieces;
 extern const int ThreatByPawnPush;
 extern const int PinnedPieceByPiece[5][3];
+extern const int PinnedDiscoveredCheck[3][2];
 extern const int SpaceRestrictPiece;
 extern const int SpaceRestrictEmpty;
 extern const int SpaceCenterControl;

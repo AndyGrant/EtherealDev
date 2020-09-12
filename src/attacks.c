@@ -254,3 +254,18 @@ uint64_t discoveredAttacks(Board *board, int sq, int US) {
     return (  rooks &   rookAttacks(sq, occupied & ~rAttacks))
          | (bishops & bishopAttacks(sq, occupied & ~bAttacks));
 }
+
+uint64_t discoveredAttacks2(Board *board, int sq, int US) {
+
+    uint64_t enemy    = board->colours[!US];
+    uint64_t occupied = board->colours[ US] | enemy;
+
+    uint64_t rAttacks = rookAttacks(sq, occupied);
+    uint64_t bAttacks = bishopAttacks(sq, occupied);
+
+    uint64_t rooks   = (enemy & (board->pieces[QUEEN] | board->pieces[ROOK  ])) & ~rAttacks;
+    uint64_t bishops = (enemy & (board->pieces[QUEEN] | board->pieces[BISHOP])) & ~bAttacks;
+
+    return (  rooks &   rookAttacks(sq, occupied & ~rAttacks))
+         | (bishops & bishopAttacks(sq, occupied & ~bAttacks));
+}

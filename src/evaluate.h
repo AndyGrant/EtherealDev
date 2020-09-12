@@ -103,6 +103,7 @@ struct EvalTrace {
     int ThreatOverloadedPieces[COLOUR_NB];
     int ThreatByPawnPush[COLOUR_NB];
     int PinnedPieceByPiece[5][3][COLOUR_NB];
+    int PinnedDiscoveredCheck[3][2][COLOUR_NB];
     int SpaceRestrictPiece[COLOUR_NB];
     int SpaceRestrictEmpty[COLOUR_NB];
     int SpaceCenterControl[COLOUR_NB];
