@@ -392,17 +392,17 @@ const int ThreatByPawnPush           = S(  14,  29);
 /* Pinned Piece Evaluation Terms */
 
 const int PinnedPieceByPiece[5][3] = {
-   {S(  -4, -11), S(  -9,   7), S(  -2,   3)},
-   {S( -13, -22), S( -13,  -5), S( -11,   7)},
-   {S(  -5,  -6), S( -14,  -6), S(  -4,  -3)},
-   {S( -14, -18), S( -11,   9), S(  -2, -22)},
-   {S(  -1, -38), S(   4, -40), S(  -6,   3)},
+   {S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S( -13, -22), S( -13,  -6), S( -11,   7)},
+   {S(  -5,  -6), S( -14,  -6), S(  -4,  -4)},
+   {S( -14, -16), S( -11,   8), S(  -2, -21)},
+   {S(  -3, -26), S(   0, -32), S(  -5,   2)},
 };
 
 const int PinnedDiscoveredCheck[3][2] = {
-   {S( -17, -10), S(  -9,  -4)},
-   {S(  -7,   0), S(   0,  -2)},
-   {S(  -9,  -6), S(  -2,   5)},
+   {S( -17, -10), S(   0,   0)},
+   {S(  -7,   0), S(   0,   0)},
+   {S(  -9,  -6), S(   0,   0)},
 };
 
 /* Space Evaluation Terms */
@@ -1132,10 +1132,11 @@ int evaluatePinned(EvalInfo *ei, Board *board, int colour) {
 
         pinner = pieceType(board->squares[sq]);
         pinned = pieceType(board->squares[getlsb(pinline & occupied)]);
+        if (pinned == PAWN) continue;
 
         assert(onlyOne(pinline & occupied));
         assert(BISHOP <= pinner && pinner <= QUEEN);
-        assert(  PAWN <= pinned && pinned <=  KING);
+        assert(KNIGHT <= pinned && pinned <=  KING);
 
         if (pinline & friendly) {
             assert(pinned != KING);
