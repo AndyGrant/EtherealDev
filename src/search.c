@@ -364,11 +364,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        && (adjusted >= beta || eval + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
+        && (adjusted >= beta || adjusted + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
 
         // Try tactical moves which maintain rBeta
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, rBeta - adjusted);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
