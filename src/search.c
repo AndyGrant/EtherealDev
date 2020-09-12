@@ -196,7 +196,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int quietsSeen = 0, quietsPlayed = 0, played = 0;
-    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
+    int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0, adjusted;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
@@ -305,6 +305,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
          : thread->moveStack[height-1] != NULL_MOVE ?  evaluateBoard(thread, board)
                                                     : -thread->evalStack[height-1] + 2 * Tempo;
 
+    adjusted = ((ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER))
+            &&   ttHit && ttValue != VALUE_NONE) ? ttValue : eval;
+
     // Futility Pruning Margin
     futilityMargin = FutilityMargin * depth;
 
@@ -329,8 +332,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  adjusted - BetaMargin * depth > beta)
+        return adjusted;
 
     // Step 8 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
@@ -346,7 +349,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = 4 + depth / 6 + MIN(3, (adjusted - beta) / 200);
 
         apply(thread, board, NULL_MOVE, height);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
