@@ -392,17 +392,17 @@ const int ThreatByPawnPush           = S(  14,  29);
 /* Pinned Piece Evaluation Terms */
 
 const int PinnedPieceByPiece[5][3] = {
-   {S(   0,   0), S(   0,   0), S(   0,   0)},
-   {S( -13, -22), S( -13,  -6), S( -11,   7)},
-   {S(  -5,  -6), S( -14,  -6), S(  -4,  -4)},
-   {S( -14, -16), S( -11,   8), S(  -2, -21)},
-   {S(  -3, -26), S(   0, -32), S(  -5,   2)},
+   {S(  -5,   2), S(   0,   0), S(   0,   0)},
+   {S( -11,  -8), S(   0,   0), S(   0,   0)},
+   {S(  -7,  -8), S(  -5,  -6), S(   0,   0)},
+   {S(  -3, -21), S( -11,   9), S(   0,   0)},
+   {S(   0, -37), S(  -6,   2), S(   0,   0)},
 };
 
 const int PinnedDiscoveredCheck[3][2] = {
    {S( -17, -10), S(   0,   0)},
-   {S(  -7,   0), S(   0,   0)},
-   {S(  -9,  -6), S(   0,   0)},
+   {S(  -8,   0), S(  11,  15)},
+   {S(  -9,  -7), S(  -1,   0)},
 };
 
 /* Space Evaluation Terms */
@@ -1132,21 +1132,20 @@ int evaluatePinned(EvalInfo *ei, Board *board, int colour) {
 
         pinner = pieceType(board->squares[sq]);
         pinned = pieceType(board->squares[getlsb(pinline & occupied)]);
-        if (pinned == PAWN) continue;
 
         assert(onlyOne(pinline & occupied));
         assert(BISHOP <= pinner && pinner <= QUEEN);
-        assert(KNIGHT <= pinned && pinned <=  KING);
+        assert(PAWN   <= pinned && pinned <=  KING);
 
         if (pinline & friendly) {
             assert(pinned != KING);
-            eval += PinnedPieceByPiece[pinned][pinner - BISHOP];
-            if (TRACE) T.PinnedPieceByPiece[pinned][pinner - BISHOP][US]++;
+            eval += PinnedPieceByPiece[pinned][pinner == pinned];
+            if (TRACE) T.PinnedPieceByPiece[pinned][pinner == pinned][US]++;
         }
 
-        else if (pinline & enemy) {
-            eval += PinnedDiscoveredCheck[pinner - BISHOP][pinned == PAWN];
-            if (TRACE) T.PinnedDiscoveredCheck[pinner - BISHOP][pinned == PAWN][US]++;
+        else if (pinline & enemy && pinned != PAWN) {
+            eval += PinnedDiscoveredCheck[pinner - BISHOP][pinner == pinned];
+            if (TRACE) T.PinnedDiscoveredCheck[pinner - BISHOP][pinner == pinned][US]++;
         }
     }
 
