@@ -48,35 +48,26 @@ int castleRookTo(int king, int rook) {
     return square(rankOf(king), (rook > king) ? 5 : 3);
 }
 
-int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
-    // NULL moves are only tried when legal
+void apply(Thread *thread, Board *board, uint16_t move, int height) {
+
     if (move == NULL_MOVE) {
+
+        // NULL moves are only attempted when they are legal
         thread->moveStack[height] = NULL_MOVE;
         applyNullMove(board, &thread->undoStack[height]);
-        return 1;
     }
 
-    if (!moveIsLegal(board, move))
-        return 0;
+    else {
 
-    // Track some move information for history lookups
-    thread->moveStack[height] = move;
-    thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
-    applyMove(board, move, &thread->undoStack[height]);
+        // Track some move information for history lookups
+        thread->moveStack[height] = move;
+        thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
 
-    return 1;
-}
-
-void applyLegal(Thread *thread, Board *board, uint16_t move, int height) {
-
-    // Track some move information for history lookups
-    thread->moveStack[height] = move;
-    thread->pieceStack[height] = pieceType(board->squares[MoveFrom(move)]);
-
-    // Assumed that this move is legal
-    applyMove(board, move, &thread->undoStack[height]);
-    assert(moveWasLegal(board));
+        // Assumed that this move is legal
+        assert(moveIsLegal(board, move));
+        applyMove(board, move, &thread->undoStack[height]);
+    }
 }
 
 void applyMove(Board *board, uint16_t move, Undo *undo) {
@@ -335,6 +326,7 @@ void applyNullMove(Board *board, Undo *undo) {
     board->pinned = pinnedPieces(board, board->turn);
 }
 
+
 void revert(Thread *thread, Board *board, uint16_t move, int height) {
     if (move == NULL_MOVE) revertNullMove(board, &thread->undoStack[height]);
     else revertMove(board, move, &thread->undoStack[height]);
@@ -445,6 +437,7 @@ void revertNullMove(Board *board, Undo *undo) {
     board->numMoves--;
 }
 
+
 int legalMoveCount(Board * board) {
 
     // Count of the legal number of moves for a given position
@@ -539,13 +532,6 @@ int moveBestCaseValue(Board *board) {
     return value;
 }
 
-int moveWasLegal(Board *board) {
-
-    // Grab the last player's King's square and verify safety
-    int sq = getlsb(board->colours[!board->turn] & board->pieces[KING]);
-    assert(board->squares[sq] == makePiece(KING, !board->turn));
-    return !squareIsAttacked(board, !board->turn, sq);
-}
 
 int moveIsPseudoLegal(Board *board, uint16_t move) {
 
@@ -708,6 +694,13 @@ int moveIsLegal(Board *board, uint16_t move) {
     return !testBit(board->pinned, from)
         ||  testBit(bitsInLine(kingsq, from), to);
 }
+
+int moveIsFullyLegal(Board *board, uint16_t move) {
+
+    return moveIsPseudoLegal(board, move)
+        && moveIsLegal(board, move);
+}
+
 
 void moveToString(uint16_t move, char *str, int chess960) {
 

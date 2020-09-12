@@ -368,8 +368,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-            // Apply move, skip if move is illegal
-            if (!apply(thread, board, move, height)) continue;
+            // Captures are guaranteed to be returned legal
+            apply(thread, board, move, height);
 
             // For high depths, verify the move first with a depth one search
             if (depth >= 2 * ProbCutDepth)
@@ -391,6 +391,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove, height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
+
+        assert(movePicker.stage == STAGE_QUIET || moveIsFullyLegal(board, move));
 
         // MultiPV and searchmoves may limit our search options
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
@@ -454,19 +456,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
-        // Apply move, skip if move is illegal
-        if (!apply(thread, board, move, height))
-            continue;
-
-        played += 1;
-        if (isQuiet)
-            quietsTried[quietsPlayed++] = move;
-
-        // The UCI spec allows us to output information about the current move
-        // that we are going to search. We only do this from the main thread,
-        // and we wait a few seconds in order to avoid floiding the output
-        if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
-            uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
@@ -489,10 +478,23 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
         // which appear to beat beta at a reduced depth. singularity() sets the stage to STAGE_DONE
 
-        if (movePicker.stage == STAGE_DONE) {
-            revert(thread, board, move, height);
+        if (movePicker.stage == STAGE_DONE)
             return MAX(ttValue - depth, -MATE);
-        }
+
+
+        // Only moves from STAGE_QUIET have deffered legality checks
+        if (movePicker.stage == STAGE_QUIET && !moveIsLegal(board, move))
+            continue;
+
+        apply(thread, board, move, height);
+        if (isQuiet) quietsTried[quietsPlayed++] = move;
+        played += 1;
+
+        // The UCI spec allows us to output information about the current move
+        // that we are going to search. We only do this from the main thread,
+        // and we wait a few seconds in order to avoid floiding the output
+        if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
+            uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
         // Step 15 (~249 elo). Late Move Reductions. Compute the reduction,
         // allow the later steps to perform the reduced searches
@@ -659,8 +661,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-        // Search the next ply if the move is legal
-        if (!apply(thread, board, move, height)) continue;
+        apply(thread, board, move, height);
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
 
@@ -791,17 +792,19 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     PVariation lpv; lpv.length = 0;
     Board *const board = &thread->board;
 
-    // Table move was already applied
-    revert(thread, board, mp->tableMove, mp->height);
-
     // Iterate over each move, except for the table move
     initSingularMovePicker(&movePicker, thread, mp->tableMove, mp->height);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         assert(move != mp->tableMove); // Skip the table move
+        assert(movePicker.stage == STAGE_QUIET || moveIsFullyLegal(board, move));
+
+        // Only moves from STAGE_QUIET have deffered legality checks
+        if (movePicker.stage == STAGE_QUIET && !moveIsLegal(board, move))
+            continue;
 
         // Perform a reduced depth search on a null rbeta window
-        if (!apply(thread, board, move, mp->height)) continue;
+        apply(thread, board, move, mp->height);
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, mp->height+1);
         revert(thread, board, move, mp->height);
 
@@ -822,9 +825,6 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
             updateKillerMoves(thread, mp->height, move);
         mp->stage = STAGE_DONE;
     }
-
-    // Reapply the table move we took off
-    applyLegal(thread, board, mp->tableMove, mp->height);
 
     // Move is singular if all other moves failed low
     return value <= rBeta;

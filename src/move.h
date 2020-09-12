@@ -40,8 +40,7 @@ enum {
 int castleKingTo(int king, int rook);
 int castleRookTo(int king, int rook);
 
-int apply(Thread *thread, Board *board, uint16_t move, int height);
-void applyLegal(Thread *thread, Board *board, uint16_t move, int height);
+void apply(Thread *thread, Board *board, uint16_t move, int height);
 void applyMove(Board *board, uint16_t move, Undo *undo);
 void applyNormalMove(Board *board, uint16_t move, Undo *undo);
 void applyCastleMove(Board *board, uint16_t move, Undo *undo);
@@ -59,9 +58,11 @@ int moveIsInRootMoves(Thread *thread, uint16_t move);
 int moveIsTactical(Board *board, uint16_t move);
 int moveEstimatedValue(Board *board, uint16_t move);
 int moveBestCaseValue(Board *board);
+
 int moveIsLegal(Board *board, uint16_t move);
 int moveIsPseudoLegal(Board *board, uint16_t move);
-int moveWasLegal(Board *board);
+int moveIsFullyLegal(Board *board, uint16_t move);
+
 void moveToString(uint16_t move, char *str, int chess960);
 
 #define MoveFrom(move)         (((move) >> 0) & 63)
