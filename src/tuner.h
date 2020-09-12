@@ -29,11 +29,11 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    0.10) // Global Learning rate
-#define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
+#define LRRATE       (   10.00) // Global Learning rate
+#define LRDROPRATE   (    2.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (872)
+#define NTERMS       (      15) // Total terms in the Tuner (887)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -101,6 +101,7 @@
 #define TuneThreatQueenAttackedByOne    (0)
 #define TuneThreatOverloadedPieces      (0)
 #define TuneThreatByPawnPush            (0)
+#define TunePinnedPieceByPiece          (1)
 #define TuneSpaceRestrictPiece          (0)
 #define TuneSpaceRestrictEmpty          (0)
 #define TuneSpaceCenterControl          (0)
@@ -115,8 +116,8 @@ enum { NORMAL, COMPLEXITY, SAFETY, METHOD_NB };
 
 typedef struct TTuple {
     uint16_t index;
-    int16_t wcoeff;
-    int16_t bcoeff;
+    int8_t wcoeff;
+    int8_t bcoeff;
 } TTuple;
 
 typedef struct TEntry {
@@ -348,7 +349,10 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, ThreatOverloadedPieces, NORMAL, "    ");                    \
     ENABLE_0(F, ThreatByPawnPush, NORMAL, "          ");                    \
                                                                             \
-    COMMENTS(F, "\n/* Space Evaluation Terms */\n\n");                      \
+    COMMENTS(F, "\n/* Pinned Evaluation Terms */\n\n");                     \
+    ENABLE_2(F, PinnedPieceByPiece, 5, 3, NORMAL, "[5][3]");                \
+                                                                            \
+    COMMENTS(F, "/* Space Evaluation Terms */\n\n");                        \
     ENABLE_0(F, SpaceRestrictPiece, NORMAL, "");                            \
     ENABLE_0(F, SpaceRestrictEmpty, NORMAL, "");                            \
     ENABLE_0(F, SpaceCenterControl, NORMAL, "");                            \

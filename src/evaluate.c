@@ -389,6 +389,16 @@ const int ThreatQueenAttackedByOne   = S( -47, -12);
 const int ThreatOverloadedPieces     = S(  -6, -15);
 const int ThreatByPawnPush           = S(  14,  29);
 
+/* Pinned Piece Evaluation Terms */
+
+const int PinnedPieceByPiece[5][3] = {
+   {S(  -4, -11), S(  -9,   7), S(  -2,   3)},
+   {S( -13, -22), S( -13,  -5), S( -11,   7)},
+   {S(  -5,  -5), S( -14,  -6), S(  -4,  -3)},
+   {S( -14, -17), S( -11,   9), S(  -2, -22)},
+   {S(  -3, -32), S(   2, -36), S(  -6,   3)},
+};
+
 /* Space Evaluation Terms */
 
 const int SpaceRestrictPiece = S(  -4,  -1);
@@ -468,14 +478,15 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
 
     int eval;
 
-    eval  =   evaluatePawns(ei, board, WHITE)   - evaluatePawns(ei, board, BLACK);
+    eval  =   evaluatePawns(ei, board, WHITE) -   evaluatePawns(ei, board, BLACK);
     eval += evaluateKnights(ei, board, WHITE) - evaluateKnights(ei, board, BLACK);
     eval += evaluateBishops(ei, board, WHITE) - evaluateBishops(ei, board, BLACK);
-    eval +=   evaluateRooks(ei, board, WHITE)   - evaluateRooks(ei, board, BLACK);
-    eval +=  evaluateQueens(ei, board, WHITE)  - evaluateQueens(ei, board, BLACK);
-    eval +=   evaluateKings(ei, board, WHITE)   - evaluateKings(ei, board, BLACK);
-    eval +=  evaluatePassed(ei, board, WHITE)  - evaluatePassed(ei, board, BLACK);
+    eval +=   evaluateRooks(ei, board, WHITE) -   evaluateRooks(ei, board, BLACK);
+    eval +=  evaluateQueens(ei, board, WHITE) -  evaluateQueens(ei, board, BLACK);
+    eval +=   evaluateKings(ei, board, WHITE) -   evaluateKings(ei, board, BLACK);
+    eval +=  evaluatePassed(ei, board, WHITE) -  evaluatePassed(ei, board, BLACK);
     eval += evaluateThreats(ei, board, WHITE) - evaluateThreats(ei, board, BLACK);
+    eval +=  evaluatePinned(ei, board, WHITE) -  evaluatePinned(ei, board, BLACK);
     eval +=   evaluateSpace(ei, board, WHITE) -   evaluateSpace(ei, board, BLACK);
 
     return eval;
@@ -1091,6 +1102,42 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     count = popcount(pushThreat);
     eval += count * ThreatByPawnPush;
     if (TRACE) T.ThreatByPawnPush[colour] += count;
+
+    return eval;
+}
+
+int evaluatePinned(EvalInfo *ei, Board *board, int colour) {
+
+    const int US = colour, THEM = !colour;
+
+    uint64_t pinline;
+    uint64_t friendly = board->colours[  US];
+    uint64_t enemy    = board->colours[THEM];
+
+    uint64_t bishops  = enemy & board->pieces[BISHOP];
+    uint64_t rooks    = enemy & board->pieces[ROOK  ];
+    uint64_t queens   = enemy & board->pieces[QUEEN ];
+
+    int sq, pinned, pinner, eval = 0, kingsq = ei->kingSquare[US];
+
+    uint64_t pinners = (bishopAttacks(kingsq, enemy) & (bishops | queens))
+                     | (  rookAttacks(kingsq, enemy) & ( rooks  | queens));
+
+    while (pinners) {
+
+        sq = poplsb(&pinners);
+        pinline = bitsBetweenMasks(kingsq, sq);
+        if (!onlyOne(pinline & friendly)) continue;
+
+        pinner = pieceType(board->squares[sq]);
+        pinned = pieceType(board->squares[getlsb(pinline & friendly)]);
+
+        assert(BISHOP <= pinner && pinner <= QUEEN);
+        assert(  PAWN <= pinned && pinned <= QUEEN);
+
+        eval += PinnedPieceByPiece[pinned][pinner - BISHOP];
+        if (TRACE) T.PinnedPieceByPiece[pinned][pinner - BISHOP][US]++;
+    }
 
     return eval;
 }
