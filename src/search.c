@@ -578,7 +578,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     if (best >= beta && !moveIsTactical(board, bestMove))
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, depth);
 
-    if (best >= beta)
+    if (best >= beta && moveIsTactical(board, bestMove))
         updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth);
 
     // Step 20. Store results of search into the Transposition Table. We do
