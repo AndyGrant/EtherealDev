@@ -76,8 +76,7 @@ extern const int QueenRelativePin;
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
 extern const int KingPawnFileProximity[8];
-extern const int KingShelter[2][8][8];
-extern const int KingStorm[2][4][8];
+extern const int KingShelterStorm[8][8][8];
 extern const int SafetyKnightWeight;
 extern const int SafetyBishopWeight;
 extern const int SafetyRookWeight;
@@ -140,7 +139,7 @@ void runTuner() {
     initCurrentParameters(cparams);
     initMethodManager(methods);
     initTunerEntries(entries, thread, methods);
-    K = computeOptimalK(entries);
+    K = 3.145081; // computeOptimalK(entries);
 
     for (int epoch = 0; epoch < MAXEPOCHS; epoch++) {
 
