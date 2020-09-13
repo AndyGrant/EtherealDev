@@ -111,8 +111,11 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);
 
-        if (MoveType(moves[i]) == ENPASS_MOVE   ) captured = PAWN;
-        if (MoveType(moves[i]) == PROMOTION_MOVE) captured = PAWN;
+        if (MoveType(moves[i]) == ENPASS_MOVE)
+            captured = PAWN;
+
+        if (MoveType(moves[i]) == PROMOTION_MOVE)
+            captured = MovePromoPiece(moves[i]); // faux
 
         int entry = thread->chistory[piece][to][captured];
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
@@ -130,8 +133,11 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);
 
-        if (MoveType(moves[i]) == ENPASS_MOVE   ) captured = PAWN;
-        if (MoveType(moves[i]) == PROMOTION_MOVE) captured = PAWN;
+        if (MoveType(moves[i]) == ENPASS_MOVE)
+            captured = PAWN;
+
+        if (MoveType(moves[i]) == PROMOTION_MOVE)
+            captured = MovePromoPiece(moves[i]); // faux
 
         scores[i] = 64000 + thread->chistory[piece][to][captured];
 
