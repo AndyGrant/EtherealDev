@@ -174,7 +174,6 @@ const int PawnIsolated[FILE_NB] = {
     S(  -7, -14), S(  -5, -14), S(  -5, -13), S(  -5, -10),
 };
 
-
 const int PawnStacked[2][FILE_NB] = {
    {S(  -5, -30), S(  -3, -23), S(   2, -23), S(   1, -20),
     S(   0, -19), S(  -2, -23), S(  -2, -26), S(   3, -32)},
@@ -202,9 +201,19 @@ const int PawnConnected32[32] = {
 
 /* Knight Evaluation Terms */
 
-const int KnightOutpost[2][2] = {
-   {S(  14, -30), S(  39,  -2)},
-   {S(   6, -21), S(  23,  -5)},
+const int KnightOutpost[2][3][FILE_NB] = {
+  {{S(   3, -22), S(  20, -28), S(  10, -29), S(  14, -28),
+    S(  17, -30), S(  17, -31), S(  17, -32), S(   8, -24)},
+   {S(   7, -22), S(   9, -25), S(   9, -27), S(  18, -32),
+    S(  21, -33), S(  14, -31), S(  17, -32), S(   9, -23)},
+   {S(   3, -22), S(  16, -29), S(  14, -29), S(  16, -30),
+    S(  16, -31), S(  18, -31), S(  16, -31), S(   4, -21)}},
+  {{S(  20,  -3), S(  33,  -2), S(  36,  -1), S(  38,   0),
+    S(  40,  -2), S(  35,  -4), S(  39,  -3), S(  20,  -6)},
+   {S(  28, -11), S(  37,  -4), S(  37,  -2), S(  38,   2),
+    S(  43,  -1), S(  41,  -2), S(  42,  -2), S(  33,  -7)},
+   {S(  37,  -6), S(  38,  -3), S(  45,  -3), S(  40,   1),
+    S(  43,   5), S(  40,   0), S(  39,   5), S(  36, -19)}},
 };
 
 const int KnightBehindPawn = S(   3,  24);
@@ -225,9 +234,19 @@ const int BishopPair = S(  19,  75);
 
 const int BishopRammedPawns = S(  -7, -15);
 
-const int BishopOutpost[2][2] = {
-   {S(  17, -16), S(  47,  -3)},
-   {S(   7,  -8), S(   0,  -4)},
+const int BishopOutpost[2][3][FILE_NB] = {
+  {{S(   7,  -9), S(  16, -16), S(  15, -14), S(  15, -14),
+    S(  19, -17), S(  22, -18), S(  16, -17), S(   7,  -7)},
+   {S(   5,  -7), S(  15, -14), S(  16, -13), S(  21, -18),
+    S(  22, -18), S(  20, -18), S(  19, -18), S(   7,  -9)},
+   {S(   6,  -8), S(  17, -16), S(  18, -15), S(  17, -15),
+    S(  19, -17), S(  20, -18), S(  18, -17), S(   6,  -7)}},
+  {{S(  -5,   2), S(  45,  -2), S(  49,  -6), S(  44,  -1),
+    S(  48,   2), S(  47,  -4), S(  40,  -3), S(   4, -18)},
+   {S(   5,  -8), S(  43,  -1), S(  49,  -8), S(  51,  -3),
+    S(  52,  -7), S(  45,  -2), S(  44,   0), S(   1,   7)},
+   {S(  -7,   4), S(  47,   0), S(  52,  -5), S(  51,  -5),
+    S(  48,  -2), S(  60,  -6), S(  46,   2), S( -12,   1)}},
 };
 
 const int BishopBehindPawn = S(   4,  20);
@@ -578,7 +597,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, outside, kingDistance, defended, count, eval = 0;
+    int sq, rank, kingDistance, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -604,10 +623,10 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the knight
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            outside  = testBit(FILE_A | FILE_H, sq);
+            rank     = relativeRankOf(US, sq) - 3;
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += KnightOutpost[outside][defended];
-            if (TRACE) T.KnightOutpost[outside][defended][US]++;
+            eval += KnightOutpost[defended][rank][fileOf(sq)];
+            if (TRACE) T.KnightOutpost[defended][rank][fileOf(sq)][US]++;
         }
 
         // Apply a bonus if the knight is behind a pawn
@@ -644,7 +663,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
 
-    int sq, outside, defended, count, eval = 0;
+    int sq, rank, defended, count, eval = 0;
     uint64_t attacks;
 
     uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
@@ -682,10 +701,10 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         // by an enemy pawn. Increase the bonus if one of our pawns supports the bishop.
         if (     testBit(outpostRanksMasks(US), sq)
             && !(outpostSquareMasks(US, sq) & enemyPawns)) {
-            outside  = testBit(FILE_A | FILE_H, sq);
+            rank     = relativeRankOf(US, sq) - 3;
             defended = testBit(ei->pawnAttacks[US], sq);
-            eval += BishopOutpost[outside][defended];
-            if (TRACE) T.BishopOutpost[outside][defended][US]++;
+            eval += BishopOutpost[defended][rank][fileOf(sq)];
+            if (TRACE) T.BishopOutpost[defended][rank][fileOf(sq)][US]++;
         }
 
         // Apply a bonus if the bishop is behind a pawn
