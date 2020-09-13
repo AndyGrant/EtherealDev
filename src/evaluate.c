@@ -174,7 +174,6 @@ const int PawnIsolated[FILE_NB] = {
     S(  -7, -14), S(  -5, -14), S(  -5, -13), S(  -5, -10),
 };
 
-
 const int PawnStacked[2][FILE_NB] = {
    {S(  -5, -30), S(  -3, -23), S(   2, -23), S(   1, -20),
     S(   0, -19), S(  -2, -23), S(  -2, -26), S(   3, -32)},
@@ -364,14 +363,42 @@ const int PassedPawn[2][2][RANK_NB] = {
     S(  10,  78), S( 110, 136), S( 164, 276), S(   0,   0)}},
 };
 
-const int PassedFriendlyDistance[FILE_NB] = {
-    S(   0,   0), S(  -2,   2), S(   3,  -4), S(   8, -13),
-    S(   5, -18), S(  -9, -17), S( -17,  -7), S(   0,   0),
+const int PassedFriendlyDistance[FILE_NB][8] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(  10,  -8), S(  11,  -3), S(   5,   1),
+    S(  -4,   4), S(   1,   4), S(   3,   2), S(  -3,  -3)},
+   {S(   0,   0), S(  12,  -1), S(   9,  -5), S(   6,  -5),
+    S(   7,  -9), S(  15, -17), S(  24, -21), S(  23, -30)},
+   {S(   0,   0), S(   9,  30), S(  14,  15), S(  19,   1),
+    S(  24,  -9), S(  33, -21), S(  48, -36), S(  45, -46)},
+   {S(   0,   0), S(  14,  61), S(   0,  44), S(   2,  25),
+    S(   7,   5), S(  15, -10), S(  27, -25), S(  30, -44)},
+   {S(   0,   0), S(  63,  81), S(  28,  62), S(  -9,  49),
+    S( -24,  33), S( -32,  17), S( -24,   0), S( -24, -22)},
+   {S(   0,   0), S( 101,  76), S(  66,  66), S(  36,  54),
+    S(   6,  47), S( -16,  43), S( -33,  40), S( -43,  35)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
-const int PassedEnemyDistance[FILE_NB] = {
-    S(   0,   0), S(   4,  -2), S(   5,  -2), S(   7,   8),
-    S(   1,  22), S(   4,  33), S(  22,  34), S(   0,   0),
+const int PassedEnemyDistance[FILE_NB][8] = {
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
+   {S(   0,   0), S(   7,  20), S(   1,   6), S(  -4,   3),
+    S(  -1,   1), S(  10,  -4), S(  13,  -8), S(  12, -10)},
+   {S(   0,   0), S(  17,  -2), S(   3,  -7), S(   7,  -8),
+    S(  14, -11), S(  21, -15), S(  24, -14), S(  23, -16)},
+   {S(   0,   0), S(  19, -28), S(  13, -23), S(  19, -15),
+    S(  33, -10), S(  33,   4), S(  39,  12), S(  51,  12)},
+   {S(   0,   0), S(   6, -51), S(  16, -35), S(  16, -13),
+    S(  18,  14), S(  14,  35), S(   9,  53), S(   9,  67)},
+   {S(   0,   0), S( -21, -64), S(  -7, -34), S(  -8,   6),
+    S(  -1,  39), S(  -1,  68), S(  -9,  98), S(  11, 107)},
+   {S(   0,   0), S( -53, -49), S( -31,  -7), S(  -3,  27),
+    S(  21,  62), S(  41,  88), S(  56, 120), S(  79, 128)},
+   {S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0),
+    S(   0,   0), S(   0,   0), S(   0,   0), S(   0,   0)},
 };
 
 const int PassedSafePromotionPath = S( -36,  50);
@@ -984,13 +1011,13 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
         // Evaluate based on distance from our king
         dist = distanceBetween(sq, ei->kingSquare[US]);
-        eval += dist * PassedFriendlyDistance[rank];
-        if (TRACE) T.PassedFriendlyDistance[rank][US] += dist;
+        eval += PassedFriendlyDistance[rank][dist];
+        if (TRACE) T.PassedFriendlyDistance[rank][dist][US]++;
 
         // Evaluate based on distance from their king
         dist = distanceBetween(sq, ei->kingSquare[THEM]);
-        eval += dist * PassedEnemyDistance[rank];
-        if (TRACE) T.PassedEnemyDistance[rank][US] += dist;
+        eval += PassedEnemyDistance[rank][dist];
+        if (TRACE) T.PassedEnemyDistance[rank][dist][US]++;
 
         // Apply a bonus when the path to promoting is uncontested
         bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];

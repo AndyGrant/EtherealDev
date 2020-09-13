@@ -29,11 +29,11 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (    0.10) // Global Learning rate
+#define LRRATE       (   10.00) // Global Learning rate
 #define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
-#define NTERMS       (       0) // Total terms in the Tuner (872)
+#define NTERMS       (     128) // Total terms in the Tuner (872+128-16)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
 #define BATCHSIZE    (   16384) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
@@ -88,8 +88,8 @@
 #define TuneSafetySafeKnightCheck       (0)
 #define TuneSafetyAdjustment            (0)
 #define TunePassedPawn                  (0)
-#define TunePassedFriendlyDistance      (0)
-#define TunePassedEnemyDistance         (0)
+#define TunePassedFriendlyDistance      (1)
+#define TunePassedEnemyDistance         (1)
 #define TunePassedSafePromotionPath     (0)
 #define TuneThreatWeakPawn              (0)
 #define TuneThreatMinorAttackedByPawn   (0)
@@ -332,8 +332,8 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
                                                                             \
     COMMENTS(F, "\n/* Passed Pawn Evaluation Terms */\n\n");                \
     ENABLE_3(F, PassedPawn, 2, 2, 8, NORMAL, "[2][2][RANK_NB]");            \
-    ENABLE_1(F, PassedFriendlyDistance, 8, NORMAL, "[FILE_NB]");            \
-    ENABLE_1(F, PassedEnemyDistance, 8, NORMAL, "[FILE_NB]");               \
+    ENABLE_2(F, PassedFriendlyDistance, 8, 8, NORMAL, "[FILE_NB][8]");      \
+    ENABLE_2(F, PassedEnemyDistance, 8, 8, NORMAL, "[FILE_NB][8]");         \
     ENABLE_0(F, PassedSafePromotionPath, NORMAL, "");                       \
                                                                             \
     COMMENTS(F, "\n/* Threat Evaluation Terms */\n\n");                     \
