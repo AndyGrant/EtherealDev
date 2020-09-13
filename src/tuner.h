@@ -29,16 +29,16 @@
 #define PRETTYIFY    (       1) // Whether to format as if we tune everything
 #define REPORTING    (      50) // How often to print the new parameters
 
-#define LRRATE       (   10.00) // Global Learning rate
-#define LRDROPRATE   (    2.00) // Cut LR by this each LR-step
+#define LRRATE       (    1.00) // Global Learning rate
+#define LRDROPRATE   (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE   (     250) // Cut LR after this many epochs
 
 #define NTERMS       (     512) // Total terms in the Tuner (872+64+256)
 #define MAXEPOCHS    (   10000) // Max number of epochs allowed
-#define BATCHSIZE    (   16384) // FENs per mini-batch
+#define BATCHSIZE    (   65536) // FENs per mini-batch
 #define NPOSITIONS   (32488736) // Total FENS in the book
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
+#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 128))
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
@@ -114,8 +114,8 @@ enum { NORMAL, COMPLEXITY, SAFETY, METHOD_NB };
 
 typedef struct TTuple {
     uint16_t index;
-    int16_t wcoeff;
-    int16_t bcoeff;
+    int8_t wcoeff;
+    int8_t bcoeff;
 } TTuple;
 
 typedef struct TEntry {
