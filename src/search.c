@@ -579,7 +579,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, height, depth);
 
     if (best >= beta)
-        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth);
+        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, MAX(1, depth));
 
     // Step 20. Store results of search into the Transposition Table. We do
     // not overwrite the Root entry from the first line of play we examined
@@ -596,9 +596,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
     Board *const board = &thread->board;
 
-    int eval, value, best;
+    int eval, value, best, capturesPlayed = 0;
     int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
-    uint16_t move, ttMove = NONE_MOVE;
+    uint16_t move, ttMove = NONE_MOVE, capturesTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
 
@@ -670,6 +670,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
         revert(thread, board, move, height);
 
+        assert(moveIsTactical(board, move));
+        capturesTried[capturesPlayed++] = move;
+
         // Improved current value
         if (value > best) {
             best = value;
@@ -686,8 +689,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
         }
 
         // Search has failed high
-        if (alpha >= beta)
+        if (alpha >= beta) {
+            updateCaptureHistories(thread, move, capturesTried, capturesPlayed, 1);
             return best;
+        }
     }
 
     return best;
