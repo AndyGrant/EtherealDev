@@ -100,7 +100,8 @@ void updateKillerMoves(Thread *thread, int height, uint16_t move) {
 
 void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
 
-    const int bonus = MIN(depth * depth, HistoryMax);
+    const int bonus  = MIN(depth * depth, HistoryMax);
+    const int colour = thread->board.turn;
 
     for (int i = 0; i < length; i++) {
 
@@ -117,15 +118,17 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         assert(PAWN <= piece && piece <= KING);
         assert(PAWN <= captured && captured <= QUEEN);
 
-        int entry = thread->chistory[piece][to][captured];
+        int entry = thread->chistory[colour][piece][to][captured];
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
-        thread->chistory[piece][to][captured] = entry;
+        thread->chistory[colour][piece][to][captured] = entry;
     }
 }
 
 void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
     static const int MVVAugment[] = {0, 2400, 2400, 4800, 9600};
+
+    const int colour = thread->board.turn;
 
     for (int i = start; i < start + length; i++) {
 
@@ -141,7 +144,7 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
         assert(PAWN <= piece && piece <= KING);
         assert(PAWN <= captured && captured <= QUEEN);
 
-        scores[i] = 64000 + thread->chistory[piece][to][captured];
+        scores[i] = 64000 + thread->chistory[colour][piece][to][captured];
         if (MovePromoPiece(moves[i]) == QUEEN) scores[i] += 64000;
         scores[i] += MVVAugment[captured];
 
