@@ -102,7 +102,7 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
 
     const int bonus = MIN(depth * depth, HistoryMax);
 
-    if (!depth || length == 1 && depth <= 3)
+    if (!depth || (length == 1 && depth <= 3))
         return;
 
     for (int i = 0; i < length; i++) {
