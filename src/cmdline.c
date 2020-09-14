@@ -122,6 +122,21 @@ void runBenchmark(int argc, char **argv) {
     for (int i = 0; strcmp(Benchmarks[i], ""); i++) totalNodes += nodes[i];
     printf("OVERALL: %53d nodes %8d nps\n", (int)totalNodes, (int)(1000.0f * totalNodes / (time + 1)));
 
+    // for (int p1 = PAWN; p1 <= KING; p1++) {
+    //     for (int p2 = PAWN; p2 <= KING; p2++) {
+    //
+    //         int summed = 0;
+    //
+    //         for (int i = 0; i < nthreads; i++)
+    //             for (int sq = 0; sq < SQUARE_NB; sq++)
+    //                 summed += threads[i].chistory[p1][sq][p2];
+    //
+    //         summed /= (nthreads * SQUARE_NB);
+    //
+    //         printf("%d %d %d\n", p1, p2, summed);
+    //     }
+    // }
+
     free(threads);
 }
 
