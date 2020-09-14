@@ -111,8 +111,8 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);
 
-        if (MoveType(moves[i]) == ENPASS_MOVE   ) captured = PAWN;
-        if (MoveType(moves[i]) == PROMOTION_MOVE) captured = PAWN;
+        captured = MoveType(moves[i]) == PROMOTION_MOVE ? MIN(KING, captured)
+                 : MoveType(moves[i]) == ENPASS_MOVE ? PAWN : captured;
 
         int entry = thread->chistory[piece][to][captured];
         entry += HistoryMultiplier * delta - entry * abs(delta) / HistoryDivisor;
@@ -122,7 +122,7 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
 
 void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    static const int MVVAugment[] = {0, 2400, 2400, 4800, 9600};
+    static const int MVVLVAAugment[PIECE_NB] = {0, 1200, 1200, 2400, 4800, 0};
 
     for (int i = start; i < start + length; i++) {
 
@@ -132,17 +132,17 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);
 
-        if (MoveType(moves[i]) == ENPASS_MOVE   ) captured = PAWN;
-        if (MoveType(moves[i]) == PROMOTION_MOVE) captured = PAWN;
+        captured = MoveType(moves[i]) == PROMOTION_MOVE ? MIN(KING, captured)
+                 : MoveType(moves[i]) == ENPASS_MOVE ? PAWN : captured;
 
         assert(PAWN <= piece && piece <= KING);
         assert(PAWN <= captured && captured <= KING);
 
         scores[i] = 64000 + thread->chistory[piece][to][captured];
-        if (MovePromoPiece(moves[i]) == QUEEN) scores[i] += 64000;
-        scores[i] += MVVAugment[captured];
+        scores[i] += MVVLVAAugment[captured] - MVVLVAAugment[piece];
 
-        assert(scores[i] >= 0);
+        if (MovePromoPiece(moves[i]) == QUEEN) scores[i] += 64000;
+        else if (MoveType(moves[i]) == PROMOTION_MOVE) scores[i] = -1;
     }
 }
 
