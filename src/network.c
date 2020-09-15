@@ -1,19 +1,23 @@
+#include <sstream>
+#include <cstring>
+
 #include "network.h"
 
 #include "types.h"
 #include "board.h"
 #include "bitboards.h"
 
+static const char *WeightsTXT[] = {
+    #include "network_weights.weights"
+    ""
+};
+
 Network InitNetwork(std::string file)
 {
-    std::ifstream stream(file);
+    std::stringstream stream;
 
-    if (!stream.is_open())
-    {
-        std::cout << "info string Could not load network file: " << file << std::endl;
-        std::cout << "info string random weights initialization!" << std::endl;
-        return CreateRandom({ INPUT_NEURONS, 256, 1 });
-    }
+    for (int i = 0; strcmp(WeightsTXT[i], ""); i++)
+        stream << WeightsTXT[i] << "\n";
 
     std::string line;
 
@@ -73,7 +77,6 @@ Network InitNetwork(std::string file)
         }
     }
 
-    stream.close();
     return Network(weights, LayerNeurons);
 }
 
@@ -247,6 +250,8 @@ int Network::evaluate(Board *board) {
     }
 
     double X = FeedForward(inputs);
+
+    return 0;
 
     X = X - 8;
     if (X == 0.0) return X;
