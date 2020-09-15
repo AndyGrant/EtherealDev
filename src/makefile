@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CC      = gcc
+CC      = g++
 SRC     = *.c pyrrhic/tbprobe.c
 LIBS    = -lpthread -lm
 EXE     = Ethereal
 
-WFLAGS = -std=gnu11 -Wall -Wextra -Wshadow
+WFLAGS = -std=c++11 -Wall -Wextra -Wshadow
 CFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native
 RFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -static
 TFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE

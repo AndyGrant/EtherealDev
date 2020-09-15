@@ -62,7 +62,7 @@ void runBenchmark(int argc, char **argv) {
 
     Board board;
     Thread *threads;
-    Limits limits = {0};
+    Limits limits = {};
 
     int scores[256];
     double times[256];
@@ -129,7 +129,7 @@ void runEvalBook(int argc, char **argv) {
 
     Board board;
     char line[256];
-    Limits limits = {0};
+    Limits limits = {};
     uint16_t best, ponder;
     double start = getRealTime();
 

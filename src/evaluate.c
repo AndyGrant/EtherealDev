@@ -26,9 +26,12 @@
 #include "evalcache.h"
 #include "evaluate.h"
 #include "masks.h"
+#include "network.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
+
+extern Network *NN;
 
 EvalTrace T, EmptyTrace;
 int PSQT[32][SQUARE_NB];
@@ -477,6 +480,8 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
     eval +=  evaluatePassed(ei, board, WHITE)  - evaluatePassed(ei, board, BLACK);
     eval += evaluateThreats(ei, board, WHITE) - evaluateThreats(ei, board, BLACK);
     eval +=   evaluateSpace(ei, board, WHITE) -   evaluateSpace(ei, board, BLACK);
+
+    if (ei->pkentry == NULL) ei->pkeval[WHITE] += NN->evaluate(board);
 
     return eval;
 }

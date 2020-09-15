@@ -33,7 +33,7 @@ int ContemptComplexity  = 0;
 
 Thread* createThreadPool(int nthreads) {
 
-    Thread *threads = calloc(nthreads, sizeof(Thread));
+    Thread *threads = (Thread*) calloc(nthreads, sizeof(Thread));
 
     for (int i = 0; i < nthreads; i++) {
 

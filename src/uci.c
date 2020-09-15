@@ -16,6 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
+
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdint.h>
@@ -39,6 +41,10 @@
 #include "types.h"
 #include "uci.h"
 #include "zobrist.h"
+
+#include "network.h"
+
+Network *NN;
 
 extern int ContemptDrawPenalty;   // Defined by Thread.c
 extern int ContemptComplexity;    // Defined by Thread.c
@@ -67,6 +73,31 @@ int main(int argc, char **argv) {
     initSearch(); initZobrist(); initTT(16);
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
+
+    Network _NN = InitNetwork("E:\\Working\\EtherealDev\\src\\PK10M.nn");
+    NN = &_NN;
+
+
+    // char line[256];
+    // FILE *fin = fopen("FENS", "r");
+    //
+    // while (1) {
+    //
+    //     if (fgets(line, 256, fin) == NULL)
+    //         return 0;
+    //
+    //     boardFromFEN(&threads->board, line, 0);
+    //
+    //     int s = evaluateBoard(threads, &threads->board);
+    //     if (threads->board.turn == BLACK) s = -s;
+    //
+    //     printf("%d %d", s, NN->evaluate(&threads->board));
+    //
+    //     if      (strstr(line, "[1.0]")) printf(" 1.0\n");
+    //     else if (strstr(line, "[0.0]")) printf(" 0.0\n");
+    //     else if (strstr(line, "[0.5]")) printf(" 0.5\n");
+    //     else { printf(" ERROR "); return 0; }
+    // }
 
     // Handle any command line requests
     handleCommandLine(argc, argv);
@@ -152,7 +183,7 @@ int main(int argc, char **argv) {
             break;
 
         else if (strStartsWith(str, "perft"))
-            printf("%"PRIu64"\n", perft(&board, atoi(str + strlen("perft ")))), fflush(stdout);
+            std::cout << perft(&board, atoi(str + strlen("perft "))) << "\n", fflush(stdout);
 
         else if (strStartsWith(str, "print"))
             printBoard(&board), fflush(stdout);
@@ -166,7 +197,7 @@ void *uciGo(void *cargo) {
     // Get our starting time as soon as possible
     double start = getRealTime();
 
-    Limits limits = {0};
+    Limits limits = {};
     uint16_t bestMove, ponderMove;
     char moveStr[6];
 
@@ -396,15 +427,22 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
                 : bounded <= -MATE_IN_MAX ? -(bounded + MATE)     / 2 : bounded;
 
     // Two possible score types, mate and cp = centipawns
-    char *type  = abs(bounded) >= MATE_IN_MAX ? "mate" : "cp";
+    const char *type  = abs(bounded) >= MATE_IN_MAX ? "mate " : "cp ";
 
     // Partial results from a windowed search have bounds
-    char *bound = bounded >=  beta ? " lowerbound "
-                : bounded <= alpha ? " upperbound " : " ";
+    const char *bound = bounded >=  beta ? " lowerbound"
+                      : bounded <= alpha ? " upperbound" : "";
 
-    printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
-           "nodes %"PRIu64" nps %d tbhits %"PRIu64" hashfull %d pv ",
-           depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
+
+    std::cout << "info depth "  << depth    << " seldepth "   << seldepth
+              << " multipv "    << multiPV  << " score "      << type << score << bound
+              << " time "       << elapsed  << " nodes "      << nodes
+              << " nps "        << nps      << " tbhits "     << tbhits
+              << " hashfull "   << hashfull;
+
+    // printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
+    //        "nodes %"PRIu64" nps %d tbhits %"PRIu64" hashfull %d pv ",
+    //        depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
 
     // Iterate over the PV and print each move
     for (int i = 0; i < threads->pv.length; i++) {
@@ -426,15 +464,15 @@ void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) 
 
 }
 
-int strEquals(char *str1, char *str2) {
+int strEquals(const char *str1, const char *str2) {
     return strcmp(str1, str2) == 0;
 }
 
-int strStartsWith(char *str, char *key) {
+int strStartsWith(const char *str, const char *key) {
     return strstr(str, key) == str;
 }
 
-int strContains(char *str, char *key) {
+int strContains(const char *str, const char *key) {
     return strstr(str, key) != NULL;
 }
 
