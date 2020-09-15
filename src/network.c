@@ -251,8 +251,6 @@ int Network::evaluate(Board *board) {
 
     double X = FeedForward(inputs);
 
-    return 0;
-
     X = X - 8;
     if (X == 0.0) return X;
     return (X / fabs(X)) * pow(fabs(X), 0.70);
