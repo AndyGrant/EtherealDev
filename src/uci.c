@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
 
     // char line[256];
-    // FILE *fin = fopen("FENS", "r");
+    // FILE *fin = fopen("NeuralFiltered.book", "r");
     //
     // while (1) {
     //
