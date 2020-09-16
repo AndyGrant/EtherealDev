@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
 
-    Network _NN = InitNetwork("E:\\Working\\EtherealDev\\src\\PK10M.nn");
+    Network _NN = InitNetwork();
     NN = &_NN;
 
 

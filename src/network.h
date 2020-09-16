@@ -67,5 +67,5 @@ private:
     Neuron outputNeuron;
 };
 
-Network InitNetwork(std::string file);
+Network InitNetwork();
 Network CreateRandom(std::vector<size_t> NeuronCount);

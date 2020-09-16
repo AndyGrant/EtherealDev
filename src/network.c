@@ -8,11 +8,11 @@
 #include "bitboards.h"
 
 static const char *WeightsTXT[] = {
-    #include "network_weights.weights"
+    #include "net_224x32x1_pk10m.net"
     ""
 };
 
-Network InitNetwork(std::string file)
+Network InitNetwork()
 {
     std::stringstream stream;
 
@@ -249,9 +249,12 @@ int Network::evaluate(Board *board) {
                 inputs.push_back(testBit(board->colours[colour] & board->pieces[KING], sq));
     }
 
-    double X = FeedForward(inputs);
+    double X = FeedForward(inputs) - 8;
 
-    X = X - 8;
-    if (X == 0.0) return X;
-    return (X / fabs(X)) * pow(fabs(X), 0.70);
+    return 0;
+    // return X ? (X / fabs(X)) * pow(fabs(X), 0.70) : 0.0;
+
+    // X = X - 8;
+    // if (X == 0.0) return X;
+    // return (X / fabs(X)) * pow(fabs(X), 0.70);
 }
