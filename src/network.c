@@ -242,11 +242,11 @@ int Network::evaluate(Board *board) {
     for (int colour = WHITE; colour <= BLACK; colour++) {
 
         for (int sq = 0; sq < SQUARE_NB; sq++)
-            inputs.push_back(testBit(board->colours[colour] & board->pieces[PAWN], sq));
+            if (!testBit(PROMOTION_RANKS, sq))
+                inputs.push_back(testBit(board->colours[colour] & board->pieces[PAWN], sq));
 
         for (int sq = 0; sq < SQUARE_NB; sq++)
-            if (!testBit(PROMOTION_RANKS, sq))
-                inputs.push_back(testBit(board->colours[colour] & board->pieces[KING], sq));
+            inputs.push_back(testBit(board->colours[colour] & board->pieces[KING], sq));
     }
 
     int X = FeedForward(inputs);
