@@ -249,7 +249,5 @@ int Network::evaluate(Board *board) {
                 inputs.push_back(testBit(board->colours[colour] & board->pieces[KING], sq));
     }
 
-    int X = FeedForward(inputs);
-    return 0;
-    return X;
+    return FeedForward(inputs);
 }
