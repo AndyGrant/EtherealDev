@@ -250,6 +250,5 @@ int Network::evaluate(Board *board) {
     }
 
     int X = FeedForward(inputs);
-    return 0;
     return X;
 }
