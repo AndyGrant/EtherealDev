@@ -77,28 +77,6 @@ int main(int argc, char **argv) {
     Network _NN = InitNetwork();
     NN = &_NN;
 
-
-    // char line[256];
-    // FILE *fin = fopen("NeuralFiltered.book", "r");
-    //
-    // while (1) {
-    //
-    //     if (fgets(line, 256, fin) == NULL)
-    //         return 0;
-    //
-    //     boardFromFEN(&threads->board, line, 0);
-    //
-    //     int s = evaluateBoard(threads, &threads->board);
-    //     if (threads->board.turn == BLACK) s = -s;
-    //
-    //     printf("%d %d", s, NN->evaluate(&threads->board));
-    //
-    //     if      (strstr(line, "[1.0]")) printf(" 1.0\n");
-    //     else if (strstr(line, "[0.0]")) printf(" 0.0\n");
-    //     else if (strstr(line, "[0.5]")) printf(" 0.5\n");
-    //     else { printf(" ERROR "); return 0; }
-    // }
-
     // Handle any command line requests
     handleCommandLine(argc, argv);
 

@@ -8,7 +8,7 @@
 #include "bitboards.h"
 
 static const char *WeightsTXT[] = {
-    #include "net_224x32x1_nstatic.net"
+    #include "net_32x_static.net"
     ""
 };
 
@@ -250,5 +250,6 @@ int Network::evaluate(Board *board) {
     }
 
     int X = FeedForward(inputs);
+    return 0;
     return X;
 }
