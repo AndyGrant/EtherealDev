@@ -149,6 +149,23 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
     }
 }
 
+int getCaptureHistory(Thread *thread, uint16_t move) {
+
+    const int to = MoveTo(move);
+    const int from = MoveFrom(move);
+
+    int piece = pieceType(thread->board.squares[from]);
+    int captured = pieceType(thread->board.squares[to]);
+
+    if (MoveType(move) == ENPASS_MOVE   ) captured = PAWN;
+    if (MoveType(move) == PROMOTION_MOVE) captured = PAWN;
+
+    assert(PAWN <= piece && piece <= KING);
+    assert(PAWN <= captured && captured <= QUEEN);
+
+    return thread->chistory[piece][to][captured];
+}
+
 
 void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhist, int *fmhist) {
 

@@ -29,8 +29,9 @@ static const int HistoryDivisor = 512;
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int height, int depth);
 void updateKillerMoves(Thread *thread, int height, uint16_t move);
 
-void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth);
+int getCaptureHistory(Thread *thread, uint16_t move);
 void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start, int length);
+void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth);
 
 void getHistory(Thread *thread, uint16_t move, int height, int *hist, int *cmhist, int *fmhist);
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length, int height);

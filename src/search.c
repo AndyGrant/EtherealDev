@@ -401,14 +401,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
         if ((isQuiet = !moveIsTactical(board, move))) {
             getHistory(thread, move, height, &hist, &cmhist, &fmhist);
             quietsSeen++;
-        }
+        } else hist = getCaptureHistory(thread, move);
+
+        // Base LMR value that we expect to use later
+        R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > -MATE_IN_MAX) {
-
-            // Base LMR value that we expect to use later
-            R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Step 11A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
@@ -445,6 +445,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
                 && depth - R <= FollowUpMovePruningDepth[improving])
                 continue;
         }
+
+        static const int CaptureHistoryPruningDepth = 2;
+        static const int CaptureHistoryPruningLimit = 0;
+
+        if (    best > -MATE_IN_MAX
+            &&  hist < CaptureHistoryPruningLimit
+            &&  movePicker.stage == STAGE_BAD_NOISY
+            &&  depth - R <= CaptureHistoryPruningDepth)
+            continue;
 
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
