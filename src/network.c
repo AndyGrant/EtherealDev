@@ -8,7 +8,7 @@
 #include "bitboards.h"
 
 static const char *WeightsTXT[] = {
-    #include net_32x_lr_drop.net"
+    #include "net_32x_lr_drop.net"
     ""
 };
 
