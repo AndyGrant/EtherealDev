@@ -31,7 +31,7 @@
 
 PKNetwork PKNN;
 
-static int PKNNClamp = 200;
+static int PKNNClamp = 64;
 
 static char *PKWeights[] = {
     #include "weights/pknet_224x32x1.net"
