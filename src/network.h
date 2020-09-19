@@ -23,9 +23,13 @@
 #include "board.h"
 #include "types.h"
 
-#define PKNETWORK_INPUTS  (224)
-#define PKNETWORK_LAYER1  ( 32)
-#define PKNETWORK_OUTPUTS (  1)
+#define PKNETWORK_INPUTS   (224)
+#define PKNETWORK_LAYER1   ( 32)
+#define PKNETWORK_OUTPUTS  (  1)
+
+#define MATNETWORK_INPUTS  ( 10)
+#define MATNETWORK_LAYER1  ( 16)
+#define MATNETWORK_OUTPUTS (  1)
 
 typedef struct PKNetwork {
 
@@ -43,6 +47,22 @@ typedef struct PKNetwork {
 
 } PKNetwork;
 
+typedef struct MatNetwork {
+
+    // MatNetwork are of the form [Input, Hidden Layer 1, Output Layer]
+    // Our current Network is [10x16, 16x1]. The Network is trained to
+    // output a Score in CentiPawns, and thus Output Neurons need do not
+    // need activation functions. The 16x1 operation applys a ReLU, where
+    // as the 10x16 layer does not, since inputs are popcounts()
+
+    ALIGN64 float inputWeights[MATNETWORK_LAYER1][MATNETWORK_INPUTS];
+    ALIGN64 float inputBiases[MATNETWORK_LAYER1];
+
+    ALIGN64 float layer1Weights[MATNETWORK_OUTPUTS][MATNETWORK_LAYER1];
+    ALIGN64 float layer1Biases[MATNETWORK_OUTPUTS];
+
+} MatNetwork;
+
 void initPKNetwork();
 int fullyComputePKNetwork(Thread *thread);
 int partiallyComputePKNetwork(Thread *thread);
@@ -50,3 +70,6 @@ int partiallyComputePKNetwork(Thread *thread);
 void initPKNetworkCollector(Thread *thread);
 void updatePKNetworkIndices(Thread *thread, int changes, int indexes[3], int signs[3]);
 void updatePKNetworkAfterMove(Thread *thread, uint16_t move);
+
+void initMatNetwork();
+int fullyComputeMatNetwork(Thread *thread);

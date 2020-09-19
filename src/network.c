@@ -30,6 +30,7 @@
 #include "types.h"
 
 PKNetwork PKNN;
+MatNetwork MATNN;
 
 static char *PKWeights[] = {
     #include "weights/pknet_224x32x1.net"
@@ -62,6 +63,27 @@ static int computePKNetworkIndex(int colour, int piece, int sq) {
          + (48 * (piece == KING))
          + sq - 8 * (piece == PAWN);
 }
+
+
+static char *MatWeights[] = {
+    #include "weights/matnet_10x16x1.net"
+    ""
+};
+
+static void vectorizeMatNetwork(const Board *board, int *inputs) {
+
+    int index = 0;
+
+    for (int colour = WHITE; colour <= BLACK; colour++)
+        for (int piece = PAWN; piece <= QUEEN; piece++)
+            inputs[index++] = popcount(board->colours[colour] & board->pieces[piece]);
+
+    assert(index == MATNETWORK_INPUTS);
+}
+
+// static int computeMatNetworkIndex(int colour, int piece) {
+//     return 5 * colour + piece;
+// }
 
 
 void initPKNetwork() {
@@ -210,3 +232,62 @@ void updatePKNetworkAfterMove(Thread *thread, uint16_t move) {
     if (changes)
         updatePKNetworkIndices(thread, changes, indexes, signs);
 }
+
+
+void initMatNetwork() {
+
+    for (int i = 0; i < MATNETWORK_LAYER1; i++) {
+
+        // Grab the next line and tokenize it
+        char weights[strlen(MatWeights[i])];
+        strcpy(weights, MatWeights[i]);
+        strtok(weights, " ");
+
+        for (int j = 0; j < MATNETWORK_INPUTS; j++)
+            MATNN.inputWeights[i][j] = atof(strtok(NULL, " "));
+        MATNN.inputBiases[i] = atof(strtok(NULL, " "));
+    }
+
+    for (int i = 0; i < MATNETWORK_OUTPUTS; i++) {
+
+        // Grab the next line and tokenize it
+        char weights[strlen(MatWeights[i + MATNETWORK_LAYER1])];
+        strcpy(weights, MatWeights[i + MATNETWORK_LAYER1]);
+        strtok(weights, " ");
+
+        for (int j = 0; j < MATNETWORK_LAYER1; j++)
+            MATNN.layer1Weights[i][j] = atof(strtok(NULL, " "));
+        MATNN.layer1Biases[i] = atof(strtok(NULL, " "));
+    }
+}
+
+int fullyComputeMatNetwork(Thread *thread) {
+
+    int inputsNeurons[PKNETWORK_INPUTS];
+    float layer1Neurons[PKNETWORK_LAYER1];
+    float outputNeurons[PKNETWORK_OUTPUTS];
+
+    vectorizeMatNetwork(&thread->board, inputsNeurons);
+
+    for (int i = 0; i < MATNETWORK_LAYER1; i++) {
+        layer1Neurons[i] = MATNN.inputBiases[i];
+        for (int j = 0; j < MATNETWORK_INPUTS; j++)
+            layer1Neurons[i] += inputsNeurons[j] * MATNN.inputWeights[i][j];
+    }
+
+    for (int i = 0; i < MATNETWORK_OUTPUTS; i++) {
+        outputNeurons[i] = MATNN.layer1Biases[i];
+        for (int j = 0; j < MATNETWORK_LAYER1; j++)
+            if (layer1Neurons[j] >= 0.0)
+                outputNeurons[i] += layer1Neurons[j] * MATNN.layer1Weights[i][j];
+    }
+
+    return outputNeurons[0];
+}
+
+
+
+
+
+
+// ..
