@@ -106,7 +106,7 @@ int fullyComputePKNetwork(Thread *thread) {
             layer1Neurons[i] += inputsNeurons[j] * PKNN.inputWeights[i][j];
     }
 
-    for (int i = 0; i <= MG; i++) {
+    for (int i = EG; i <= PKNETWORK_OUTPUTS; i++) {
         outputNeurons[i] = PKNN.layer1Biases[i];
         for (int j = 0; j < PKNETWORK_LAYER1; j++)
             if (layer1Neurons[j] >= 0.0)
@@ -114,7 +114,7 @@ int fullyComputePKNetwork(Thread *thread) {
     }
 
     assert(PKNETWORK_OUTPUTS == 2);
-    return MakeScore((int)outputNeurons[MG], 0);
+    return MakeScore(0, (int)outputNeurons[EG]);
 }
 
 int partiallyComputePKNetwork(Thread *thread) {
@@ -122,7 +122,7 @@ int partiallyComputePKNetwork(Thread *thread) {
     float *layer1Neurons = thread->pknnlayer1[thread->pknndepth];
     float outputNeurons[PKNETWORK_OUTPUTS];
 
-    for (int i = 0; i <= MG; i++) {
+    for (int i = EG; i <= PKNETWORK_OUTPUTS; i++) {
         outputNeurons[i] = PKNN.layer1Biases[i];
         for (int j = 0; j < PKNETWORK_LAYER1; j++)
             if (layer1Neurons[j] >= 0.0)
@@ -130,7 +130,7 @@ int partiallyComputePKNetwork(Thread *thread) {
     }
 
     assert(PKNETWORK_OUTPUTS == 2);
-    return MakeScore((int)outputNeurons[MG], 0);
+    return MakeScore(0, (int)outputNeurons[EG]);
 }
 
 
