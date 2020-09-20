@@ -24,6 +24,7 @@
 
 #include "bitboards.h"
 #include "board.h"
+#include "evaluate.h"
 #include "move.h"
 #include "network.h"
 #include "thread.h"
@@ -32,7 +33,7 @@
 PKNetwork PKNN;
 
 static char *PKWeights[] = {
-    #include "weights/pknet_224x32x1.net"
+    #include "weights/pknet_224x32x2.net"
     ""
 };
 
@@ -93,6 +94,7 @@ void initPKNetwork() {
 
 int fullyComputePKNetwork(Thread *thread) {
 
+    int mg, eg;
     bool inputsNeurons[PKNETWORK_INPUTS];
     float layer1Neurons[PKNETWORK_LAYER1];
     float outputNeurons[PKNETWORK_OUTPUTS];
@@ -112,11 +114,13 @@ int fullyComputePKNetwork(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
     }
 
-    return outputNeurons[0];
+    mg = outputNeurons[0], eg = outputNeurons[1];
+    return MakeScore(mg, eg);
 }
 
 int partiallyComputePKNetwork(Thread *thread) {
 
+    int mg, eg;
     float *layer1Neurons = thread->pknnlayer1[thread->pknndepth];
     float outputNeurons[PKNETWORK_OUTPUTS];
 
@@ -127,7 +131,8 @@ int partiallyComputePKNetwork(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
     }
 
-    return outputNeurons[0];
+    mg = outputNeurons[0], eg = outputNeurons[1];
+    return MakeScore(mg, eg);
 }
 
 
