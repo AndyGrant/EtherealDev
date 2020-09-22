@@ -73,6 +73,43 @@ int main(int argc, char **argv) {
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
 
+    char line[256];
+    FILE *fin = fopen("E:\\Working\\Datasets\\Filtered3.book", "r");
+
+    while (1) {
+
+        if (fgets(line, 256, fin) == NULL)
+            return 0;
+
+        boardFromFEN(&threads->board, line, 0);
+
+        // Print Network Input Vectors
+        // = [48x White Pawns][64x White Kings][48x Black Pawns][64x Black Kings]
+        // = 48 + 64 + 48 + 64 = 224
+
+        for (int colour = WHITE; colour <= BLACK; colour++) {
+
+            uint64_t ours  = threads->board.colours[colour];
+            uint64_t pawns = ours & threads->board.pieces[PAWN];
+            uint64_t kings = ours & threads->board.pieces[KING];
+
+            for (int sq = 0; sq < SQUARE_NB; sq++)
+                if (!testBit(PROMOTION_RANKS, sq))
+                    printf("%d ", testBit(pawns, sq));
+
+            for (int sq = 0; sq < SQUARE_NB; sq++)
+                printf("%d ", testBit(kings, sq));
+        }
+
+        // Fetch the stored WDL result
+        if      (strstr(line, "1-0")) printf("1.0 ");
+        else if (strstr(line, "0-1")) printf("0.0 ");
+        else if (strstr(line, "1/2-1/2")) printf("0.5 ");
+        else { printf("Error"); return 0; }
+
+        evaluateBoard(threads, &threads->board);
+    }
+
     // Handle any command line requests
     handleCommandLine(argc, argv);
 
