@@ -52,6 +52,7 @@ struct EvalTrace {
     int RookPSQT[SQUARE_NB][COLOUR_NB];
     int QueenPSQT[SQUARE_NB][COLOUR_NB];
     int KingPSQT[SQUARE_NB][COLOUR_NB];
+    int PawnKingFileProximity[8][COLOUR_NB];
     int PawnCandidatePasser[2][8][COLOUR_NB];
     int PawnIsolated[8][COLOUR_NB];
     int PawnStacked[2][8][COLOUR_NB];
@@ -72,10 +73,7 @@ struct EvalTrace {
     int RookMobility[15][COLOUR_NB];
     int QueenRelativePin[COLOUR_NB];
     int QueenMobility[28][COLOUR_NB];
-    int KingPawnFileProximity[8][COLOUR_NB];
     int KingDefenders[12][COLOUR_NB];
-    int KingShelter[2][8][8][COLOUR_NB];
-    int KingStorm[2][4][8][COLOUR_NB];
     int SafetyKnightWeight[COLOUR_NB];
     int SafetyBishopWeight[COLOUR_NB];
     int SafetyRookWeight[COLOUR_NB];
@@ -134,7 +132,6 @@ struct EvalInfo {
     int kingAttackersCount[COLOUR_NB];
     int kingAttackersWeight[COLOUR_NB];
     int pkeval[COLOUR_NB];
-    int pksafety[COLOUR_NB];
     PKEntry *pkentry;
 };
 
@@ -145,8 +142,8 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour);
 int evaluateBishops(EvalInfo *ei, Board *board, int colour);
 int evaluateRooks(EvalInfo *ei, Board *board, int colour);
 int evaluateQueens(EvalInfo *ei, Board *board, int colour);
-int evaluateKingsPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
+int evaluateShelterStorm(EvalInfo *ei, Board *board, int colour);
 int evaluatePassed(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
 int evaluateSpace(EvalInfo *ei, Board *board, int colour);

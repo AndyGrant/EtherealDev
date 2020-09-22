@@ -165,6 +165,11 @@ const int KingPSQT[SQUARE_NB] = {
 
 /* Pawn Evaluation Terms */
 
+const int PawnKingFileProximity[FILE_NB] = {
+    S(  47,  46), S(  29,  34), S(  13,  16), S( -24, -24),
+    S( -28, -67), S( -24, -79), S( -21, -83), S( -11, -71),
+};
+
 const int PawnCandidatePasser[2][RANK_NB] = {
    {S(   0,   0), S( -33, -14), S( -18,  14), S( -19,  28),
     S(  -7,  58), S(  29,  54), S(   0,   0), S(   0,   0)},
@@ -278,65 +283,6 @@ const int KingDefenders[12] = {
     S(  12,   6), S(  12,   6), S(  12,   6), S(  12,   6),
 };
 
-const int KingPawnFileProximity[FILE_NB] = {
-    S(  47,  46), S(  29,  34), S(  13,  16), S( -24, -24),
-    S( -28, -67), S( -24, -79), S( -21, -83), S( -11, -71),
-};
-
-const int KingShelter[2][FILE_NB][RANK_NB] = {
-  {{S(  -5,   0), S(  15, -26), S(  15,  -2), S(  11,   5),
-    S(   6,  -8), S( -13,   2), S(  -6, -35), S( -40,  25)},
-   {S(  17,  -5), S(  13, -14), S(  -1,  -3), S(  -5,  -2),
-    S( -17,   7), S( -59,  64), S(  84,  76), S( -34,   7)},
-   {S(  38,   0), S(  11,  -5), S( -27,   4), S( -12, -14),
-    S( -13,  -8), S( -14,   6), S(   4,  70), S( -18,   1)},
-   {S(  16,  11), S(  18, -14), S(   2, -15), S(   7, -21),
-    S(  16, -34), S( -66,   7), S(-140,  50), S(  -4,  -4)},
-   {S(  -3,  12), S(  12,  -5), S( -30,   3), S( -13,   4),
-    S( -12,  -8), S( -42,  -7), S(  33, -21), S(  -9,   2)},
-   {S(  45, -13), S(  13, -10), S( -18,   2), S(  -9, -26),
-    S(   6, -38), S(  22, -23), S(  38, -35), S( -24,   4)},
-   {S(  36, -16), S(   3, -20), S( -27,  -2), S( -13, -16),
-    S( -26,  -1), S( -29,  31), S(   3,  46), S( -16,   5)},
-   {S(   3, -18), S(   5, -24), S(   9,   0), S(  -1,  10),
-    S( -13,  19), S( -11,  43), S(-180,  86), S( -19,  18)}},
-  {{S(   0,   0), S( -12, -31), S(   6, -22), S( -46,  12),
-    S( -29,   6), S( -11,  43), S(-167,  -5), S( -33,  18)},
-   {S(   0,   0), S(  18, -18), S(   8, -11), S( -20,  -3),
-    S(  -6, -17), S(  24,  64), S(-183,   0), S( -37,  13)},
-   {S(   0,   0), S(  20,  -8), S(   3, -11), S(   3, -24),
-    S(  13,  -7), S( -84,  50), S( -86, -74), S( -18,   1)},
-   {S(   0,   0), S(   2,   3), S(  -4,  -6), S( -17,   5),
-    S( -23,   4), S( -98,  32), S(   3, -41), S( -21,  -1)},
-   {S(   0,   0), S(  10,   0), S(   9, -10), S(   7, -13),
-    S(   6, -24), S( -62,   7), S(-102, -57), S(  -5,   0)},
-   {S(   0,   0), S(  -1,  -8), S( -16,  -2), S( -12, -12),
-    S(  18, -26), S( -37,   5), S(  54,  38), S( -14,  -2)},
-   {S(   0,   0), S(  28, -19), S(  17, -16), S(  -4, -15),
-    S( -21,   6), S( -11,  21), S( -50, -42), S( -32,  20)},
-   {S(   0,   0), S(  13, -47), S(  17, -31), S( -20,  -9),
-    S( -32,  25), S( -13,  26), S(-224, -52), S( -24,   9)}},
-};
-
-const int KingStorm[2][FILE_NB/2][RANK_NB] = {
-  {{S( -17,  32), S( 118, -10), S( -20,  20), S( -13,   1),
-    S( -17,   0), S(  -9,  -2), S( -14,   9), S( -25,  -1)},
-   {S( -17,  56), S(  64,  11), S( -13,  16), S(  -3,   9),
-    S(  -2,   7), S(   5,  -2), S(  -1,   3), S( -18,   9)},
-   {S(   3,  42), S(  15,  24), S( -14,  15), S( -11,   7),
-    S(   0,   4), S(   8,   1), S(   7,  -9), S(   4,   6)},
-   {S(   4,  22), S(  12,  17), S( -23,   6), S( -17,  -2),
-    S( -10,   1), S(  10, -10), S(   2,  -8), S( -11,   8)}},
-  {{S(   0,   0), S( -18, -16), S( -13,  -2), S(  22, -19),
-    S(   8,  -2), S(   9, -20), S(  -1,  14), S(  25,  30)},
-   {S(   0,   0), S( -16, -39), S(  -2, -11), S(  43, -11),
-    S(   1,   4), S(  17, -26), S(   4,  -9), S( -20,   1)},
-   {S(   0,   0), S( -31, -56), S( -16, -11), S(  11,  -6),
-    S(   8,   1), S(  -6, -13), S(  -5, -20), S( -13,   4)},
-   {S(   0,   0), S(  -2, -21), S( -15, -18), S( -12,   2),
-    S(  -1,  -7), S(   4, -31), S(  67, -20), S(   9,  20)}},
-};
-
 /* Safety Evaluation Terms */
 
 const int SafetyKnightWeight    = S(  48,  41);
@@ -354,16 +300,16 @@ const int SafetySafeKnightCheck = S( 112, 117);
 const int SafetyAdjustment      = S( -74, -26);
 
 const int SafetyShelter[2][RANK_NB] = {
-   {S(  -2,   7), S(  -1,  13), S(   0,   8), S(   4,   7), 
+   {S(  -2,   7), S(  -1,  13), S(   0,   8), S(   4,   7),
     S(   6,   2), S(  -1,   0), S(   2,   0), S(   0, -13)},
-   {S(   0,   0), S(  -2,  13), S(  -2,   9), S(   4,   5), 
+   {S(   0,   0), S(  -2,  13), S(  -2,   9), S(   4,   5),
     S(   3,   1), S(  -3,   0), S(  -2,   0), S(  -1,  -9)},
 };
 
 const int SafetyStorm[2][RANK_NB] = {
-   {S(  -4,  -1), S(  -8,   3), S(   0,   5), S(   1,  -1), 
+   {S(  -4,  -1), S(  -8,   3), S(   0,   5), S(   1,  -1),
     S(   3,   6), S(  -2,  20), S(  -2,  18), S(   2, -12)},
-   {S(   0,   0), S(   1,   0), S(  -1,   4), S(   0,   0), 
+   {S(   0,   0), S(   1,   0), S(  -1,   4), S(   0,   0),
     S(   0,   5), S(  -1,   1), S(   1,   0), S(   1,   0)},
 };
 
@@ -480,7 +426,7 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     // Store a new Pawn King Entry if we did not have one
     if (!TRACE && ei.pkentry == NULL)
-        storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval, ei.pksafety[WHITE], ei.pksafety[BLACK]);
+        storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval);
 
     // Factor in the Tempo after interpolation and scaling, so that
     // if a null move is made, then we know eval = last_eval + 2 * Tempo
@@ -492,11 +438,6 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
     int eval;
 
     eval  =   evaluatePawns(ei, board, WHITE)   - evaluatePawns(ei, board, BLACK);
-
-    // This needs to be done after pawn evaluation but before king safety evaluation
-    evaluateKingsPawns(ei, board, WHITE);
-    evaluateKingsPawns(ei, board, BLACK);
-
     eval += evaluateKnights(ei, board, WHITE) - evaluateKnights(ei, board, BLACK);
     eval += evaluateBishops(ei, board, WHITE) - evaluateBishops(ei, board, BLACK);
     eval +=   evaluateRooks(ei, board, WHITE)   - evaluateRooks(ei, board, BLACK);
@@ -532,6 +473,11 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     pawns = board->pieces[PAWN];
     myPawns = tempPawns = pawns & board->colours[US];
     enemyPawns = pawns & board->colours[THEM];
+
+    // Evaluate distance between King and nearest file-wise Pawn
+    flag = kingPawnFileDistance(pawns, ei->kingSquare[US]);
+    pkeval += PawnKingFileProximity[flag];
+    if (TRACE) T.PawnKingFileProximity[flag][US]++;
 
     // Evaluate each pawn (but not for being passed)
     while (tempPawns) {
@@ -855,62 +801,6 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateKingsPawns(EvalInfo *ei, Board *board, int colour) {
-    // Skip computations if results are cached in the Pawn King Table
-    if (ei->pkentry != NULL) return 0;
-
-    const int US = colour, THEM = !colour;
-
-    int dist, blocked;
-
-    uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
-    uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
-
-    int kingSq = ei->kingSquare[US];
-
-    // Evaluate based on the number of files between our King and the nearest
-    // file-wise pawn. If there is no pawn, kingPawnFileDistance() returns the
-    // same distance for both sides causing this evaluation term to be neutral
-    dist = kingPawnFileDistance(board->pieces[PAWN], kingSq);
-    ei->pkeval[US] += KingPawnFileProximity[dist];
-    if (TRACE) T.KingPawnFileProximity[dist][US]++;
-
-    // Evaluate King Shelter & King Storm threat by looking at the file of our King,
-    // as well as the adjacent files. When looking at pawn distances, we will use a
-    // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
-    for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); file++) {
-
-        // Find closest friendly pawn at or above our King on a given file
-        uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
-        int ourDist = !ours ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, ours)));
-
-        // Find closest enemy pawn at or above our King on a given file
-        uint64_t theirs = enemyPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
-        int theirDist = !theirs ? 7 : abs(rankOf(kingSq) - rankOf(backmost(US, theirs)));
-
-        // Evaluate King Shelter using pawn distance. Use separate evaluation
-        // depending on the file, and if we are looking at the King's file
-        ei->pkeval[US] += KingShelter[file == fileOf(kingSq)][file][ourDist];
-        if (TRACE) T.KingShelter[file == fileOf(kingSq)][file][ourDist][US]++;
-
-        // Update the Shelter Safety
-        ei->pksafety[US] += SafetyShelter[file == fileOf(kingSq)][ourDist];
-        if (TRACE) T.SafetyShelter[file == fileOf(kingSq)][ourDist][US]++;
-
-        // Evaluate King Storm using enemy pawn distance. Use a separate evaluation
-        // depending on the file, and if the opponent's pawn is blocked by our own
-        blocked = (ourDist != 7 && (ourDist == theirDist - 1));
-        ei->pkeval[US] += KingStorm[blocked][mirrorFile(file)][theirDist];
-        if (TRACE) T.KingStorm[blocked][mirrorFile(file)][theirDist][US]++;
-
-        // Update the Storm Safety
-        ei->pksafety[US] += SafetyStorm[blocked][theirDist];
-        if (TRACE) T.SafetyStorm[blocked][theirDist][US]++;
-    }
-
-    return 0;
-}
-
 int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
     const int US = colour, THEM = !colour;
@@ -974,8 +864,9 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
                 + SafetySafeRookCheck   * popcount(rookChecks)
                 + SafetySafeBishopCheck * popcount(bishopChecks)
                 + SafetySafeKnightCheck * popcount(knightChecks)
-                + ei->pksafety[US]
                 + SafetyAdjustment;
+
+        safety += evaluateShelterStorm(ei, board, US);
 
         if (TRACE) T.SafetyAttackValue[US]     = scaledAttackCounts;
         if (TRACE) T.SafetyWeakSquares[US]     = popcount(weak & ei->kingAreas[US]);
@@ -997,13 +888,44 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
         T.SafetyBishopWeight[US] = 0;
         T.SafetyRookWeight[US]   = 0;
         T.SafetyQueenWeight[US]  = 0;
+    }
 
-        for (int i=0;i<8;i++) {
-            T.SafetyShelter[0][i][US]  = 0;
-            T.SafetyShelter[1][i][US]  = 0;
-            T.SafetyStorm[0][i][US]    = 0;
-            T.SafetyStorm[1][i][US]    = 0;
-        }
+    return eval;
+}
+
+int evaluateShelterStorm(EvalInfo *ei, Board *board, int colour) {
+
+    const int US = colour, THEM = !colour;
+
+    int eval = 0;
+    int kfile = fileOf(ei->kingSquare[US]);
+    int krank = rankOf(ei->kingSquare[US]);
+
+    uint64_t forwards    = forwardRanksMasks(US, krank);
+    uint64_t myPawns     = board->pieces[PAWN] & board->colours[  US] & forwards;
+    uint64_t enemyPawns  = board->pieces[PAWN] & board->colours[THEM] & forwards;
+
+    // Evaluate King Shelter & King Storm threat by looking at the file of our King,
+    // as well as the adjacent files. When looking at pawn distances, we will use a
+    // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
+
+    for (int file = MAX(0, kfile - 1); file <= MIN(FILE_NB - 1, kfile + 1); file++) {
+
+        int ours    = !(  myPawns & Files[file]) ? 7
+                    : abs(krank - rankOf(backmost(US,    myPawns & Files[file])));
+
+        int theirs  = !(enemyPawns & Files[file]) ? 7
+                    : abs(krank - rankOf(backmost(US, enemyPawns & Files[file])));
+
+        int blocked = (ours != 7 && (ours == theirs - 1));
+
+        // Evaluate by file and pawn distance
+        eval += SafetyShelter[file == kfile][ours];
+        if (TRACE) T.SafetyShelter[file == kfile][ours][US]++;
+
+        // Evaluate by blockade and pawn distance
+        eval += SafetyStorm[blocked][theirs];
+        if (TRACE) T.SafetyStorm[blocked][theirs][US]++;
     }
 
     return eval;
@@ -1371,8 +1293,6 @@ void initEvalInfo(Thread *thread, Board *board, EvalInfo *ei) {
     ei->passedPawns     = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
     ei->pkeval[WHITE]   = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK]   = ei->pkentry == NULL ? 0    : 0;
-    ei->pksafety[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->safetyw;
-    ei->pksafety[BLACK] = ei->pkentry == NULL ? 0    : ei->pkentry->safetyb;
 }
 
 void initEval() {
