@@ -25,14 +25,14 @@
 
 #define PKNETWORK_INPUTS  (224)
 #define PKNETWORK_LAYER1  ( 32)
-#define PKNETWORK_OUTPUTS (  1)
+#define PKNETWORK_OUTPUTS (  2)
 
 typedef struct PKNetwork {
 
     // PKNetworks are of the form [Input, Hidden Layer 1, Output Layer]
-    // Our current Network is [224x32, 32x1]. The Network is trained to
+    // Our current Network is [224x32, 32x2]. The Network is trained to
     // output a Score in CentiPawns, and thus Output Neurons need do not
-    // need activation functions. The 32x1 operation applys a ReLU, where
+    // need activation functions. The 32x2 operation applys a ReLU, where
     // as the 224x32 layer does not, since inputs are binary 0s and 1s
 
     ALIGN64 float inputWeights[PKNETWORK_LAYER1][PKNETWORK_INPUTS];
