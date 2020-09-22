@@ -25,7 +25,8 @@
 
 #define PKNETWORK_INPUTS  (224)
 #define PKNETWORK_LAYER1  ( 32)
-#define PKNETWORK_OUTPUTS (  1)
+#define PKNETWORK_LAYER2  ( 16)
+#define PKNETWORK_OUTPUTS (  2)
 
 typedef struct PKNetwork {
 
@@ -38,8 +39,11 @@ typedef struct PKNetwork {
     ALIGN64 float inputWeights[PKNETWORK_LAYER1][PKNETWORK_INPUTS];
     ALIGN64 float inputBiases[PKNETWORK_LAYER1];
 
-    ALIGN64 float layer1Weights[PKNETWORK_OUTPUTS][PKNETWORK_LAYER1];
-    ALIGN64 float layer1Biases[PKNETWORK_OUTPUTS];
+    ALIGN64 float layer1Weights[PKNETWORK_LAYER2][PKNETWORK_LAYER1];
+    ALIGN64 float layer1Biases[PKNETWORK_LAYER2];
+
+    ALIGN64 float layer2Weights[PKNETWORK_OUTPUTS][PKNETWORK_LAYER2];
+    ALIGN64 float layer2Biases[PKNETWORK_OUTPUTS];
 
 } PKNetwork;
 
