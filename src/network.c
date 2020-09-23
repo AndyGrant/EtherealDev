@@ -114,8 +114,8 @@ int fullyComputePKNetwork(Thread *thread) {
     }
 
     assert(PKNETWORK_OUTPUTS == PHASE_NB);
-    int mg = 2 * (int) outputNeurons[MG];
-    int eg = 2 * (int) outputNeurons[EG];
+    int mg = (int) outputNeurons[MG] / 2;
+    int eg = (int) outputNeurons[EG] / 2;
     return MakeScore(mg, eg);
 }
 
@@ -132,8 +132,8 @@ int partiallyComputePKNetwork(Thread *thread) {
     }
 
     assert(PKNETWORK_OUTPUTS == PHASE_NB);
-    int mg = 2 * (int) outputNeurons[MG];
-    int eg = 2 * (int) outputNeurons[EG];
+    int mg = (int) outputNeurons[MG] / 2;
+    int eg = (int) outputNeurons[EG] / 2;
     return MakeScore(mg, eg);
 }
 
