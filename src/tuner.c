@@ -54,6 +54,7 @@ extern const int BishopPSQT[64];
 extern const int RookPSQT[64];
 extern const int QueenPSQT[64];
 extern const int KingPSQT[64];
+extern const int PawnKingFileProximity[8];
 extern const int PawnCandidatePasser[2][8];
 extern const int PawnIsolated[8];
 extern const int PawnStacked[2][8];
@@ -75,7 +76,6 @@ extern const int RookMobility[15];
 extern const int QueenRelativePin;
 extern const int QueenMobility[28];
 extern const int KingDefenders[12];
-extern const int KingPawnFileProximity[8];
 extern const int SafetyKnightWeight;
 extern const int SafetyBishopWeight;
 extern const int SafetyRookWeight;
@@ -203,7 +203,6 @@ void initCoefficients(TVector coeffs) {
 
 void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
 
-    Undo undo;
     char line[256];
     Limits limits = {0};
     thread->limits = &limits; thread->depth  = 0;
@@ -222,13 +221,6 @@ void initTunerEntries(TEntry *entries, Thread *thread, TArray methods) {
 
         // Set the board with the current FEN
         boardFromFEN(&thread->board, line, 0);
-
-        // Resolve the position to mitigate tactics
-        if (QSRESOLVE) {
-            qsearch(thread, &thread->pv, -MATE, MATE, 0);
-            for (int pvidx = 0; pvidx < thread->pv.length; pvidx++)
-                applyMove(&thread->board, thread->pv.line[pvidx], &undo);
-        }
 
         // Defer the set to another function
         initTunerEntry(&entries[i], thread, &thread->board, methods);

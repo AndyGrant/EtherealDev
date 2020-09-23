@@ -25,7 +25,6 @@
 #define NPARTITIONS     (      64) // Total thread partitions
 #define KPRECISION      (      10) // Iterations for computing K
 
-#define QSRESOLVE       (       0) // Whether to resolve via a qsearch()
 #define PRETTYIFY       (       1) // Whether to format as if we tune everything
 #define REPORTING       (      50) // How often to print the new parameters
 
@@ -33,14 +32,14 @@
 #define LRDROPRATE      (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE      (     250) // Cut LR after this many epochs
 
-#define TuneNormal      (       0) // Flag to enable tuning on all Normals
+#define TuneNormal      (       1) // Flag to enable tuning on all Normals
 #define TuneSafety      (       0) // Flag to enable tuning on all Safeties
 #define TuneComplexity  (       0) // Flag to enable tuning on all Complexities
 
-#define NTERMS          (       0) // Total terms in the Tuner (712)
+#define NTERMS          (     664) // Total terms in the Tuner (712)
 #define MAXEPOCHS       (   10000) // Max number of epochs allowed
 #define BATCHSIZE       (   16384) // FENs per mini-batch
-#define NPOSITIONS      ( 9999740) // Total FENS in the book
+#define NPOSITIONS      (42487498) // Total FENS in the book
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
 
@@ -55,6 +54,7 @@
 #define TuneRookPSQT                    (0 || TuneNormal)
 #define TuneQueenPSQT                   (0 || TuneNormal)
 #define TuneKingPSQT                    (0 || TuneNormal)
+#define TunePawnKingFileProximity       (0 || TuneNormal)
 #define TunePawnCandidatePasser         (0 || TuneNormal)
 #define TunePawnIsolated                (0 || TuneNormal)
 #define TunePawnStacked                 (0 || TuneNormal)
@@ -76,7 +76,6 @@
 #define TuneQueenRelativePin            (0 || TuneNormal)
 #define TuneQueenMobility               (0 || TuneNormal)
 #define TuneKingDefenders               (0 || TuneNormal)
-#define TuneKingPawnFileProximity       (0 || TuneNormal)
 #define TuneSafetyKnightWeight          (0 || TuneSafety)
 #define TuneSafetyBishopWeight          (0 || TuneSafety)
 #define TuneSafetyRookWeight            (0 || TuneSafety)
@@ -285,6 +284,7 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_1(F, KingPSQT, 64, NORMAL, "[SQUARE_NB]");                       \
                                                                             \
     COMMENTS(F, "/* Pawn Evaluation Terms */\n\n");                         \
+    ENABLE_1(F, PawnKingFileProximity, 8, NORMAL, "[FILE_NB]");             \
     ENABLE_2(F, PawnCandidatePasser, 2, 8, NORMAL, "[2][RANK_NB]");         \
     ENABLE_1(F, PawnIsolated, 8, NORMAL, "[FILE_NB]");                      \
     ENABLE_2(F, PawnStacked, 2, 8, NORMAL, "[2][FILE_NB]");                 \
@@ -316,7 +316,6 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
                                                                             \
     COMMENTS(F, "/* King Evaluation Terms */\n\n");                         \
     ENABLE_1(F, KingDefenders, 12, NORMAL, "[12]");                         \
-    ENABLE_1(F, KingPawnFileProximity, 8, NORMAL, "[FILE_NB]");             \
                                                                             \
     COMMENTS(F, "/* Safety Evaluation Terms */\n\n");                       \
     ENABLE_0(F, SafetyKnightWeight, SAFETY, "   ");                         \

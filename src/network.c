@@ -121,6 +121,8 @@ int fullyComputePKNetwork(Thread *thread) {
 
 int partiallyComputePKNetwork(Thread *thread) {
 
+    if (TRACE) return fullyComputePKNetwork(thread);
+
     float *layer1Neurons = thread->pknnlayer1[thread->pknndepth];
     float outputNeurons[PKNETWORK_OUTPUTS];
 
