@@ -339,32 +339,32 @@ const int KingStorm[2][FILE_NB/2][RANK_NB] = {
 
 /* Safety Evaluation Terms */
 
-const int SafetyKnightWeight    = S(  48,  41);
-const int SafetyBishopWeight    = S(  24,  35);
-const int SafetyRookWeight      = S(  36,   8);
-const int SafetyQueenWeight     = S(  30,   6);
+const int SafetyKnightWeight    = S(  56,  39);
+const int SafetyBishopWeight    = S(  31,  43);
+const int SafetyRookWeight      = S(  36,  21);
+const int SafetyQueenWeight     = S(  36,   4);
 
-const int SafetyAttackValue     = S(  45,  34);
-const int SafetyWeakSquares     = S(  42,  41);
-const int SafetyNoEnemyQueens   = S(-237,-259);
-const int SafetySafeQueenCheck  = S(  93,  83);
-const int SafetySafeRookCheck   = S(  90,  98);
-const int SafetySafeBishopCheck = S(  59,  59);
-const int SafetySafeKnightCheck = S( 112, 117);
-const int SafetyAdjustment      = S( -74, -26);
+const int SafetyAttackValue     = S(  44,  42);
+const int SafetyWeakSquares     = S(  41,  41);
+const int SafetyNoEnemyQueens   = S(-235,-254);
+const int SafetySafeQueenCheck  = S(  86, 108);
+const int SafetySafeRookCheck   = S(  85, 111);
+const int SafetySafeBishopCheck = S(  60,  83);
+const int SafetySafeKnightCheck = S( 107, 101);
+const int SafetyAdjustment      = S( -75, -23);
 
 const int SafetyShelter[2][RANK_NB] = {
-   {S(  -2,   7), S(  -1,  13), S(   0,   8), S(   4,   7),
-    S(   6,   2), S(  -1,   0), S(   2,   0), S(   0, -13)},
-   {S(   0,   0), S(  -2,  13), S(  -2,   9), S(   4,   5),
-    S(   3,   1), S(  -3,   0), S(  -2,   0), S(  -1,  -9)},
+   {S(   0,   3), S(  -3,  31), S(  -3,   6), S(   3,  19),
+    S(   7,   7), S(   1,  -1), S(   2,   0), S(   6, -36)},
+   {S(   0,   0), S(  -4,  11), S(  -3,  28), S(   3,  18),
+    S(   0,   7), S(   0,   0), S(  -4,   0), S(   4, -36)},
 };
 
 const int SafetyStorm[2][RANK_NB] = {
-   {S(  -4,  -1), S(  -8,   3), S(   0,   5), S(   1,  -1),
-    S(   3,   6), S(  -2,  20), S(  -2,  18), S(   2, -12)},
-   {S(   0,   0), S(   1,   0), S(  -1,   4), S(   0,   0),
-    S(   0,   5), S(  -1,   1), S(   1,   0), S(   1,   0)},
+   {S(   4,   2), S(  -8,  14), S(  -1,   7), S(   3,  -6),
+    S(   2,  15), S(  -3,  24), S(  -4,   7), S(   3, -25)},
+   {S(   0,   0), S(   1,   0), S(   0,   8), S(   1,  -7),
+    S(   1,  21), S(   0,  10), S(   7,   0), S(   2,   0)},
 };
 
 /* Passed Pawn Evaluation Terms */
