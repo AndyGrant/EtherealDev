@@ -516,6 +516,19 @@ int moveIsTactical(Board *board, uint16_t move) {
         || (move & ENPASS_MOVE & PROMOTION_MOVE);
 }
 
+int moveIsCyclic(Thread *thread, Board *board, uint16_t move) {
+
+    const int height = thread->height;
+    const uint16_t previous = thread->moveStack[height-2];
+    const uint64_t oldrooks = thread->undoStack[height-2].castleRooks;
+
+    return !moveIsTactical(board, move)
+        &&  board->halfMoveCounter >= 2
+        &&  board->castleRooks == oldrooks
+        &&  MoveFrom(move) == MoveTo(previous)
+        &&  MoveTo(move) == MoveFrom(previous);
+}
+
 int moveEstimatedValue(Board *board, uint16_t move) {
 
     // Start with the value of the piece on the target square

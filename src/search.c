@@ -443,6 +443,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 && fmhist < FollowUpMoveHistoryLimit[improving]
                 && depth - R <= FollowUpMovePruningDepth[improving])
                 continue;
+
+            // Step 11F (~?.? elo). Cycle Detection Pruning. Moves which repeat,
+            // and allow our opponent to claim a 3-fold, are skipped when the draw
+            // value of 0 falls below the [alpha, beta] window. PvNodes are ignored.
+            if (   alpha > 0 && !PvNode
+                && moveIsCyclic(thread, board, move))
+                continue;
         }
 
         // Step 12 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
@@ -453,6 +460,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
+
+
 
         // Apply move, skip if move is illegal
         if (!apply(thread, board, move))
