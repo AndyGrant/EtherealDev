@@ -21,16 +21,23 @@
 #include "types.h"
 
 enum {
-    EVAL_CACHE_KEY_SIZE = 16,
-    EVAL_CACHE_MASK     = 0xFFFF,
-    EVAL_CACHE_SIZE     = 1 << EVAL_CACHE_KEY_SIZE,
+    EVAL_CACHE_KEY_SIZE  = 16,
+    EVAL_CACHE_MASK      = 0xFFFF,
+    EVAL_CACHE_SIZE      = 1 << EVAL_CACHE_KEY_SIZE,
 };
 
 enum {
-    PK_CACHE_KEY_SIZE   = 16,
-    PK_CACHE_MASK       = 0xFFFF,
-    PK_CACHE_SIZE       = 1 << PK_CACHE_KEY_SIZE,
+    PK_CACHE_KEY_SIZE    = 16,
+    PK_CACHE_MASK        = 0xFFFF,
+    PK_CACHE_SIZE        = 1 << PK_CACHE_KEY_SIZE,
 };
+
+enum {
+    MAT_CACHE_KEY_SIZE   = 16,
+    MAT_CACHE_MASK       = 0xFFFF,
+    MAT_CACHE_SIZE       = 1 << MAT_CACHE_KEY_SIZE,
+};
+
 
 typedef uint64_t EvalEntry;
 typedef EvalEntry EvalTable[EVAL_CACHE_SIZE];
@@ -38,9 +45,18 @@ typedef EvalEntry EvalTable[EVAL_CACHE_SIZE];
 struct PKEntry { uint64_t pkhash, passed; int eval, safetyw, safetyb; };
 typedef PKEntry PKTable[PK_CACHE_SIZE];
 
+struct MaterialEntry { uint64_t mhash; int eval; };
+typedef MaterialEntry MaterialTable[MAT_CACHE_SIZE];
+
+
 int getCachedEvaluation(Thread *thread, Board *board, int *eval);
 void storeCachedEvaluation(Thread *thread, Board *board, int eval);
 
 PKEntry* getCachedPawnKingEval(Thread *thread, Board *board);
 void storeCachedPawnKingEval(Thread *thread, Board *board, uint64_t passed, int eval, int safetyw, int safetyb);
 
+uint64_t computeMaterialKey(Board *board);
+int getCachedMaterialEval(Thread *thread, Board *board, int *eval);
+void storeCachedMaterialEval(Thread *thread, Board *board, int eval);
+
+extern const uint64_t MaterialPrimes[32];

@@ -61,6 +61,7 @@ void resetThreadPool(Thread *threads) {
 
         memset(&threads[i].evtable, 0, sizeof(EvalTable));
         memset(&threads[i].pktable, 0, sizeof(PKTable));
+        memset(&threads[i].mtable,  0, sizeof(MaterialTable));
 
         memset(&threads[i].killers, 0, sizeof(KillerTable));
         memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));

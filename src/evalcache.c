@@ -22,6 +22,16 @@
 #include "types.h"
 #include "zobrist.h"
 
+
+const uint64_t MaterialPrimes[32] = {
+    17008651141875982339ull, 11695583624105689831ull, 0ull, 0ull,
+    15202887380319082783ull, 13469005675588064321ull, 0ull, 0ull,
+    12311744257139811149ull, 15394650811035483107ull, 0ull, 0ull,
+    10979190538029446137ull, 18264461213049635989ull, 0ull, 0ull,
+    11811845319353239651ull, 15484752644942473553ull, 0ull, 0ull,
+};
+
+
 int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
 
     EvalEntry eve;
@@ -50,5 +60,16 @@ PKEntry* getCachedPawnKingEval(Thread *thread, Board *board) {
 void storeCachedPawnKingEval(Thread *thread, Board *board, uint64_t passed, int eval, int safetyw, int safetyb) {
     PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
     *pke = (PKEntry) {board->pkhash, passed, eval, safetyw, safetyb};
+}
+
+
+int getCachedMaterialEval(Thread *thread, Board *board, int *eval) {
+    *eval = thread->mtable[board->mhash & MAT_CACHE_MASK].eval;
+    return thread->mtable[board->mhash & MAT_CACHE_MASK].mhash == board->mhash;
+}
+
+void storeCachedMaterialEval(Thread *thread, Board *board, int eval) {
+    MaterialEntry *mat = &thread->mtable[board->mhash & MAT_CACHE_MASK];
+    *mat = (MaterialEntry) { board->mhash, eval };
 }
 

@@ -24,6 +24,7 @@
 #include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
+#include "evalcache.h"
 #include "evaluate.h"
 #include "masks.h"
 #include "move.h"
@@ -105,6 +106,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // Save information which is hard to recompute
     undo->hash            = board->hash;
     undo->pkhash          = board->pkhash;
+    undo->mhash           = board->mhash;
     undo->kingAttackers   = board->kingAttackers;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
@@ -191,6 +193,8 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
             board->hash ^= ZobristEnpassKeys[fileOf(from)];
         }
     }
+
+    board->mhash -= MaterialPrimes[toPiece];
 }
 
 void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
@@ -275,6 +279,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
                    ^  ZobristKeys[fromPiece][to]
                    ^  ZobristKeys[enpassPiece][ep];
 
+    board->mhash   -= MaterialPrimes[enpassPiece];
+
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(enpassPiece) == PAWN);
 }
@@ -318,6 +324,10 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
                    ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from];
+
+    board->mhash   -= MaterialPrimes[fromPiece]
+                    + MaterialPrimes[toPiece]
+                    - MaterialPrimes[promoPiece];
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(toPiece) != PAWN);
@@ -365,6 +375,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
     board->pkhash          = undo->pkhash;
+    board->mhash           = undo->mhash;
     board->kingAttackers   = undo->kingAttackers;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
@@ -461,7 +472,7 @@ void revertNullMove(Board *board, Undo *undo) {
 }
 
 
-int legalMoveCount(Board * board) {
+int legalMoveCount(Board *board) {
 
     // Count of the legal number of moves for a given position
 

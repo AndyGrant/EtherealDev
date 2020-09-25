@@ -58,6 +58,7 @@ struct Thread {
 
     ALIGN64 EvalTable evtable;
     ALIGN64 PKTable pktable;
+    ALIGN64 MaterialTable mtable;
 
     ALIGN64 KillerTable killers;
     ALIGN64 CounterMoveTable cmtable;

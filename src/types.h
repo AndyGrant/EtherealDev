@@ -88,6 +88,7 @@ typedef struct Thread Thread;
 typedef struct TTEntry TTEntry;
 typedef struct TTBucket TTBucket;
 typedef struct PKEntry PKEntry;
+typedef struct MaterialEntry MaterialEntry;
 typedef struct TTable TTable;
 typedef struct Limits Limits;
 typedef struct UCIGoStruct UCIGoStruct;
