@@ -50,9 +50,9 @@ void updatePKNetworkIndices(Thread *thread, int changes, int indexes[3], int sig
 void updatePKNetworkAfterMove(Thread *thread, uint16_t move);
 
 
-#define MATNETWORK_INPUTS  ( 10)
+#define MATNETWORK_INPUTS  ( 42)
 #define MATNETWORK_LAYER1  ( 16)
-#define MATNETWORK_OUTPUTS (  2)
+#define MATNETWORK_OUTPUTS (  1)
 
 typedef struct MatNetwork {
 

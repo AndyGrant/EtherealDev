@@ -39,7 +39,7 @@ static char *PKWeights[] = {
 };
 
 static char *MatWeights[] = {
-    #include "weights/matnet_10x16x2.net"
+    #include "weights/matnet_42x16x1.net"
     ""
 };
 
@@ -65,13 +65,19 @@ static void vectorizePKNetwork(const Board *board, bool *inputs) {
     assert(index == PKNETWORK_INPUTS);
 }
 
-static void vectorizeMatNetwork(const Board *board, int *inputs) {
+static void vectorizeMatNetwork(const Board *board, bool *inputs) {
 
     int index = 0;
 
-    for (int colour = WHITE; colour <= BLACK; colour++)
-        for (int piece = PAWN; piece <= QUEEN; piece++)
-            inputs[index++] = popcount(board->colours[colour] & board->pieces[piece]);
+    static const int MaxCounts[KING] = {8, 2, 2, 2, 2};
+
+    for (int colour = WHITE; colour <= BLACK; colour++) {
+        for (int piece = PAWN; piece <= QUEEN; piece++) {
+            int cnt = popcount(board->colours[colour] & board->pieces[piece]);
+            for (int i = 0; i <= MaxCounts[piece]; i++)
+                inputs[index++] = (i == MIN(MaxCounts[piece], cnt));
+        }
+    }
 
     assert(index == MATNETWORK_INPUTS);
 }
@@ -262,7 +268,7 @@ void initMatNetwork() {
 
 int fullyComputeMatNetwork(Thread *thread) {
 
-    int inputsNeurons[MATNETWORK_INPUTS];
+    bool inputsNeurons[MATNETWORK_INPUTS];
     float layer1Neurons[MATNETWORK_LAYER1];
     float outputNeurons[MATNETWORK_OUTPUTS];
 
@@ -281,7 +287,5 @@ int fullyComputeMatNetwork(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * MATNN.layer1Weights[i][j];
     }
 
-    int mg = outputNeurons[MG] / 100;
-    int eg = outputNeurons[EG] / 100;
-    return MakeScore(mg, eg);
+    return MakeScore((int) outputNeurons[0], (int) outputNeurons[0]);
 }
