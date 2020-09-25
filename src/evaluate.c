@@ -441,7 +441,7 @@ const int Tempo = 20;
 int evaluateBoard(Thread *thread, Board *board) {
 
     EvalInfo ei;
-    int phase, factor, eval, pkeval, hashed;
+    int phase, factor, eval, pkeval, hashed, material;
 
     // We can recognize positions we just evaluated
     if (thread->moveStack[thread->height-1] == NULL_MOVE)
@@ -458,7 +458,13 @@ int evaluateBoard(Thread *thread, Board *board) {
     if (ei.pkentry == NULL)
         pkeval += partiallyComputePKNetwork(thread);
 
-    eval += pkeval + board->psqtmat + thread->contempt;
+    // Evaluate the Material via Cache or via Nerual Net
+    if (!getCachedMaterialEval(thread, board, &material)) {
+        material = fullyComputeMatNetwork(thread);
+        storeCachedEvaluation(thread, board, material);
+    }
+
+    eval += pkeval + material + board->psqtmat + thread->contempt;
     eval += evaluateClosedness(&ei, board);
     eval += evaluateComplexity(&ei, board, eval);
 

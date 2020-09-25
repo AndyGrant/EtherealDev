@@ -48,3 +48,25 @@ int partiallyComputePKNetwork(Thread *thread);
 void initPKNetworkCollector(Thread *thread);
 void updatePKNetworkIndices(Thread *thread, int changes, int indexes[3], int signs[3]);
 void updatePKNetworkAfterMove(Thread *thread, uint16_t move);
+
+
+#define MATNETWORK_INPUTS  ( 10)
+#define MATNETWORK_LAYER1  ( 16)
+#define MATNETWORK_OUTPUTS (  2)
+
+typedef struct MatNetwork {
+
+    // MatNetworks are of the form [Input, Hidden Layer 1, Output Layer]
+    // Our current Network is [10x16, 16x2]. The Network is trained to
+    // output a Score in CentiPawns for the Midgame and for the Endgame
+
+    ALIGN64 float inputWeights[MATNETWORK_LAYER1][MATNETWORK_INPUTS];
+    ALIGN64 float inputBiases[MATNETWORK_LAYER1];
+
+    ALIGN64 float layer1Weights[MATNETWORK_OUTPUTS][MATNETWORK_LAYER1];
+    ALIGN64 float layer1Biases[MATNETWORK_OUTPUTS];
+
+} MatNetwork;
+
+void initMatNetwork();
+int fullyComputeMatNetwork(Thread *thread);
