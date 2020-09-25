@@ -461,7 +461,7 @@ int evaluateBoard(Thread *thread, Board *board) {
     // Evaluate the Material via Cache or via Nerual Net
     if (!getCachedMaterialEval(thread, board, &material)) {
         material = fullyComputeMatNetwork(thread);
-        storeCachedEvaluation(thread, board, material);
+        storeCachedMaterialEval(thread, board, material);
     }
 
     eval += pkeval + material + board->psqtmat + thread->contempt;
