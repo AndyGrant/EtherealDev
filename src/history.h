@@ -31,6 +31,7 @@ void updateKillerMoves(Thread *thread, uint16_t move);
 
 void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth);
 void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start, int length);
+int getCaptureHistory(Thread *thread, uint16_t move);
 
 void getHistory(Thread *thread, uint16_t move, int *hist, int *cmhist, int *fmhist);
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length);
