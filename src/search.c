@@ -368,9 +368,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-            // Skip any move with a poor Capture History
-            if (getCaptureHistory(thread, move) <= 0) continue;
-
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move)) continue;
 
@@ -662,6 +659,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // to beat the margin computed in the Delta Pruning step found above
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
+
+        // Give up after getting to moves with poor Capture History
+        if (getCaptureHistory(thread, move) <= 0) continue;
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
