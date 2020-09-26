@@ -402,6 +402,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             quietsSeen++;
         }
 
+        else
+            hist = getCaptureHistory(thread, move);
+
         // Step 11 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > -MATE_IN_MAX) {
@@ -514,9 +517,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R -= MAX(-2, MIN(2, (hist + cmhist + fmhist) / 5000));
 
             // Don't extend or drop into QS
-            R  = MIN(depth - 1, MAX(R, 1));
+            R = MIN(depth - 1, MAX(R, 1));
+        }
 
-        } else R = 1;
+        else if (!isQuiet && depth > 2 && played > 1)
+            R = MIN(depth - 1, 1 + (hist <= 0));
+
+        else R = 1;
 
         // Step 16A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
@@ -659,9 +666,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // to beat the margin computed in the Delta Pruning step found above
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
-
-        // Give up after getting to moves with poor Capture History
-        if (getCaptureHistory(thread, move) <= 0) continue;
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
