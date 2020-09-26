@@ -287,5 +287,5 @@ int fullyComputeMatNetwork(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * MATNN.layer1Weights[i][j];
     }
 
-    return MakeScore((int) outputNeurons[0], (int) outputNeurons[0]);
+    return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
 }

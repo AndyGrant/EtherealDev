@@ -52,7 +52,7 @@ void updatePKNetworkAfterMove(Thread *thread, uint16_t move);
 
 #define MATNETWORK_INPUTS  ( 42)
 #define MATNETWORK_LAYER1  ( 16)
-#define MATNETWORK_OUTPUTS (  1)
+#define MATNETWORK_OUTPUTS (  2)
 
 typedef struct MatNetwork {
 
