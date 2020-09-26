@@ -113,7 +113,7 @@ int fullyComputePKNetwork(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
     }
 
-    return MakeScore((int) outputNeurons[0], 0);
+    return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
 }
 
 int partiallyComputePKNetwork(Thread *thread) {
@@ -130,7 +130,7 @@ int partiallyComputePKNetwork(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
     }
 
-    return MakeScore((int) outputNeurons[0], 0);
+    return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
 }
 
 
