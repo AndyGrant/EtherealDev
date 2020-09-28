@@ -200,7 +200,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int hist = 0, cmhist = 0, fmhist = 0;
     int quietsSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
-    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha, verification;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -368,19 +368,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-            if (getCaptureHistory(thread, move) < -2400)
-                continue;
+            verification = depth >= 2 * ProbCutDepth
+                        || getCaptureHistory(thread, move) <= 0;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move)) continue;
 
-            // For high depths, verify the move first with a depth one search
-            if (depth >= 2 * ProbCutDepth)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, 1);
+            value =  verification
+                  ? -search(thread, &lpv, -rBeta, -rBeta+1, 1)
+                  : -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
 
-            // For low depths, or after the above, verify with a reduced search
-            if (depth < 2 * ProbCutDepth || value >= rBeta)
-                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+            value = !verification || value < rBeta ? value
+                  : -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
 
             // Revert the board state
             revert(thread, board, move);
