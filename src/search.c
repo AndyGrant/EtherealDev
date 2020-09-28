@@ -369,7 +369,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             verification = depth >= 2 * ProbCutDepth
-                        || getCaptureHistory(thread, move) <= 0;
+                        && getCaptureHistory(thread, move) <= 8000;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move)) continue;
