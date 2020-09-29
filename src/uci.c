@@ -41,14 +41,16 @@
 #include "uci.h"
 #include "zobrist.h"
 
-extern int ContemptDrawPenalty;   // Defined by thread.c
-extern int ContemptComplexity;    // Defined by thread.c
-extern int MoveOverhead;          // Defined by time.c
-extern unsigned TB_PROBE_DEPTH;   // Defined by syzygy.c
-extern volatile int ABORT_SIGNAL; // Defined by search.c
-extern volatile int IS_PONDERING; // Defined by search.c
-extern volatile int ANALYSISMODE; // Defined by search.c
-extern PKNetwork PKNN;            // Defined by network.c
+extern int ContemptDrawPenalty;    // Defined by thread.c
+extern int ContemptComplexity;     // Defined by thread.c
+extern int MoveOverhead;           // Defined by time.c
+extern unsigned TB_PROBE_DEPTH;    // Defined by syzygy.c
+extern volatile int ABORT_SIGNAL;  // Defined by search.c
+extern volatile int IS_PONDERING;  // Defined by search.c
+extern volatile int ANALYSISMODE;  // Defined by search.c
+
+extern PKNetwork PKNN;             // Defined by network.c
+extern RPKvRPK_Network RPKvRPK_NN; // Defined by network.c
 
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

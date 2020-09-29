@@ -458,6 +458,11 @@ int evaluateBoard(Thread *thread, Board *board) {
     if (ei.pkentry == NULL)
         pkeval += partiallyComputePKNetwork(thread);
 
+    // Evaluate Rook(s) + <?> Pawn(s) Endgames
+    if (    !board->pieces[QUEEN]  &&  !board->pieces[BISHOP]
+        &&  !board->pieces[KNIGHT] &&   board->pieces[ROOK])
+        eval += fullyComputeRPKvRPK_Network(thread);
+
     eval += pkeval + board->psqtmat + thread->contempt;
     eval += evaluateClosedness(&ei, board);
     eval += evaluateComplexity(&ei, board, eval);

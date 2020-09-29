@@ -214,3 +214,118 @@ void updatePKNetworkAfterMove(Thread *thread, uint16_t move) {
     if (changes)
         updatePKNetworkIndices(thread, changes, indexes, signs);
 }
+
+
+RPKvRPK_Network RPKvRPK_NN;
+
+static char *RPKvRPK_Weights[] = {
+    #include "weights/RPKvRPK_352x32x16x2.net"
+    ""
+};
+
+static void vectorizeRPKvRPK_Network(const Board *board, bool *inputs) {
+
+    int index = 0;
+
+    for (int colour = WHITE; colour <= BLACK; colour++) {
+
+        uint64_t ours  = board->colours[colour];
+        uint64_t pawns = ours & board->pieces[PAWN];
+        uint64_t rooks = ours & board->pieces[ROOK];
+        uint64_t kings = ours & board->pieces[KING];
+
+        for (int sq = 0; sq < SQUARE_NB; sq++)
+            if (!testBit(PROMOTION_RANKS, sq))
+                inputs[index++] = testBit(pawns, sq);
+
+        for (int sq = 0; sq < SQUARE_NB; sq++)
+            inputs[index++] = testBit(rooks, sq);
+
+        for (int sq = 0; sq < SQUARE_NB; sq++)
+            inputs[index++] = testBit(kings, sq);
+    }
+
+    assert(index == RPKvRPK_NETWORK_INPUTS);
+}
+
+void initRPKvRPK_Network() {
+
+    for (int i = 0; i < RPKvRPK_NETWORK_LAYER1; i++) {
+
+        // Grab the next line and tokenize it
+        char weights[strlen(RPKvRPK_Weights[i]) + 1];
+        strcpy(weights, RPKvRPK_Weights[i]);
+        strtok(weights, " ");
+
+        for (int j = 0; j < RPKvRPK_NETWORK_INPUTS; j++)
+            RPKvRPK_NN.inputWeights[i][j] = atof(strtok(NULL, " "));
+        RPKvRPK_NN.inputBiases[i] = atof(strtok(NULL, " "));
+    }
+
+    for (int i = 0; i < RPKvRPK_NETWORK_LAYER2; i++) {
+
+        // Grab the next line and tokenize it
+        char weights[strlen(RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1]) + 1];
+        strcpy(weights, RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1]);
+        strtok(weights, " ");
+
+        for (int j = 0; j < RPKvRPK_NETWORK_LAYER1; j++)
+            RPKvRPK_NN.layer1Weights[i][j] = atof(strtok(NULL, " "));
+        RPKvRPK_NN.layer1Biases[i] = atof(strtok(NULL, " "));
+    }
+
+    for (int i = 0; i < PKNETWORK_OUTPUTS; i++) {
+
+        // Grab the next line and tokenize it
+        char weights[strlen(RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1 + RPKvRPK_NETWORK_LAYER2]) + 1];
+        strcpy(weights, RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1 + RPKvRPK_NETWORK_LAYER2]);
+        strtok(weights, " ");
+
+        for (int j = 0; j < RPKvRPK_NETWORK_LAYER2; j++)
+            RPKvRPK_NN.layer2Weights[i][j] = atof(strtok(NULL, " "));
+        RPKvRPK_NN.layer2Biases[i] = atof(strtok(NULL, " "));
+    }
+}
+
+int fullyComputeRPKvRPK_Network(Thread *thread) {
+
+    bool inputsNeurons[RPKvRPK_NETWORK_INPUTS];
+    float layer1Neurons[RPKvRPK_NETWORK_LAYER1];
+    float layer2Neurons[RPKvRPK_NETWORK_LAYER1];
+    float outputNeurons[RPKvRPK_NETWORK_OUTPUTS];
+
+    vectorizeRPKvRPK_Network(&thread->board, inputsNeurons);
+
+    for (int i = 0; i < RPKvRPK_NETWORK_LAYER1; i++) {
+        layer1Neurons[i] = RPKvRPK_NN.inputBiases[i];
+        for (int j = 0; j < RPKvRPK_NETWORK_INPUTS; j++)
+            layer1Neurons[i] += inputsNeurons[j] * RPKvRPK_NN.inputWeights[i][j];
+    }
+
+    for (int i = 0; i < RPKvRPK_NETWORK_LAYER2; i++) {
+        layer2Neurons[i] = RPKvRPK_NN.layer1Biases[i];
+        for (int j = 0; j < RPKvRPK_NETWORK_LAYER1; j++)
+            if (layer1Neurons[j] >= 0.0)
+                layer2Neurons[i] += layer1Neurons[j] * RPKvRPK_NN.layer1Weights[i][j];
+    }
+
+    for (int i = 0; i < RPKvRPK_NETWORK_OUTPUTS; i++) {
+        outputNeurons[i] = RPKvRPK_NN.layer2Biases[i];
+        for (int j = 0; j < RPKvRPK_NETWORK_LAYER2; j++)
+            if (layer2Neurons[j] >= 0.0)
+                outputNeurons[i] += layer2Neurons[j] * RPKvRPK_NN.layer2Weights[i][j];
+    }
+
+    assert(RPKvRPK_NETWORK_OUTPUTS == PHASE_NB);
+
+    return MakeScore(0, 0);
+
+    return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
+
+}
+
+
+#define RPKvRPK_NETWORK_INPUTS  (352)
+#define RPKvRPK_NETWORK_LAYER1  ( 32)
+#define RPKvRPK_NETWORK_LAYER2  ( 16)
+#define RPKvRPK_NETWORK_OUTPUTS (  2)
