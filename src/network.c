@@ -301,7 +301,7 @@ int fullyComputeRPKvRPK_Network(Thread *thread) {
 
     dummy += outputNeurons[0];
 
-    return MakeScore(0, 0);
+    // return MakeScore(0, 0);
 
     return MakeScore(0, (int) outputNeurons[0]);
 }
