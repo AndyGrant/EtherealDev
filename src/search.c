@@ -525,7 +525,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             R  = MIN(3, 3 - (hist + 4000) / 2000);
 
-            R += movePicker.stage == STAGE_BAD_NOISY;
+            R -= movePicker.stage == STAGE_GOOD_NOISY;
 
             R  = MIN(depth - 1, MAX(1, R));
         }
