@@ -53,24 +53,20 @@ void updatePKNetworkAfterMove(Thread *thread, uint16_t move);
 
 #define RPKvRPK_NETWORK_INPUTS  (352)
 #define RPKvRPK_NETWORK_LAYER1  ( 32)
-#define RPKvRPK_NETWORK_LAYER2  ( 16)
 #define RPKvRPK_NETWORK_OUTPUTS (  2)
 
 typedef struct RPKvRPK_Network {
 
-    // RPKvRPK Networks are of the form [Input, Layer 1, Layer 2, Output]
-    // Our current Network is [352x32, 32x16, 16x2]. The Network is trained
+    // RPKvRPK Networks are of the form [Input, Hidden Layer 1, Output]
+    // Our current Network is [352x32, 32x2]. The Network is trained
     // to output a score in CentiPawns for the Midgame and Endgame, when there
     // are Rook(s) on the board, with no other non-pawn material.
 
     ALIGN64 float inputWeights[RPKvRPK_NETWORK_LAYER1][RPKvRPK_NETWORK_INPUTS];
     ALIGN64 float inputBiases[RPKvRPK_NETWORK_LAYER1];
 
-    ALIGN64 float layer1Weights[RPKvRPK_NETWORK_LAYER2][RPKvRPK_NETWORK_LAYER1];
-    ALIGN64 float layer1Biases[RPKvRPK_NETWORK_LAYER2];
-
-    ALIGN64 float layer2Weights[RPKvRPK_NETWORK_OUTPUTS][RPKvRPK_NETWORK_LAYER2];
-    ALIGN64 float layer2Biases[RPKvRPK_NETWORK_OUTPUTS];
+    ALIGN64 float layer1Weights[RPKvRPK_NETWORK_OUTPUTS][RPKvRPK_NETWORK_LAYER1];
+    ALIGN64 float layer1Biases[RPKvRPK_NETWORK_OUTPUTS];
 
 } RPKvRPK_Network;
 

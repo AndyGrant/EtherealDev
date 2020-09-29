@@ -219,7 +219,7 @@ void updatePKNetworkAfterMove(Thread *thread, uint16_t move) {
 RPKvRPK_Network RPKvRPK_NN;
 
 static char *RPKvRPK_Weights[] = {
-    #include "weights/RPKvRPK_352x32x16x2.net"
+    #include "weights/RPKvRPK_352x32x2.net"
     ""
 };
 
@@ -262,7 +262,7 @@ void initRPKvRPK_Network() {
         RPKvRPK_NN.inputBiases[i] = atof(strtok(NULL, " "));
     }
 
-    for (int i = 0; i < RPKvRPK_NETWORK_LAYER2; i++) {
+    for (int i = 0; i < RPKvRPK_NETWORK_OUTPUTS; i++) {
 
         // Grab the next line and tokenize it
         char weights[strlen(RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1]) + 1];
@@ -273,25 +273,12 @@ void initRPKvRPK_Network() {
             RPKvRPK_NN.layer1Weights[i][j] = atof(strtok(NULL, " "));
         RPKvRPK_NN.layer1Biases[i] = atof(strtok(NULL, " "));
     }
-
-    for (int i = 0; i < RPKvRPK_NETWORK_OUTPUTS; i++) {
-
-        // Grab the next line and tokenize it
-        char weights[strlen(RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1 + RPKvRPK_NETWORK_LAYER2]) + 1];
-        strcpy(weights, RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1 + RPKvRPK_NETWORK_LAYER2]);
-        strtok(weights, " ");
-
-        for (int j = 0; j < RPKvRPK_NETWORK_LAYER2; j++)
-            RPKvRPK_NN.layer2Weights[i][j] = atof(strtok(NULL, " "));
-        RPKvRPK_NN.layer2Biases[i] = atof(strtok(NULL, " "));
-    }
 }
 
 int fullyComputeRPKvRPK_Network(Thread *thread) {
 
     bool inputsNeurons[RPKvRPK_NETWORK_INPUTS];
     float layer1Neurons[RPKvRPK_NETWORK_LAYER1];
-    float layer2Neurons[RPKvRPK_NETWORK_LAYER1];
     float outputNeurons[RPKvRPK_NETWORK_OUTPUTS];
 
     vectorizeRPKvRPK_Network(&thread->board, inputsNeurons);
@@ -302,19 +289,14 @@ int fullyComputeRPKvRPK_Network(Thread *thread) {
             layer1Neurons[i] += inputsNeurons[j] * RPKvRPK_NN.inputWeights[i][j];
     }
 
-    for (int i = 0; i < RPKvRPK_NETWORK_LAYER2; i++) {
-        layer2Neurons[i] = RPKvRPK_NN.layer1Biases[i];
+    for (int i = 0; i < RPKvRPK_NETWORK_OUTPUTS; i++) {
+        outputNeurons[i] = RPKvRPK_NN.layer1Biases[i];
         for (int j = 0; j < RPKvRPK_NETWORK_LAYER1; j++)
             if (layer1Neurons[j] >= 0.0)
-                layer2Neurons[i] += layer1Neurons[j] * RPKvRPK_NN.layer1Weights[i][j];
+                outputNeurons[i] += layer1Neurons[j] * RPKvRPK_NN.layer1Weights[i][j];
     }
 
-    for (int i = 0; i < RPKvRPK_NETWORK_OUTPUTS; i++) {
-        outputNeurons[i] = RPKvRPK_NN.layer2Biases[i];
-        for (int j = 0; j < RPKvRPK_NETWORK_LAYER2; j++)
-            if (layer2Neurons[j] >= 0.0)
-                outputNeurons[i] += layer2Neurons[j] * RPKvRPK_NN.layer2Weights[i][j];
-    }
+    return MakeScore(0, 0);
 
     assert(RPKvRPK_NETWORK_OUTPUTS == PHASE_NB);
     return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
