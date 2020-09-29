@@ -118,7 +118,7 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         assert(PAWN <= captured && captured <= QUEEN);
 
         int entry = thread->chistory[piece][to][captured];
-        entry += 64 * delta - entry * abs(delta) / 256;
+        entry += 16 * delta - entry * abs(delta) / 1024;
         thread->chistory[piece][to][captured] = entry;
 
         // static const int HistoryMax = 400;
