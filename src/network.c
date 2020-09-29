@@ -274,7 +274,7 @@ void initRPKvRPK_Network() {
         RPKvRPK_NN.layer1Biases[i] = atof(strtok(NULL, " "));
     }
 
-    for (int i = 0; i < PKNETWORK_OUTPUTS; i++) {
+    for (int i = 0; i < RPKvRPK_NETWORK_OUTPUTS; i++) {
 
         // Grab the next line and tokenize it
         char weights[strlen(RPKvRPK_Weights[i + RPKvRPK_NETWORK_LAYER1 + RPKvRPK_NETWORK_LAYER2]) + 1];
@@ -317,6 +317,9 @@ int fullyComputeRPKvRPK_Network(Thread *thread) {
     }
 
     assert(RPKvRPK_NETWORK_OUTPUTS == PHASE_NB);
+
+    printf("%d %d\n", (int) outputNeurons[MG], (int) outputNeurons[EG]);
+
     return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
 }
 
