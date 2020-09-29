@@ -587,7 +587,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, depth);
 
     if (best >= beta)
-        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth);
+        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth + (best >= beta + 128));
 
     // Step 20. Store results of search into the Transposition Table. We do
     // not overwrite the Root entry from the first line of play we examined
