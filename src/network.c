@@ -300,7 +300,7 @@ int fullyComputeRPKvRPK_Network(Thread *thread) {
 
     dummy += outputNeurons[MG] + outputNeurons[EG];
 
-    return MakeScore(0, 0);
+    // return MakeScore(0, 0);
 
     assert(RPKvRPK_NETWORK_OUTPUTS == PHASE_NB);
     return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
