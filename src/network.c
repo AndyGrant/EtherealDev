@@ -219,7 +219,7 @@ void updatePKNetworkAfterMove(Thread *thread, uint16_t move) {
 RPKvRPK_Network RPKvRPK_NN;
 
 static char *RPKvRPK_Weights[] = {
-    #include "weights/RPKvRPK_352x32x2.net"
+    #include "weights/RPKvRPK_352x8x1.net"
     ""
 };
 
@@ -247,6 +247,7 @@ static void vectorizeRPKvRPK_Network(const Board *board, bool *inputs) {
 
     assert(index == RPKvRPK_NETWORK_INPUTS);
 }
+
 
 void initRPKvRPK_Network() {
 
@@ -298,16 +299,9 @@ int fullyComputeRPKvRPK_Network(Thread *thread) {
                 outputNeurons[i] += layer1Neurons[j] * RPKvRPK_NN.layer1Weights[i][j];
     }
 
-    dummy += outputNeurons[MG] + outputNeurons[EG];
+    dummy += outputNeurons[0];
 
-    // return MakeScore(0, 0);
+    return MakeScore(0, 0);
 
-    assert(RPKvRPK_NETWORK_OUTPUTS == PHASE_NB);
-    return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
+    return MakeScore(0, (int) outputNeurons[0]);
 }
-
-
-#define RPKvRPK_NETWORK_INPUTS  (352)
-#define RPKvRPK_NETWORK_LAYER1  ( 32)
-#define RPKvRPK_NETWORK_LAYER2  ( 16)
-#define RPKvRPK_NETWORK_OUTPUTS (  2)
