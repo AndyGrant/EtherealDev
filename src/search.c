@@ -523,10 +523,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // only applied to Tactical moves with unusually poor Capture History scores
         else if (!isQuiet && depth > 2 && played > 1) {
 
-            R  = MIN(3, 3 - (hist + 4000) / 2000);
+            R = !PvNode && !improving;
 
-            R += MoveType(move) == PROMOTION_MOVE
-              && MovePromoPiece(move) != QUEEN;
+            R -= MAX(-2, hist / 2000);
 
             R  = MIN(depth - 1, MAX(1, R));
         }
