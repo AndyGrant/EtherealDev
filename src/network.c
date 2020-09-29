@@ -277,6 +277,8 @@ void initRPKvRPK_Network() {
 
 int fullyComputeRPKvRPK_Network(Thread *thread) {
 
+    static float dummy = 0;
+
     bool inputsNeurons[RPKvRPK_NETWORK_INPUTS];
     float layer1Neurons[RPKvRPK_NETWORK_LAYER1];
     float outputNeurons[RPKvRPK_NETWORK_OUTPUTS];
@@ -295,6 +297,8 @@ int fullyComputeRPKvRPK_Network(Thread *thread) {
             if (layer1Neurons[j] >= 0.0)
                 outputNeurons[i] += layer1Neurons[j] * RPKvRPK_NN.layer1Weights[i][j];
     }
+
+    dummy += outputNeurons[MG] + outputNeurons[EG];
 
     return MakeScore(0, 0);
 
