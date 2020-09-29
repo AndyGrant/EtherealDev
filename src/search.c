@@ -369,7 +369,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             if (getCaptureHistory(thread, move) < -2400)
-                continue;
+                break;
 
             // Apply move, skip if move is illegal
             if (!apply(thread, board, move)) continue;
