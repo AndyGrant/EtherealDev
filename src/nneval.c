@@ -32,7 +32,6 @@ EGNetwork EGNetworks[NN_EG_COUNT];
 
 static int evaluateRPvRP(EGNetwork *nn, NNCacheEntry *entry, Board *board);
 
-
 static char *RPvRP_Weights[] = {
     #include NN_RPvRP_FILE
 };
@@ -87,8 +86,6 @@ void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
 
 int evaluateEndgames(Board *board) {
 
-    static int misses, hits;
-
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
@@ -102,13 +99,8 @@ int evaluateEndgames(Board *board) {
 
     NNCacheEntry *entry = &(*NNCaches[egtype])[board->pkhash & NN_CACHE_MASK];
 
-    if (entry->key != board->pkhash) {
+    if (entry->key != board->pkhash)
         computeEndgameNeurons(&EGNetworks[egtype], entry, board);
-        misses++;
-    } else hits++;
-
-    if ((misses + hits) % 1000000 == 0)
-        printf("Hits=%d Misses=%d Rate=(%f)\n", hits, misses, 100.0 * hits / (hits + misses));
 
     return evaluateRPvRP(&EGNetworks[egtype], entry, board);
 }
