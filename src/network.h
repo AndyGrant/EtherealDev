@@ -33,7 +33,7 @@ typedef struct PKNetwork {
     // Our current Network is [224x32, 32x1]. The Network is trained to
     // output a Score in CentiPawns for the Midgame and Endgame
 
-    ALIGN64 float inputWeights[PKNETWORK_LAYER1][PKNETWORK_INPUTS];
+    ALIGN64 float inputWeights[PKNETWORK_INPUTS][PKNETWORK_LAYER1];
     ALIGN64 float inputBiases[PKNETWORK_LAYER1];
 
     ALIGN64 float layer1Weights[PKNETWORK_OUTPUTS][PKNETWORK_LAYER1];

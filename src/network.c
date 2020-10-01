@@ -54,7 +54,7 @@ void initPKNetwork() {
         strtok(weights, " ");
 
         for (int j = 0; j < PKNETWORK_INPUTS; j++)
-            PKNN.inputWeights[i][j] = atof(strtok(NULL, " "));
+            PKNN.inputWeights[j][i] = atof(strtok(NULL, " "));
         PKNN.inputBiases[i] = atof(strtok(NULL, " "));
     }
 
@@ -80,21 +80,25 @@ int computePKNetwork(Thread *thread) {
     float layer1Neurons[PKNETWORK_LAYER1];
     float outputNeurons[PKNETWORK_OUTPUTS];
 
-    for (int i = 0; i < PKNETWORK_LAYER1; i++)
-        layer1Neurons[i] = PKNN.inputBiases[i];
+    { // Do one King first so we can set the Neuron
+        int sq = poplsb(&kings);
+        int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
+        for (int i = 0; i < PKNETWORK_LAYER1; i++)
+            layer1Neurons[i] = PKNN.inputBiases[i] + PKNN.inputWeights[idx][i];
+    }
+
+    { // Do the King that we did not do first
+        int sq = poplsb(&kings);
+        int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
+        for (int i = 0; i < PKNETWORK_LAYER1; i++)
+            layer1Neurons[i] += PKNN.inputWeights[idx][i];
+    }
 
     while (pawns) {
         int sq = poplsb(&pawns);
         int idx = computePKNetworkIndex(testBit(black, sq), PAWN, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
-            layer1Neurons[i] += PKNN.inputWeights[i][idx];
-    }
-
-    while (kings) {
-        int sq = poplsb(&kings);
-        int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
-        for (int i = 0; i < PKNETWORK_LAYER1; i++)
-            layer1Neurons[i] += PKNN.inputWeights[i][idx];
+            layer1Neurons[i] += PKNN.inputWeights[idx][i];
     }
 
     for (int i = 0; i < PKNETWORK_OUTPUTS; i++) {
