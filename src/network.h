@@ -42,9 +42,4 @@ typedef struct PKNetwork {
 } PKNetwork;
 
 void initPKNetwork();
-int fullyComputePKNetwork(Thread *thread);
-int partiallyComputePKNetwork(Thread *thread);
-
-void initPKNetworkCollector(Thread *thread);
-void updatePKNetworkIndices(Thread *thread, int changes, int indexes[3], int signs[3]);
-void updatePKNetworkAfterMove(Thread *thread, uint16_t move);
+int computePKNetwork(Thread *thread);
