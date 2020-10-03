@@ -24,11 +24,9 @@
 #include "board.h"
 #include "bitboards.h"
 #include "evaluate.h"
-#include "network.h"
 #include "nneval.h"
 #include "types.h"
 
-PKNNCache PKCache;
 NNCache *NNCaches[NN_EG_COUNT];
 EGNetwork EGNetworks[NN_EG_COUNT];
 
@@ -93,20 +91,9 @@ int evaluateEndgames(Board *board) {
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
 
-    // If not an endgame (only RP at the moment), return a
-    // general Pawn+King NN evaluation
-    if ((knights | bishops | queens) || !rooks) {
-
-        PKNNCacheEntry *entry = &PKCache[board->pkhash & NN_CACHE_MASK];
-
-        if (entry->key == board->pkhash)
-            return entry->eval;
-
-        entry->eval = computePKNetwork(board);
-        entry->key  = board->pkhash;
-
-        return entry->eval;
-    }
+    // If not an endgame (only RP at the moment), return 0
+    if ((knights | bishops | queens) || !rooks)
+        return MakeScore(0, 0);
 
     int egtype = NN_RPvRP; // Only NN we have at the moment
 

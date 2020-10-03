@@ -452,10 +452,13 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);
-    pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
 
-    eval += evaluateEndgames(board);
+    pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
+    if (ei.pkentry == NULL)
+        pkeval += computePKNetwork(board);
+
     eval += pkeval + board->psqtmat + thread->contempt;
+    eval += evaluateEndgames(board);
     eval += evaluateClosedness(&ei, board);
     eval += evaluateComplexity(&ei, board, eval);
 

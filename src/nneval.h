@@ -27,25 +27,12 @@
 
 #define NN_RPvRP_FILE   "weights/RPvRP.net"
 
-//
-
 typedef struct NNCacheEntry {
     float neurons[NN_EG_NEURONS];
     uint64_t key;
 } NNCacheEntry;
 
 typedef NNCacheEntry NNCache[NN_CACHE_SIZE];
-
-//
-
-typedef struct PKNNCacheEntry {
-    int eval;
-    uint64_t key;
-} PKNNCacheEntry;
-
-typedef PKNNCacheEntry PKNNCache[NN_CACHE_SIZE];
-
-//
 
 typedef struct EGNetwork {
     float **inputWeights;
