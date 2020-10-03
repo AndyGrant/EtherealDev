@@ -27,12 +27,11 @@
 #include "evaluate.h"
 #include "move.h"
 #include "masks.h"
-#include "network.h"
+#include "nneval.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
 
-extern PKNetwork PKNN;
 EvalTrace T, EmptyTrace;
 int PSQT[32][SQUARE_NB];
 
@@ -453,11 +452,9 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);
-
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-    if (ei.pkentry == NULL)
-        pkeval += computePKNetwork(thread);
 
+    eval += evaluateEndgames(board);
     eval += pkeval + board->psqtmat + thread->contempt;
     eval += evaluateClosedness(&ei, board);
     eval += evaluateComplexity(&ei, board, eval);
