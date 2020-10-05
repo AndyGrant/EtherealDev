@@ -35,14 +35,21 @@ typedef struct NNCacheEntry {
 typedef NNCacheEntry NNCache[NN_CACHE_SIZE];
 
 typedef struct EGNetwork {
+
     float **inputWeights;
     float inputBiases[NN_EG_NEURONS];
-    float layer1Weights[NN_EG_NEURONS];
-    float layer1Bias;
+
+    float layer1Weights[NN_EG_NEURONS][NN_EG_NEURONS];
+    float layer1Biases[NN_EG_NEURONS];
+
+    float layer2Weights[NN_EG_NEURONS];
+    float layer2Bias;
+
 } EGNetwork;
 
 void initEndgameNNs();
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs);
+void printEndgameNN(EGNetwork *nn, char *label, int inputs);
 
 int evaluateEndgames(Board *board);
 void computeEndgameNeurons(EGNetwork *nn, NNCacheEntry *entry, Board *board);

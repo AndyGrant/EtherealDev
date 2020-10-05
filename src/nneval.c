@@ -44,6 +44,8 @@ void initEndgameNNs() {
         NNCaches[i] = malloc(sizeof(NNCache));
 
     initEndgameNN(&EGNetworks[NN_RPvRP], RPvRP_Weights, 352);
+
+    // printEndgameNN(&EGNetworks[NN_RPvRP], "Rook(s) + Pawn(s)", 352);
 }
 
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
@@ -72,16 +74,74 @@ void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
         nn->inputBiases[i] = atof(strtok(NULL, " "));
     }
 
-    // Init the weights for the Hidden Layer
+    // Init the weights for the Hidden Layer 1
 
-    char line[strlen(weights[NN_EG_NEURONS]) + 1];
-    strcpy(line, weights[NN_EG_NEURONS]);
+    for (int i = 0; i < NN_EG_NEURONS; i++) {
+
+        char line[strlen(weights[i + NN_EG_NEURONS]) + 1];
+        strcpy(line, weights[i + NN_EG_NEURONS]);
+        strtok(line, " ");
+
+        for (int j = 0; j < NN_EG_NEURONS; j++)
+            nn->layer1Weights[i][j] = atof(strtok(NULL, " "));
+        nn->layer1Biases[i] = atof(strtok(NULL, " "));
+    }
+
+    // Init the weights for the Hidden Layer 2
+
+    char line[strlen(weights[2 * NN_EG_NEURONS]) + 1];
+    strcpy(line, weights[2 * NN_EG_NEURONS]);
     strtok(line, " ");
 
     for (int i = 0; i < NN_EG_NEURONS; i++)
-        nn->layer1Weights[i] = atof(strtok(NULL, " "));
-    nn->layer1Bias = atof(strtok(NULL, " "));
+        nn->layer2Weights[i] = atof(strtok(NULL, " "));
+    nn->layer2Bias = atof(strtok(NULL, " "));
 }
+
+void printEndgameNN(EGNetwork *nn, char *label, int inputs) {
+
+    printf("Network Size [%d, %d, %d, 1] for %s\n", inputs, NN_EG_NEURONS, NN_EG_NEURONS, label);
+
+    printf("Input Biases  : [ ");
+    for (int i = 0; i < NN_EG_NEURONS; i++)
+        printf("%+7.3f ", nn->inputBiases[i]);
+    printf("]\n");
+
+    printf("Layer1 Biases : [ ");
+    for (int i = 0; i < NN_EG_NEURONS; i++)
+        printf("%+7.3f ", nn->layer1Biases[i]);
+    printf("]\n");
+
+    printf("Layer2 Biases : [ %+7.3f ]\n", nn->layer2Bias);
+
+
+    printf("\nInput Weights\n");
+    for (int i = 0; i < NN_EG_NEURONS; i++) {
+        printf("[%d] : [ ", i);
+        for (int j = 0; j < 4; j++)
+            printf("%+7.3f ", nn->inputWeights[i][j]);
+        printf("... ");
+        for (int j = inputs - 4; j < inputs; j++)
+            printf("%+7.3f ", nn->inputWeights[i][j]);
+        printf("]\n");
+    }
+
+    printf("\nLayer1 Weights\n");
+    for (int i = 0; i < NN_EG_NEURONS; i++) {
+        printf("[%d] : [ ", i);
+        for (int j = 0; j < NN_EG_NEURONS; j++)
+            printf("%+7.3f ", nn->layer1Weights[i][j]);
+        printf("]\n");
+    }
+
+    printf("\nLayer2 Weights\n[0] : [ ");
+    for (int i = 0; i < NN_EG_NEURONS; i++)
+        printf("%+7.3f ", nn->layer2Weights[i]);
+    printf("]\n");
+
+    fflush(stdout);
+}
+
 
 int evaluateEndgames(Board *board) {
 
@@ -142,25 +202,37 @@ void computeEndgameNeurons(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
 
 static int evaluateRPvRP(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
 
-    float neurons[NN_EG_NEURONS], output;
-    memcpy(neurons, entry->neurons, sizeof(float) * NN_EG_NEURONS);
+    float neurons1[NN_EG_NEURONS], neurons2[NN_EG_NEURONS], output;
+    memcpy(neurons1, entry->neurons, sizeof(float) * NN_EG_NEURONS);
 
     const int RookIDX[COLOUR_NB] = { 224, 288 };
 
     uint64_t rooks = board->pieces[ROOK];
     uint64_t black = board->colours[BLACK];
 
+    // Finish computing Hidden Layer 1
+
     while (rooks) {
         int sq = poplsb(&rooks);
         int idx = sq + RookIDX[testBit(black, sq)];
         for (int i = 0; i < NN_EG_NEURONS; i++)
-            neurons[i] += nn->inputWeights[i][idx];
+            neurons1[i] += nn->inputWeights[i][idx];
     }
 
-    output = nn->layer1Bias;
-    for (int i = 0; i < NN_EG_NEURONS; i++)
-        if (neurons[i] >= 0.0)
-            output += neurons[i] * nn->layer1Weights[i];
+    // Compute Hidden Layer 2
 
+    for (int i = 0; i < NN_EG_NEURONS; i++) {
+        neurons2[i] = nn->layer1Biases[i];
+        for (int j = 0; j < NN_EG_NEURONS; j++)
+            if (neurons1[j] >= 0.0)
+                neurons2[i] += neurons1[j] * nn->layer1Weights[i][j];
+    }
+
+    // Compute Output Neuron for the Endgame
+
+    output = nn->layer2Bias;
+    for (int i = 0; i < NN_EG_NEURONS; i++)
+        if (neurons2[i] >= 0.0)
+            output += neurons2[i] * nn->layer2Weights[i];
     return MakeScore(0, (int) output);
 }
