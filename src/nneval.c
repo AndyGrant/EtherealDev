@@ -31,9 +31,14 @@ NNCache *NNCaches[NN_EG_COUNT];
 EGNetwork EGNetworks[NN_EG_COUNT];
 
 static int evaluateRPvRP(EGNetwork *nn, NNCacheEntry *entry, Board *board);
+static int evaluateOCB_BPvBP(EGNetwork *nn, NNCacheEntry *entry, Board *board);
 
 static char *RPvRP_Weights[] = {
     #include NN_RPvRP_FILE
+};
+
+static char *OCB_BPvBP_Weights[] = {
+    #include NN_OCB_BPvBP_FILE
 };
 
 
@@ -44,6 +49,7 @@ void initEndgameNNs() {
         NNCaches[i] = malloc(sizeof(NNCache));
 
     initEndgameNN(&EGNetworks[NN_RPvRP], RPvRP_Weights, 352);
+    initEndgameNN(&EGNetworks[NN_OCB_BPvBP], OCB_BPvBP_Weights, 352);
 }
 
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
@@ -83,25 +89,24 @@ void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
     nn->layer1Bias = atof(strtok(NULL, " "));
 }
 
+
 int evaluateEndgames(Board *board) {
 
-    uint64_t knights = board->pieces[KNIGHT];
-    uint64_t bishops = board->pieces[BISHOP];
-    uint64_t rooks   = board->pieces[ROOK  ];
-    uint64_t queens  = board->pieces[QUEEN ];
+    static int (*table[])(EGNetwork*, NNCacheEntry*, Board*) = {
+        evaluateRPvRP, evaluateOCB_BPvBP
+    };
 
-    // If not an endgame (only RP at the moment), return 0
-    if ((knights | bishops | queens) || !rooks)
+    int egtype = determineEndgame(board);
+
+    if (egtype == NN_EG_COUNT)
         return MakeScore(0, 0);
-
-    int egtype = NN_RPvRP; // Only NN we have at the moment
 
     NNCacheEntry *entry = &(*NNCaches[egtype])[board->pkhash & NN_CACHE_MASK];
 
     if (entry->key != board->pkhash)
         computeEndgameNeurons(&EGNetworks[egtype], entry, board);
 
-    return evaluateRPvRP(&EGNetworks[egtype], entry, board);
+    return table[egtype](&EGNetworks[egtype], entry, board);
 }
 
 void computeEndgameNeurons(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
@@ -139,6 +144,28 @@ void computeEndgameNeurons(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
     entry->key = board->pkhash;
 }
 
+int determineEndgame(Board *board) {
+
+    const uint64_t knights = board->pieces[KNIGHT];
+    const uint64_t bishops = board->pieces[BISHOP];
+    const uint64_t rooks   = board->pieces[ROOK  ];
+    const uint64_t queens  = board->pieces[QUEEN ];
+
+    const uint64_t white   = board->colours[WHITE];
+    const uint64_t black   = board->colours[BLACK];
+
+    if (!knights && !bishops && !queens && rooks)
+        return NN_RPvRP;
+
+    if (   !(knights | rooks | queens)
+        &&  onlyOne(white & bishops)
+        &&  onlyOne(black & bishops)
+        &&  onlyOne(bishops & WHITE_SQUARES))
+        return NN_OCB_BPvBP;
+
+    return NN_EG_COUNT;
+}
+
 
 static int evaluateRPvRP(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
 
@@ -161,6 +188,34 @@ static int evaluateRPvRP(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
     for (int i = 0; i < NN_EG_NEURONS; i++)
         if (neurons[i] >= 0.0)
             output += neurons[i] * nn->layer1Weights[i];
+
+    return MakeScore(0, (int) output);
+}
+
+static int evaluateOCB_BPvBP(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
+
+    float neurons[NN_EG_NEURONS], output;
+    memcpy(neurons, entry->neurons, sizeof(float) * NN_EG_NEURONS);
+
+    const int BishopIDX[COLOUR_NB] = { 224, 288 };
+
+    uint64_t bishops = board->pieces[BISHOP];
+    uint64_t black = board->colours[BLACK];
+
+    while (bishops) {
+        int sq = poplsb(&bishops);
+        int idx = sq + BishopIDX[testBit(black, sq)];
+        for (int i = 0; i < NN_EG_NEURONS; i++)
+            neurons[i] += nn->inputWeights[i][idx];
+    }
+
+    output = nn->layer1Bias;
+    for (int i = 0; i < NN_EG_NEURONS; i++)
+        if (neurons[i] >= 0.0)
+            output += neurons[i] * nn->layer1Weights[i];
+
+
+    printf("%d\n", (int) output);
 
     return MakeScore(0, (int) output);
 }

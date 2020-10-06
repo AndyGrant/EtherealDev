@@ -23,9 +23,11 @@
 #define NN_CACHE_MASK   65535
 
 #define NN_RPvRP        0
-#define NN_EG_COUNT     1
+#define NN_OCB_BPvBP    1
+#define NN_EG_COUNT     2
 
-#define NN_RPvRP_FILE   "weights/RPvRP.net"
+#define NN_RPvRP_FILE     "weights/RPvRP.net"
+#define NN_OCB_BPvBP_FILE "weights/OCB_BPvBP.net"
 
 typedef struct NNCacheEntry {
     float neurons[NN_EG_NEURONS];
@@ -43,6 +45,7 @@ typedef struct EGNetwork {
 
 void initEndgameNNs();
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs);
+int determineEndgame(Board *board);
 
 int evaluateEndgames(Board *board);
 void computeEndgameNeurons(EGNetwork *nn, NNCacheEntry *entry, Board *board);
