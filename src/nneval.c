@@ -214,8 +214,5 @@ static int evaluateOCB_BPvBP(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
         if (neurons[i] >= 0.0)
             output += neurons[i] * nn->layer1Weights[i];
 
-
-    printf("%d\n", (int) output);
-
     return MakeScore(0, (int) output);
 }
