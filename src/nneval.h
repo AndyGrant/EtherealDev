@@ -22,12 +22,12 @@
 #define NN_CACHE_SIZE   65536
 #define NN_CACHE_MASK   65535
 
-#define NN_RPvRP        0
-#define NN_OCB_BPvBP    1
-#define NN_EG_COUNT     2
+#define NN_RPvRP    0
+#define NN_NPvNP    1
+#define NN_EG_COUNT 2
 
-#define NN_RPvRP_FILE     "weights/RPvRP.net"
-#define NN_OCB_BPvBP_FILE "weights/OCB_BPvBP.net"
+#define NN_RPvRP_FILE "weights/RPvRP.net"
+#define NN_NPvNP_FILE "weights/NPvNP.net"
 
 typedef struct NNCacheEntry {
     float neurons[NN_EG_NEURONS];
