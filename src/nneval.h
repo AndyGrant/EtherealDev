@@ -44,5 +44,5 @@ typedef struct EGNetwork {
 void initEndgameNNs();
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs);
 
-int evaluateEndgames(Board *board);
+int evaluateEndgames(Board *board, int eval);
 void computeEndgameNeurons(EGNetwork *nn, NNCacheEntry *entry, Board *board);

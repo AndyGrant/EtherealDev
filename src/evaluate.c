@@ -459,7 +459,7 @@ int evaluateBoard(Thread *thread, Board *board) {
         pkeval += computePKNetwork(board);
 
     eval += pkeval + board->psqtmat + thread->contempt;
-    eval += evaluateEndgames(board);
+    eval += evaluateEndgames(board, eval);
     eval += evaluateClosedness(&ei, board);
     eval += evaluateComplexity(&ei, board, eval);
 

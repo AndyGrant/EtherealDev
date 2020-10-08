@@ -83,12 +83,16 @@ void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
     nn->layer1Bias = atof(strtok(NULL, " "));
 }
 
-int evaluateEndgames(Board *board) {
+int evaluateEndgames(Board *board, int eval) {
 
     uint64_t knights = board->pieces[KNIGHT];
     uint64_t bishops = board->pieces[BISHOP];
     uint64_t rooks   = board->pieces[ROOK  ];
     uint64_t queens  = board->pieces[QUEEN ];
+
+    // Don't touch a decisive eval
+    if (abs(ScoreEG(eval)) >= 300)
+        return MakeScore(0, 0);
 
     // If not an endgame (only RP at the moment), return 0
     if ((knights | bishops | queens) || !rooks)
