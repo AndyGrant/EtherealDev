@@ -162,5 +162,5 @@ static int evaluateRPvRP(EGNetwork *nn, NNCacheEntry *entry, Board *board) {
         if (neurons[i] >= 0.0)
             output += neurons[i] * nn->layer1Weights[i];
 
-    return MakeScore(0, (int) output);
+    return MakeScore(0, (int) (output * 1.25));
 }
