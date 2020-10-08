@@ -518,8 +518,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Step 15B (~2 elo). Noisy Late Move Reductions. The same as Step 15A, but
         // only applied to Tactical moves with unusually poor Capture History scores
-        else if (!isQuiet && depth > 2 && played > 1)
-            R = MIN(depth - 1, MAX(1, MIN(3, 3 - (hist + 4000) / 2000)));
+        else if (!isQuiet && depth > 2 && played > 1) {
+
+            R = MIN(4, 4 - (hist + 6000) / 2000);
+
+            R = MIN(depth - 1, MAX(1, R));
+
+        }
 
         // No LMR conditions were met. Use a Standard Reduction
         else R = 1;
