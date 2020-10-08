@@ -45,7 +45,7 @@ void initEndgameNNs() {
 
     initEndgameNN(&EGNetworks[NN_RPvRP], RPvRP_Weights, 352);
 
-    // printEndgameNN(&EGNetworks[NN_RPvRP], "Rook(s) + Pawn(s)", 352);
+    printEndgameNN(&EGNetworks[NN_RPvRP], "Rook(s) + Pawn(s)", 352);
 }
 
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
@@ -113,7 +113,6 @@ void printEndgameNN(EGNetwork *nn, char *label, int inputs) {
     printf("]\n");
 
     printf("Layer2 Biases : [ %+7.3f ]\n", nn->layer2Bias);
-
 
     printf("\nInput Weights\n");
     for (int i = 0; i < NN_EG_NEURONS; i++) {

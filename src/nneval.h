@@ -18,9 +18,9 @@
 
 #pragma once
 
-#define NN_EG_NEURONS   8
-#define NN_CACHE_SIZE   65536
-#define NN_CACHE_MASK   65535
+#define NN_EG_NEURONS   16
+#define NN_CACHE_SIZE   32768
+#define NN_CACHE_MASK   32767
 
 #define NN_RPvRP        0
 #define NN_EG_COUNT     1
