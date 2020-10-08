@@ -44,8 +44,7 @@ void initEndgameNNs() {
         NNCaches[i] = malloc(sizeof(NNCache));
 
     initEndgameNN(&EGNetworks[NN_RPvRP], RPvRP_Weights, 352);
-
-    printEndgameNN(&EGNetworks[NN_RPvRP], "Rook(s) + Pawn(s)", 352);
+    // printEndgameNN(&EGNetworks[NN_RPvRP], "Rook(s) + Pawn(s)", 352);
 }
 
 void initEndgameNN(EGNetwork *nn, char *weights[], int inputs) {
