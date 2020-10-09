@@ -32,31 +32,17 @@
 #endif
 
 #include <stdbool.h>
-#define INLINE static inline __attribute__((always_inline))
-#define NOINLINE __attribute__((noinline))
 
 #include <assert.h>
 #include <stdio.h>
+
 #ifndef _WIN32
 #include <pthread.h>
 #endif
+
 #include <stdatomic.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#ifndef _WIN32
-#define LOCK_T pthread_mutex_t
-#define LOCK_INIT(x) pthread_mutex_init(&(x), NULL)
-#define LOCK_DESTROY(x) pthread_mutex_destroy(&(x))
-#define LOCK(x) pthread_mutex_lock(&(x))
-#define UNLOCK(x) pthread_mutex_unlock(&(x))
-#else
-#define LOCK_T HANDLE
-#define LOCK_INIT(x) do { x = CreateMutex(NULL, FALSE, NULL); } while (0)
-#define LOCK_DESTROY(x) CloseHandle(x)
-#define LOCK(x) WaitForSingleObject(x, INFINITE)
-#define UNLOCK(x) ReleaseMutex(x)
-#endif
 
 #include "types.h"
 
@@ -67,9 +53,6 @@ typedef HANDLE FD;
 #define FD_ERR INVALID_HANDLE_VALUE
 typedef HANDLE map_t;
 
-void flockfile(FILE *F);
-void funlockfile(FILE *F);
-
 #else /* Unix */
 
 typedef int FD;
@@ -78,63 +61,51 @@ typedef size_t map_t;
 
 #endif
 
-ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-
 FD open_file(const char *name);
 void close_file(FD fd);
-size_t file_size(FD fd);
 const void *map_file(FD fd, map_t *map);
 void unmap_file(const void *data, map_t map);
 
-INLINE bool is_little_endian(void)
-{
+
+static inline bool is_little_endian(void) {
   int num = 1;
   return *(uint8_t *)&num == 1;
 }
 
-INLINE uint32_t from_le_u32(uint32_t v)
-{
+static inline uint32_t from_le_u32(uint32_t v) {
   return is_little_endian() ? v : __builtin_bswap32(v);
 }
 
-INLINE uint16_t from_le_u16(uint16_t v)
-{
+static inline uint16_t from_le_u16(uint16_t v) {
   return is_little_endian() ? v : __builtin_bswap16(v);
 }
 
-INLINE uint64_t from_be_u64(uint64_t v)
-{
+static inline uint64_t from_be_u64(uint64_t v) {
   return is_little_endian() ? __builtin_bswap64(v) : v;
 }
 
-INLINE uint32_t from_be_u32(uint32_t v)
-{
+static inline uint32_t from_be_u32(uint32_t v) {
   return is_little_endian() ? __builtin_bswap32(v) : v;
 }
 
-INLINE uint16_t from_be_u16(uint16_t v)
-{
+static inline uint16_t from_be_u16(uint16_t v) {
   return is_little_endian() ? __builtin_bswap16(v) : v;
 }
 
-INLINE uint32_t read_le_u32(const void *p)
-{
+static inline uint32_t read_le_u32(const void *p) {
   return from_le_u32(*(uint32_t *)p);
 }
 
-INLINE uint16_t read_le_u16(const void *p)
-{
+static inline uint16_t read_le_u16(const void *p) {
   return from_le_u16(*(uint16_t *)p);
 }
 
-INLINE uint32_t readu_le_u32(const void *p)
-{
+static inline uint32_t readu_le_u32(const void *p) {
   const uint8_t *q = p;
   return q[0] | (q[1] << 8) | (q[2] << 16) | (q[3] << 24);
 }
 
-INLINE uint16_t readu_le_u16(const void *p)
-{
+static inline uint16_t readu_le_u16(const void *p) {
   const uint8_t *q = p;
   return q[0] | (q[1] << 8);
 }
