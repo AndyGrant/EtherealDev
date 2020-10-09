@@ -65,6 +65,7 @@ FD open_file(const char *name);
 void close_file(FD fd);
 const void *map_file(FD fd, map_t *map);
 void unmap_file(const void *data, map_t map);
+size_t file_size(FD fd);
 
 
 static inline bool is_little_endian(void) {

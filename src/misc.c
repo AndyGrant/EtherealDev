@@ -90,3 +90,16 @@ void unmap_file(const void *data, map_t map)
 
 #endif
 }
+
+size_t file_size(FD fd)
+{
+#ifndef _WIN32
+  struct stat statbuf;
+  fstat(fd, &statbuf);
+  return statbuf.st_size;
+#else
+  DWORD sizeLow, sizeHigh;
+  sizeLow = GetFileSize(fd, &sizeHigh);
+  return ((uint64_t)sizeHigh << 32) | sizeLow;
+#endif
+}
