@@ -18,6 +18,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -32,55 +33,11 @@
 #include "misc.h"
 #include "thread.h"
 
-// Version number. If Version is left empty, then compile date in the format
-// DD-MM-YY and show in engine_info.
-char Version[] = "";
-
 #ifndef _WIN32
 pthread_mutex_t ioMutex = PTHREAD_MUTEX_INITIALIZER;
 #else
 HANDLE ioMutex;
 #endif
-
-// xorshift64star Pseudo-Random Number Generator
-// This class is based on original code written and dedicated
-// to the public domain by Sebastiano Vigna (2014).
-// It has the following characteristics:
-//
-//  -  Outputs 64-bit numbers
-//  -  Passes Dieharder and SmallCrush test batteries
-//  -  Does not require warm-up, no zeroland to escape
-//  -  Internal state is a single 64-bit integer
-//  -  Period is 2^64 - 1
-//  -  Speed: 1.60 ns/call (Core i7 @3.40GHz)
-//
-// For further analysis see
-//   <http://vigna.di.unimi.it/ftp/papers/xorshift.pdf>
-
-void prng_init(PRNG *rng, uint64_t seed)
-{
-  rng->s = seed;
-}
-
-uint64_t prng_rand(PRNG *rng)
-{
-  uint64_t s = rng->s;
-
-  s ^= s >> 12;
-  s ^= s << 25;
-  s ^= s >> 27;
-  rng->s = s;
-
-  return s * 2685821657736338717LL;
-}
-
-uint64_t prng_sparse_rand(PRNG *rng)
-{
-  uint64_t r1 = prng_rand(rng);
-  uint64_t r2 = prng_rand(rng);
-  uint64_t r3 = prng_rand(rng);
-  return r1 & r2 & r3;
-}
 
 ssize_t getline(char **lineptr, size_t *n, FILE *stream)
 {
@@ -100,40 +57,7 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream)
 }
 
 #ifdef _WIN32
-typedef SIZE_T (WINAPI *GLPM)(void);
-size_t largePageMinimum;
-
-bool large_pages_supported(void)
-{
-  GLPM impGetLargePageMinimum =
-    (GLPM)(void (*)(void))GetProcAddress(GetModuleHandle("kernel32.dll"),
-        "GetLargePageMinimum");
-  if (!impGetLargePageMinimum)
-    return 0;
-
-  if ((largePageMinimum = impGetLargePageMinimum()) == 0)
-    return 0;
-
-  LUID privLuid;
-  if (!LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &privLuid))
-    return 0;
-
-  HANDLE token;
-  if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &token))
-    return 0;
-
-  TOKEN_PRIVILEGES tokenPrivs;
-  tokenPrivs.PrivilegeCount = 1;
-  tokenPrivs.Privileges[0].Luid = privLuid;
-  tokenPrivs.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-  if (!AdjustTokenPrivileges(token, FALSE, &tokenPrivs, 0, NULL, NULL))
-    return 0;
-
-  return 1;
-}
-
 // The following two functions were taken from mingw_lock.c
-
 void __cdecl _lock(int locknum);
 void __cdecl _unlock(int locknum);
 #define _STREAM_LOCKS 16

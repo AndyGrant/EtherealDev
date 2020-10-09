@@ -31,8 +31,7 @@
 #include "evaluate.h"
 #include "misc.h"
 #include "nnue.h"
-// #include "position.h" - AGE
-#include "board.h" // - AGE
+#include "board.h"
 #include "uci.h"
 
 // Old gcc on Windows is unable to provide a 32-byte aligned stack.
@@ -1596,12 +1595,12 @@ static void init_weights(const void *evalData)
 #endif
 }
 
-static bool load_eval_file(const char *evalFile)
+static bool load_eval_file(const char *fname)
 {
 const void *evalData;
 map_t mapping;
 
-FD fd = open_file(evalFile);
+FD fd = open_file(fname);
 if (fd == FD_ERR) return false;
 evalData = map_file(fd, &mapping);
 close_file(fd);
@@ -1611,7 +1610,7 @@ if (mapping) unmap_file(evalData, mapping);
 return true;
 }
 
-void nnue_init(char *fname) {
+void nnue_init(const char *fname) {
 
     static char *loadedFile = NULL;
 

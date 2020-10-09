@@ -18,8 +18,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MISC_H
-#define MISC_H
+#pragma once
 
 #include <fcntl.h>
 #include <inttypes.h>
@@ -61,47 +60,8 @@
 
 #include "types.h"
 
-// prefetch() preloads the given address in L1/L2 cache. This is
-// a non-blocking function that doesn't stall the CPU waiting for data
-// to be loaded from memory, which can be quite slow.
-
-INLINE void prefetch(void *addr)
-{
-#ifndef NO_PREFETCH
-
-#if defined(__INTEL_COMPILER)
-// This hack prevents prefetches from being optimized away by
-// Intel compiler. Both MSVC and gcc seem not be affected by this.
-  __asm__ ("");
-#endif
-
-#if defined(__INTEL_COMPILER) || defined(_MSC_VER)
-  _mm_prefetch((char *)addr, _MM_HINT_T0);
-#else
-  __builtin_prefetch(addr);
-#endif
-#else
-  (void)addr;
-#endif
-}
-
-INLINE void prefetch2(void *addr)
-{
-  prefetch(addr);
-  prefetch((uint8_t *)addr + 64);
-}
-
-typedef int64_t TimePoint; // A value in milliseconds
-
-INLINE TimePoint now(void) {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return 1000 * (uint64_t)tv.tv_sec + (uint64_t)tv.tv_usec / 1000;
-}
 
 #ifdef _WIN32
-bool large_pages_supported(void);
-extern size_t largePageMinimum;
 
 typedef HANDLE FD;
 #define FD_ERR INVALID_HANDLE_VALUE
@@ -125,32 +85,6 @@ void close_file(FD fd);
 size_t file_size(FD fd);
 const void *map_file(FD fd, map_t *map);
 void unmap_file(const void *data, map_t map);
-
-struct PRNG
-{
-  uint64_t s;
-};
-
-typedef struct PRNG PRNG;
-
-void prng_init(PRNG *rng, uint64_t seed);
-uint64_t prng_rand(PRNG *rng);
-uint64_t prng_sparse_rand(PRNG *rng);
-
-INLINE uint64_t mul_hi64(uint64_t a, uint64_t b)
-{
-#if defined(__GNUC__) && defined(IS_64BIT)
-  __extension__ typedef unsigned __int128 uint128;
-  return ((uint128)a * (uint128)b) >> 64;
-#else
-  uint64_t aL = (uint32_t)a, aH = a >> 32;
-  uint64_t bL = (uint32_t)b, bH = b >> 32;
-  uint64_t c1 = (aL * bL) >> 32;
-  uint64_t c2 = aH * bL + c1;
-  uint64_t c3 = aL * bH + (uint32_t)c2;
-  return aH * bH + (c2 >> 32) + (c3 >> 32);
-#endif
-}
 
 INLINE bool is_little_endian(void)
 {
@@ -204,5 +138,3 @@ INLINE uint16_t readu_le_u16(const void *p)
   const uint8_t *q = p;
   return q[0] | (q[1] << 8);
 }
-
-#endif

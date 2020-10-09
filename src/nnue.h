@@ -1,5 +1,4 @@
-#ifndef NNUE_H
-#define NNUE_H
+#pragma once
 
 #include <stdalign.h>
 #include <stdint.h>
@@ -29,7 +28,5 @@
 
 #define clamp(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 
-void nnue_init(char *fname);
+void nnue_init(const char *fname);
 Value nnue_evaluate(const Position *pos);
-
-#endif
