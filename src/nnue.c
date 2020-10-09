@@ -76,9 +76,6 @@ uint32_t PieceToIndex[2][16] = {
     0, PS_W_PAWN, PS_W_KNIGHT, PS_W_BISHOP, PS_W_ROOK, PS_W_QUEEN, 0, 0 }
 };
 
-// Version of the evaluation file
-static const uint32_t NnueVersion = 0x7AF32F16u;
-
 // Constants used in evaluation value calculation
 enum {
   FV_SCALE = 16,
@@ -1576,31 +1573,9 @@ static void permute_biases(int32_t *biases)
 }
 #endif
 
-enum {
-  TransformerStart = 3 * 4 + 177,
-  NetworkStart = TransformerStart + 4 + 2 * 256 + 2 * 256 * 64 * 641
-};
-
-static bool verify_net(const void *evalData, size_t size)
-{
-
-  return true;
-
-  if (size != 21022697) return false;
-
-  const char *d = evalData;
-  if (readu_le_u32(d) != NnueVersion) return false;
-  if (readu_le_u32(d + 4) != 0x3e5aa6eeU) return false;
-  if (readu_le_u32(d + 8) != 177) return false;
-  if (readu_le_u32(d + TransformerStart) != 0x5d69d7b8) return false;
-  if (readu_le_u32(d + NetworkStart) != 0x63337156) return false;
-
-  return true;
-}
-
 static void init_weights(const void *evalData)
 {
-  const char *d = (const char *)evalData + TransformerStart + 4;
+  const char *d = (const char *)evalData + (3 * 4 + 177) + 4;
 
   // Read transformer
   for (unsigned i = 0; i < kHalfDimensions; i++, d += 2)
@@ -1630,78 +1605,44 @@ static bool load_eval_file(const char *evalFile)
 {
   const void *evalData;
   map_t mapping;
-  size_t size;
 
 #ifdef NNUE_EMBEDDED
   if (strcmp(evalFile, "weights.nn") == 0) {
     evalData = gNetworkData;
     mapping = 0;
-    size = gNetworkSize;
   } else
 #endif
   {
     FD fd = open_file(evalFile);
     if (fd == FD_ERR) return false;
     evalData = map_file(fd, &mapping);
-    size = file_size(fd);
     close_file(fd);
   }
 
-  bool success = verify_net(evalData, size);
-  if (success)
-    init_weights(evalData);
+  init_weights(evalData);
   if (mapping) unmap_file(evalData, mapping);
-  return success;
+  return true;
 }
 
-static char *loadedFile = NULL;
+void nnue_init(char *fname) {
 
-void nnue_init(void)
-{
-// #ifndef NNUE_PURE
-//   const char *s = option_string_value(OPT_USE_NNUE);
-//   useNNUE =  strcmp(s, "classical") == 0 ? EVAL_CLASSICAL
-//            : strcmp(s, "pure"     ) == 0 ? EVAL_PURE : EVAL_HYBRID;
-// #endif
-// - AGE
+    static char *loadedFile = NULL;
 
-  // const char *evalFile = option_string_value(OPT_EVAL_FILE); - AGE
-  const char evalFile[] = "weights.nn"; // - AGE
+    // We've already loaded the requested file
+    if (loadedFile && strcmp(fname, loadedFile) == 0)
+        return;
 
-  // if (loadedFile && strcmp(evalFile, loadedFile) == 0)
-  //   return;
-  //
-  // if (loadedFile)
-  //   free(loadedFile);
-  // - AGE
+    // Clear the name of the loaded file
+    if (loadedFile)
+        free(loadedFile);
 
-  if (load_eval_file(evalFile)) {
-    loadedFile = strdup(evalFile);
-    return;
-  }
+    // Load up the new file and save this information
+    if (load_eval_file(fname)) {
+        loadedFile = strdup(fname);
+        return;
+    }
 
-//   printf("info string ERROR: The network file %s was not loaded successfully.\n"
-// #ifdef NNUE_EMBEDDED
-//          , evalFile
-// #else
-//          "info string ERROR: The default net can be downloaded from:\n"
-//          "info string ERROR: https://tests.stockfishchess.org/api/nn/%s\n",
-//          evalFile, option_default_string_value(OPT_EVAL_FILE)
-// #endif
-//          );
-// - AGE
-  printf("info string ERROR: The network file %s was not loaded successfully.\n", evalFile);
-  exit(EXIT_FAILURE);
+    // Something went wrong, and thus we cannot continue any more
+    printf("info string ERROR: The network file %s was not loaded successfully.\n", fname);
+    exit(EXIT_FAILURE);
 }
-
-#if 0
-// Incrementally update the accumulator if possible
-void update_eval(const Position *pos)
-{
-  update_accumulator(pos);
-
-#ifdef USE_MMX
-  _mm_empty();
-#endif
-}
-#endif

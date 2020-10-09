@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     initAttacks(); initMasks(); initEval();
     initSearch(); initZobrist(); initTT(16);
     initPKNetwork(&PKNN); initEndgameNNs();
-    nnue_init();
+    nnue_init("weights.nn");
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);

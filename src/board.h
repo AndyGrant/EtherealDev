@@ -24,16 +24,14 @@
 
 extern const char *PieceLabel[COLOUR_NB];
 
-struct DirtyPiece {
+typedef struct DirtyPiece {
   int dirtyNum;
   int pc[3];
   int from[3];
   int to[3];
-};
+} DirtyPiece;
 
-typedef struct DirtyPiece DirtyPiece;
-
-typedef struct {
+typedef struct Accumulator{
   alignas(64) int16_t accumulation[2][256];
   bool computedAccumulation;
 } Accumulator;
@@ -51,8 +49,7 @@ struct Board {
     int turn, epSquare, halfMoveCounter, fullMoveCounter;
     int psqtmat, numMoves, chess960;
     uint64_t history[512];
-    Stack *st;
-    Stack _stacks[512];
+    Stack *st, _stacks[512];
 };
 
 struct Undo {

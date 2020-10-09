@@ -29,7 +29,7 @@
 
 #define clamp(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 
-void nnue_init(void);
+void nnue_init(char *fname);
 Value nnue_evaluate(const Position *pos);
 
 #endif

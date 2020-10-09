@@ -14,6 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+########################################################################################
+# 1. General Configuration
+########################################################################################
+
 CC      = gcc
 SRC     = *.c pyrrhic/tbprobe.c
 LIBS    = -lpthread -lm
@@ -33,6 +37,8 @@ ARMV8FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv8-a -m64
 ARMV7FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv7-a -m32
 ARMV7FLAGS += -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb -Wl,--fix-cortex-a8
 
+########################################################################################
+# 2. Special Purpose Instruction Sets for NNUE
 ########################################################################################
 
 PROPERTIES = $(shell echo | $(CC) -m64 -march=native -E -dM -)
@@ -61,6 +67,8 @@ ifneq ($(findstring __MMX__, $(PROPERTIES)),)
 	CFLAGS += -DUSE_MMX
 endif
 
+########################################################################################
+# 3. Targets
 ########################################################################################
 
 popcnt:
