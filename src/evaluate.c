@@ -29,6 +29,7 @@
 #include "masks.h"
 #include "network.h"
 #include "nneval.h"
+#include "nnue.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
@@ -450,6 +451,9 @@ int evaluateBoard(Thread *thread, Board *board) {
     // Check for this evaluation being cached already
     if (!TRACE && getCachedEvaluation(thread, board, &hashed))
         return hashed;
+
+    // Skip everything and return just the NNUE
+    return nnue_evaluate(board);
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);

@@ -19,7 +19,7 @@ SRC     = *.c pyrrhic/tbprobe.c
 LIBS    = -lpthread -lm
 EXE     = Ethereal
 
-WFLAGS = -std=gnu11 -Wall -Wextra -Wshadow
+WFLAGS = -std=gnu11 -s -Wall -Wextra -Wshadow -DNNUE_EMBEDDED
 CFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native
 RFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -static
 TFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
@@ -28,11 +28,40 @@ DFLAGS = -O0 $(WFLAGS)
 
 POPCNTFLAGS = -DUSE_POPCNT -msse3 -mpopcnt
 PEXTFLAGS   = $(POPCNTFLAGS) -DUSE_PEXT -mbmi2
-AVX2FLAGS   = -msse -msse3 -mpopcnt -mavx2 -msse4.1 -mssse3 -msse2
 
 ARMV8FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv8-a -m64
 ARMV7FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv7-a -m32
 ARMV7FLAGS += -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb -Wl,--fix-cortex-a8
+
+########################################################################################
+
+PROPERTIES = $(shell echo | $(CC) -m64 -march=native -E -dM -)
+
+ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
+	CFLAGS += -DUSE_AVX2
+endif
+
+ifneq ($(findstring __SSE41__, $(PROPERTIES)),)
+	CFLAGS += -DUSE_SSE41
+endif
+
+ifneq ($(findstring __SSSE3__, $(PROPERTIES)),)
+	CFLAGS += -DUSE_SSSE3
+endif
+
+ifneq ($(findstring __SSE2__, $(PROPERTIES)),)
+	CFLAGS += -DUSE_SSE2
+endif
+
+ifneq ($(findstring __SSE__, $(PROPERTIES)),)
+	CFLAGS += -DUSE_SSE
+endif
+
+ifneq ($(findstring __MMX__, $(PROPERTIES)),)
+	CFLAGS += -DUSE_MMX
+endif
+
+########################################################################################
 
 popcnt:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
@@ -48,8 +77,6 @@ release:
 	$(CC) $(RFLAGS) $(SRC) $(LIBS) -o ../dist/$(EXE)$(VER)-x64-nopopcnt.exe
 	$(CC) $(RFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o ../dist/$(EXE)$(VER)-x64-popcnt.exe
 	$(CC) $(RFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o ../dist/$(EXE)$(VER)-x64-pext.exe
-	$(CC) $(RFLAGS) $(SRC) $(LIBS) $(AVX2FLAGS) $(POPCNTFLAGS) -o ../dist/$(EXE)$(VER)-x64-popcnt-avx2.exe
-	$(CC) $(RFLAGS) $(SRC) $(LIBS) $(AVX2FLAGS) $(PEXTFLAGS) -o ../dist/$(EXE)$(VER)-x64-pext-avx2.exe
 
 tune:
 	$(CC) $(TFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)

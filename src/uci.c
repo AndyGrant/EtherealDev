@@ -34,6 +34,7 @@
 #include "movegen.h"
 #include "network.h"
 #include "nneval.h"
+#include "nnue.h"
 #include "search.h"
 #include "thread.h"
 #include "time.h"
@@ -69,6 +70,7 @@ int main(int argc, char **argv) {
     initAttacks(); initMasks(); initEval();
     initSearch(); initZobrist(); initTT(16);
     initPKNetwork(&PKNN); initEndgameNNs();
+    nnue_init();
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
