@@ -35,11 +35,6 @@
 #include "board.h" // - AGE
 #include "uci.h"
 
-#ifdef NNUE_EMBEDDED
-#include "incbin.h"
-INCBIN(Network, "weights.nn");
-#endif
-
 // Old gcc on Windows is unable to provide a 32-byte aligned stack.
 // We need to hack around this when using AVX2 and AVX512.
 #if     defined(__GNUC__ ) && (__GNUC__ < 9) && defined(_WIN32) \
@@ -1603,25 +1598,17 @@ static void init_weights(const void *evalData)
 
 static bool load_eval_file(const char *evalFile)
 {
-  const void *evalData;
-  map_t mapping;
+const void *evalData;
+map_t mapping;
 
-#ifdef NNUE_EMBEDDED
-  if (strcmp(evalFile, "weights.nn") == 0) {
-    evalData = gNetworkData;
-    mapping = 0;
-  } else
-#endif
-  {
-    FD fd = open_file(evalFile);
-    if (fd == FD_ERR) return false;
-    evalData = map_file(fd, &mapping);
-    close_file(fd);
-  }
+FD fd = open_file(evalFile);
+if (fd == FD_ERR) return false;
+evalData = map_file(fd, &mapping);
+close_file(fd);
 
-  init_weights(evalData);
-  if (mapping) unmap_file(evalData, mapping);
-  return true;
+init_weights(evalData);
+if (mapping) unmap_file(evalData, mapping);
+return true;
 }
 
 void nnue_init(char *fname) {
