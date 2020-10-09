@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdlib.h> // - AGE
+#include <stdlib.h>
 
 #if defined(USE_AVX2)
 #include <immintrin.h>
@@ -43,7 +43,7 @@
 #endif
 
 #if defined(USE_NEON) && !defined(IS_64BIT)
-INLINE int16x8_t vmovl_high_s16(int8x16_t v)
+int16x8_t vmovl_high_s16(int8x16_t v)
 {
   return vmovl_s16(vget_high_s16(v));
 }
@@ -212,12 +212,12 @@ typedef struct {
   unsigned values[30];
 } IndexList;
 
-INLINE Square orient(Color c, Square s)
+Square orient(Color c, Square s)
 {
   return s ^ (c == WHITE ? 0x00 : 0x3f);
 }
 
-INLINE unsigned make_index(Color c, Square s, Piece pc, Square ksq)
+unsigned make_index(Color c, Square s, Piece pc, Square ksq)
 {
   Piece x = (1 + pieceType(pc)) + 8 * pieceColour(pc);
   if (pc == EMPTY) x = 0;
@@ -309,7 +309,7 @@ static alignas(64) int32_t hidden1_biases[32];
 static alignas(64) int32_t hidden2_biases[32];
 static int32_t output_biases[1];
 
-INLINE void affine_propagate(clipped_t *input, int32_t *output, unsigned inDims,
+void affine_propagate(clipped_t *input, int32_t *output, unsigned inDims,
     unsigned outDims, int32_t *biases, weight_t *weights)
 {
   assert(inDims % 32 == 0);
@@ -457,7 +457,7 @@ INLINE void affine_propagate(clipped_t *input, int32_t *output, unsigned inDims,
 
 #ifndef TRANSPOSE
 
-INLINE void clip_propagate(int32_t *input, clipped_t *output, unsigned numDims)
+void clip_propagate(int32_t *input, clipped_t *output, unsigned numDims)
 {
   assert(numDims == 32);
 
@@ -563,7 +563,7 @@ INLINE void clip_propagate(int32_t *input, clipped_t *output, unsigned numDims)
 static_assert(FtOutDims % 64 == 0, "FtOutDims not a multiple of 64");
 
 #ifdef USE_MASK
-INLINE bool next_idx(unsigned *idx, unsigned *offset, mask2_t *v,
+bool next_idx(unsigned *idx, unsigned *offset, mask2_t *v,
     mask_t *mask, unsigned inDims)
 {
   while (*v == 0) {
@@ -581,7 +581,7 @@ INLINE bool next_idx(unsigned *idx, unsigned *offset, mask2_t *v,
 }
 
 #if defined(USE_MMX) && !defined(USE_SSE)
-INLINE int _mm_movemask_pi8(__m64 v)
+int _mm_movemask_pi8(__m64 v)
 {
   const __m64 powers = _mm_set_pi8(-128, 64, 32, 16, 8, 4, 2, 1);
   __m64 m = _mm_and_si64(v, powers);
@@ -591,7 +591,7 @@ INLINE int _mm_movemask_pi8(__m64 v)
   return _mm_cvtsi64_si32(m) & 0xff;
 }
 #elif defined(USE_NEON)
-INLINE void neon_movemask(uint8_t *outMask, int8x16_t out)
+void neon_movemask(uint8_t *outMask, int8x16_t out)
 {
   const uint8_t __attribute__((aligned(16))) powers[16] =
     { 1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128 };
@@ -607,7 +607,7 @@ INLINE void neon_movemask(uint8_t *outMask, int8x16_t out)
 #endif
 
 #if defined(USE_AVX512)
-INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
+void affine_txfm(int8_t *input, void *output, unsigned inDims,
     unsigned outDims, const int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -652,7 +652,7 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
     outVec[0] = _mm256_max_epi8(outVec[0], kZero256);
 }
 #elif defined(USE_AVX2)
-INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
+void affine_txfm(int8_t *input, void *output, unsigned inDims,
     unsigned outDims, const int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -702,7 +702,7 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
     outVec[0] = _mm256_max_epi8(outVec[0], kZero);
 }
 #elif AVOID_USE_SSSE3
-INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
+void affine_txfm(int8_t *input, void *output, unsigned inDims,
     unsigned outDims, const int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -776,7 +776,7 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
   }
 }
 #elif defined(USE_SSE2)
-INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
+void affine_txfm(clipped_t *input, void *output, unsigned inDims,
     unsigned outDims, const int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -838,7 +838,7 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
   }
 }
 #elif defined(USE_MMX)
-INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
+void affine_txfm(clipped_t *input, void *output, unsigned inDims,
     unsigned outDims, const int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -995,7 +995,7 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 #endif
 }
 #elif defined(USE_NEON)
-INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
+void affine_txfm(clipped_t *input, void *output, unsigned inDims,
     unsigned outDims, const int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -1057,7 +1057,7 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
   }
 }
 #else /* generic fallback */
-INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
+void affine_txfm(clipped_t *input, void *output, unsigned inDims,
     unsigned outDims, int32_t *biases, const weight_t *weights,
     mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
@@ -1090,7 +1090,7 @@ static alignas(64) int16_t ft_weights[kHalfDimensions * FtInDims];
 #endif
 
 // Calculate cumulative value without using difference calculation
-INLINE void refresh_accumulator(const Position *pos)
+void refresh_accumulator(const Position *pos)
 {
   Accumulator *accumulator = &(pos->st->accumulator);
 
@@ -1138,7 +1138,7 @@ INLINE void refresh_accumulator(const Position *pos)
 }
 
 // Calculate cumulative value using difference calculation if possible
-INLINE bool update_accumulator(const Position *pos)
+bool update_accumulator(const Position *pos)
 {
   Accumulator *accumulator = &(pos->st->accumulator);
   if (accumulator->computedAccumulation)
@@ -1229,7 +1229,7 @@ INLINE bool update_accumulator(const Position *pos)
 }
 
 // Convert input features
-INLINE void transform(const Position *pos, clipped_t *output, mask_t *outMask)
+void transform(const Position *pos, clipped_t *output, mask_t *outMask)
 {
   if (!update_accumulator(pos))
     refresh_accumulator(pos);
@@ -1477,7 +1477,7 @@ static void read_output_weights(weight_t *w, const char *d)
   }
 }
 
-INLINE unsigned wt_idx(unsigned r, unsigned c, unsigned dims)
+unsigned wt_idx(unsigned r, unsigned c, unsigned dims)
 {
   (void)dims;
 
