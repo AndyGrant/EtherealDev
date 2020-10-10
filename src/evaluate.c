@@ -453,8 +453,11 @@ int evaluateBoard(Thread *thread, Board *board) {
         return hashed;
 
     // Skip everything and return just the NNUE
-    if (usingNNUE())
-        return nnue_evaluate(board);
+    if (usingNNUE() && abs(ScoreEG(board->psqtmat)) <= 400) {
+        eval = nnue_evaluate(board) / 2 - Tempo;
+        storeCachedEvaluation(thread, board, board->turn == WHITE ? eval : -eval);
+        return eval + Tempo;
+    }
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);
