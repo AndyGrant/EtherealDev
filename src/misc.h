@@ -31,9 +31,9 @@
 #include <unistd.h>
 
 #ifdef _WIN32
-#include <windows.h>
+    #include <windows.h>
 #else
-#include <sys/mman.h>
+    #include <sys/mman.h>
 #endif
 
 #ifdef _WIN32
@@ -46,51 +46,10 @@
     typedef size_t map_t;
 #endif
 
-FD open_file(const char *name);
+FD open_file(const char *fname);
 void close_file(FD fd);
 const void *map_file(FD fd, map_t *map);
 void unmap_file(const void *data, map_t map);
 size_t file_size(FD fd);
-
-static inline bool is_little_endian(void) {
-  int num = 1;
-  return *(uint8_t *)&num == 1;
-}
-
-static inline uint32_t from_le_u32(uint32_t v) {
-  return is_little_endian() ? v : __builtin_bswap32(v);
-}
-
-static inline uint16_t from_le_u16(uint16_t v) {
-  return is_little_endian() ? v : __builtin_bswap16(v);
-}
-
-static inline uint64_t from_be_u64(uint64_t v) {
-  return is_little_endian() ? __builtin_bswap64(v) : v;
-}
-
-static inline uint32_t from_be_u32(uint32_t v) {
-  return is_little_endian() ? __builtin_bswap32(v) : v;
-}
-
-static inline uint16_t from_be_u16(uint16_t v) {
-  return is_little_endian() ? __builtin_bswap16(v) : v;
-}
-
-static inline uint32_t read_le_u32(const void *p) {
-  return from_le_u32(*(uint32_t *)p);
-}
-
-static inline uint16_t read_le_u16(const void *p) {
-  return from_le_u16(*(uint16_t *)p);
-}
-
-static inline uint32_t readu_le_u32(const void *p) {
-  const uint8_t *q = p;
-  return q[0] | (q[1] << 8) | (q[2] << 16) | (q[3] << 24);
-}
-
-static inline uint16_t readu_le_u16(const void *p) {
-  const uint8_t *q = p;
-  return q[0] | (q[1] << 8);
-}
+uint32_t readu_le_u32(const void *p);
+uint16_t readu_le_u16(const void *p);
