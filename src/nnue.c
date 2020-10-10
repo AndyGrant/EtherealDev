@@ -63,13 +63,6 @@ enum {
   PS_END      = 10 * 64 + 1
 };
 
-uint32_t PieceToIndex[2][16] = {
-  { 0, PS_W_PAWN, PS_W_KNIGHT, PS_W_BISHOP, PS_W_ROOK, PS_W_QUEEN, 0, 0,
-    0, PS_B_PAWN, PS_B_KNIGHT, PS_B_BISHOP, PS_B_ROOK, PS_B_QUEEN, 0, 0 },
-  { 0, PS_B_PAWN, PS_B_KNIGHT, PS_B_BISHOP, PS_B_ROOK, PS_B_QUEEN, 0, 0,
-    0, PS_W_PAWN, PS_W_KNIGHT, PS_W_BISHOP, PS_W_ROOK, PS_W_QUEEN, 0, 0 }
-};
-
 // Constants used in evaluation value calculation
 enum {
   FV_SCALE = 16,
@@ -207,35 +200,46 @@ typedef uint8_t mask_t; // dummy
 
 #endif
 
-typedef struct {
-  size_t size;
-  unsigned values[30];
+typedef struct IndexList {
+    size_t size;
+    unsigned values[30];
 } IndexList;
 
-Square orient(Color c, Square s)
-{
-  return s ^ (c == WHITE ? 0x00 : 0x3f);
+int orient(int colour, int sq) {
+    return sq ^ (colour == WHITE ? 0x00 : 0x3f);
 }
 
-unsigned make_index(Color c, Square s, Piece pc, Square ksq)
-{
-  Piece x = (1 + pieceType(pc)) + 8 * pieceColour(pc);
-  if (pc == EMPTY) x = 0;
-  return orient(c, s) + PieceToIndex[c][x] + PS_END * ksq;
+unsigned make_index(int colour, int sq, int pc, int ksq) {
+
+    uint32_t PieceToIndex[2][2][8] = {
+        {{ PS_W_PAWN, PS_W_KNIGHT, PS_W_BISHOP, PS_W_ROOK, PS_W_QUEEN, 0, 0, 0},
+         { PS_B_PAWN, PS_B_KNIGHT, PS_B_BISHOP, PS_B_ROOK, PS_B_QUEEN, 0, 0, 0}},
+        {{ PS_B_PAWN, PS_B_KNIGHT, PS_B_BISHOP, PS_B_ROOK, PS_B_QUEEN, 0, 0, 0},
+         { PS_W_PAWN, PS_W_KNIGHT, PS_W_BISHOP, PS_W_ROOK, PS_W_QUEEN, 0, 0, 0}},
+    };
+
+    assert(PAWN <= pieceType(pc) && pieceType(pc) <= KING);
+    assert(WHITE <= pieceColour(pc) && pieceColour(pc) <= BLACK);
+    return orient(colour, sq) + PieceToIndex[colour][pieceColour(pc)][pieceType(pc)] + PS_END * ksq;
 }
 
-static void half_kp_append_active_indices(const Position *pos, const Color c,
-    IndexList *active)
-{
-  Square ksq = orient(c, square_of(c, KING));
-  Bitboard bb = pieces() & ~pieces_p(KING);
-  while (bb) {
-    Square s = pop_lsb(&bb);
-    active->values[active->size++] = make_index(c, s, piece_on(s), ksq);
-  }
+void half_kp_append_active_indices(const Board *board, int colour, IndexList *active) {
+
+    uint64_t white = board->colours[WHITE];
+    uint64_t black = board->colours[BLACK];
+    uint64_t kings = board->pieces[KING];
+    uint64_t bb    = (white | black) & ~kings;
+
+    int ksq = orient(colour, getlsb(board->colours[colour] & kings));
+
+    while (bb) {
+        int sq = poplsb(&bb);
+        int pc = board->squares[sq];
+        active->values[active->size++] = make_index(colour, sq, pc, ksq);
+    }
 }
 
-static void half_kp_append_changed_indices(const Position *pos, const Color c,
+void half_kp_append_changed_indices(const Position *pos, const Color c,
     const DirtyPiece *dp, IndexList *removed, IndexList *added)
 {
   Square ksq = orient(c, square_of(c, KING));
@@ -283,6 +287,8 @@ static void append_changed_indices(const Position *pos, IndexList removed[2],
     }
   }
 }
+
+
 
 // InputLayer = InputSlice<256 * 2>
 // out: 512 x clipped_t
