@@ -53,7 +53,8 @@
 
 #include "../board.h"
 #include "../evaluate.h"
-#include "../uci.h"
+#include "../thread.h"
+#include "../types.h"
 
 // Old gcc on Windows is unable to provide a 32-byte aligned stack.
 // We need to hack around this when using AVX2 and AVX512.

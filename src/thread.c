@@ -38,9 +38,10 @@ Thread* createThreadPool(int nthreads) {
     for (int i = 0; i < nthreads; i++) {
 
         // Offset stacks so the root position may look backwards
-        threads[i].evalStack  = &(threads[i]._evalStack[STACK_OFFSET]);
-        threads[i].moveStack  = &(threads[i]._moveStack[STACK_OFFSET]);
-        threads[i].pieceStack = &(threads[i]._pieceStack[STACK_OFFSET]);
+        threads[i].evalStack  = &(threads[i]._evalStack  [STACK_OFFSET]);
+        threads[i].moveStack  = &(threads[i]._moveStack  [STACK_OFFSET]);
+        threads[i].pieceStack = &(threads[i]._pieceStack [STACK_OFFSET]);
+        threads[i].nnueStack  = &(threads[i]._nnueStack  [STACK_OFFSET]);
 
         // Threads will know of each other
         threads[i].index = i;
@@ -79,18 +80,23 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
     // our own copy of the board. Also, we reset the seach statistics
 
     int contempt = MakeScore(ContemptDrawPenalty + ContemptComplexity, ContemptDrawPenalty);
+    if (board->turn == BLACK) contempt = -contempt;
 
     for (int i = 0; i < threads->nthreads; i++) {
 
         threads[i].limits = limits;
         threads[i].info   = info;
+        threads[i].contempt = contempt;
 
         threads[i].height    = 0;
         threads[i].nodes     = 0ull;
         threads[i].tbhits    = 0ull;
 
         memcpy(&threads[i].board, board, sizeof(Board));
-        threads[i].contempt = board->turn == WHITE ? contempt : -contempt;
+
+        threads[i].board.st = threads[i].nnueStack;
+        for (int j = 0; j < STACK_SIZE; j++)
+            threads[i]._nnueStack[j].accumulator.computedAccumulation = 0;
     }
 }
 

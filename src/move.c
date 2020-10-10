@@ -51,6 +51,7 @@ int castleRookTo(int king, int rook) {
 
 
 int apply(Thread *thread, Board *board, uint16_t move) {
+
     // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
         thread->moveStack[thread->height] = NULL_MOVE;
@@ -96,9 +97,11 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
         applyEnpassMove, applyPromotionMove
     };
 
-    Stack *st = ++board->st;
-    memcpy(st, st-1, sizeof(Stack));
-    st->accumulator.computedAccumulation = 0;
+    if (board->st != NULL) {
+        NNUEStack *st = ++board->st;
+        memcpy(st, st-1, sizeof(NNUEStack));
+        st->accumulator.computedAccumulation = 0;
+    }
 
     // Save information which is hard to recompute
     undo->hash            = board->hash;
@@ -143,16 +146,19 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
     const int toType = pieceType(toPiece);
     const int toColour = pieceColour(toPiece);
 
-    board->st->dirtyPiece.pc[0]    = fromPiece;
-    board->st->dirtyPiece.from[0]  = from;
-    board->st->dirtyPiece.to[0]    = to;
-    board->st->dirtyPiece.dirtyNum = 1;
+    if (board->st != NULL) {
 
-    if (toPiece != EMPTY) {
-        board->st->dirtyPiece.pc[1]    = toPiece;
-        board->st->dirtyPiece.from[1]  = to;
-        board->st->dirtyPiece.to[1]    = 64;
-        board->st->dirtyPiece.dirtyNum = 2;
+        board->st->dirtyPiece.pc[0]    = fromPiece;
+        board->st->dirtyPiece.from[0]  = from;
+        board->st->dirtyPiece.to[0]    = to;
+        board->st->dirtyPiece.dirtyNum = 1;
+
+        if (toPiece != EMPTY) {
+            board->st->dirtyPiece.pc[1]    = toPiece;
+            board->st->dirtyPiece.from[1]  = to;
+            board->st->dirtyPiece.to[1]    = 64;
+            board->st->dirtyPiece.dirtyNum = 2;
+        }
     }
 
     if (fromType == PAWN || toPiece != EMPTY)
@@ -214,13 +220,17 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
 
-    board->st->dirtyPiece.pc[0]    = fromPiece;
-    board->st->dirtyPiece.from[0]  = from;
-    board->st->dirtyPiece.to[0]    = to;
-    board->st->dirtyPiece.pc[1]    = rFromPiece;
-    board->st->dirtyPiece.from[1]  = rFrom;
-    board->st->dirtyPiece.to[1]    = rTo;
-    board->st->dirtyPiece.dirtyNum = 2;
+    if (board->st != NULL) {
+
+        board->st->dirtyPiece.pc[0]    = fromPiece;
+        board->st->dirtyPiece.from[0]  = from;
+        board->st->dirtyPiece.to[0]    = to;
+
+        board->st->dirtyPiece.pc[1]    = rFromPiece;
+        board->st->dirtyPiece.from[1]  = rFrom;
+        board->st->dirtyPiece.to[1]    = rTo;
+        board->st->dirtyPiece.dirtyNum = 2;
+    }
 
     board->halfMoveCounter += 1;
 
@@ -267,15 +277,18 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
     const int fromPiece = makePiece(PAWN, board->turn);
     const int enpassPiece = makePiece(PAWN, !board->turn);
 
-    board->st->dirtyPiece.pc[0]    = fromPiece;
-    board->st->dirtyPiece.from[0]  = from;
-    board->st->dirtyPiece.to[0]    = to;
-    board->st->dirtyPiece.dirtyNum = 1;
+    if (board->st != NULL) {
 
-    board->st->dirtyPiece.pc[1]    = enpassPiece;
-    board->st->dirtyPiece.from[1]  = ep;
-    board->st->dirtyPiece.to[1]    = 64;
-    board->st->dirtyPiece.dirtyNum = 2;
+        board->st->dirtyPiece.pc[0]    = fromPiece;
+        board->st->dirtyPiece.from[0]  = from;
+        board->st->dirtyPiece.to[0]    = to;
+        board->st->dirtyPiece.dirtyNum = 1;
+
+        board->st->dirtyPiece.pc[1]    = enpassPiece;
+        board->st->dirtyPiece.from[1]  = ep;
+        board->st->dirtyPiece.to[1]    = 64;
+        board->st->dirtyPiece.dirtyNum = 2;
+    }
 
     board->halfMoveCounter = 0;
 
@@ -320,23 +333,26 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     const int toColour = pieceColour(toPiece);
     const int promotype = MovePromoPiece(move);
 
-    board->st->dirtyPiece.pc[0]    = fromPiece;
-    board->st->dirtyPiece.from[0]  = from;
-    board->st->dirtyPiece.to[0]    = to;
-    board->st->dirtyPiece.dirtyNum = 1;
+    if (board->st != NULL) {
 
-    if (toPiece != EMPTY) {
-        board->st->dirtyPiece.pc[1]    = toPiece;
-        board->st->dirtyPiece.from[1]  = to;
-        board->st->dirtyPiece.to[1]    = 64;
-        board->st->dirtyPiece.dirtyNum = 2;
+        board->st->dirtyPiece.pc[0]    = fromPiece;
+        board->st->dirtyPiece.from[0]  = from;
+        board->st->dirtyPiece.to[0]    = to;
+        board->st->dirtyPiece.dirtyNum = 1;
+
+        if (toPiece != EMPTY) {
+            board->st->dirtyPiece.pc[1]    = toPiece;
+            board->st->dirtyPiece.from[1]  = to;
+            board->st->dirtyPiece.to[1]    = 64;
+            board->st->dirtyPiece.dirtyNum = 2;
+        }
+
+        int idx = board->st->dirtyPiece.dirtyNum;
+        board->st->dirtyPiece.pc[idx]    = promoPiece;
+        board->st->dirtyPiece.from[idx]  = 64;
+        board->st->dirtyPiece.to[idx]    = to;
+        board->st->dirtyPiece.dirtyNum   = idx + 1;
     }
-
-    int idx = board->st->dirtyPiece.dirtyNum;
-    board->st->dirtyPiece.pc[idx]    = promoPiece;
-    board->st->dirtyPiece.from[idx]  = 64;
-    board->st->dirtyPiece.to[idx]    = to;
-    board->st->dirtyPiece.dirtyNum   = idx + 1;
 
     board->halfMoveCounter = 0;
 
@@ -372,13 +388,16 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
 
 void applyNullMove(Board *board, Undo *undo) {
 
-    Stack *st = ++board->st;
-    memcpy(st, st-1, sizeof(Stack));
+    if (board->st != NULL) {
 
-    if ((st-1)->accumulator.computedAccumulation)
-        st->accumulator = (st-1)->accumulator;
-    else
-        st->accumulator.computedAccumulation = false;
+        NNUEStack *st = ++board->st;
+        memcpy(st, st-1, sizeof(NNUEStack));
+
+        if ((st-1)->accumulator.computedAccumulation)
+            st->accumulator = (st-1)->accumulator;
+        else
+            st->accumulator.computedAccumulation = 0;
+    }
 
     // Save information which is hard to recompute
     // Some information is certain to stay the same
@@ -409,7 +428,7 @@ void revert(Thread *thread, Board *board, uint16_t move) {
 
 void revertMove(Board *board, uint16_t move, Undo *undo) {
 
-    board->st--;
+    if (board->st != NULL) board->st--;
 
     const int to = MoveTo(move);
     const int from = MoveFrom(move);
@@ -500,7 +519,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
 
 void revertNullMove(Board *board, Undo *undo) {
 
-    board->st--;
+    if (board->st != NULL) board->st--;
 
     // Revert information which is hard to recompute
     board->hash            = undo->hash;

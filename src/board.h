@@ -24,23 +24,6 @@
 
 extern const char *PieceLabel[COLOUR_NB];
 
-typedef struct DirtyPiece {
-  int dirtyNum;
-  int pc[3];
-  int from[3];
-  int to[3];
-} DirtyPiece;
-
-typedef struct Accumulator{
-  alignas(64) int16_t accumulation[2][256];
-  bool computedAccumulation;
-} Accumulator;
-
-typedef struct Stack {
-    Accumulator accumulator;
-    DirtyPiece dirtyPiece;
-} Stack;
-
 struct Board {
     uint8_t squares[SQUARE_NB];
     uint64_t pieces[8], colours[3];
@@ -49,7 +32,7 @@ struct Board {
     int turn, epSquare, halfMoveCounter, fullMoveCounter;
     int psqtmat, numMoves, chess960;
     uint64_t history[512];
-    Stack *st, _stacks[512];
+    NNUEStack *st;
 };
 
 struct Undo {

@@ -102,11 +102,6 @@ void* iterativeDeepening(void *vthread) {
     if (thread->nthreads > 8)
         bindThisThread(thread->index);
 
-    // Reset all history of Accumulations
-    for (int i = 0; i < 512; i++)
-        thread->board._stacks[i].accumulator.computedAccumulation = 0;
-    thread->board.st = &thread->board._stacks[16];
-
     // Perform iterative deepening until exit conditions
     for (thread->depth = 1; thread->depth < MAX_PLY; thread->depth++) {
 

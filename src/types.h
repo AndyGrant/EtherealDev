@@ -74,7 +74,7 @@ static inline int makePiece(int type, int colour) {
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 
-// Forward definition of all structs
+// Forward declaration of all Ethereal structs
 
 typedef struct Magic Magic;
 typedef struct Board Board;
@@ -91,6 +91,12 @@ typedef struct PKEntry PKEntry;
 typedef struct TTable TTable;
 typedef struct Limits Limits;
 typedef struct UCIGoStruct UCIGoStruct;
+
+// Forward declaration of all NNUE structs
+
+typedef struct DirtyPiece DirtyPiece;
+typedef struct Accumulator Accumulator;
+typedef struct NNUEStack NNUEStack;
 
 // Renamings, currently for move ordering
 
