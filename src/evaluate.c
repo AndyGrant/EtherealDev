@@ -453,7 +453,8 @@ int evaluateBoard(Thread *thread, Board *board) {
         return hashed;
 
     // Skip everything and return just the NNUE
-    return nnue_evaluate(board);
+    if (usingNNUE())
+        return nnue_evaluate(board);
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);

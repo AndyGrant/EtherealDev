@@ -68,7 +68,6 @@ int main(int argc, char **argv) {
     initAttacks(); initMasks(); initEval();
     initSearch(); initZobrist(); initTT(16);
     initPKNetwork(&PKNN); initEndgameNNs();
-    nnue_init("weights.nn");
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
@@ -103,6 +102,7 @@ int main(int argc, char **argv) {
             printf("option name Hash type spin default 16 min 2 max 131072\n");
             printf("option name Threads type spin default 1 min 1 max 2048\n");
             printf("option name MultiPV type spin default 1 min 1 max 256\n");
+            printf("option name EvalFile type string default <empty>\n");
             printf("option name MoveOverhead type spin default 100 min 0 max 10000\n");
             printf("option name SyzygyPath type string default <empty>\n");
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
@@ -263,6 +263,7 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
     //  Hash                : Size of the Transposition Table in Megabyes
     //  Threads             : Number of search threads to use
     //  MultiPV             : Number of search lines to report per iteration
+    //  EvalFile            : File Name and Path to the NNUE Weights
     //  MoveOverhead        : Overhead on time allocation to avoid time losses
     //  SyzygyPath          : Path to Syzygy Tablebases
     //  SyzygyProbeDepth    : Minimal Depth to probe the highest cardinality Tablebase
@@ -282,6 +283,11 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
     if (strStartsWith(str, "setoption name MultiPV value ")) {
         *multiPV = atoi(str + strlen("setoption name MultiPV value "));
         printf("info string set MultiPV to %d\n", *multiPV);
+    }
+
+    if (strStartsWith(str, "setoption name EvalFile value ")) {
+        char *fname = str + strlen("setoption name EvalFile value ");
+        nnue_init(fname); printf("info string set EvalFile to %s\n", fname);
     }
 
     if (strStartsWith(str, "setoption name MoveOverhead value ")) {
