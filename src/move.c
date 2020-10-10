@@ -98,12 +98,6 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
         applyEnpassMove, applyPromotionMove
     };
 
-    if (board->st != NULL) {
-        NNUEStack *st = ++board->st;
-        memcpy(st, st-1, sizeof(NNUEStack));
-        st->accumulator.computedAccumulation = 0;
-    }
-
     // Save information which is hard to recompute
     undo->hash            = board->hash;
     undo->pkhash          = board->pkhash;
@@ -120,6 +114,9 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // Update the hash for before changing the enpass square
     if (board->epSquare != -1)
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
+
+    // Prepare to potentially update the NNUE
+    nnuePushStack(board);
 
     // Run the correct move application function
     table[MoveType(move) >> 12](board, move, undo);
@@ -146,21 +143,6 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
     const int fromType = pieceType(fromPiece);
     const int toType = pieceType(toPiece);
     const int toColour = pieceColour(toPiece);
-
-    if (board->st != NULL) {
-
-        board->st->dirtyPiece.pc[0]    = fromPiece;
-        board->st->dirtyPiece.from[0]  = from;
-        board->st->dirtyPiece.to[0]    = to;
-        board->st->dirtyPiece.dirtyNum = 1;
-
-        if (toPiece != EMPTY) {
-            board->st->dirtyPiece.pc[1]    = toPiece;
-            board->st->dirtyPiece.from[1]  = to;
-            board->st->dirtyPiece.to[1]    = 64;
-            board->st->dirtyPiece.dirtyNum = 2;
-        }
-    }
 
     if (fromType == PAWN || toPiece != EMPTY)
         board->halfMoveCounter = 0;
@@ -208,6 +190,9 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
             board->hash ^= ZobristEnpassKeys[fileOf(from)];
         }
     }
+
+    nnueUpdatePiece(board, fromPiece, from, to);
+    nnueRemovePiece(board, toPiece, to);
 }
 
 void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
@@ -220,18 +205,6 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
 
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
-
-    if (board->st != NULL) {
-
-        board->st->dirtyPiece.pc[0]    = fromPiece;
-        board->st->dirtyPiece.from[0]  = from;
-        board->st->dirtyPiece.to[0]    = to;
-
-        board->st->dirtyPiece.pc[1]    = rFromPiece;
-        board->st->dirtyPiece.from[1]  = rFrom;
-        board->st->dirtyPiece.to[1]    = rTo;
-        board->st->dirtyPiece.dirtyNum = 2;
-    }
 
     board->halfMoveCounter += 1;
 
@@ -264,9 +237,10 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->pkhash  ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to];
 
-    assert(pieceType(fromPiece) == KING);
-
     undo->capturePiece = EMPTY;
+
+    nnueUpdatePiece(board, fromPiece, from, to);
+    nnueUpdatePiece(board, rFromPiece, rFrom, rTo);
 }
 
 void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
@@ -277,19 +251,6 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
 
     const int fromPiece = makePiece(PAWN, board->turn);
     const int enpassPiece = makePiece(PAWN, !board->turn);
-
-    if (board->st != NULL) {
-
-        board->st->dirtyPiece.pc[0]    = fromPiece;
-        board->st->dirtyPiece.from[0]  = from;
-        board->st->dirtyPiece.to[0]    = to;
-        board->st->dirtyPiece.dirtyNum = 1;
-
-        board->st->dirtyPiece.pc[1]    = enpassPiece;
-        board->st->dirtyPiece.from[1]  = ep;
-        board->st->dirtyPiece.to[1]    = 64;
-        board->st->dirtyPiece.dirtyNum = 2;
-    }
 
     board->halfMoveCounter = 0;
 
@@ -317,8 +278,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
                    ^  ZobristKeys[fromPiece][to]
                    ^  ZobristKeys[enpassPiece][ep];
 
-    assert(pieceType(fromPiece) == PAWN);
-    assert(pieceType(enpassPiece) == PAWN);
+    nnueUpdatePiece(board, fromPiece, from, to);
+    nnueRemovePiece(board, enpassPiece, ep);
 }
 
 void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
@@ -333,27 +294,6 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     const int toType = pieceType(toPiece);
     const int toColour = pieceColour(toPiece);
     const int promotype = MovePromoPiece(move);
-
-    if (board->st != NULL) {
-
-        board->st->dirtyPiece.pc[0]    = fromPiece;
-        board->st->dirtyPiece.from[0]  = from;
-        board->st->dirtyPiece.to[0]    = to;
-        board->st->dirtyPiece.dirtyNum = 1;
-
-        if (toPiece != EMPTY) {
-            board->st->dirtyPiece.pc[1]    = toPiece;
-            board->st->dirtyPiece.from[1]  = to;
-            board->st->dirtyPiece.to[1]    = 64;
-            board->st->dirtyPiece.dirtyNum = 2;
-        }
-
-        int idx = board->st->dirtyPiece.dirtyNum;
-        board->st->dirtyPiece.pc[idx]    = promoPiece;
-        board->st->dirtyPiece.from[idx]  = 64;
-        board->st->dirtyPiece.to[idx]    = to;
-        board->st->dirtyPiece.dirtyNum   = idx + 1;
-    }
 
     board->halfMoveCounter = 0;
 
@@ -382,9 +322,9 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
 
     board->pkhash  ^= ZobristKeys[fromPiece][from];
 
-    assert(pieceType(fromPiece) == PAWN);
-    assert(pieceType(toPiece) != PAWN);
-    assert(pieceType(toPiece) != KING);
+    nnueRemovePiece(board, fromPiece, from);
+    nnueRemovePiece(board, toPiece, to);
+    nnueAddPiece(board, promoPiece, to);
 }
 
 void applyNullMove(Board *board, Undo *undo) {
@@ -429,8 +369,6 @@ void revert(Thread *thread, Board *board, uint16_t move) {
 
 void revertMove(Board *board, uint16_t move, Undo *undo) {
 
-    if (board->st != NULL) board->st--;
-
     const int to = MoveTo(move);
     const int from = MoveFrom(move);
 
@@ -447,6 +385,9 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->turn = !board->turn;
     board->numMoves--;
     board->fullMoveCounter--;
+
+    // Update the NNUE pointer
+    nnuePopStack(board);
 
     if (MoveType(move) == NORMAL_MOVE) {
 
@@ -520,7 +461,8 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
 
 void revertNullMove(Board *board, Undo *undo) {
 
-    if (board->st != NULL) board->st--;
+    // Update the NNUE pointer
+    nnuePopStack(board);
 
     // Revert information which is hard to recompute
     board->hash            = undo->hash;

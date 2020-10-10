@@ -1660,3 +1660,61 @@ void nnue_init(const char *fname) {
     printf("info string ERROR: The network file %s was not loaded successfully.\n", fname);
     exit(EXIT_FAILURE);
 }
+
+
+void nnuePushStack(Board *board) {
+
+    if (board->st == NULL) return;
+
+    // Advance the Stack and copy the old cached Neurons
+    NNUEStack *st = ++board->st;
+    memcpy(st, st-1, sizeof(NNUEStack));
+
+    // Prepare to update the State with a new move
+    st->dirtyPiece.dirtyNum = 0;
+    st->accumulator.computedAccumulation = 0;
+}
+
+void nnuePopStack(Board *board) {
+
+    if (board->st == NULL) return;
+
+    // Drop down the State as we revert a move
+    --board->st;
+}
+
+
+void nnueUpdatePiece(Board *board, int piece, int from, int to) {
+
+    if (board->st == NULL) return;
+
+    int idx = board->st->dirtyPiece.dirtyNum;
+    board->st->dirtyPiece.pc[idx]   = piece;
+    board->st->dirtyPiece.from[idx] = from;
+    board->st->dirtyPiece.to[idx]   = to;
+    board->st->dirtyPiece.dirtyNum  = idx + 1;
+}
+
+void nnueRemovePiece(Board *board, int piece, int sq) {
+
+    if (board->st == NULL || piece == EMPTY) return;
+
+    int idx = board->st->dirtyPiece.dirtyNum;
+    board->st->dirtyPiece.pc[idx]   = piece;
+    board->st->dirtyPiece.from[idx] = sq;
+    board->st->dirtyPiece.to[idx]   = 64;
+    board->st->dirtyPiece.dirtyNum  = idx + 1;
+}
+
+void nnueAddPiece(Board *board, int piece, int sq) {
+
+    if (board->st == NULL || piece == EMPTY) return;
+
+    int idx = board->st->dirtyPiece.dirtyNum;
+    board->st->dirtyPiece.pc[idx]   = piece;
+    board->st->dirtyPiece.from[idx] = 64;
+    board->st->dirtyPiece.to[idx]   = sq;
+    board->st->dirtyPiece.dirtyNum  = idx + 1;
+}
+
+

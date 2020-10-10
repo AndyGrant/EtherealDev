@@ -63,3 +63,11 @@ typedef struct NNUEStack {
     Accumulator accumulator;
     DirtyPiece dirtyPiece;
 } NNUEStack;
+
+
+void nnuePushStack(Board *board);
+void nnuePopStack(Board *board);
+
+void nnueUpdatePiece(Board *board, int pc, int from, int to);
+void nnueRemovePiece(Board *board, int pc, int sq);
+void nnueAddPiece(Board *board, int piece, int sq);
