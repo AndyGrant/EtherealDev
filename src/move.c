@@ -329,16 +329,8 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
 
 void applyNullMove(Board *board, Undo *undo) {
 
-    if (board->st != NULL) {
-
-        NNUEStack *st = ++board->st;
-        memcpy(st, st-1, sizeof(NNUEStack));
-
-        if ((st-1)->accumulator.computedAccumulation)
-            st->accumulator = (st-1)->accumulator;
-        else
-            st->accumulator.computedAccumulation = 0;
-    }
+    // Prepare to potentially update the NNUE
+    nnuePushNullStack(board);
 
     // Save information which is hard to recompute
     // Some information is certain to stay the same

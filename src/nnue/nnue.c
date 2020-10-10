@@ -1662,6 +1662,11 @@ void nnue_init(const char *fname) {
 }
 
 
+/// Helpers for applying or reverting a move to the Board. This removes any logic
+/// dealing with NNUE from as much of Ethereal as possible. All of these functions
+/// check that the Board's NNUEStack pointer st are not NULL. This is for the case
+/// where we are working with an Ethereal Board without an associated Thread
+
 void nnuePushStack(Board *board) {
 
     if (board->st == NULL) return;
@@ -1683,6 +1688,26 @@ void nnuePopStack(Board *board) {
     --board->st;
 }
 
+void nnuePushNullStack(Board *board) {
+
+    if (board->st == NULL) return;
+
+    // Advance the Stack and copy the old cached Neurons
+    NNUEStack *st = ++board->st;
+    memcpy(st, st-1, sizeof(NNUEStack));
+
+    // Cheat and ignore the turn change for the first Layer
+    if ((st-1)->accumulator.computedAccumulation)
+        st->accumulator = (st-1)->accumulator;
+    else
+        st->accumulator.computedAccumulation = 0;
+}
+
+
+/// Helpers for dealing with Dirty Piece's. This removes any logic dealing with
+/// NNUE from as much as Ethereal as possible. We may upadte a piece by moving it,
+/// we may remove a piece by "moving" it to SQ=64, and we may add a piece by "moving"
+/// it to a target square "from" SQ=64. This accounts for all cases for each move type
 
 void nnueUpdatePiece(Board *board, int piece, int from, int to) {
 

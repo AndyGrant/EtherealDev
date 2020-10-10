@@ -67,6 +67,7 @@ typedef struct NNUEStack {
 
 void nnuePushStack(Board *board);
 void nnuePopStack(Board *board);
+void nnuePushNullStack(Board *board);
 
 void nnueUpdatePiece(Board *board, int pc, int from, int to);
 void nnueRemovePiece(Board *board, int pc, int sq);
