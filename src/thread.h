@@ -34,21 +34,6 @@ enum {
     STACK_SIZE = MAX_PLY + STACK_OFFSET
 };
 
-typedef struct DirtyPiece {
-  int dirtyNum;
-  int pc[3], from[3], to[3];
-} DirtyPiece;
-
-typedef struct Accumulator {
-  ALIGN64 int16_t accumulation[COLOUR_NB][256];
-  bool computedAccumulation;
-} Accumulator;
-
-typedef struct NNUEStack {
-    Accumulator accumulator;
-    DirtyPiece dirtyPiece;
-} NNUEStack;
-
 struct Thread {
 
     Board board;
@@ -60,7 +45,6 @@ struct Thread {
     uint16_t bestMoves[MAX_MOVES];
     uint16_t ponderMoves[MAX_MOVES];
 
-    int contempt;
     int depth, seldepth, height;
     uint64_t nodes, tbhits;
 

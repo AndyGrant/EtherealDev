@@ -23,31 +23,11 @@
 #include "board.h"
 #include "evaluate.h"
 #include "history.h"
+#include "nnue/nnue.h"
 #include "search.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
-
-// Default contempt values, UCI options can set them to other values
-int ContemptDrawPenalty = 0;
-int ContemptComplexity  = 0;
-
-static void *ethereal_alloc(size_t size, size_t alignment) {
-#if defined(_WIN32) || defined(_WIN64)
-    return _mm_malloc(size, alignment);
-#else
-    void *mem;
-    return posix_memalign(&mem, alignment, size) ? NULL : mem;
-#endif
-}
-
-static void ethereal_free(void *ptr) {
-#if defined(_WIN32) || defined(_WIN64)
-    _mm_free(ptr);
-#else
-    free(ptr);
-#endif
-}
 
 
 Thread* createThreadPool(int nthreads) {
@@ -119,14 +99,10 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
     // somewhere to store the results of each iteration by the main, and
     // our own copy of the board. Also, we reset the seach statistics
 
-    int contempt = MakeScore(ContemptDrawPenalty + ContemptComplexity, ContemptDrawPenalty);
-    if (board->turn == BLACK) contempt = -contempt;
-
     for (int i = 0; i < threads->nthreads; i++) {
 
         threads[i].limits = limits;
         threads[i].info   = info;
-        threads[i].contempt = contempt;
 
         threads[i].height    = 0;
         threads[i].nodes     = 0ull;

@@ -48,3 +48,18 @@
 
 void nnue_init(const char *fname);
 Value nnue_evaluate(const Position *pos);
+
+typedef struct DirtyPiece {
+  int dirtyNum;
+  int pc[3], from[3], to[3];
+} DirtyPiece;
+
+typedef struct Accumulator {
+  ALIGN64 int16_t accumulation[COLOUR_NB][256];
+  bool computedAccumulation;
+} Accumulator;
+
+typedef struct NNUEStack {
+    Accumulator accumulator;
+    DirtyPiece dirtyPiece;
+} NNUEStack;

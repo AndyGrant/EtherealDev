@@ -29,6 +29,7 @@
 #include "masks.h"
 #include "move.h"
 #include "movegen.h"
+#include "nnue/nnue.h"
 #include "search.h"
 #include "thread.h"
 #include "types.h"

@@ -111,3 +111,20 @@ typedef int16_t CaptureHistoryTable[PIECE_NB][SQUARE_NB][PIECE_NB-1];
 // Trivial alignment macros for items on the Stack
 
 #define ALIGN64 alignas(64)
+
+static inline void *ethereal_alloc(size_t size, size_t alignment) {
+#if defined(_WIN32) || defined(_WIN64)
+    return _mm_malloc(size, alignment);
+#else
+    void *mem;
+    return posix_memalign(&mem, alignment, size) ? NULL : mem;
+#endif
+}
+
+static inline void ethereal_free(void *ptr) {
+#if defined(_WIN32) || defined(_WIN64)
+    _mm_free(ptr);
+#else
+    free(ptr);
+#endif
+}
