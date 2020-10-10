@@ -22,43 +22,28 @@
 
 #include <fcntl.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <unistd.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/mman.h>
 #endif
 
-#include <stdbool.h>
-
-#include <assert.h>
-#include <stdio.h>
-
-#ifndef _WIN32
-#include <pthread.h>
-#endif
-
-#include <stdatomic.h>
-#include <sys/time.h>
-#include <unistd.h>
-
-#include "types.h"
-
-
 #ifdef _WIN32
-
-typedef HANDLE FD;
-#define FD_ERR INVALID_HANDLE_VALUE
-typedef HANDLE map_t;
-
-#else /* Unix */
-
-typedef int FD;
-#define FD_ERR -1
-typedef size_t map_t;
-
+    typedef HANDLE FD;
+    #define FD_ERR INVALID_HANDLE_VALUE
+    typedef HANDLE map_t;
+#else
+    typedef int FD;
+    #define FD_ERR -1
+    typedef size_t map_t;
 #endif
 
 FD open_file(const char *name);
@@ -66,7 +51,6 @@ void close_file(FD fd);
 const void *map_file(FD fd, map_t *map);
 void unmap_file(const void *data, map_t map);
 size_t file_size(FD fd);
-
 
 static inline bool is_little_endian(void) {
   int num = 1;

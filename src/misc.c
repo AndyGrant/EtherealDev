@@ -18,88 +18,62 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
-#include <fcntl.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <sys/mman.h>
-#endif
-
 #include "misc.h"
-#include "thread.h"
 
-FD open_file(const char *name)
-{
+FD open_file(const char *fname) {
 #ifndef _WIN32
-  return open(name, O_RDONLY);
+    return open(fname, O_RDONLY);
 #else
-  return CreateFile(name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-      FILE_FLAG_RANDOM_ACCESS, NULL);
+    return CreateFile(fname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
 #endif
 }
 
-void close_file(FD fd)
-{
+void close_file(FD fd) {
 #ifndef _WIN32
-  close(fd);
+    close(fd);
 #else
-  CloseHandle(fd);
+    CloseHandle(fd);
 #endif
 }
 
-const void *map_file(FD fd, map_t *map)
-{
+const void *map_file(FD fd, map_t *map) {
 #ifndef _WIN32
-
-  *map = file_size(fd);
-  void *data = mmap(NULL, *map, PROT_READ, MAP_SHARED, fd, 0);
-#ifdef MADV_RANDOM
-  madvise(data, *map, MADV_RANDOM);
-#endif
-  return data == MAP_FAILED ? NULL : data;
-
+    *map = file_size(fd);
+    void *data = mmap(NULL, *map, PROT_READ, MAP_SHARED, fd, 0);
+    #ifdef MADV_RANDOM
+    madvise(data, *map, MADV_RANDOM);
+    #endif
+    return data == MAP_FAILED ? NULL : data;
 #else
-
-  DWORD sizeLow, sizeHigh;
-  sizeLow = GetFileSize(fd, &sizeHigh);
-  *map = CreateFileMapping(fd, NULL, PAGE_READONLY, sizeHigh, sizeLow, NULL);
-  if (*map == NULL)
-    return NULL;
-  return MapViewOfFile(*map, FILE_MAP_READ, 0, 0, 0);
-
+    DWORD sizeLow, sizeHigh;
+    sizeLow = GetFileSize(fd, &sizeHigh);
+    *map = CreateFileMapping(fd, NULL, PAGE_READONLY, sizeHigh, sizeLow, NULL);
+    if (*map == NULL)
+        return NULL;
+    return MapViewOfFile(*map, FILE_MAP_READ, 0, 0, 0);
 #endif
 }
 
-void unmap_file(const void *data, map_t map)
-{
-  if (!data) return;
-
+void unmap_file(const void *data, map_t map) {
 #ifndef _WIN32
-
-  munmap((void *)data, map);
-
+    if (data)
+        munmap((void *)data, map);
 #else
-
-  UnmapViewOfFile(data);
-  CloseHandle(map);
-
+    if (data) {
+        UnmapViewOfFile(data);
+        CloseHandle(map);
+    }
 #endif
 }
 
-size_t file_size(FD fd)
-{
+size_t file_size(FD fd) {
 #ifndef _WIN32
-  struct stat statbuf;
-  fstat(fd, &statbuf);
-  return statbuf.st_size;
+    struct stat statbuf;
+    fstat(fd, &statbuf);
+    return statbuf.st_size;
 #else
-  DWORD sizeLow, sizeHigh;
-  sizeLow = GetFileSize(fd, &sizeHigh);
-  return ((uint64_t)sizeHigh << 32) | sizeLow;
+    DWORD sizeLow, sizeHigh;
+    sizeLow = GetFileSize(fd, &sizeHigh);
+    return ((uint64_t)sizeHigh << 32) | sizeLow;
 #endif
 }
