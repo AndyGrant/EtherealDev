@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,7 +37,7 @@ static void *ethereal_alloc(size_t size, size_t alignment) {
     return _mm_malloc(size, alignment);
 #else
     void *mem;
-    return posix_memalign(&mem, alignment, size) ? nullptr : mem;
+    return posix_memalign(&mem, alignment, size) ? NULL : mem;
 #endif
 }
 
@@ -66,9 +67,17 @@ Thread* createThreadPool(int nthreads) {
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
 
-        // The NNUE Accumulators must be aligned well
+        // The NNUE Accumulators must be aligned on 64-byte boundries
         threads[i]._nnueStack = ethereal_alloc(sizeof(NNUEStack) * STACK_SIZE, 64);
         threads[i].nnueStack  = &(threads[i]._nnueStack[STACK_OFFSET]);
+
+        for (int j = 0; j < STACK_SIZE; j++) {
+            Accumulator *acc = &threads[i]._nnueStack[j].accumulator;
+            if ((uintptr_t)(acc->accumulation) % 64 != 0) {
+                printf("info string Unable to Align NNUE Stack on 64-byte boundry\n");
+                exit(EXIT_FAILURE);
+            }
+        }
     }
 
     return threads;
