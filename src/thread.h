@@ -64,22 +64,22 @@ struct Thread {
     int depth, seldepth, height;
     uint64_t nodes, tbhits;
 
-    int       *evalStack,  _evalStack   [STACK_SIZE];
-    uint16_t  *moveStack,  _moveStack   [STACK_SIZE];
-    int       *pieceStack, _pieceStack  [STACK_SIZE];
-    NNUEStack *nnueStack,  _nnueStack   [STACK_SIZE];
+    int      *evalStack,  _evalStack  [STACK_SIZE];
+    uint16_t *moveStack,  _moveStack  [STACK_SIZE];
+    int      *pieceStack, _pieceStack [STACK_SIZE];
+    NNUEStack *nnueStack,  *_nnueStack;
 
     Undo undoStack[STACK_SIZE];
 
-    ALIGN64 EvalTable evtable;
-    ALIGN64 PKTable pktable;
+    EvalTable evtable;
+    PKTable pktable;
 
-    ALIGN64 KillerTable killers;
-    ALIGN64 CounterMoveTable cmtable;
+    KillerTable killers;
+    CounterMoveTable cmtable;
 
-    ALIGN64 HistoryTable history;
-    ALIGN64 CaptureHistoryTable chistory;
-    ALIGN64 ContinuationTable continuation;
+    HistoryTable history;
+    CaptureHistoryTable chistory;
+    ContinuationTable continuation;
 
     int index, nthreads;
     Thread *threads;
@@ -89,6 +89,8 @@ struct Thread {
 
 Thread* createThreadPool(int nthreads);
 void resetThreadPool(Thread *threads);
+void deleteThreadPool(Thread *threads);
+
 void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchInfo *info);
 uint64_t nodesSearchedThreadPool(Thread *threads);
 uint64_t tbhitsThreadPool(Thread *threads);

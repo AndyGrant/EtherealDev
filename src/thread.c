@@ -31,6 +31,24 @@
 int ContemptDrawPenalty = 0;
 int ContemptComplexity  = 0;
 
+static void *ethereal_alloc(size_t size, size_t alignment) {
+#if defined(_WIN32) || defined(_WIN64)
+    return _mm_malloc(size, alignment);
+#else
+    void *mem;
+    return posix_memalign(&mem, alignment, size) ? nullptr : mem;
+#endif
+}
+
+static void ethereal_free(void *ptr) {
+#if defined(_WIN32) || defined(_WIN64)
+    _mm_free(ptr);
+#else
+    free(ptr);
+#endif
+}
+
+
 Thread* createThreadPool(int nthreads) {
 
     Thread *threads = calloc(nthreads, sizeof(Thread));
@@ -47,6 +65,10 @@ Thread* createThreadPool(int nthreads) {
         threads[i].index = i;
         threads[i].threads = threads;
         threads[i].nthreads = nthreads;
+
+        // The NNUE Accumulators must be aligned well
+        threads[i]._nnueStack = ethereal_alloc(sizeof(NNUEStack) * STACK_SIZE, 64);
+        threads[i].nnueStack  = &(threads[i]._nnueStack[STACK_OFFSET]);
     }
 
     return threads;
@@ -71,6 +93,15 @@ void resetThreadPool(Thread *threads) {
         memset(&threads[i].continuation, 0, sizeof(ContinuationTable));
     }
 }
+
+void deleteThreadPool(Thread *threads) {
+
+    for (int i = 0; i < threads->nthreads; i++)
+        ethereal_free(threads[i]._nnueStack);
+
+    free(threads);
+}
+
 
 void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchInfo *info) {
 

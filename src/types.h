@@ -19,8 +19,9 @@
 #pragma once
 
 #include <assert.h>
-#include <stdint.h>
 #include <stdalign.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 enum { MG, EG };
 
@@ -107,6 +108,6 @@ typedef int16_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];
 typedef int16_t ContinuationTable[CONT_NB][PIECE_NB][SQUARE_NB][PIECE_NB][SQUARE_NB];
 typedef int16_t CaptureHistoryTable[PIECE_NB][SQUARE_NB][PIECE_NB-1];
 
-// Trivial alignment macros
+// Trivial alignment macros for items on the Stack
 
 #define ALIGN64 alignas(64)

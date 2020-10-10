@@ -281,7 +281,7 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
 
     if (strStartsWith(str, "setoption name Threads value ")) {
         int nthreads = atoi(str + strlen("setoption name Threads value "));
-        free(*threads); *threads = createThreadPool(nthreads);
+        deleteThreadPool(*threads); *threads = createThreadPool(nthreads);
         printf("info string set Threads to %d\n", nthreads);
     }
 
