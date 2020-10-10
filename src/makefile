@@ -19,7 +19,7 @@
 ########################################################################################
 
 CC      = gcc
-SRC     = *.c pyrrhic/tbprobe.c
+SRC     = *.c pyrrhic/tbprobe.c nnue/*.c
 LIBS    = -lpthread -lm
 EXE     = Ethereal
 

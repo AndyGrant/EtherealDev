@@ -29,7 +29,7 @@
 #include "masks.h"
 #include "network.h"
 #include "nneval.h"
-#include "nnue.h"
+#include "nnue/nnue.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"

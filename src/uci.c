@@ -34,7 +34,7 @@
 #include "movegen.h"
 #include "network.h"
 #include "nneval.h"
-#include "nnue.h"
+#include "nnue/nnue.h"
 #include "search.h"
 #include "thread.h"
 #include "time.h"
