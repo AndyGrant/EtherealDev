@@ -25,7 +25,7 @@ EXE     = Ethereal
 
 WFLAGS = -std=gnu11 -s -Wall -Wextra -Wshadow
 CFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native
-RFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -static
+RFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -static
 TFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
 PFLAGS = -O0 $(WFLAGS) -DNDEBUG -p -pg
 DFLAGS = -O0 $(WFLAGS)
@@ -47,7 +47,7 @@ ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
 	CFLAGS += -DUSE_AVX2
 endif
 
-ifneq ($(findstring __SSE41__, $(PROPERTIES)),)
+ifneq ($(findstring __SSE4_1__, $(PROPERTIES)),)
 	CFLAGS += -DUSE_SSE41
 endif
 
@@ -67,6 +67,10 @@ ifneq ($(findstring __MMX__, $(PROPERTIES)),)
 	CFLAGS += -DUSE_MMX
 endif
 
+SSSE3FLAGS  = -DUSE_SSSE3 -mssse3 -DUSE_SSE2 -msse2 -DUSE_SSE -msse -DUSE_MMX -mmmx
+SEE41FLAGS  = $(SSSE3FLAGS) -DUSE_SSE41 -msse4.1
+AVX2FLAGS   = $(SEE41FLAGS) -DUSE_AVX2 -mavx2
+
 ########################################################################################
 # 3. Targets
 ########################################################################################
@@ -81,10 +85,13 @@ pext:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o $(EXE)
 
 release:
-	mkdir ../dist
-	$(CC) $(RFLAGS) $(SRC) $(LIBS) -o ../dist/$(EXE)$(VER)-x64-nopopcnt.exe
-	$(CC) $(RFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o ../dist/$(EXE)$(VER)-x64-popcnt.exe
-	$(CC) $(RFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o ../dist/$(EXE)$(VER)-x64-pext.exe
+	mkdir -p ../dist
+	$(CC) $(RFLAGS) $(SSSE3FLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o ../dist/$(EXE)$(VER)-x64-popcnt-ssse3.exe
+	$(CC) $(RFLAGS) $(SSSE3FLAGS) $(SRC) $(LIBS) $(PEXTFLAGS)   -o ../dist/$(EXE)$(VER)-x64-pext-ssse3.exe
+	$(CC) $(RFLAGS) $(SEE41FLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o ../dist/$(EXE)$(VER)-x64-popcnt-sse41.exe
+	$(CC) $(RFLAGS) $(SEE41FLAGS) $(SRC) $(LIBS) $(PEXTFLAGS)   -o ../dist/$(EXE)$(VER)-x64-pext-sse41.exe
+	$(CC) $(RFLAGS) $(AVX2FLAGS)  $(SRC) $(LIBS) $(POPCNTFLAGS) -o ../dist/$(EXE)$(VER)-x64-popcnt-avx2.exe
+	$(CC) $(RFLAGS) $(AVX2FLAGS)  $(SRC) $(LIBS) $(PEXTFLAGS)   -o ../dist/$(EXE)$(VER)-x64-pext-avx2.exe
 
 tune:
 	$(CC) $(TFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)
