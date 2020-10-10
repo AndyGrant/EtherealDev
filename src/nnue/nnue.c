@@ -1638,9 +1638,9 @@ if (mapping) unmap_file(evalData, mapping);
 return true;
 }
 
-void nnue_init(const char *fname) {
+static char *loadedFile = NULL;
 
-    static char *loadedFile = NULL;
+void nnue_init(const char *fname) {
 
     // We've already loaded the requested file
     if (loadedFile && strcmp(fname, loadedFile) == 0)
@@ -1656,9 +1656,13 @@ void nnue_init(const char *fname) {
         return;
     }
 
-    // Something went wrong, and thus we cannot continue any more
-    printf("info string ERROR: The network file %s was not loaded successfully.\n", fname);
-    exit(EXIT_FAILURE);
+    // Something went wrong, and thus we cannot use the NNUE
+    printf("info string Network not found; Disabling NNUE\n");
+    loadedFile = NULL;
+}
+
+bool usingNNUE() {
+    return loadedFile != NULL;
 }
 
 

@@ -48,6 +48,7 @@
 
 void nnue_init(const char *fname);
 Value nnue_evaluate(const Position *pos);
+bool usingNNUE();
 
 typedef struct DirtyPiece {
   int dirtyNum;
