@@ -104,15 +104,12 @@ int computePKNetwork(Board *board) {
             layer1Neurons[i] += PKNN.inputWeights[idx][i];
     }
 
-    // Layer 2: Trivially compute the Output layer. Apply a ReLU here.
-    // We do not apply a ReLU in Layer 1, since we already know that all
-    // of the Inputs in Layer 1 are going to be zeros or ones
+    // Layer 2: Trivially compute the Output layer. No ReLU is applied.
 
     for (int i = 0; i < PKNETWORK_OUTPUTS; i++) {
         outputNeurons[i] = PKNN.layer1Biases[i];
         for (int j = 0; j < PKNETWORK_LAYER1; j++)
-            if (layer1Neurons[j] >= 0.0)
-                outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
+            outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
     }
 
     assert(PKNETWORK_OUTPUTS == PHASE_NB);
