@@ -22,23 +22,26 @@
 
 #include "types.h"
 
-#define NPARTITIONS    (      64) // Total thread partitions
+#define NPARTITIONS    (      16) // Total thread partitions
 #define KPRECISION     (      10) // Iterations for computing K
-#define PRETTYIFY      (       0) // Whether to format as if we tune everything
-#define REPORTING      (      50) // How often to print the new parameters
+#define PRETTYIFY      (       1) // Whether to format as if we tune everything
+#define REPORTING      (      25) // How often to print the new parameters
 
-#define LRRATE         (    0.10) // Global Learning rate
+#define LRRATE         (   0.001) // Global Learning rate
 #define LRDROPRATE     (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE     (     250) // Cut LR after this many epochs
 
-#define TuneNormal     (       0) // Flag to enable all Normals      (856)
+#define TuneNormal     (       1) // Flag to enable all Normals      (856)
 #define TuneSafety     (       0) // Flag to enable all Safeties     ( 44)
 #define TuneComplexity (       0) // Flag to enable all Complexities (  4)
 
-#define NTERMS         (       0) // Total terms in the Tuner (904)
+#define NTERMS         (     856) // Total terms in the Tuner (904)
 #define MAXEPOCHS      (  100000) // Max number of epochs allowed
 #define BATCHSIZE      (   16384) // Training samples per mini-batch
 #define NPOSITIONS     (42487498) // Total Training samples in the book
+
+#define BETA_1         (     0.9) // ADAM Momemtum Coefficient
+#define BETA_2         (   0.999) // ADAM Velocity Coefficient
 
 #define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 64))
 
