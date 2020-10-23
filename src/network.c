@@ -32,14 +32,12 @@
 PKNetwork PKNN;
 
 static char *PKWeights[] = {
-    #include "weights/pknet_224x32x2.net"
+    #include "weights/pknet_256x32x2.net"
     ""
 };
 
 static int computePKNetworkIndex(int colour, int piece, int sq) {
-    return (64 + 48) * colour
-         + (48 * (piece == KING))
-         + sq - 8 * (piece == PAWN);
+    return (64 + 64) * colour + (64 * (piece == KING)) + sq;
 }
 
 

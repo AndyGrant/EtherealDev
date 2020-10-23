@@ -23,19 +23,19 @@
 #include "board.h"
 #include "types.h"
 
-#define PKNETWORK_INPUTS  (224)
+#define PKNETWORK_INPUTS  (256)
 #define PKNETWORK_LAYER1  ( 32)
 #define PKNETWORK_OUTPUTS (  2)
 
 typedef struct PKNetwork {
 
     // PKNetworks are of the form [Input, Hidden Layer 1, Output Layer]
-    // Our current Network is [224x32, 32x1]. The Network is trained to
+    // Our current Network is [256x32, 32x1]. The Network is trained to
     // output a Score in CentiPawns for the Midgame and Endgame
 
     // We transpose the Input Weights matrix in order to get better
     // caching and memory lookups, since when computing we iterate
-    // over only the ~20 Inputs set out of the 224 possible Inputs
+    // over only the ~20 Inputs set out of the 256 possible Inputs
 
     ALIGN64 float inputWeights[PKNETWORK_INPUTS][PKNETWORK_LAYER1];
     ALIGN64 float inputBiases[PKNETWORK_LAYER1];
