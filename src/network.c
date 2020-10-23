@@ -36,8 +36,8 @@ static char *PKWeights[] = {
     ""
 };
 
-static int computePKNetworkIndex(int colour, int piece, int sq) {
-    return (64 + 64) * colour + (64 * (piece == KING)) + sq;
+static int computePKNetworkIndex(int turn, int colour, int piece, int sq) {
+    return (64 + 64) * (turn != colour) + (64 * (piece == KING)) + relativeSquare(colour, sq);
 }
 
 
@@ -83,21 +83,21 @@ int computePKNetwork(Board *board) {
 
     { // Do one King first so we can set the Neurons
         int sq = poplsb(&kings);
-        int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
+        int idx = computePKNetworkIndex(board->turn, testBit(black, sq), KING, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
             layer1Neurons[i] = PKNN.inputBiases[i] + PKNN.inputWeights[idx][i];
     }
 
     { // Do the remaining King as we would do normally
         int sq = poplsb(&kings);
-        int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
+        int idx = computePKNetworkIndex(board->turn, testBit(black, sq), KING, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
             layer1Neurons[i] += PKNN.inputWeights[idx][i];
     }
 
     while (pawns) {
         int sq = poplsb(&pawns);
-        int idx = computePKNetworkIndex(testBit(black, sq), PAWN, sq);
+        int idx = computePKNetworkIndex(board->turn, testBit(black, sq), PAWN, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
             layer1Neurons[i] += PKNN.inputWeights[idx][i];
     }

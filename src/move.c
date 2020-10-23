@@ -167,6 +167,8 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
                    ^  ZobristKeys[toPiece][to]
                    ^  ZobristTurnKey;
 
+    board->pkhash  ^= ZobristTurnKey;
+
     if (fromType == PAWN || fromType == KING)
         board->pkhash ^= ZobristKeys[fromPiece][from]
                       ^  ZobristKeys[fromPiece][to];
@@ -227,7 +229,8 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
                    ^  ZobristTurnKey;
 
     board->pkhash  ^= ZobristKeys[fromPiece][from]
-                   ^  ZobristKeys[fromPiece][to];
+                   ^  ZobristKeys[fromPiece][to]
+                   ^  ZobristTurnKey;
 
     assert(pieceType(fromPiece) == KING);
 
@@ -267,7 +270,8 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
 
     board->pkhash  ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[enpassPiece][ep];
+                   ^  ZobristKeys[enpassPiece][ep]
+                   ^  ZobristTurnKey;
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(enpassPiece) == PAWN);
@@ -311,7 +315,8 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
                    ^  ZobristKeys[toPiece][to]
                    ^  ZobristTurnKey;
 
-    board->pkhash  ^= ZobristKeys[fromPiece][from];
+    board->pkhash  ^= ZobristKeys[fromPiece][from]
+                   ^  ZobristTurnKey;
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(toPiece) != PAWN);
@@ -323,6 +328,7 @@ void applyNullMove(Board *board, Undo *undo) {
     // Save information which is hard to recompute
     // Some information is certain to stay the same
     undo->hash            = board->hash;
+    undo->pkhash          = board->pkhash;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
 
@@ -333,6 +339,7 @@ void applyNullMove(Board *board, Undo *undo) {
 
     // Update the hash for turn and changes to enpass square
     board->hash ^= ZobristTurnKey;
+    board->pkhash ^= ZobristTurnKey;
     if (board->epSquare != -1) {
         board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
         board->epSquare = -1;
@@ -441,6 +448,7 @@ void revertNullMove(Board *board, Undo *undo) {
 
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
+    board->pkhash          = undo->pkhash;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 
