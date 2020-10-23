@@ -114,5 +114,8 @@ int computePKNetwork(Board *board) {
     }
 
     assert(PKNETWORK_OUTPUTS == PHASE_NB);
-    return MakeScore((int) outputNeurons[MG], (int) outputNeurons[EG]);
+
+    return board->turn == WHITE
+         ? MakeScore((int)  outputNeurons[MG], (int)  outputNeurons[EG])
+         : MakeScore((int) -outputNeurons[MG], (int) -outputNeurons[EG]);
 }
