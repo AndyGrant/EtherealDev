@@ -27,7 +27,7 @@ int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
     EvalEntry eve;
     uint64_t key1, key2;
 
-    key1 =  board->turn ? board->hash ^ ZobristTurnKey : board->hash;
+    key1 =  board->hash;
     eve  =  thread->evtable[key1 & EVAL_CACHE_MASK];
     key2 = (eve & ~0xFFFF) | (key1 & 0xFFFF);
 
@@ -37,8 +37,7 @@ int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
 }
 
 void storeCachedEvaluation(Thread *thread, Board *board, int eval) {
-    uint64_t key1 =  board->turn ? board->hash ^ ZobristTurnKey : board->hash;
-    thread->evtable[key1 & EVAL_CACHE_MASK] = (key1 & ~0xFFFF) | (uint16_t)((int16_t)eval);
+    thread->evtable[board->hash & EVAL_CACHE_MASK] = (board->hash & ~0xFFFF) | (uint16_t)((int16_t)eval);
 }
 
 
