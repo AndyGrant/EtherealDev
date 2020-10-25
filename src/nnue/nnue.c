@@ -72,17 +72,17 @@ int16x8_t vmovl_high_s16(int8x16_t v)
 #endif
 
 enum {
-  PS_W_PAWN   =  1,
-  PS_B_PAWN   =  1 * 64 + 1,
-  PS_W_KNIGHT =  2 * 64 + 1,
-  PS_B_KNIGHT =  3 * 64 + 1,
-  PS_W_BISHOP =  4 * 64 + 1,
-  PS_B_BISHOP =  5 * 64 + 1,
-  PS_W_ROOK   =  6 * 64 + 1,
-  PS_B_ROOK   =  7 * 64 + 1,
-  PS_W_QUEEN  =  8 * 64 + 1,
-  PS_B_QUEEN  =  9 * 64 + 1,
-  PS_END      = 10 * 64 + 1
+    PS_W_PAWN   =  0 * 64,
+    PS_W_KNIGHT =  1 * 64,
+    PS_W_BISHOP =  2 * 64,
+    PS_W_ROOK   =  3 * 64,
+    PS_W_QUEEN  =  4 * 64,
+    PS_B_PAWN   =  5 * 64,
+    PS_B_KNIGHT =  6 * 64,
+    PS_B_BISHOP =  7 * 64,
+    PS_B_ROOK   =  8 * 64,
+    PS_B_QUEEN  =  9 * 64,
+    PS_END      = 10 * 64,
 };
 
 // Constants used in evaluation value calculation
@@ -93,7 +93,7 @@ enum {
 
 enum {
   kHalfDimensions = 256,
-  FtInDims = 64 * PS_END, // 64 * 641
+  FtInDims = 64 * PS_END, // 64 * 640
   FtOutDims = kHalfDimensions * 2
 };
 
@@ -227,9 +227,6 @@ typedef struct IndexList {
     unsigned values[30];
 } IndexList;
 
-int orient(int colour, int sq) {
-    return sq ^ (colour == WHITE ? 0x00 : 0x3f);
-}
 
 unsigned make_index(int colour, int sq, int pc, int ksq) {
 
@@ -242,7 +239,7 @@ unsigned make_index(int colour, int sq, int pc, int ksq) {
 
     assert(PAWN <= pieceType(pc) && pieceType(pc) <= KING);
     assert(WHITE <= pieceColour(pc) && pieceColour(pc) <= BLACK);
-    return orient(colour, sq) + PieceToIndex[colour][pieceColour(pc)][pieceType(pc)] + PS_END * ksq;
+    return relativeSquare(colour, sq) + PieceToIndex[colour][pieceColour(pc)][pieceType(pc)] + PS_END * ksq;
 }
 
 void half_kp_append_active_indices(const Board *board, int colour, IndexList *active) {
@@ -252,7 +249,7 @@ void half_kp_append_active_indices(const Board *board, int colour, IndexList *ac
     uint64_t kings = board->pieces[KING];
     uint64_t bb    = (white | black) & ~kings;
 
-    int ksq = orient(colour, getlsb(board->colours[colour] & kings));
+    int ksq = relativeSquare(colour, getlsb(board->colours[colour] & kings));
 
     while (bb) {
         int sq = poplsb(&bb);
@@ -264,7 +261,7 @@ void half_kp_append_active_indices(const Board *board, int colour, IndexList *ac
 void half_kp_append_changed_indices(const Position *pos, const Color c,
     const DirtyPiece *dp, IndexList *removed, IndexList *added)
 {
-  Square ksq = orient(c, square_of(c, KING));
+  Square ksq = relativeSquare(c, square_of(c, KING));
   for (int i = 0; i < dp->dirtyNum; i++) {
     Piece pc = dp->pc[i];
     if (type_of_p(pc) == KING) continue;
@@ -1595,27 +1592,27 @@ static void permute_biases(int32_t *biases)
 }
 #endif
 
-static void init_weights(const void *evalData)
-{
-  const char *d = (const char *)evalData + (3 * 4 + 177) + 4;
+static void init_weights(const void *evalData) {
 
-  // Read transformer
-  for (unsigned i = 0; i < kHalfDimensions; i++, d += 2)
-    ft_biases[i] = readu_le_u16(d);
-  for (unsigned i = 0; i < kHalfDimensions * FtInDims; i++, d += 2)
-    ft_weights[i] = readu_le_u16(d);
+    const char *d = (const char *)evalData;
 
-  // Read network
-  d += 4;
-  for (unsigned i = 0; i < 32; i++, d += 4)
-    hidden1_biases[i] = readu_le_u32(d);
-  d = read_hidden_weights(hidden1_weights, 512, d);
-  for (unsigned i = 0; i < 32; i++, d += 4)
-    hidden2_biases[i] = readu_le_u32(d);
-  d = read_hidden_weights(hidden2_weights, 32, d);
-  for (unsigned i = 0; i < 1; i++, d += 4)
-    output_biases[i] = readu_le_u32(d);
-  read_output_weights(output_weights, d);
+    for (unsigned i = 0; i < kHalfDimensions; i++, d += 2)
+        ft_biases[i] = readu_le_u16(d);
+
+    for (unsigned i = 0; i < kHalfDimensions * FtInDims; i++, d += 2)
+        ft_weights[i] = readu_le_u16(d);
+
+    for (unsigned i = 0; i < 32; i++, d += 4)
+        hidden1_biases[i] = readu_le_u32(d);
+    d = read_hidden_weights(hidden1_weights, 512, d);
+
+    for (unsigned i = 0; i < 32; i++, d += 4)
+        hidden2_biases[i] = readu_le_u32(d);
+    d = read_hidden_weights(hidden2_weights, 32, d);
+
+    for (unsigned i = 0; i < 1; i++, d += 4)
+        output_biases[i] = readu_le_u32(d);
+    read_output_weights(output_weights, d);
 
 #if defined(TRANSPOSE) && defined(USE_AVX2)
   permute_biases(hidden1_biases);
