@@ -456,7 +456,7 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
     if (ei.pkentry == NULL)
-        pkeval += computePKNetwork(board);
+        pkeval += evaluate_nnue(board);
 
     eval += pkeval + board->psqtmat + thread->contempt;
     eval += evaluateEndgames(board);
