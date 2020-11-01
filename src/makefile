@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CC      = gcc
-SRC     = *.c pyrrhic/tbprobe.c
+SRC     = *.c pyrrhic/tbprobe.c nnue/*.c
 LIBS    = -lpthread -lm
 EXE     = Ethereal
 

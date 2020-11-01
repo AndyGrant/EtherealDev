@@ -29,6 +29,7 @@
 #include "masks.h"
 #include "network.h"
 #include "nneval.h"
+#include "nnue/nnue.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
@@ -450,6 +451,10 @@ int evaluateBoard(Thread *thread, Board *board) {
     // Check for this evaluation being cached already
     if (!TRACE && getCachedEvaluation(thread, board, &hashed))
         return hashed;
+
+    // On some-what balanced positions, use just NNUE
+    if (abs(ScoreEG(board->psqtmat)) <= 400)
+        return evaluate_nnue(board);
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);

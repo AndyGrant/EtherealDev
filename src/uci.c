@@ -27,13 +27,14 @@
 #include "board.h"
 #include "cmdline.h"
 #include "evaluate.h"
-#include "pyrrhic/tbprobe.h"
 #include "history.h"
 #include "masks.h"
 #include "move.h"
 #include "movegen.h"
 #include "network.h"
 #include "nneval.h"
+#include "nnue/nnue.h"
+#include "pyrrhic/tbprobe.h"
 #include "search.h"
 #include "thread.h"
 #include "time.h"
@@ -73,6 +74,8 @@ int main(int argc, char **argv) {
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
+
+    load_nnue("epochz58.nn");
 
     // Handle any command line requests
     handleCommandLine(argc, argv);
