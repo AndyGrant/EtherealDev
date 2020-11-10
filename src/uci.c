@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
 
-    load_nnue("epochz58.nn");
+    load_nnue("nnue.nn");
 
     // Handle any command line requests
     handleCommandLine(argc, argv);
@@ -139,6 +139,8 @@ int main(int argc, char **argv) {
             pthread_mutex_lock(&READYLOCK);
             uciPosition(str, &board, chess960);
             pthread_mutex_unlock(&READYLOCK);
+            // printf("%d\n", evaluate_nnue(&board));
+            // fflush(stdout);
         }
 
         else if (strStartsWith(str, "go")) {

@@ -9,8 +9,8 @@
 #include "nnue.h"
 
 static Layer Architecture[] = {
-    {40960, 128, NULL, NULL},
-    {  256,  32, NULL, NULL},
+    {40960,  64, NULL, NULL},
+    {  128,  32, NULL, NULL},
     {   32,  32, NULL, NULL},
     {   32,   1, NULL, NULL},
 };
@@ -89,7 +89,7 @@ int evaluate_nnue(Board *board) {
         for (int j = 0; j < nnue.layers[3].cols; j++)
             out4[j] += fmaxf(0.0f, out3[i]) * nnue.layers[3].weights[i * nnue.layers[3].cols + j];
 
-    return out4[0] * 100.0;
+    return out4[0];
 }
 
 void compute_nnue_indices(const Board *board, int sq, int *index1, int *index2) {

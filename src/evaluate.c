@@ -450,11 +450,15 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     // Check for this evaluation being cached already
     if (!TRACE && getCachedEvaluation(thread, board, &hashed))
-        return hashed;
+        return hashed + Tempo;
 
     // On some-what balanced positions, use just NNUE
-    if (abs(ScoreEG(board->psqtmat)) <= 400)
-        return evaluate_nnue(board);
+    if (abs(ScoreEG(board->psqtmat)) <= 400) {
+        eval = evaluate_nnue(board);
+        // hashed = board->turn == WHITE ? eval : -eval;
+        // storeCachedEvaluation(thread, board, hashed);
+        // return eval + Tempo;
+    }
 
     initEvalInfo(thread, board, &ei);
     eval = evaluatePieces(&ei, board);
