@@ -9,8 +9,8 @@
 #include "nnue.h"
 
 static Layer Architecture[] = {
-    {40960,  64, NULL, NULL},
-    {  128,  32, NULL, NULL},
+    {40960, 256, NULL, NULL},
+    {  512,  32, NULL, NULL},
     {   32,  32, NULL, NULL},
     {   32,   1, NULL, NULL},
 };
@@ -62,19 +62,19 @@ int evaluate_nnue(Board *board) {
     memcpy(out3, nnue.layers[2].biases, sizeof(float) * nnue.layers[2].cols);
     memcpy(out4, nnue.layers[3].biases, sizeof(float) * nnue.layers[3].cols);
 
-    int index1, index2;
+    int i1, i2;
     uint64_t pieces = (white | black) & ~kings;
 
     while (pieces) {
 
         int sq = poplsb(&pieces);
-        compute_nnue_indices(board, sq, &index1, &index2);
+        compute_nnue_indices(board, sq, &i1, &i2);
 
         for (int i = 0; i < cols; i++)
-            out1[i] += nnue.layers[0].weights[index1 * cols + i];
+            out1[i] += nnue.layers[0].weights[i1 * cols + i];
 
         for (int i = 0; i < cols; i++)
-            out1[i + cols] += nnue.layers[0].weights[index2 * cols + i];
+            out1[i + cols] += nnue.layers[0].weights[i2 * cols + i];
     }
 
     for (int i = 0; i < nnue.layers[1].rows; i++)
@@ -92,7 +92,7 @@ int evaluate_nnue(Board *board) {
     return out4[0];
 }
 
-void compute_nnue_indices(const Board *board, int sq, int *index1, int *index2) {
+void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2) {
 
     const uint64_t white = board->colours[WHITE];
     const uint64_t black = board->colours[BLACK];
@@ -113,6 +113,6 @@ void compute_nnue_indices(const Board *board, int sq, int *index1, int *index2) 
     const int piece  = pieceType(board->squares[sq]);
     const int colour = pieceColour(board->squares[sq]);
 
-    *index1 = (64 * 10 *  sksq) + (64 * (5 * (colour == board->turn) + piece)) + srelsq;
-    *index2 = (64 * 10 * nsksq) + (64 * (5 * (colour != board->turn) + piece)) + nsrelsq;
+    *i1 = (64 * 10 *  sksq) + (64 * (5 * (colour == board->turn) + piece)) + srelsq;
+    *i2 = (64 * 10 * nsksq) + (64 * (5 * (colour != board->turn) + piece)) + nsrelsq;
 }
