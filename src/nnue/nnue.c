@@ -8,6 +8,12 @@
 #include "../bitboards.h"
 #include "nnue.h"
 
+#define USE_AVX2 1
+
+#ifdef USE_AVX2
+#include <immintrin.h>
+#endif
+
 static Layer Architecture[] = {
     {40960, 256, NULL, NULL},
     {  512,  32, NULL, NULL},
@@ -50,17 +56,13 @@ int evaluate_nnue(Board *board) {
 
     const int cols = nnue.layers[0].cols;
 
-    float out1[2 * cols];
-    float out2[nnue.layers[1].cols];
-    float out3[nnue.layers[2].cols];
-    float out4[nnue.layers[3].cols];
+    ALIGN64 float out1[2 * cols], out1_relu[2*cols];
+    ALIGN64 float out2[nnue.layers[1].cols], out2_relu[nnue.layers[1].cols];
+    ALIGN64 float out3[nnue.layers[2].cols], out3_relu[nnue.layers[2].cols];
+    ALIGN64 float out4[nnue.layers[3].cols];
 
     memcpy(out1, nnue.layers[0].biases, sizeof(float) * cols);
     memcpy(out1 + cols, nnue.layers[0].biases, sizeof(float) * cols);
-
-    memcpy(out2, nnue.layers[1].biases, sizeof(float) * nnue.layers[1].cols);
-    memcpy(out3, nnue.layers[2].biases, sizeof(float) * nnue.layers[2].cols);
-    memcpy(out4, nnue.layers[3].biases, sizeof(float) * nnue.layers[3].cols);
 
     int i1, i2;
     uint64_t pieces = (white | black) & ~kings;
@@ -77,17 +79,20 @@ int evaluate_nnue(Board *board) {
             out1[i + cols] += nnue.layers[0].weights[i2 * cols + i];
     }
 
-    for (int i = 0; i < nnue.layers[1].rows; i++)
-        for (int j = 0; j < nnue.layers[1].cols; j++)
-            out2[j] += fmaxf(0.0f, out1[i]) * nnue.layers[1].weights[i * nnue.layers[1].cols + j];
+    nnue_relu(out1, out1_relu, nnue.layers[1].rows);
+    nnue_affine_transform(nnue.layers[1].weights, nnue.layers[1].biases,
+        out1_relu, out2, nnue.layers[1].rows, nnue.layers[1].cols);
 
-    for (int i = 0; i < nnue.layers[2].rows; i++)
-        for (int j = 0; j < nnue.layers[2].cols; j++)
-            out3[j] += fmaxf(0.0f, out2[i]) * nnue.layers[2].weights[i * nnue.layers[2].cols + j];
 
-    for (int i = 0; i < nnue.layers[3].rows; i++)
-        for (int j = 0; j < nnue.layers[3].cols; j++)
-            out4[j] += fmaxf(0.0f, out3[i]) * nnue.layers[3].weights[i * nnue.layers[3].cols + j];
+    nnue_relu(out2, out2_relu, nnue.layers[2].rows);
+    nnue_affine_transform(nnue.layers[2].weights, nnue.layers[2].biases,
+        out2_relu, out3, nnue.layers[2].rows, nnue.layers[2].cols);
+
+
+    nnue_relu(out3, out3_relu, nnue.layers[3].rows);
+    nnue_affine_transform(nnue.layers[3].weights, nnue.layers[3].biases,
+        out3_relu, out4, nnue.layers[3].rows, nnue.layers[3].cols);
+
 
     return out4[0];
 }
@@ -115,4 +120,34 @@ void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2) {
 
     *i1 = (64 * 10 *  sksq) + (64 * (5 * (colour == board->turn) + piece)) + srelsq;
     *i2 = (64 * 10 * nsksq) + (64 * (5 * (colour != board->turn) + piece)) + nsrelsq;
+}
+
+void nnue_relu(float *inputs, float *outputs, int length) {
+
+#ifdef USE_AVX2
+
+    const __m256 zero = _mm256_setzero_ps();
+
+    __m256 *in  = (__m256 *) inputs;
+    __m256 *out = (__m256 *) outputs;
+
+    for (int i = 0; i < length / 8; i++)
+        out[i] = _mm256_max_ps(zero, in[i]);
+
+#else
+
+    for (int i = 0; i < length; i++)
+        outputs[i] = fmaxf(0.0f, inputs[i]);
+
+#endif
+
+}
+
+void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
+
+    memcpy(outputs, biases, sizeof(float) * cols);
+
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            outputs[j] += inputs[i] * weights[i * cols + j];
 }
