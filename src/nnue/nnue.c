@@ -8,15 +8,15 @@
 #include "../bitboards.h"
 #include "nnue.h"
 
-#define USE_AVX2 1
+#define USE_AVX2
 
 #ifdef USE_AVX2
 #include <immintrin.h>
 #endif
 
 static Layer Architecture[] = {
-    {40960, 256, NULL, NULL},
-    {  512,  32, NULL, NULL},
+    {40960,  64, NULL, NULL},
+    {  128,  32, NULL, NULL},
     {   32,  32, NULL, NULL},
     {   32,   1, NULL, NULL},
 };
@@ -122,6 +122,7 @@ void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2) {
     *i2 = (64 * 10 * nsksq) + (64 * (5 * (colour != board->turn) + piece)) + nsrelsq;
 }
 
+
 void nnue_relu(float *inputs, float *outputs, int length) {
 
 #ifdef USE_AVX2
@@ -143,11 +144,65 @@ void nnue_relu(float *inputs, float *outputs, int length) {
 
 }
 
+
 void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
 
-    memcpy(outputs, biases, sizeof(float) * cols);
+    if (cols == 1) {
 
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            outputs[j] += inputs[i] * weights[i * cols + j];
+        {
+            for (int j = 0; j < cols; j++)
+                outputs[j] = biases[j] + inputs[0] * weights[j];
+        }
+
+        for (int i = 1; i < rows; i++)
+            for (int j = 0; j < cols; j++)
+                outputs[j] += inputs[i] * weights[i * cols + j];
+
+        return ;
+    }
+
+    __m256 result;
+    __m256 *out = (__m256 *) outputs;
+    __m256 *bia = (__m256 *) biases;
+
+    {
+        __m256 in1 = _mm256_set1_ps(inputs[0]);
+        __m256 in2 = _mm256_set1_ps(inputs[1]);
+        __m256 in3 = _mm256_set1_ps(inputs[2]);
+        __m256 in4 = _mm256_set1_ps(inputs[3]);
+
+        for (int j = 0; j < cols / 8; j++) {
+
+            __m256 w1 = _mm256_loadu_ps(&weights[0 * cols + 8 * j]);
+            __m256 w2 = _mm256_loadu_ps(&weights[1 * cols + 8 * j]);
+            __m256 w3 = _mm256_loadu_ps(&weights[2 * cols + 8 * j]);
+            __m256 w4 = _mm256_loadu_ps(&weights[3 * cols + 8 * j]);
+
+            result = _mm256_fmadd_ps(in1, w1, bia[j]);
+            result = _mm256_fmadd_ps(in2, w2, result);
+            result = _mm256_fmadd_ps(in3, w3, result);
+            out[j] = _mm256_fmadd_ps(in4, w4, result);
+        }
+    }
+
+    for (int i = 4; i < rows; i += 4) {
+
+        __m256 in1 = _mm256_set1_ps(inputs[i+0]);
+        __m256 in2 = _mm256_set1_ps(inputs[i+1]);
+        __m256 in3 = _mm256_set1_ps(inputs[i+2]);
+        __m256 in4 = _mm256_set1_ps(inputs[i+3]);
+
+        for (int j = 0; j < cols / 8; j++) {
+
+             __m256 w1 = _mm256_loadu_ps(&weights[(i+0) * cols + 8 * j]);
+             __m256 w2 = _mm256_loadu_ps(&weights[(i+1) * cols + 8 * j]);
+             __m256 w3 = _mm256_loadu_ps(&weights[(i+2) * cols + 8 * j]);
+             __m256 w4 = _mm256_loadu_ps(&weights[(i+3) * cols + 8 * j]);
+
+            result = _mm256_fmadd_ps(in1, w1, out[j]);
+            result = _mm256_fmadd_ps(in2, w2, result);
+            result = _mm256_fmadd_ps(in3, w3, result);
+            out[j] = _mm256_fmadd_ps(in4, w4, result);
+        }
+    }
 }
