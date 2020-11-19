@@ -72,11 +72,14 @@ int evaluate_nnue(Board *board) {
         int sq = poplsb(&pieces);
         compute_nnue_indices(board, sq, &i1, &i2);
 
-        for (int i = 0; i < cols; i++)
-            out1[i] += nnue.layers[0].weights[i1 * cols + i];
+        const int woffset = board->turn == WHITE ? 0 : cols;
+        const int boffset = board->turn == WHITE ? cols : 0;
 
         for (int i = 0; i < cols; i++)
-            out1[i + cols] += nnue.layers[0].weights[i2 * cols + i];
+            out1[i+woffset] += nnue.layers[0].weights[i1 * cols + i];
+
+        for (int i = 0; i < cols; i++)
+            out1[i+boffset] += nnue.layers[0].weights[i2 * cols + i];
     }
 
     nnue_relu(out1, out1_relu, nnue.layers[1].rows);
@@ -103,23 +106,17 @@ void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2) {
     const uint64_t black = board->colours[BLACK];
     const uint64_t kings = board->pieces[KING];
 
-    const int wking = getlsb(white & kings);
-    const int bking = getlsb(black & kings);
+    const int wksq = relativeSquare(WHITE, getlsb(white & kings));
+    const int bksq = relativeSquare(BLACK, getlsb(black & kings));
 
-    const int stmk  = (board->turn == WHITE ? wking : bking);
-    const int nstmk = (board->turn == WHITE ? bking : wking);
-
-    const int sksq  = relativeSquare( board->turn,  stmk);
-    const int nsksq = relativeSquare(!board->turn, nstmk);
-
-    const int srelsq  = relativeSquare( board->turn, sq);
-    const int nsrelsq = relativeSquare(!board->turn, sq);
+    const int wrelsq = relativeSquare(WHITE, sq);
+    const int brelsq = relativeSquare(BLACK, sq);
 
     const int piece  = pieceType(board->squares[sq]);
     const int colour = pieceColour(board->squares[sq]);
 
-    *i1 = (64 * 10 *  sksq) + (64 * (5 * (colour == board->turn) + piece)) + srelsq;
-    *i2 = (64 * 10 * nsksq) + (64 * (5 * (colour != board->turn) + piece)) + nsrelsq;
+    *i1 = (64 * 10 * wksq) + (64 * (5 * (colour == WHITE) + piece)) + wrelsq;
+    *i2 = (64 * 10 * bksq) + (64 * (5 * (colour == BLACK) + piece)) + brelsq;
 }
 
 
@@ -143,7 +140,6 @@ void nnue_relu(float *inputs, float *outputs, int length) {
 #endif
 
 }
-
 
 void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
 
@@ -194,10 +190,10 @@ void nnue_affine_transform(float *weights, float *biases, float *inputs, float *
 
         for (int j = 0; j < cols / 8; j++) {
 
-             __m256 w1 = _mm256_loadu_ps(&weights[(i+0) * cols + 8 * j]);
-             __m256 w2 = _mm256_loadu_ps(&weights[(i+1) * cols + 8 * j]);
-             __m256 w3 = _mm256_loadu_ps(&weights[(i+2) * cols + 8 * j]);
-             __m256 w4 = _mm256_loadu_ps(&weights[(i+3) * cols + 8 * j]);
+            __m256 w1 = _mm256_loadu_ps(&weights[(i+0) * cols + 8 * j]);
+            __m256 w2 = _mm256_loadu_ps(&weights[(i+1) * cols + 8 * j]);
+            __m256 w3 = _mm256_loadu_ps(&weights[(i+2) * cols + 8 * j]);
+            __m256 w4 = _mm256_loadu_ps(&weights[(i+3) * cols + 8 * j]);
 
             result = _mm256_fmadd_ps(in1, w1, out[j]);
             result = _mm256_fmadd_ps(in2, w2, result);
