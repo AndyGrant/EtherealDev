@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
 
-    load_nnue("nnue.nn");
+    load_nnue("exported.nn");
 
     // Handle any command line requests
     handleCommandLine(argc, argv);
