@@ -11,36 +11,43 @@
 #include <immintrin.h>
 
 static Layer Architecture[] = {
-    {40960, 256, NULL, NULL},
-    {  512,  32, NULL, NULL},
-    {   32,  32, NULL, NULL},
-    {   32,   1, NULL, NULL},
+    { 40960, 256 },
+    {   512,  32 },
+    {    32,  32 },
+    {    32,   1 },
 };
 
 NNUE nnue = (NNUE) { 4, Architecture };
+
+
+ALIGN64 float in_weights[40960 * 256];
+ALIGN64 float in_biases[256];
+
+ALIGN64 float l1_weights[512 * 32];
+ALIGN64 float l1_biases[32];
+
+ALIGN64 float l2_weights[32 * 32];
+ALIGN64 float l2_biases[32];
+
+ALIGN64 float l3_weights[32 * 1];
+ALIGN64 float l3_biases[1];
 
 
 void load_nnue(const char* fname) {
 
     FILE *fin = fopen(fname, "rb");
 
-    for (int i = 0; i < nnue.length; i++) {
+    fread(in_biases,  sizeof(float), sizeof(in_biases ) / sizeof(float), fin);
+    fread(in_weights, sizeof(float), sizeof(in_weights) / sizeof(float), fin);
 
-        const int rows = nnue.layers[i].rows;
-        const int cols = nnue.layers[i].cols;
+    fread(l1_biases,  sizeof(float), sizeof(l1_biases ) / sizeof(float), fin);
+    fread(l1_weights, sizeof(float), sizeof(l1_weights) / sizeof(float), fin);
 
-        if (nnue.layers[i].weights)
-            align_free(nnue.layers[i].weights);
-        nnue.layers[i].weights = align_malloc(sizeof(float) * rows * cols);
+    fread(l2_biases,  sizeof(float), sizeof(l2_biases ) / sizeof(float), fin);
+    fread(l2_weights, sizeof(float), sizeof(l2_weights) / sizeof(float), fin);
 
-        if (nnue.layers[i].biases)
-            align_free(nnue.layers[i].biases);
-        nnue.layers[i].biases = align_malloc(sizeof(float) * cols);
-
-        if (   fread(nnue.layers[i].biases, sizeof(float), cols, fin) != (size_t) cols
-            || fread(nnue.layers[i].weights, sizeof(float), rows * cols, fin) != (size_t) rows * cols)
-            printf("info string Unable to read NNUE\n"), fflush(stdout);
-    }
+    fread(l3_biases,  sizeof(float), sizeof(l3_biases ) / sizeof(float), fin);
+    fread(l3_weights, sizeof(float), sizeof(l3_weights) / sizeof(float), fin);
 
     fclose(fin);
 }
@@ -58,8 +65,8 @@ int evaluate_nnue(Board *board) {
     ALIGN64 float out3[nnue.layers[2].cols], out3_relu[nnue.layers[2].cols];
     ALIGN64 float out4[nnue.layers[3].cols];
 
-    memcpy(out1, nnue.layers[0].biases, sizeof(float) * cols);
-    memcpy(out1 + cols, nnue.layers[0].biases, sizeof(float) * cols);
+    memcpy(out1, in_biases, sizeof(float) * cols);
+    memcpy(out1 + cols, in_biases, sizeof(float) * cols);
 
     int i1, i2;
     uint64_t pieces = (white | black) & ~kings;
@@ -73,23 +80,20 @@ int evaluate_nnue(Board *board) {
         const int boffset = board->turn == WHITE ? cols : 0;
 
         for (int i = 0; i < cols; i++)
-            out1[i+woffset] += nnue.layers[0].weights[i1 * cols + i];
+            out1[i+woffset] += in_weights[i1 * cols + i];
 
         for (int i = 0; i < cols; i++)
-            out1[i+boffset] += nnue.layers[0].weights[i2 * cols + i];
+            out1[i+boffset] += in_weights[i2 * cols + i];
     }
 
     nnue_relu(out1, out1_relu, nnue.layers[1].rows);
-    nnue_affine_transform(nnue.layers[1].weights, nnue.layers[1].biases,
-        out1_relu, out2, nnue.layers[1].rows, 32); // nnue.layers[1].cols);
+    nnue_affine_transform(l1_weights, l1_biases, out1_relu, out2, nnue.layers[1].rows, nnue.layers[1].cols);
 
     nnue_relu(out2, out2_relu, nnue.layers[2].rows);
-    nnue_affine_transform(nnue.layers[2].weights, nnue.layers[2].biases,
-        out2_relu, out3, nnue.layers[2].rows, 32); // nnue.layers[2].cols);
+    nnue_affine_transform(l2_weights, l2_biases, out2_relu, out3, nnue.layers[2].rows, nnue.layers[2].cols);
 
     nnue_relu(out3, out3_relu, nnue.layers[3].rows);
-    nnue_output_transform(nnue.layers[3].weights, nnue.layers[3].biases,
-        out3_relu, out4, nnue.layers[3].rows, nnue.layers[3].cols);
+    nnue_output_transform(l3_weights, l3_biases, out3_relu, out4, nnue.layers[3].rows, nnue.layers[3].cols);
 
     return out4[0];
 }
