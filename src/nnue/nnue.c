@@ -10,7 +10,7 @@
 
 #include <immintrin.h>
 
-static Layer Architecture[] = {
+Layer Architecture[] = {
     {40960, 256, NULL, NULL},
     {  512,  32, NULL, NULL},
     {   32,  32, NULL, NULL},
@@ -53,13 +53,11 @@ int evaluate_nnue(Board *board) {
 
     const int cols = nnue.layers[0].cols;
 
-    ALIGN64 float out1[2 * cols], out1_relu[2*cols];
-    ALIGN64 float out2[nnue.layers[1].cols], out2_relu[nnue.layers[1].cols];
-    ALIGN64 float out3[nnue.layers[2].cols], out3_relu[nnue.layers[2].cols];
-    ALIGN64 float out4[nnue.layers[3].cols];
+    // Large enough to handle all local operations
+    ALIGN64 float outN[2 * cols], outN_relu[2 * cols];
 
-    memcpy(out1, nnue.layers[0].biases, sizeof(float) * cols);
-    memcpy(out1 + cols, nnue.layers[0].biases, sizeof(float) * cols);
+    memcpy(outN, nnue.layers[0].biases, sizeof(float) * cols);
+    memcpy(outN + cols, nnue.layers[0].biases, sizeof(float) * cols);
 
     int i1, i2;
     uint64_t pieces = (white | black) & ~kings;
@@ -73,25 +71,25 @@ int evaluate_nnue(Board *board) {
         const int boffset = board->turn == WHITE ? cols : 0;
 
         for (int i = 0; i < cols; i++)
-            out1[i+woffset] += nnue.layers[0].weights[i1 * cols + i];
+            outN[i+woffset] += nnue.layers[0].weights[i1 * cols + i];
 
         for (int i = 0; i < cols; i++)
-            out1[i+boffset] += nnue.layers[0].weights[i2 * cols + i];
+            outN[i+boffset] += nnue.layers[0].weights[i2 * cols + i];
     }
 
-    nnue_relu(out1, out1_relu, nnue.layers[1].rows);
+    nnue_relu(outN, outN_relu, nnue.layers[1].rows);
     nnue_affine_transform(nnue.layers[1].weights, nnue.layers[1].biases,
-        out1_relu, out2, nnue.layers[1].rows, 32); // nnue.layers[1].cols);
+        outN_relu, outN, nnue.layers[1].rows, 32); // nnue.layers[1].cols);
 
-    nnue_relu(out2, out2_relu, nnue.layers[2].rows);
+    nnue_relu(outN, outN_relu, nnue.layers[2].rows);
     nnue_affine_transform(nnue.layers[2].weights, nnue.layers[2].biases,
-        out2_relu, out3, nnue.layers[2].rows, 32); // nnue.layers[2].cols);
+        outN_relu, outN, nnue.layers[2].rows, 32); // nnue.layers[2].cols);
 
-    nnue_relu(out3, out3_relu, nnue.layers[3].rows);
+    nnue_relu(outN, outN_relu, nnue.layers[3].rows);
     nnue_output_transform(nnue.layers[3].weights, nnue.layers[3].biases,
-        out3_relu, out4, nnue.layers[3].rows, nnue.layers[3].cols);
+        outN_relu, outN, nnue.layers[3].rows, nnue.layers[3].cols);
 
-    return out4[0];
+    return outN[0];
 }
 
 void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2) {
@@ -121,8 +119,12 @@ void nnue_relu(float *inputs, float *outputs, int length) {
     __m256 *in  = (__m256 *) inputs;
     __m256 *out = (__m256 *) outputs;
 
-    for (int i = 0; i < length / 8; i++)
-        out[i] = _mm256_max_ps(zero, in[i]);
+    for (int i = 0; i < length / 8; i += 4) {
+        out[i+0] = _mm256_max_ps(zero, in[i+0]);
+        out[i+1] = _mm256_max_ps(zero, in[i+1]);
+        out[i+2] = _mm256_max_ps(zero, in[i+2]);
+        out[i+3] = _mm256_max_ps(zero, in[i+3]);
+    }
 }
 
 void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
