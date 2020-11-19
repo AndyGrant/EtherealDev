@@ -104,3 +104,4 @@ typedef int16_t CaptureHistoryTable[PIECE_NB][SQUARE_NB][PIECE_NB-1];
 // Trivial alignment macros
 
 #define ALIGN64 alignas(64)
+#define INLINE static inline
