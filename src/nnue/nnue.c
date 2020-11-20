@@ -10,6 +10,8 @@
 
 #include <immintrin.h>
 
+// 2 x (40960 x N) => 2N x 32 x 32 x 1 Assumed
+
 Layer Architecture[] = {
     {40960, 256, NULL, NULL},
     {  512,  32, NULL, NULL},
@@ -41,6 +43,9 @@ void load_nnue(const char* fname) {
             || fread(nnue.layers[i].weights, sizeof(float), rows * cols, fin) != (size_t) rows * cols)
             printf("info string Unable to read NNUE\n"), fflush(stdout);
     }
+
+    nnue_transpose(nnue.layers[1].weights, nnue.layers[1].rows, nnue.layers[1].cols);
+    nnue_transpose(nnue.layers[2].weights, nnue.layers[2].rows, nnue.layers[2].cols);
 
     fclose(fin);
 }
@@ -79,15 +84,15 @@ int evaluate_nnue(Board *board) {
 
     nnue_relu(outN, outN_relu, nnue.layers[1].rows);
     nnue_affine_transform(nnue.layers[1].weights, nnue.layers[1].biases,
-        outN_relu, outN, nnue.layers[1].rows, 32); // nnue.layers[1].cols);
+        outN_relu, outN, nnue.layers[1].rows); // nnue.layers[1].cols);
 
     nnue_relu(outN, outN_relu, nnue.layers[2].rows);
     nnue_affine_transform(nnue.layers[2].weights, nnue.layers[2].biases,
-        outN_relu, outN, nnue.layers[2].rows, 32); // nnue.layers[2].cols);
+        outN_relu, outN, nnue.layers[2].rows); // nnue.layers[2].cols);
 
     nnue_relu(outN, outN_relu, nnue.layers[3].rows);
     nnue_output_transform(nnue.layers[3].weights, nnue.layers[3].biases,
-        outN_relu, outN, nnue.layers[3].rows, nnue.layers[3].cols);
+        outN_relu, outN, nnue.layers[3].rows); // nnue.layers[3].cols
 
     return outN[0];
 }
@@ -127,45 +132,92 @@ void nnue_relu(float *inputs, float *outputs, int length) {
     }
 }
 
-void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
+void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows) {
 
-    __m256 results[cols / 8];
-    for (int j = 0; j < cols / 8; j++)
-        results[j] = _mm256_load_ps(&biases[j*8]);
+    /// Solution Derived from https://github.com/Luecx/Koivisto
 
-    for (int i = 0; i < rows; i += 4) {
+    const int InChunks  = rows / 8;
+    const int OutChunks = 32   / 8;
 
-        __m256 in1 = _mm256_set1_ps(inputs[i+0]);
-        __m256 in2 = _mm256_set1_ps(inputs[i+1]);
-        __m256 in3 = _mm256_set1_ps(inputs[i+2]);
-        __m256 in4 = _mm256_set1_ps(inputs[i+3]);
+    const __m256 *inp = (__m256 *) inputs;
+    const __m256 *bia = (__m256 *) biases;
+    const __m256 *wgt = (__m256 *) weights;
+    __m256 *const out = (__m256 *) outputs;
 
-        for (int j = 0; j < cols / 8; j++) {
+    for (int i = 0; i < OutChunks; i++) {
 
-            __m256 w1 = _mm256_load_ps(&weights[(i+0) * cols + 8 * j]);
-            __m256 w2 = _mm256_load_ps(&weights[(i+1) * cols + 8 * j]);
-            __m256 w3 = _mm256_load_ps(&weights[(i+2) * cols + 8 * j]);
-            __m256 w4 = _mm256_load_ps(&weights[(i+3) * cols + 8 * j]);
+        __m256 acc0 = _mm256_setzero_ps();
+        __m256 acc1 = _mm256_setzero_ps();
+        __m256 acc2 = _mm256_setzero_ps();
+        __m256 acc3 = _mm256_setzero_ps();
+        __m256 acc4 = _mm256_setzero_ps();
+        __m256 acc5 = _mm256_setzero_ps();
+        __m256 acc6 = _mm256_setzero_ps();
+        __m256 acc7 = _mm256_setzero_ps();
 
-            results[j] = _mm256_fmadd_ps(in1, w1, results[j]);
-            results[j] = _mm256_fmadd_ps(in2, w2, results[j]);
-            results[j] = _mm256_fmadd_ps(in3, w3, results[j]);
-            results[j] = _mm256_fmadd_ps(in4, w4, results[j]);
+        for (int j = 0; j < InChunks; j++) {
+            acc0 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 0) + j], inp[j], acc0);
+            acc1 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 1) + j], inp[j], acc1);
+            acc2 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 2) + j], inp[j], acc2);
+            acc3 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 3) + j], inp[j], acc3);
+            acc4 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 4) + j], inp[j], acc4);
+            acc5 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 5) + j], inp[j], acc5);
+            acc6 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 6) + j], inp[j], acc6);
+            acc7 = _mm256_fmadd_ps(wgt[InChunks * (i * 8 + 7) + j], inp[j], acc7);
         }
-    }
 
-    for (int j = 0; j < cols / 8; j++)
-        _mm256_store_ps(&outputs[j*8], results[j]);
+        acc0 = _mm256_hadd_ps(acc0, acc1);
+        acc2 = _mm256_hadd_ps(acc2, acc3);
+        acc4 = _mm256_hadd_ps(acc4, acc5);
+        acc6 = _mm256_hadd_ps(acc6, acc7);
+
+        acc0 = _mm256_hadd_ps(acc0, acc2);
+        acc4 = _mm256_hadd_ps(acc4, acc6);
+
+        __m128 sumabcd1 = _mm256_extractf128_ps(acc0, 0);
+        __m128 sumabcd2 = _mm256_extractf128_ps(acc0, 1);
+        __m128 sumefgh1 = _mm256_extractf128_ps(acc4, 0);
+        __m128 sumefgh2 = _mm256_extractf128_ps(acc4, 1);
+
+        sumabcd1 = _mm_add_ps(sumabcd1, sumabcd2);
+        sumefgh1 = _mm_add_ps(sumefgh1, sumefgh2);
+
+        acc0 = _mm256_insertf128_ps(_mm256_castps128_ps256(sumabcd1), sumefgh1, 1);
+        out[i] = _mm256_add_ps(bia[i], acc0);
+    }
 }
 
-void nnue_output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
+void nnue_output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows) {
 
-    {
-        for (int j = 0; j < cols; j++)
-            outputs[j] = biases[j] + inputs[0] * weights[j];
-    }
+    const int InChunks = rows / 8;
+    const __m256 *inp  = (__m256 *) inputs;
+    const __m256 *wgt  = (__m256 *) weights;
 
-    for (int i = 1; i < rows; i++)
+    __m256 acc = _mm256_mul_ps(wgt[0], inp[0]);
+    for (int i = 1; i < InChunks; i++)
+        acc = _mm256_fmadd_ps(wgt[i], inp[i], acc);
+
+    const __m128 hiQuad  = _mm256_extractf128_ps(acc, 1);
+    const __m128 loQuad  = _mm256_castps256_ps128(acc);
+    const __m128 sumQuad = _mm_add_ps(loQuad, hiQuad);
+
+    const __m128 hiDual  = _mm_movehl_ps(sumQuad, sumQuad);
+    const __m128 sumDual = _mm_add_ps(sumQuad, hiDual);
+
+    const __m128 hi      = _mm_shuffle_ps(sumDual, sumDual, 0x1);
+    const __m128 sum     = _mm_add_ss(sumDual, hi);
+
+    *outputs = _mm_cvtss_f32(sum) + *biases;
+}
+
+void nnue_transpose(float *matrix, int rows, int cols) {
+
+    float *cpy = malloc(sizeof(float) * rows * cols);
+
+    for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
-            outputs[j] += inputs[i] * weights[i * cols + j];
+            cpy[j * rows + i] = matrix[i * cols + j];
+
+    memcpy(matrix, cpy, sizeof(float) * rows * cols);
+    free(cpy);
 }

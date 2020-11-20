@@ -20,8 +20,9 @@ int evaluate_nnue(Board *board);
 void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2);
 
 void nnue_relu(float *inputs, float *outputs, int length);
-void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols);
-void nnue_output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols);
+void nnue_affine_transform(float *weights, float *biases, float *inputs, float *outputs, int rows);
+void nnue_output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows);
+void nnue_transpose(float *matrix, int rows, int cols);
 
 #if defined(_WIN32) || defined(_WIN64)
 
