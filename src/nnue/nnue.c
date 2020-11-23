@@ -25,42 +25,55 @@
 
 #include "../board.h"
 #include "../bitboards.h"
+#include "../thread.h"
 
+#include "accumulator.h"
 #include "nnue.h"
 #include "utils.h"
 #include "types.h"
 
 #include <immintrin.h>
 
-#define KPSIZE 256
-#define L1SIZE 512
-#define L2SIZE 32
-#define L3SIZE 32
-
-NNUE nnue = (NNUE) { 4, (Layer[]) {
-    {   40960,  KPSIZE, NULL, NULL},
-    {  L1SIZE,  L2SIZE, NULL, NULL},
-    {  L2SIZE,  L3SIZE, NULL, NULL},
-    {  L3SIZE,       1, NULL, NULL},
-}};
+NNUENetwork nnue = (NNUENetwork) {
+    (NNUELayer[]) {
+        {   40960,  KPSIZE, NULL, NULL},
+        {  L1SIZE,  L2SIZE, NULL, NULL},
+        {  L2SIZE,  L3SIZE, NULL, NULL},
+        {  L3SIZE,       1, NULL, NULL},
+    }
+};
 
 
-INLINE void nnue_halfkp_relu(float *inputs, float *outputs, int length) {
+INLINE void nnue_halfkp_relu(NNUEAccumulator *accum, float *outputs, int length, int turn) {
 
     const __m256 zero = _mm256_setzero_ps();
 
-    __m256 *in  = (__m256 *) inputs;
-    __m256 *out = (__m256 *) outputs;
+    __m256 *in_white  = (__m256 *) &accum->values[WHITE];
+    __m256 *in_black  = (__m256 *) &accum->values[BLACK];
+
+    __m256 *out_white = (__m256 *) (turn == WHITE ? outputs : &outputs[KPSIZE]);
+    __m256 *out_black = (__m256 *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
     for (int i = 0; i < length / 8; i += 8) {
-        out[i+0] = _mm256_max_ps(zero, in[i+0]);
-        out[i+1] = _mm256_max_ps(zero, in[i+1]);
-        out[i+2] = _mm256_max_ps(zero, in[i+2]);
-        out[i+3] = _mm256_max_ps(zero, in[i+3]);
-        out[i+4] = _mm256_max_ps(zero, in[i+4]);
-        out[i+5] = _mm256_max_ps(zero, in[i+5]);
-        out[i+6] = _mm256_max_ps(zero, in[i+6]);
-        out[i+7] = _mm256_max_ps(zero, in[i+7]);
+        out_white[i+0] = _mm256_max_ps(zero, in_white[i+0]);
+        out_white[i+1] = _mm256_max_ps(zero, in_white[i+1]);
+        out_white[i+2] = _mm256_max_ps(zero, in_white[i+2]);
+        out_white[i+3] = _mm256_max_ps(zero, in_white[i+3]);
+        out_white[i+4] = _mm256_max_ps(zero, in_white[i+4]);
+        out_white[i+5] = _mm256_max_ps(zero, in_white[i+5]);
+        out_white[i+6] = _mm256_max_ps(zero, in_white[i+6]);
+        out_white[i+7] = _mm256_max_ps(zero, in_white[i+7]);
+    }
+
+    for (int i = 0; i < length / 8; i += 8) {
+        out_black[i+0] = _mm256_max_ps(zero, in_black[i+0]);
+        out_black[i+1] = _mm256_max_ps(zero, in_black[i+1]);
+        out_black[i+2] = _mm256_max_ps(zero, in_black[i+2]);
+        out_black[i+3] = _mm256_max_ps(zero, in_black[i+3]);
+        out_black[i+4] = _mm256_max_ps(zero, in_black[i+4]);
+        out_black[i+5] = _mm256_max_ps(zero, in_black[i+5]);
+        out_black[i+6] = _mm256_max_ps(zero, in_black[i+6]);
+        out_black[i+7] = _mm256_max_ps(zero, in_black[i+7]);
     }
 }
 
@@ -149,7 +162,7 @@ void load_nnue(const char* fname) {
 
     FILE *fin = fopen(fname, "rb");
 
-    for (int i = 0; i < nnue.length; i++) {
+    for (int i = 0; i < LAYERS; i++) {
 
         const int rows = nnue.layers[i].rows;
         const int cols = nnue.layers[i].cols;
@@ -173,65 +186,31 @@ void load_nnue(const char* fname) {
     fclose(fin);
 }
 
-int evaluate_nnue(Board *board) {
+int nnue_evaluate(Thread *thread, Board *board) {
 
-    const uint64_t white = board->colours[WHITE];
-    const uint64_t black = board->colours[BLACK];
-    const uint64_t kings = board->pieces[KING];
+    // To perform some optimizations, auto-flag KvK as drawn to assume pieces >= 1
+    if ((board->colours[WHITE] | board->colours[BLACK]) == board->pieces[KING])
+        return 0;
 
-    const int cols = nnue.layers[0].cols;
+    // Large enough to handle layer computations
+    ALIGN64 float outN1[L1SIZE], outN2[L1SIZE];
+    NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
-    // Large enough to handle all local operations
-    ALIGN64 float outN1[2 * cols], outN2[2 * cols];
+    // Update the accumulated L1 Neurons if they are expired
+    if (!accum->accurate)
+        nnue_update_accumulator(accum, board);
+    accum->accurate = 1;
 
-    memcpy(outN1, nnue.layers[0].biases, sizeof(float) * cols);
-    memcpy(outN1 + cols, nnue.layers[0].biases, sizeof(float) * cols);
+    // nnue_refresh_accumulator(accum, board, WHITE);
+    // nnue_refresh_accumulator(accum, board, BLACK);
 
-    int i1, i2;
-    uint64_t pieces = (white | black) & ~kings;
-
-    while (pieces) {
-
-        int sq = poplsb(&pieces);
-        compute_nnue_indices(board, sq, &i1, &i2);
-
-        const int woffset = board->turn == WHITE ? 0 : cols;
-        const int boffset = board->turn == WHITE ? cols : 0;
-
-        for (int i = 0; i < cols; i++)
-            outN1[i+woffset] += nnue.layers[0].weights[i1 * cols + i];
-
-        for (int i = 0; i < cols; i++)
-            outN1[i+boffset] += nnue.layers[0].weights[i2 * cols + i];
-    }
-
-    nnue_halfkp_relu(outN1, outN2, L1SIZE);
+    nnue_halfkp_relu(accum, outN2, KPSIZE, board->turn);
     nnue_affine_relu(nnue.layers[1].weights, nnue.layers[1].biases, outN2, outN1, L1SIZE, L2SIZE);
     nnue_affine_relu(nnue.layers[2].weights, nnue.layers[2].biases, outN1, outN2, L2SIZE, L3SIZE);
     nnue_output_transform(nnue.layers[3].weights, nnue.layers[3].biases, outN2, outN1, L3SIZE);
 
     return outN1[0];
 }
-
-void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2) {
-
-    const uint64_t white = board->colours[WHITE];
-    const uint64_t black = board->colours[BLACK];
-    const uint64_t kings = board->pieces[KING];
-
-    const int wksq = relativeSquare(WHITE, getlsb(white & kings));
-    const int bksq = relativeSquare(BLACK, getlsb(black & kings));
-
-    const int wrelsq = relativeSquare(WHITE, sq);
-    const int brelsq = relativeSquare(BLACK, sq);
-
-    const int piece  = pieceType(board->squares[sq]);
-    const int colour = pieceColour(board->squares[sq]);
-
-    *i1 = (64 * 10 * wksq) + (64 * (5 * (colour == WHITE) + piece)) + wrelsq;
-    *i2 = (64 * 10 * bksq) + (64 * (5 * (colour == BLACK) + piece)) + brelsq;
-}
-
 
 void nnue_transpose(float *matrix, int rows, int cols) {
 

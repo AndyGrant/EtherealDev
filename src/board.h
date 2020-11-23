@@ -30,6 +30,7 @@ struct Board {
     int turn, epSquare, halfMoveCounter, fullMoveCounter;
     int psqtmat, numMoves, chess960;
     uint64_t history[512];
+    Thread *thread;
 };
 
 struct Undo {

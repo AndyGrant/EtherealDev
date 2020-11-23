@@ -20,14 +20,30 @@
 
 #pragma once
 
-typedef struct Layer {
+#define KPSIZE 256
+#define L1SIZE 512
+#define L2SIZE 32
+#define L3SIZE 32
+#define LAYERS 4
+
+#include "../types.h"
+
+typedef struct NNUELayer {
     int rows, cols;
     float *weights;
     float *biases;
-} Layer;
+} NNUELayer;
 
-typedef struct NNUE {
-    int length;
-    Layer *layers;
-} NNUE;
+typedef struct NNUENetwork {
+    NNUELayer *layers;
+} NNUENetwork;
 
+typedef struct NNUEDelta {
+    int piece, from, to;
+} NNUEDelta;
+
+typedef struct NNUEAccumulator {
+    int accurate, changes;
+    NNUEDelta deltas[3];
+    ALIGN64 float values[2][KPSIZE];
+} NNUEAccumulator;

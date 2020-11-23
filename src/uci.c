@@ -79,10 +79,6 @@ int main(int argc, char **argv) {
     // Handle any command line requests
     handleCommandLine(argc, argv);
 
-    // for (int i = 0; i < 10000000; i++)
-    //     evaluate_nnue(&board);
-    // return 1;
-
     /*
     |------------|-----------------------------------------------------------------------|
     |  Commands  | Response. * denotes that the command blocks until no longer searching |
@@ -287,7 +283,7 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
 
     if (strStartsWith(str, "setoption name Threads value ")) {
         int nthreads = atoi(str + strlen("setoption name Threads value "));
-        free(*threads); *threads = createThreadPool(nthreads);
+        deleteThreadPool(*threads); *threads = createThreadPool(nthreads);
         printf("info string set Threads to %d\n", nthreads);
     }
 

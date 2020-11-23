@@ -25,7 +25,5 @@
 #include "../types.h"
 
 void load_nnue(const char* fname);
-int evaluate_nnue(Board *board);
-
-void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2);
+int nnue_evaluate(Thread *thread, Board *board);
 void nnue_transpose(float *matrix, int rows, int cols);
