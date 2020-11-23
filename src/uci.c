@@ -70,12 +70,11 @@ int main(int argc, char **argv) {
     initAttacks(); initMasks(); initEval();
     initSearch(); initZobrist(); initTT(16);
     initPKNetwork(&PKNN); initEndgameNNs();
+    load_nnue("exported.nn");
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
-
-    load_nnue("exported.nn");
 
     // Handle any command line requests
     handleCommandLine(argc, argv);
