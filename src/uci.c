@@ -79,6 +79,10 @@ int main(int argc, char **argv) {
     // Handle any command line requests
     handleCommandLine(argc, argv);
 
+    // for (int i = 0; i < 10000000; i++)
+    //     evaluate_nnue(&board);
+    // return 1;
+
     /*
     |------------|-----------------------------------------------------------------------|
     |  Commands  | Response. * denotes that the command blocks until no longer searching |

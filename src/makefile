@@ -26,6 +26,8 @@ TFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
 PFLAGS = -O0 $(WFLAGS) -DNDEBUG -p -pg
 DFLAGS = -O0 $(WFLAGS)
 
+PGOFLAGS = $(CFLAGS) -fno-asynchronous-unwind-tables
+
 POPCNTFLAGS = -DUSE_POPCNT -msse3 -mpopcnt
 PEXTFLAGS   = $(POPCNTFLAGS) -DUSE_PEXT -mbmi2
 
@@ -53,6 +55,12 @@ tune:
 
 profile:
 	$(CC) $(PFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)
+
+pgo:
+	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
+	$(CC) -fprofile-generate $(PGOFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
+	./$(EXE) bench
+	$(CC) -fprofile-use $(PGOFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
 
 debug:
 	$(CC) $(DFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)

@@ -26,6 +26,6 @@
 
 void load_nnue(const char* fname);
 int evaluate_nnue(Board *board);
-void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2);
 
+void compute_nnue_indices(const Board *board, int sq, int *i1, int *i2);
 void nnue_transpose(float *matrix, int rows, int cols);
