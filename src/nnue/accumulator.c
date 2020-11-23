@@ -94,26 +94,43 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
 
 void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
 
-    const int height = board->thread->height;
-
-    // At Root, or previous Node is inaccurate also
-    if (height <= 0 || !(accum-1)->accurate) {
+    // Root Node cannot be incremental
+    if (board->thread->height == 0) {
         nnue_refresh_accumulator(accum, board, WHITE);
         nnue_refresh_accumulator(accum, board, BLACK);
         return;
     }
 
-    // Previous move was NULL from an accurate Node
-    if ((accum-1)->accurate && !accum->changes) {
-        memcpy(accum->values[WHITE], (accum-1)->values[WHITE], sizeof(float) * KPSIZE);
-        memcpy(accum->values[BLACK], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
-        return;
+
+    if (!(accum-1)->accurate) {
+
+        int flag = 0;
+        for (int i = 0; i < accum->changes; i++)
+            if (pieceType(accum->deltas[i].piece) == KING)
+            { flag = 1; break; }
+
+        if (!flag) {
+            nnue_update_accumulator((accum-1), board);
+            (accum-1)->accurate = 1;
+        }
+
+        else {
+            nnue_refresh_accumulator(accum, board, WHITE);
+            nnue_refresh_accumulator(accum, board, BLACK);
+            return;
+        }
+    }
+
+    // Null move from a (now) accurate Node
+    if (!accum->changes) {
+        memcpy(accum->values[WHITE], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
+        memcpy(accum->values[WHITE], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
     }
 
     // ------------------------------------------------------------------------------------------
 
     NNUEDelta *deltas = accum->deltas;
-    int add_list[2][32], remove_list[2][32];
+    int add_list[2][3], remove_list[2][3];
     int add = 0, remove = 0, refreshed[2] = { 0, 0 };
 
     const uint64_t white = board->colours[WHITE];
@@ -125,32 +142,25 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
 
     for (int i = 0; i < accum->changes; i++) {
 
+        const NNUEDelta *delta = &accum->deltas[i];
+
         // Hard recompute a colour if their King has moved
-        if (pieceType(deltas[i].piece) == KING) {
-            nnue_refresh_accumulator(accum, board, pieceColour(deltas[i].piece));
-            refreshed[pieceColour(deltas[i].piece)] = 1;
+        if (pieceType(delta->piece) == KING) {
+            nnue_refresh_accumulator(accum, board, pieceColour(delta->piece));
+            refreshed[pieceColour(delta->piece)] = 1;
+            continue;
         }
 
-        // A piece is being removed from the board outright
-        else if (deltas[i].to == SQUARE_NB) {
-            remove_list[WHITE][remove  ] = nnue_index_delta(deltas[i].piece, wkrelsq, WHITE, deltas[i].from);
-            remove_list[BLACK][remove++] = nnue_index_delta(deltas[i].piece, bkrelsq, BLACK, deltas[i].from);
+        // Moving (or Placing) a Piece to a Square
+        if (delta->to != SQUARE_NB) {
+            add_list[WHITE][add  ] = nnue_index_delta(deltas[i].piece, wkrelsq, WHITE, delta->to);
+            add_list[BLACK][add++] = nnue_index_delta(deltas[i].piece, bkrelsq, BLACK, delta->to);
         }
 
-        // A piece is being added to board (promotion)
-        else if (deltas[i].from == SQUARE_NB) {
-            add_list[WHITE][add  ] = nnue_index_delta(deltas[i].piece, wkrelsq, WHITE, deltas[i].to);
-            add_list[BLACK][add++] = nnue_index_delta(deltas[i].piece, bkrelsq, BLACK, deltas[i].to);
-        }
-
-        // Typical piece movement results in an add and a remove for both sides
-        else {
-
-            add_list[WHITE][add  ] = nnue_index_delta(deltas[i].piece, wkrelsq, WHITE, deltas[i].to);
-            add_list[BLACK][add++] = nnue_index_delta(deltas[i].piece, bkrelsq, BLACK, deltas[i].to);
-
-            remove_list[WHITE][remove  ] = nnue_index_delta(deltas[i].piece, wkrelsq, WHITE, deltas[i].from);
-            remove_list[BLACK][remove++] = nnue_index_delta(deltas[i].piece, bkrelsq, BLACK, deltas[i].from);
+        // Moving (or Deleting) a Piece from a Square
+        if (delta->from != SQUARE_NB) {
+            remove_list[WHITE][remove  ] = nnue_index_delta(delta->piece, wkrelsq, WHITE, delta->from);
+            remove_list[BLACK][remove++] = nnue_index_delta(delta->piece, bkrelsq, BLACK, delta->from);
         }
     }
 
