@@ -28,7 +28,6 @@
 #include "move.h"
 #include "masks.h"
 #include "network.h"
-#include "nneval.h"
 #include "nnue/nnue.h"
 #include "thread.h"
 #include "transposition.h"
@@ -469,7 +468,6 @@ int evaluateBoard(Thread *thread, Board *board) {
         pkeval += computePKNetwork(board);
 
     eval += pkeval + board->psqtmat + thread->contempt;
-    eval += evaluateEndgames(board);
     eval += evaluateClosedness(&ei, board);
     eval += evaluateComplexity(&ei, board, eval);
 
