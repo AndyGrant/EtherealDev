@@ -98,18 +98,12 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
     if (board->thread->height == 0) {
         nnue_refresh_accumulator(accum, board, WHITE);
         nnue_refresh_accumulator(accum, board, BLACK);
-        return;
+        goto finished;
     }
-
 
     if (!(accum-1)->accurate) {
 
-        int flag = 0;
-        for (int i = 0; i < accum->changes; i++)
-            if (pieceType(accum->deltas[i].piece) == KING)
-            { flag = 1; break; }
-
-        if (!flag) {
+        if (!accum->changes || pieceType(accum->deltas[0].piece) != KING) {
             nnue_update_accumulator((accum-1), board);
             (accum-1)->accurate = 1;
         }
@@ -117,14 +111,15 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
         else {
             nnue_refresh_accumulator(accum, board, WHITE);
             nnue_refresh_accumulator(accum, board, BLACK);
-            return;
+            goto finished;
         }
     }
 
     // Null move from a (now) accurate Node
     if (!accum->changes) {
-        memcpy(accum->values[WHITE], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
-        memcpy(accum->values[WHITE], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
+        memcpy(accum->values[WHITE], (accum-1)->values[WHITE], sizeof(float) * KPSIZE);
+        memcpy(accum->values[BLACK], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
+        goto finished;
     }
 
     // ------------------------------------------------------------------------------------------
@@ -201,6 +196,9 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
             }
         }
     }
+
+    finished:
+        accum->accurate = 1;
 
     // for (int i = 0; i < 16; i++)
     //     printf("%6.2f ", accum->values[WHITE][i]);

@@ -199,10 +199,6 @@ int nnue_evaluate(Thread *thread, Board *board) {
     // Update the accumulated L1 Neurons if they are expired
     if (!accum->accurate)
         nnue_update_accumulator(accum, board);
-    accum->accurate = 1;
-
-    // nnue_refresh_accumulator(accum, board, WHITE);
-    // nnue_refresh_accumulator(accum, board, BLACK);
 
     nnue_halfkp_relu(accum, outN2, KPSIZE, board->turn);
     nnue_affine_relu(nnue.layers[1].weights, nnue.layers[1].biases, outN2, outN1, L1SIZE, L2SIZE);
