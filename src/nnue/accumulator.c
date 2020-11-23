@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "accumulator.h"
 #include "types.h"
 #include "nnue.h"
 
@@ -52,6 +53,31 @@ static int nnue_index_delta(int piece, int relksq, int colour, int sq) {
 }
 
 
+int nnue_can_update(NNUEAccumulator *accum, Board *board) {
+
+    NNUEAccumulator *start = board->thread->nnueStack;
+
+    while (accum != start) {
+
+        // If there is a King change, it will be the first index
+        if (accum->changes && pieceType(accum->deltas[0].piece) == KING)
+            return 0;
+
+        if (accum->accurate)
+            return 1;
+
+        accum = accum - 1;
+    }
+
+    return 0;
+}
+
+void nnue_refresh_accumulators(NNUEAccumulator *accum, Board *board) {
+    nnue_refresh_accumulator(accum, board, WHITE);
+    nnue_refresh_accumulator(accum, board, BLACK);
+    accum->accurate = 1;
+}
+
 void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) {
 
     const uint64_t white = board->colours[WHITE];
@@ -59,7 +85,7 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
     const uint64_t kings = board->pieces[KING];
 
     uint64_t pieces = (white | black) & ~kings;
-    int relksq = relativeSquare(colour, getlsb(kings & board->colours[colour]));
+    int relksq = relativeSquare(colour, board->ksquares[colour]);
 
     {
         const int index = nnue_index(board, relksq, colour, poplsb(&pieces));
@@ -94,32 +120,15 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
 
 void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
 
-    // Root Node cannot be incremental
-    if (board->thread->height == 0) {
-        nnue_refresh_accumulator(accum, board, WHITE);
-        nnue_refresh_accumulator(accum, board, BLACK);
-        goto finished;
-    }
-
-    if (!(accum-1)->accurate) {
-
-        if (!accum->changes || pieceType(accum->deltas[0].piece) != KING) {
-            nnue_update_accumulator((accum-1), board);
-            (accum-1)->accurate = 1;
-        }
-
-        else {
-            nnue_refresh_accumulator(accum, board, WHITE);
-            nnue_refresh_accumulator(accum, board, BLACK);
-            goto finished;
-        }
-    }
+    // Recurse and update all children
+    if (!(accum-1)->accurate)
+        nnue_update_accumulator(accum-1, board);
 
     // Null move from a (now) accurate Node
     if (!accum->changes) {
         memcpy(accum->values[WHITE], (accum-1)->values[WHITE], sizeof(float) * KPSIZE);
         memcpy(accum->values[BLACK], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
-        goto finished;
+        goto FINISHED;
     }
 
     // ------------------------------------------------------------------------------------------
@@ -128,12 +137,8 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
     int add_list[2][3], remove_list[2][3];
     int add = 0, remove = 0, refreshed[2] = { 0, 0 };
 
-    const uint64_t white = board->colours[WHITE];
-    const uint64_t black = board->colours[BLACK];
-    const uint64_t kings = board->pieces[KING];
-
-    int wkrelsq = relativeSquare(WHITE, getlsb(white & kings));
-    int bkrelsq = relativeSquare(BLACK, getlsb(black & kings));
+    int wkrelsq = relativeSquare(WHITE, board->ksquares[WHITE]);
+    int bkrelsq = relativeSquare(BLACK, board->ksquares[BLACK]);
 
     for (int i = 0; i < accum->changes; i++) {
 
@@ -197,25 +202,8 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
         }
     }
 
-    finished:
+    FINISHED:
         accum->accurate = 1;
-
-    // for (int i = 0; i < 16; i++)
-    //     printf("%6.2f ", accum->values[WHITE][i]);
-    // printf("\n");
-    //
-    // float A = accum->values[WHITE][0];
-    //
-    // nnue_refresh_accumulator(accum, board, WHITE);
-    // nnue_refresh_accumulator(accum, board, BLACK);
-    //
-    // for (int i = 0; i < 16; i++)
-    //     printf("%6.2f ", accum->values[WHITE][i]);
-    // printf("\n");
-    //
-    // float B = accum->values[WHITE][0];
-    //
-    // if (A - B > 0.5)
-    //     exit(EXIT_FAILURE);
+        return;
 }
 

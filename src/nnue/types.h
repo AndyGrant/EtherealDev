@@ -20,8 +20,8 @@
 
 #pragma once
 
-#define KPSIZE 256
-#define L1SIZE 512
+#define KPSIZE 64
+#define L1SIZE 128
 #define L2SIZE 32
 #define L3SIZE 32
 #define LAYERS 4

@@ -192,13 +192,28 @@ int nnue_evaluate(Thread *thread, Board *board) {
     if ((board->colours[WHITE] | board->colours[BLACK]) == board->pieces[KING])
         return 0;
 
+    const uint64_t white = board->colours[WHITE];
+    const uint64_t black = board->colours[BLACK];
+    const uint64_t kings = board->pieces[KING];
+
+    board->ksquares[WHITE] = getlsb(white & kings);
+    board->ksquares[BLACK] = getlsb(black & kings);
+
     // Large enough to handle layer computations
     ALIGN64 float outN1[L1SIZE], outN2[L1SIZE];
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
     // Update the accumulated L1 Neurons if they are expired
-    if (!accum->accurate)
-        nnue_update_accumulator(accum, board);
+    if (!accum->accurate) {
+
+        // Possible to recurse and rebuild each Node
+        if (nnue_can_update(accum, board))
+            nnue_update_accumulator(accum, board);
+
+        // History is missing, we must refresh completely
+        else
+            nnue_refresh_accumulators(accum, board);
+    }
 
     nnue_halfkp_relu(accum, outN2, KPSIZE, board->turn);
     nnue_affine_relu(nnue.layers[1].weights, nnue.layers[1].biases, outN2, outN1, L1SIZE, L2SIZE);

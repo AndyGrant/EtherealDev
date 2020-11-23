@@ -23,6 +23,8 @@
 #include "types.h"
 #include "utils.h"
 
+#include "../board.h"
+#include "../thread.h"
 #include "../types.h"
 
 INLINE NNUEAccumulator* nnue_create_accumulators() {
@@ -59,6 +61,7 @@ INLINE void nnue_remove_piece(Board *board, int piece, int sq) {
         nnue_move_piece(board, piece, sq, SQUARE_NB);
 }
 
-
+int nnue_can_update(NNUEAccumulator *accum, Board *board);
+void nnue_refresh_accumulators(NNUEAccumulator *accum, Board *board);
 void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour);
 void nnue_update_accumulator(NNUEAccumulator *accum, Board *board);
