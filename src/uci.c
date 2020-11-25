@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     // Initialize core components of Ethereal
     initAttacks(); initMasks(); initEval();
     initSearch(); initZobrist(); initTT(16);
-    initPKNetwork(&PKNN); load_nnue("mini.nn");
+    initPKNetwork(&PKNN); load_nnue("quant256LL.nn");
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
@@ -136,8 +136,6 @@ int main(int argc, char **argv) {
             pthread_mutex_lock(&READYLOCK);
             uciPosition(str, &board, chess960);
             pthread_mutex_unlock(&READYLOCK);
-            // printf("%d\n", evaluate_nnue(&board));
-            // fflush(stdout);
         }
 
         else if (strStartsWith(str, "go")) {

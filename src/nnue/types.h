@@ -20,23 +20,16 @@
 
 #pragma once
 
-#define KPSIZE 64
-#define L1SIZE 128
-#define L2SIZE 32
-#define L3SIZE 32
-#define LAYERS 4
+#include <stdlib.h>
 
 #include "../types.h"
 
-typedef struct NNUELayer {
-    int rows, cols;
-    float *weights;
-    float *biases;
-} NNUELayer;
-
-typedef struct NNUENetwork {
-    NNUELayer *layers;
-} NNUENetwork;
+#define INSIZE  40960
+#define KPSIZE  256
+#define L1SIZE  512
+#define L2SIZE  32
+#define L3SIZE  32
+#define OUTSIZE 1
 
 typedef struct NNUEDelta {
     int piece, from, to;
@@ -45,5 +38,5 @@ typedef struct NNUEDelta {
 typedef struct NNUEAccumulator {
     int accurate, changes;
     NNUEDelta deltas[3];
-    ALIGN64 float values[2][KPSIZE];
+    ALIGN64 int16_t values[2][KPSIZE];
 } NNUEAccumulator;

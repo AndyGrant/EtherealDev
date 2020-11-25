@@ -106,7 +106,8 @@ void* iterativeDeepening(void *vthread) {
     for (thread->depth = 1; thread->depth < MAX_PLY; thread->depth++) {
 
         // If we abort to here, we stop searching
-        if (setjmp(thread->jbuffer)) break;
+        // if (setjmp(thread->jbuffer)) break;
+        if (_setjmp(thread->jbuffer, NULL)) break;
 
         // Perform a search for the current depth for each requested line of play
         for (thread->multiPV = 0; thread->multiPV < limits->multiPV; thread->multiPV++)

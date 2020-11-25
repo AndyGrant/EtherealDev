@@ -35,7 +35,6 @@ INLINE void nnue_delete_accumulators(NNUEAccumulator* ptr) {
     align_free(ptr);
 }
 
-
 INLINE void nnue_push(Board *board) {
     if (board->thread != NULL) {
         const int height = board->thread->height;

@@ -18,21 +18,23 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <immintrin.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "accumulator.h"
-#include "types.h"
 #include "nnue.h"
+#include "types.h"
 
 #include "../bitboards.h"
 #include "../board.h"
 #include "../thread.h"
 #include "../types.h"
 
-#include <immintrin.h>
 
-extern NNUENetwork nnue;
+extern ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
+extern ALIGN64 int16_t in_biases[KPSIZE ];
+
 
 static int nnue_index(Board *board, int relksq, int colour, int sq) {
 
@@ -90,15 +92,15 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
     {
         const int index = nnue_index(board, relksq, colour, poplsb(&pieces));
 
-        __m256* inputs  = (__m256*) &nnue.layers[0].weights[index * KPSIZE];
-        __m256* outputs = (__m256*) &accum->values[colour][0];
-        __m256* biases  = (__m256*) &nnue.layers[0].biases[0];
+        __m256i* inputs  = (__m256i*) &in_weights[index * KPSIZE];
+        __m256i* outputs = (__m256i*) &accum->values[colour][0];
+        __m256i* biases  = (__m256i*) &in_biases[0];
 
         for (int i = 0; i < KPSIZE / 8; i += 4) {
-            outputs[i+0] = _mm256_add_ps(biases[i+0], inputs[i+0]);
-            outputs[i+1] = _mm256_add_ps(biases[i+1], inputs[i+1]);
-            outputs[i+2] = _mm256_add_ps(biases[i+2], inputs[i+2]);
-            outputs[i+3] = _mm256_add_ps(biases[i+3], inputs[i+3]);
+            outputs[i+0] = _mm256_add_epi16(biases[i+0], inputs[i+0]);
+            outputs[i+1] = _mm256_add_epi16(biases[i+1], inputs[i+1]);
+            outputs[i+2] = _mm256_add_epi16(biases[i+2], inputs[i+2]);
+            outputs[i+3] = _mm256_add_epi16(biases[i+3], inputs[i+3]);
         }
     }
 
@@ -106,14 +108,14 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
 
         const int index = nnue_index(board, relksq, colour, poplsb(&pieces));
 
-        __m256* inputs  = (__m256*) &nnue.layers[0].weights[index * KPSIZE];
-        __m256* outputs = (__m256*) &accum->values[colour][0];
+        __m256i* inputs  = (__m256i*) &in_weights[index * KPSIZE];
+        __m256i* outputs = (__m256i*) &accum->values[colour][0];
 
-        for (int i = 0; i < KPSIZE / 8; i += 4) {
-            outputs[i+0] = _mm256_add_ps(outputs[i+0], inputs[i+0]);
-            outputs[i+1] = _mm256_add_ps(outputs[i+1], inputs[i+1]);
-            outputs[i+2] = _mm256_add_ps(outputs[i+2], inputs[i+2]);
-            outputs[i+3] = _mm256_add_ps(outputs[i+3], inputs[i+3]);
+        for (int i = 0; i < KPSIZE / 16; i += 4) {
+            outputs[i+0] = _mm256_add_epi16(outputs[i+0], inputs[i+0]);
+            outputs[i+1] = _mm256_add_epi16(outputs[i+1], inputs[i+1]);
+            outputs[i+2] = _mm256_add_epi16(outputs[i+2], inputs[i+2]);
+            outputs[i+3] = _mm256_add_epi16(outputs[i+3], inputs[i+3]);
         }
     }
 }
@@ -126,8 +128,8 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
 
     // Null move from a (now) accurate Node
     if (!accum->changes) {
-        memcpy(accum->values[WHITE], (accum-1)->values[WHITE], sizeof(float) * KPSIZE);
-        memcpy(accum->values[BLACK], (accum-1)->values[BLACK], sizeof(float) * KPSIZE);
+        memcpy(accum->values[WHITE], (accum-1)->values[WHITE], sizeof(int16_t) * KPSIZE);
+        memcpy(accum->values[BLACK], (accum-1)->values[BLACK], sizeof(int16_t) * KPSIZE);
         goto FINISHED;
     }
 
@@ -171,33 +173,33 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board) {
         if (refreshed[colour])
             continue;
 
-        memcpy(accum->values[colour], (accum-1)->values[colour], sizeof(float) * KPSIZE);
+        memcpy(accum->values[colour], (accum-1)->values[colour], sizeof(int16_t) * KPSIZE);
 
         for (int i = 0; i < add; i++) {
 
             const int index = add_list[colour][i];
-            __m256* inputs  = (__m256*) &nnue.layers[0].weights[index * KPSIZE];
-            __m256* outputs = (__m256*) &accum->values[colour][0];
+            __m256i* inputs  = (__m256i*) &in_weights[index * KPSIZE];
+            __m256i* outputs = (__m256i*) &accum->values[colour][0];
 
-            for (int j = 0; j < KPSIZE / 8; j += 4) {
-                outputs[j+0] = _mm256_add_ps(outputs[j+0], inputs[j+0]);
-                outputs[j+1] = _mm256_add_ps(outputs[j+1], inputs[j+1]);
-                outputs[j+2] = _mm256_add_ps(outputs[j+2], inputs[j+2]);
-                outputs[j+3] = _mm256_add_ps(outputs[j+3], inputs[j+3]);
+            for (int j = 0; j < KPSIZE / 16; j += 4) {
+                outputs[j+0] = _mm256_add_epi16(outputs[j+0], inputs[j+0]);
+                outputs[j+1] = _mm256_add_epi16(outputs[j+1], inputs[j+1]);
+                outputs[j+2] = _mm256_add_epi16(outputs[j+2], inputs[j+2]);
+                outputs[j+3] = _mm256_add_epi16(outputs[j+3], inputs[j+3]);
             }
         }
 
         for (int i = 0; i < remove; i++) {
 
             const int index = remove_list[colour][i];
-            __m256* inputs  = (__m256*) &nnue.layers[0].weights[index * KPSIZE];
-            __m256* outputs = (__m256*) &accum->values[colour][0];
+            __m256i* inputs  = (__m256i*) &in_weights[index * KPSIZE];
+            __m256i* outputs = (__m256i*) &accum->values[colour][0];
 
-            for (int j = 0; j < KPSIZE / 8; j += 4) {
-                outputs[j+0] = _mm256_sub_ps(outputs[j+0], inputs[j+0]);
-                outputs[j+1] = _mm256_sub_ps(outputs[j+1], inputs[j+1]);
-                outputs[j+2] = _mm256_sub_ps(outputs[j+2], inputs[j+2]);
-                outputs[j+3] = _mm256_sub_ps(outputs[j+3], inputs[j+3]);
+            for (int j = 0; j < KPSIZE / 16; j += 4) {
+                outputs[j+0] = _mm256_sub_epi16(outputs[j+0], inputs[j+0]);
+                outputs[j+1] = _mm256_sub_epi16(outputs[j+1], inputs[j+1]);
+                outputs[j+2] = _mm256_sub_epi16(outputs[j+2], inputs[j+2]);
+                outputs[j+3] = _mm256_sub_epi16(outputs[j+3], inputs[j+3]);
             }
         }
     }

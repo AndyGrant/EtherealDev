@@ -24,6 +24,10 @@
 
 #include "../types.h"
 
+#define SHIFT 6
+
 void load_nnue(const char* fname);
 int nnue_evaluate(Thread *thread, Board *board);
-void nnue_transpose(float *matrix, int rows, int cols);
+
+void nnue_quant_transpose(int16_t *matrix, int rows, int cols);
+void nnue_float_transpose(float *matrix, int rows, int cols);
