@@ -59,14 +59,17 @@ int nnue_can_update(NNUEAccumulator *accum, Board *board) {
 
     NNUEAccumulator *start = board->thread->nnueStack;
 
-    while (accum != start) {
+    if (accum == start) return 0;
 
-        // If there is a King change, it will be the first index
-        if (accum->changes && pieceType(accum->deltas[0].piece) == KING)
-            return 0;
+    if ((accum-1)->accurate) return 1;
+
+    while (accum != start) {
 
         if (accum->accurate)
             return 1;
+
+        if (accum->changes && pieceType(accum->deltas[0].piece) == KING)
+            return 0;
 
         accum = accum - 1;
     }

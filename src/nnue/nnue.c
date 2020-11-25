@@ -266,17 +266,13 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
-    // Update the accumulated L1 Neurons if they are expired
-    if (!accum->accurate) {
+    // Possible to recurse and incrementally update each
+    if (nnue_can_update(accum, board))
+        nnue_update_accumulator(accum, board);
 
-        // Possible to recurse and rebuild each Node
-        if (nnue_can_update(accum, board))
-            nnue_update_accumulator(accum, board);
-
-        // History is missing, we must refresh completely
-        else
-            nnue_refresh_accumulators(accum, board);
-    }
+    // History is missing, we must refresh completely
+    else
+        nnue_refresh_accumulators(accum, board);
 
     nnue_halfkp_relu(accum, out16, KPSIZE, board->turn);
     nnue_quant_affine_relu(l1_weights, l1_biases, out16, outN1, L1SIZE, L2SIZE);
