@@ -96,7 +96,7 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
         __m256i* outputs = (__m256i*) &accum->values[colour][0];
         __m256i* biases  = (__m256i*) &in_biases[0];
 
-        for (int i = 0; i < KPSIZE / 8; i += 4) {
+        for (int i = 0; i < KPSIZE / 16; i += 4) {
             outputs[i+0] = _mm256_add_epi16(biases[i+0], inputs[i+0]);
             outputs[i+1] = _mm256_add_epi16(biases[i+1], inputs[i+1]);
             outputs[i+2] = _mm256_add_epi16(biases[i+2], inputs[i+2]);
