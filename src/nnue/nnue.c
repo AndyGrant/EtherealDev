@@ -80,16 +80,6 @@ INLINE void nnue_halfkp_relu(NNUEAccumulator *accum, int8_t *outputs, int length
         __m256i relued = _mm256_max_epi8(packed, zero);
         out_black[i]   = _mm256_permutevar8x32_epi32(relued, pmask);
     }
-
-    // printf("White Accum : [ ");
-    // for (int i = 0; i < 32; i++)
-    //     printf("%4d ", accum->values[WHITE][i]);
-    // printf("]\n");
-    //
-    // printf("White After : [ ");
-    // for (int i = 0; i < 32; i++)
-    //     printf("%4d ", outputs[i + (turn == BLACK ? KPSIZE : 0)]);
-    // printf("]\n");
 }
 
 INLINE void nnue_affine(int8_t *weights, int32_t *biases, int8_t *inputs, int32_t *outputs, int rows, int cols) {
@@ -104,23 +94,6 @@ INLINE void nnue_affine(int8_t *weights, int32_t *biases, int8_t *inputs, int32_
     const __m256i *wgt = (__m256i *) weights;
 
     __m256i *out  = (__m256i*) outputs;
-
-    // if (rows == 32) {
-    //     printf("Input  : [ ");
-    //     for (int i = 0; i < 32; i++)
-    //         printf("%6d ", inputs[i]);
-    //     printf("]\n");
-    //
-    //     printf("Weight : [ ");
-    //     for (int i = 0; i < 32; i++)
-    //         printf("%6d ", weights[i]);
-    //     printf("]\n");
-    //
-    //     printf("Biases : [ ");
-    //     for (int i = 0; i < 32; i++)
-    //         printf("%6d ", biases[i]);
-    //     printf("]\n");
-    // }
 
     for (int i = 0; i < OutChunks; i++) {
 
@@ -180,13 +153,6 @@ INLINE void nnue_affine(int8_t *weights, int32_t *biases, int8_t *inputs, int32_
         acc0 = _mm256_inserti128_si256(_mm256_castsi128_si256(sumabcd1), sumefgh1, 1);
         out[i] = _mm256_add_epi32(acc0, bia[i]);
     }
-
-    // if (rows == 32) {
-    //     printf("Output : [ ");
-    //     for (int i = 0; i < 32; i++)
-    //         printf("%6d ", outputs[i] >> SHIFT);
-    //     printf("]\n\n");
-    // }
 }
 
 INLINE void nnue_relu(int32_t *inputs, int8_t *outputs, int length) {
@@ -207,16 +173,6 @@ INLINE void nnue_relu(int32_t *inputs, int8_t *outputs, int length) {
 
     *out = _mm256_max_epi8(_mm256_packs_epi16(perm1, perm2), zero);
     *out = _mm256_permutevar8x32_epi32(*out, pmask);
-
-    // printf("Input  : [ ");
-    // for (int i = 0; i < 32; i++)
-    //     printf("%6d ", inputs[i] >> SHIFT);
-    // printf("]\n");
-    //
-    // printf("Output : [ ");
-    // for (int i = 0; i < 32; i++)
-    //     printf("%6d ", outputs[i]);
-    // printf("]\n");
 }
 
 INLINE int nnue_output(int8_t *weights, int32_t *biases, int8_t *inputs) {
@@ -234,18 +190,6 @@ INLINE int nnue_output(int8_t *weights, int32_t *biases, int8_t *inputs) {
     const __m256i step1 = _mm256_hadd_epi32(sum32, upper);
     const __m256i step2 = _mm256_hadd_epi32(step1, step1);
     const __m256i step3 = _mm256_hadd_epi32(step2, step2);
-
-    // printf("Input  : [ ");
-    // for (int i = 0; i < 32; i++)
-    //     printf("%4d ", inputs[i]);
-    // printf("]\n");
-    //
-    // printf("Weight : [ ");
-    // for (int i = 0; i < 32; i++)
-    //     printf("%4d ", weights[i]);
-    // printf("]\n");
-    //
-    // printf("Summed = %d\n\n", _mm256_extract_epi32(step3, 0));
 
     return (_mm256_extract_epi32(step3, 0) + *biases) / 16;
 }
@@ -317,4 +261,3 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     return nnue_output(l3_weights, l3_biases, out8);
 }
-
