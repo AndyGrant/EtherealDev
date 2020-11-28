@@ -25,7 +25,6 @@
 #include "../types.h"
 
 #define SHIFT  6
-#define SHIFTL 8
 
 void load_nnue(const char* fname);
 int nnue_evaluate(Thread *thread, Board *board);
