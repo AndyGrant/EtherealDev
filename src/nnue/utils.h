@@ -26,26 +26,26 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
-    #include <windows.h>
+#include <windows.h>
 
-    INLINE void* align_malloc(size_t size) {
-        return _mm_malloc(size, 64);
-    }
+INLINE void* align_malloc(size_t size) {
+    return _mm_malloc(size, 64);
+}
 
-    INLINE void align_free(void *ptr) {
-        _mm_free(ptr);
-    }
+INLINE void align_free(void *ptr) {
+    _mm_free(ptr);
+}
 
 #else
 
-    #include <sys/time.h>
+#include <sys/time.h>
 
-    INLINE void* align_malloc(size_t size) {
-        void *mem; return posix_memalign(&mem, 64, size) ? NULL : mem;
-    }
+INLINE void* align_malloc(size_t size) {
+    void *mem; return posix_memalign(&mem, 64, size) ? NULL : mem;
+}
 
-    INLINE void align_free(void *ptr) {
-        free(ptr);
+INLINE void align_free(void *ptr) {
+    free(ptr);
     }
 
 #endif
