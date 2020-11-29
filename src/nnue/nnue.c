@@ -97,40 +97,77 @@ INLINE void nnue_affine(int8_t *weights, int32_t *biases, int8_t *inputs, int32_
 
     for (int i = 0; i < OutChunks; i++) {
 
-        __m256i acc0 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 0) + 0]);
-        __m256i acc1 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 1) + 0]);
-        __m256i acc2 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 2) + 0]);
-        __m256i acc3 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 3) + 0]);
+        __m256i acc0, acc1, acc2, acc3;
 
-        for (int j = 1; j < InChunks; j++) {
-            acc0 = _mm256_add_epi16(acc0, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 0) + j]));
-            acc1 = _mm256_add_epi16(acc1, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 1) + j]));
-            acc2 = _mm256_add_epi16(acc2, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 2) + j]));
-            acc3 = _mm256_add_epi16(acc3, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 3) + j]));
+        if (InChunks == 1) {
+            acc0 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 0) + 0]));
+            acc1 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 1) + 0]));
+            acc2 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 2) + 0]));
+            acc3 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 3) + 0]));
         }
 
-        acc0 = _mm256_madd_epi16(acc0, ones);
-        acc1 = _mm256_madd_epi16(acc1, ones);
-        acc2 = _mm256_madd_epi16(acc2, ones);
-        acc3 = _mm256_madd_epi16(acc3, ones);
+        else {
 
+            acc0 = _mm256_setzero_si256();
+            acc1 = _mm256_setzero_si256();
+            acc2 = _mm256_setzero_si256();
+            acc3 = _mm256_setzero_si256();
 
-        __m256i acc4 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 4) + 0]);
-        __m256i acc5 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 5) + 0]);
-        __m256i acc6 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 6) + 0]);
-        __m256i acc7 = _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 7) + 0]);
+            for (int j = 0; j < InChunks; j += 2) {
 
-        for (int j = 1; j < InChunks; j++) {
-            acc4 = _mm256_add_epi16(acc4, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 4) + j]));
-            acc5 = _mm256_add_epi16(acc5, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 5) + j]));
-            acc6 = _mm256_add_epi16(acc6, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 6) + j]));
-            acc7 = _mm256_add_epi16(acc7, _mm256_maddubs_epi16(inp[j], wgt[InChunks * (i * 8 + 7) + j]));
+                __m256i sum0A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 0) + j + 0]);
+                __m256i sum1A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 1) + j + 0]);
+                __m256i sum2A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 2) + j + 0]);
+                __m256i sum3A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 3) + j + 0]);
+
+                __m256i sum0B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 0) + j + 1]);
+                __m256i sum1B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 1) + j + 1]);
+                __m256i sum2B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 2) + j + 1]);
+                __m256i sum3B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 3) + j + 1]);
+
+                acc0 = _mm256_add_epi32(acc0, _mm256_madd_epi16(ones, _mm256_add_epi16(sum0A, sum0B)));
+                acc1 = _mm256_add_epi32(acc1, _mm256_madd_epi16(ones, _mm256_add_epi16(sum1A, sum1B)));
+                acc2 = _mm256_add_epi32(acc2, _mm256_madd_epi16(ones, _mm256_add_epi16(sum2A, sum2B)));
+                acc3 = _mm256_add_epi32(acc3, _mm256_madd_epi16(ones, _mm256_add_epi16(sum3A, sum3B)));
+            }
         }
 
-        acc4 = _mm256_madd_epi16(acc4, ones);
-        acc5 = _mm256_madd_epi16(acc5, ones);
-        acc6 = _mm256_madd_epi16(acc6, ones);
-        acc7 = _mm256_madd_epi16(acc7, ones);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        __m256i acc4, acc5, acc6, acc7;
+
+        if (InChunks == 1) {
+            acc4 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 4) + 0]));
+            acc5 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 5) + 0]));
+            acc6 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 6) + 0]));
+            acc7 = _mm256_madd_epi16(ones, _mm256_maddubs_epi16(inp[0], wgt[InChunks * (i * 8 + 7) + 0]));
+        }
+
+        else {
+
+            acc4 = _mm256_setzero_si256();
+            acc5 = _mm256_setzero_si256();
+            acc6 = _mm256_setzero_si256();
+            acc7 = _mm256_setzero_si256();
+
+            for (int j = 0; j < InChunks; j += 2) {
+
+                __m256i sum4A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 4) + j + 0]);
+                __m256i sum5A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 5) + j + 0]);
+                __m256i sum6A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 6) + j + 0]);
+                __m256i sum7A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 7) + j + 0]);
+
+                __m256i sum4B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 4) + j + 1]);
+                __m256i sum5B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 5) + j + 1]);
+                __m256i sum6B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 6) + j + 1]);
+                __m256i sum7B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 7) + j + 1]);
+
+                acc4 = _mm256_add_epi32(acc4, _mm256_madd_epi16(ones, _mm256_add_epi16(sum4A, sum4B)));
+                acc5 = _mm256_add_epi32(acc5, _mm256_madd_epi16(ones, _mm256_add_epi16(sum5A, sum5B)));
+                acc6 = _mm256_add_epi32(acc6, _mm256_madd_epi16(ones, _mm256_add_epi16(sum6A, sum6B)));
+                acc7 = _mm256_add_epi32(acc7, _mm256_madd_epi16(ones, _mm256_add_epi16(sum7A, sum7B)));
+            }
+        }
 
         ///
 
