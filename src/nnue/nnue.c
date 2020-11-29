@@ -160,18 +160,15 @@ INLINE void nnue_relu(int32_t *inputs, int8_t *outputs, int length) {
     assert(length == 32); (void) length;
 
     const __m256i zero  = _mm256_setzero_si256();
-    const __m256i pmask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
+    const __m256i pmask = _mm256_set_epi32(7, 3, 6, 2, 5, 1, 4, 0);
 
     __m256i *inp = (__m256i *) inputs;
     __m256i *out = (__m256i *) outputs;
 
-    __m256i pack1 = _mm256_srai_epi16(_mm256_packs_epi32(inp[0], inp[1]), SHIFT);
-    __m256i pack2 = _mm256_srai_epi16(_mm256_packs_epi32(inp[2], inp[3]), SHIFT);
+    __m256i pack12 = _mm256_srai_epi16(_mm256_packs_epi32(inp[0], inp[1]), SHIFT);
+    __m256i pack34 = _mm256_srai_epi16(_mm256_packs_epi32(inp[2], inp[3]), SHIFT);
 
-    __m256i perm1 = _mm256_permutevar8x32_epi32(pack1, pmask);
-    __m256i perm2 = _mm256_permutevar8x32_epi32(pack2, pmask);
-
-    *out = _mm256_max_epi8(_mm256_packs_epi16(perm1, perm2), zero);
+    *out = _mm256_max_epi8(_mm256_packs_epi16(pack12, pack34), zero);
     *out = _mm256_permutevar8x32_epi32(*out, pmask);
 }
 
@@ -235,8 +232,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
     board->ksquares[BLACK] = getlsb(black & kings);
 
     // Large enough to handle layer computations
-    ALIGN64 int8_t  out8[L1SIZE];
-    ALIGN64 int32_t out32[L1SIZE];
+    ALIGN64 int8_t  arr8[L1SIZE];
+    ALIGN64 int32_t arr32[L1SIZE];
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
@@ -251,13 +248,13 @@ int nnue_evaluate(Thread *thread, Board *board) {
             nnue_refresh_accumulators(accum, board);
     }
 
-    nnue_halfkp_relu(accum, out8, KPSIZE, board->turn);
+    nnue_halfkp_relu(accum, arr8, KPSIZE, board->turn);
 
-    nnue_affine(l1_weights, l1_biases, out8, out32, L1SIZE, L2SIZE);
-    nnue_relu(out32, out8, L2SIZE);
+    nnue_affine(l1_weights, l1_biases, arr8, arr32, L1SIZE, L2SIZE);
+    nnue_relu(arr32, arr8, L2SIZE);
 
-    nnue_affine(l2_weights, l2_biases, out8, out32, L2SIZE, L3SIZE);
-    nnue_relu(out32, out8, L3SIZE);
+    nnue_affine(l2_weights, l2_biases, arr8, arr32, L2SIZE, L3SIZE);
+    nnue_relu(arr32, arr8, L3SIZE);
 
-    return nnue_output(l3_weights, l3_biases, out8);
+    return nnue_output(l3_weights, l3_biases, arr8);
 }
