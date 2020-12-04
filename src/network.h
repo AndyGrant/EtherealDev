@@ -24,7 +24,7 @@
 #include "types.h"
 
 #define PKNETWORK_INPUTS  (256)
-#define PKNETWORK_LAYER1  ( 64)
+#define PKNETWORK_LAYER1  ( 32)
 #define PKNETWORK_OUTPUTS (  2)
 
 typedef struct PKNetwork {
