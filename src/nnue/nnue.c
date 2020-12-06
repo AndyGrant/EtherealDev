@@ -33,6 +33,11 @@
 #include "../board.h"
 #include "../thread.h"
 
+#include "../incbin/incbin.h"
+
+const char NNUEDefault[] = "BA0410ED.nnue";
+INCBIN(IncWeights, "weights/BA0410ED.nnue");
+
 ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
 ALIGN64 int16_t l1_weights[L1SIZE * L2SIZE ];
 ALIGN64 float   l2_weights[L2SIZE * L3SIZE ];
@@ -42,7 +47,6 @@ ALIGN64 int16_t in_biases[KPSIZE ];
 ALIGN64 int32_t l1_biases[L2SIZE ];
 ALIGN64 float   l2_biases[L3SIZE ];
 ALIGN64 float   l3_biases[OUTSIZE];
-
 
 INLINE void nnue_halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, int turn) {
 
@@ -221,30 +225,135 @@ INLINE void nnue_output_transform(float *weights, float *biases, float *inputs, 
 }
 
 
-void load_nnue(const char* fname) {
+static void nnue_hash(const char* fname) {
+
+    #define nnue_hash_insert(V) \
+        do {                    \
+            hash ^= (V) >> 12;  \
+            hash ^= (V) << 25;  \
+            hash ^= (V) >> 27;  \
+        } while (0)
+
+    uint32_t hash = 0;
+
+    for (int i = 0; i < INSIZE * KPSIZE; i++)
+        nnue_hash_insert(i * (int32_t) in_weights[i]);
+
+    for (int i = 0; i < L1SIZE * L2SIZE; i++)
+        nnue_hash_insert(i * (int32_t) l1_weights[i]);
+
+    for (int i = 0; i < L2SIZE * L3SIZE; i++)
+        nnue_hash_insert(i * ((int32_t*)l2_weights)[i]);
+
+    for (int i = 0; i < L3SIZE * OUTSIZE; i++)
+        nnue_hash_insert(i * ((int32_t*)l3_weights)[i]);
+
+    for (int i = 0; i < KPSIZE; i++)
+        nnue_hash_insert(i * (int32_t) in_biases[i]);
+
+    for (int i = 0; i < L2SIZE; i++)
+        nnue_hash_insert(i * (int32_t) l1_biases[i]);
+
+    for (int i = 0; i < L3SIZE; i++)
+        nnue_hash_insert(i * ((int32_t*)l2_biases)[i]);
+
+    for (int i = 0; i < OUTSIZE; i++)
+        nnue_hash_insert(i * ((int32_t*)l3_biases)[i]);
+
+    printf("info string Hash for %s is %X\n", fname, hash);
+    fflush(stdout);
+
+    #undef nnue_hash_insert
+}
+
+static void nnue_quant_transpose(int16_t *matrix, int rows, int cols) {
+
+    int16_t *cpy = malloc(sizeof(int16_t) * rows * cols);
+
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            cpy[j * rows + i] = matrix[i * cols + j];
+
+    memcpy(matrix, cpy, sizeof(int16_t) * rows * cols);
+    free(cpy);
+}
+
+static void nnue_float_transpose(float *matrix, int rows, int cols) {
+
+    float *cpy = malloc(sizeof(float) * rows * cols);
+
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            cpy[j * rows + i] = matrix[i * cols + j];
+
+    memcpy(matrix, cpy, sizeof(float) * rows * cols);
+    free(cpy);
+}
+
+
+void nnue_init(const char* fname) {
 
     FILE *fin = fopen(fname, "rb");
 
     if (   fread(in_biases, sizeof(int16_t), KPSIZE, fin) != (size_t) KPSIZE
         || fread(in_weights, sizeof(int16_t), INSIZE * KPSIZE, fin) != (size_t) INSIZE * KPSIZE)
-        printf("info string Unable to read NNUE\n"), fflush(stdout);
+        printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
     if (   fread(l1_biases, sizeof(int32_t), L2SIZE, fin) != (size_t) L2SIZE
         || fread(l1_weights, sizeof(int16_t), L1SIZE * L2SIZE, fin) != (size_t) L1SIZE * L2SIZE)
-        printf("info string Unable to read NNUE\n"), fflush(stdout);
+        printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
     if (   fread(l2_biases, sizeof(float), L3SIZE, fin) != (size_t) L3SIZE
         || fread(l2_weights, sizeof(float), L2SIZE * L3SIZE, fin) != (size_t) L2SIZE * L3SIZE)
-        printf("info string Unable to read NNUE\n"), fflush(stdout);
+        printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
     if (   fread(l3_biases, sizeof(float), OUTSIZE, fin) != (size_t) OUTSIZE
         || fread(l3_weights, sizeof(float), L3SIZE * OUTSIZE, fin) != (size_t) L3SIZE * OUTSIZE)
-        printf("info string Unable to read NNUE\n"), fflush(stdout);
+        printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
     nnue_quant_transpose(l1_weights, L1SIZE, L2SIZE);
     nnue_float_transpose(l2_weights, L2SIZE, L3SIZE);
 
+    nnue_hash(fname);
     fclose(fin);
+}
+
+void nnue_incbin_init() {
+
+    int16_t *data16; int32_t *data32; float *dataf;
+
+    data16 = (int16_t*) gIncWeightsData;
+    for (int i = 0; i < KPSIZE; i++)
+        in_biases[i] = *(data16++);
+
+    for (int i = 0; i < INSIZE * KPSIZE; i++)
+        in_weights[i] = *(data16++);
+
+    data32 = (int32_t*) data16;
+    for (int i = 0; i < L2SIZE; i++)
+        l1_biases[i] = *(data32++);
+
+    data16 = (int16_t*) data32;
+    for (int i = 0; i < L1SIZE * L2SIZE; i++)
+        l1_weights[i] = *(data16++);
+
+    dataf = (float*) data16;
+    for (int i = 0; i < L3SIZE; i++)
+        l2_biases[i] = *(dataf++);
+
+    for (int i = 0; i < L2SIZE * L3SIZE; i++)
+        l2_weights[i] = *(dataf++);
+
+    for (int i = 0; i < OUTSIZE; i++)
+        l3_biases[i] = *(dataf++);
+
+    for (int i = 0; i < L3SIZE * OUTSIZE; i++)
+        l3_weights[i] = *(dataf++);
+
+    nnue_quant_transpose(l1_weights, L1SIZE, L2SIZE);
+    nnue_float_transpose(l2_weights, L2SIZE, L3SIZE);
+
+    nnue_hash(NNUEDefault);
 }
 
 int nnue_evaluate(Thread *thread, Board *board) {
@@ -283,29 +392,4 @@ int nnue_evaluate(Thread *thread, Board *board) {
     nnue_output_transform(l3_weights, l3_biases, outN2, outN1, L3SIZE);
 
     return outN1[0];
-}
-
-
-void nnue_quant_transpose(int16_t *matrix, int rows, int cols) {
-
-    int16_t *cpy = malloc(sizeof(int16_t) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(int16_t) * rows * cols);
-    free(cpy);
-}
-
-void nnue_float_transpose(float *matrix, int rows, int cols) {
-
-    float *cpy = malloc(sizeof(float) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(float) * rows * cols);
-    free(cpy);
 }
