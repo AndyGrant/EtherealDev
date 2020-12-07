@@ -57,6 +57,13 @@ pgo:
 	$(CC) -fprofile-use $(PGOFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
 
+pgopext:
+	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
+	$(CC) -fprofile-generate $(PGOFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o $(EXE)
+	./$(EXE) bench
+	$(CC) -fprofile-use $(PGOFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o $(EXE)
+	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
+
 armv8:
 	$(CC) $(ARMV8FLAGS) $(SRC) -lm -o $(EXE)
 
