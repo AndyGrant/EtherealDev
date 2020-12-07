@@ -48,7 +48,8 @@ ALIGN64 int32_t l1_biases[L2SIZE ];
 ALIGN64 float   l2_biases[L3SIZE ];
 ALIGN64 float   l3_biases[OUTSIZE];
 
-INLINE void nnue_halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, int turn) {
+
+INLINE void halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, int turn) {
 
     const __m256i zero = _mm256_setzero_si256();
 
@@ -58,30 +59,22 @@ INLINE void nnue_halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int lengt
     __m256i *out_white = (__m256i *) (turn == WHITE ? outputs : &outputs[KPSIZE]);
     __m256i *out_black = (__m256i *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
-    for (int i = 0; i < length / 16; i += 8) {
+    for (int i = 0; i < length / 16; i += 4) {
         out_white[i+0] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+0]), SHIFT);
         out_white[i+1] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+1]), SHIFT);
         out_white[i+2] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+2]), SHIFT);
         out_white[i+3] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+3]), SHIFT);
-        out_white[i+4] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+4]), SHIFT);
-        out_white[i+5] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+5]), SHIFT);
-        out_white[i+6] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+6]), SHIFT);
-        out_white[i+7] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+7]), SHIFT);
     }
 
-    for (int i = 0; i < length / 16; i += 8) {
+    for (int i = 0; i < length / 16; i += 4) {
         out_black[i+0] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+0]), SHIFT);
         out_black[i+1] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+1]), SHIFT);
         out_black[i+2] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+2]), SHIFT);
         out_black[i+3] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+3]), SHIFT);
-        out_black[i+4] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+4]), SHIFT);
-        out_black[i+5] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+5]), SHIFT);
-        out_black[i+6] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+6]), SHIFT);
-        out_black[i+7] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+7]), SHIFT);
     }
 }
 
-INLINE void nnue_quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs, float *outputs, int rows, int cols) {
+INLINE void quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs, float *outputs, int rows, int cols) {
 
     const int InChunks  = rows / 16;
     const int OutChunks = cols / 8;
@@ -146,7 +139,7 @@ INLINE void nnue_quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *i
     }
 }
 
-INLINE void nnue_float_affine_relu(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
+INLINE void float_affine_relu(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
 
     const int InChunks  = rows / 8;
     const int OutChunks = cols / 8;
@@ -201,7 +194,7 @@ INLINE void nnue_float_affine_relu(float *weights, float *biases, float *inputs,
     }
 }
 
-INLINE void nnue_output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows) {
+INLINE void output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows) {
 
     const int InChunks = rows / 8;
     const __m256 *inp  = (__m256 *) inputs;
@@ -225,13 +218,13 @@ INLINE void nnue_output_transform(float *weights, float *biases, float *inputs, 
 }
 
 
-static void nnue_hash(const char* fname) {
+static void compute_hash(const char* fname) {
 
     #define nnue_hash_insert(V) \
         do {                    \
-            hash ^= (V) >> 12;  \
-            hash ^= (V) << 25;  \
-            hash ^= (V) >> 27;  \
+            hash ^= (V) >>  7;  \
+            hash ^= (V) << 15;  \
+            hash ^= (V) >> 23;  \
         } while (0)
 
     uint32_t hash = 0;
@@ -243,10 +236,10 @@ static void nnue_hash(const char* fname) {
         nnue_hash_insert(i * (int32_t) l1_weights[i]);
 
     for (int i = 0; i < L2SIZE * L3SIZE; i++)
-        nnue_hash_insert(i * ((int32_t*)l2_weights)[i]);
+        nnue_hash_insert(i * ((int32_t*) l2_weights)[i]);
 
     for (int i = 0; i < L3SIZE * OUTSIZE; i++)
-        nnue_hash_insert(i * ((int32_t*)l3_weights)[i]);
+        nnue_hash_insert(i * ((int32_t*) l3_weights)[i]);
 
     for (int i = 0; i < KPSIZE; i++)
         nnue_hash_insert(i * (int32_t) in_biases[i]);
@@ -255,10 +248,10 @@ static void nnue_hash(const char* fname) {
         nnue_hash_insert(i * (int32_t) l1_biases[i]);
 
     for (int i = 0; i < L3SIZE; i++)
-        nnue_hash_insert(i * ((int32_t*)l2_biases)[i]);
+        nnue_hash_insert(i * ((int32_t*) l2_biases)[i]);
 
     for (int i = 0; i < OUTSIZE; i++)
-        nnue_hash_insert(i * ((int32_t*)l3_biases)[i]);
+        nnue_hash_insert(i * ((int32_t*) l3_biases)[i]);
 
     printf("info string Hash for %s is %X\n", fname, hash);
     fflush(stdout);
@@ -266,7 +259,7 @@ static void nnue_hash(const char* fname) {
     #undef nnue_hash_insert
 }
 
-static void nnue_quant_transpose(int16_t *matrix, int rows, int cols) {
+static void quant_transpose(int16_t *matrix, int rows, int cols) {
 
     int16_t *cpy = malloc(sizeof(int16_t) * rows * cols);
 
@@ -278,7 +271,7 @@ static void nnue_quant_transpose(int16_t *matrix, int rows, int cols) {
     free(cpy);
 }
 
-static void nnue_float_transpose(float *matrix, int rows, int cols) {
+static void float_transpose(float *matrix, int rows, int cols) {
 
     float *cpy = malloc(sizeof(float) * rows * cols);
 
@@ -311,10 +304,10 @@ void nnue_init(const char* fname) {
         || fread(l3_weights, sizeof(float), L3SIZE * OUTSIZE, fin) != (size_t) L3SIZE * OUTSIZE)
         printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
-    nnue_quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    nnue_float_transpose(l2_weights, L2SIZE, L3SIZE);
+    quant_transpose(l1_weights, L1SIZE, L2SIZE);
+    float_transpose(l2_weights, L2SIZE, L3SIZE);
 
-    nnue_hash(fname);
+    compute_hash(fname);
     fclose(fin);
 }
 
@@ -350,10 +343,10 @@ void nnue_incbin_init() {
     for (int i = 0; i < L3SIZE * OUTSIZE; i++)
         l3_weights[i] = *(dataf++);
 
-    nnue_quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    nnue_float_transpose(l2_weights, L2SIZE, L3SIZE);
+    quant_transpose(l1_weights, L1SIZE, L2SIZE);
+    float_transpose(l2_weights, L2SIZE, L3SIZE);
 
-    nnue_hash(NNUEDefault);
+    compute_hash(NNUEDefault);
 }
 
 int nnue_evaluate(Thread *thread, Board *board) {
@@ -386,10 +379,10 @@ int nnue_evaluate(Thread *thread, Board *board) {
             nnue_refresh_accumulators(accum, board);
     }
 
-    nnue_halfkp_relu(accum, out16, KPSIZE, board->turn);
-    nnue_quant_affine_relu(l1_weights, l1_biases, out16, outN1, L1SIZE, L2SIZE);
-    nnue_float_affine_relu(l2_weights, l2_biases, outN1, outN2, L2SIZE, L3SIZE);
-    nnue_output_transform(l3_weights, l3_biases, outN2, outN1, L3SIZE);
+    halfkp_relu (accum, out16, KPSIZE, board->turn);
+    quant_affine_relu(l1_weights, l1_biases, out16, outN1, L1SIZE, L2SIZE);
+    float_affine_relu(l2_weights, l2_biases, outN1, outN2, L2SIZE, L3SIZE);
+    output_transform(l3_weights, l3_biases, outN2, outN1, L3SIZE);
 
     return outN1[0];
 }
