@@ -591,7 +591,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (!RootNode || !thread->multiPV) {
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, ttBound);
+        ttDepth = MAX(depth, ttBound == BOUND_LOWER);
+        storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, ttDepth, ttBound);
     }
 
     return best;
