@@ -35,8 +35,8 @@
 
 #include "../incbin/incbin.h"
 
-const char NNUEDefault[] = "2A2C9C28.nnue";
-INCBIN(IncWeights, "weights/2A2C9C28.nnue");
+const char NNUEDefault[] = "13EFE081.nnue";
+INCBIN(IncWeights, "weights/13EFE081.nnue");
 
 ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
 ALIGN64 int16_t l1_weights[L1SIZE * L2SIZE ];
