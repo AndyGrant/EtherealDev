@@ -40,7 +40,7 @@ static int nnue_index(Board *board, int relksq, int colour, int sq) {
     const int ptype   = pieceType(board->squares[sq]);
     const int pcolour = pieceColour(board->squares[sq]);
 
-    return (640 * relksq) + (64 * (5 * (colour == pcolour) + ptype)) + (relsq);
+    return (768 * relksq) + (64 * (6 * (colour == pcolour) + ptype)) + (relsq);
 }
 
 static int nnue_index_delta(int piece, int relksq, int colour, int sq) {
@@ -49,7 +49,7 @@ static int nnue_index_delta(int piece, int relksq, int colour, int sq) {
     const int ptype   = pieceType(piece);
     const int pcolour = pieceColour(piece);
 
-    return (640 * relksq) + (64 * (5 * (colour == pcolour) + ptype)) + (relsq);
+    return (768 * relksq) + (64 * (6 * (colour == pcolour) + ptype)) + (relsq);
 }
 
 
@@ -91,7 +91,9 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
     int relksq = relativeSquare(colour, board->ksquares[colour]);
 
     {
-        const int index = nnue_index(board, relksq, colour, poplsb(&pieces));
+        const int psq   = board->ksquares[WHITE];
+        const int piece = makePiece(KING, WHITE);
+        const int index = nnue_index_delta(piece, relksq, colour, psq);
 
         __m256i* inputs  = (__m256i*) &in_weights[index * KPSIZE];
         __m256i* outputs = (__m256i*) &accum->values[colour][0];
@@ -102,6 +104,22 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour) 
             outputs[i+1] = _mm256_add_epi16(biases[i+1], inputs[i+1]);
             outputs[i+2] = _mm256_add_epi16(biases[i+2], inputs[i+2]);
             outputs[i+3] = _mm256_add_epi16(biases[i+3], inputs[i+3]);
+        }
+    }
+
+    {
+        const int psq   = board->ksquares[BLACK];
+        const int piece = makePiece(KING, BLACK);
+        const int index = nnue_index_delta(piece, relksq, colour, psq);
+
+        __m256i* inputs  = (__m256i*) &in_weights[index * KPSIZE];
+        __m256i* outputs = (__m256i*) &accum->values[colour][0];
+
+        for (int i = 0; i < KPSIZE / 16; i += 4) {
+            outputs[i+0] = _mm256_add_epi16(outputs[i+0], inputs[i+0]);
+            outputs[i+1] = _mm256_add_epi16(outputs[i+1], inputs[i+1]);
+            outputs[i+2] = _mm256_add_epi16(outputs[i+2], inputs[i+2]);
+            outputs[i+3] = _mm256_add_epi16(outputs[i+3], inputs[i+3]);
         }
     }
 

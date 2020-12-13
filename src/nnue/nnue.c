@@ -351,10 +351,6 @@ void nnue_incbin_init() {
 
 int nnue_evaluate(Thread *thread, Board *board) {
 
-    // To perform some optimizations, auto-flag KvK as drawn to assume pieces >= 1
-    if ((board->colours[WHITE] | board->colours[BLACK]) == board->pieces[KING])
-        return 0;
-
     const uint64_t white = board->colours[WHITE];
     const uint64_t black = board->colours[BLACK];
     const uint64_t kings = board->pieces[KING];

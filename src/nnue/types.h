@@ -24,7 +24,7 @@
 
 #include "../types.h"
 
-#define INSIZE  40960
+#define INSIZE  49152
 #define KPSIZE  128
 #define L1SIZE  256
 #define L2SIZE  32
