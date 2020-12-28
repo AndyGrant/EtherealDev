@@ -208,7 +208,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
     if (depth <= 0 && !board->kingAttackers)
-        return qsearch(thread, pv, alpha, beta);
+        return qsearch(thread, pv, alpha, beta, 0);
 
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
@@ -598,7 +598,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     return best;
 }
 
-int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int qsdepth) {
 
     Board *const board = &thread->board;
 
@@ -655,21 +655,27 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     alpha = MAX(alpha, eval);
     if (alpha >= beta) return eval;
 
+    // static const int QSSeeMargin = 110;
+    // static const int QSDeltaMargin = 150;
+
+    const int _QSSEEMargin   = QSSeeMargin   - 10 * MIN(5, qsdepth);
+    const int _QSDeltaMargin = QSDeltaMargin - 15 * MIN(5, qsdepth);
+
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
     // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
+    if (MAX(_QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
         return eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
+    initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - _QSSEEMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
-        value = -qsearch(thread, &lpv, -beta, -alpha);
+        value = -qsearch(thread, &lpv, -beta, -alpha, qsdepth+1);
         revert(thread, board, move);
 
         // Improved current value
