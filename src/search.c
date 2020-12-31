@@ -576,6 +576,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Search failed high
                 if (alpha >= beta) break;
+
+                if (PvNode && thread->nthreads > 1)
+                    storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, BOUND_LOWER);
             }
         }
     }
