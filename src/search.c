@@ -288,7 +288,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             || (ttBound == BOUND_LOWER && value >= beta)
             || (ttBound == BOUND_UPPER && value <= alpha)) {
 
-            storeTTEntry(board->hash, NONE_MOVE, valueToTT(value, thread->height), VALUE_NONE, depth, ttBound);
+            storeTTEntry(board->hash, NONE_MOVE, valueToTT(value, thread->height), VALUE_NONE, depth, ttBound, 1);
             return value;
         }
     }
@@ -577,8 +577,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 // Search failed high
                 if (alpha >= beta) break;
 
-                if (PvNode && !ttHit && thread->nthreads > 1)
-                    storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, BOUND_LOWER);
+                if (PvNode && thread->nthreads > 1)
+                    storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, BOUND_LOWER, 0);
             }
         }
     }
@@ -607,7 +607,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (!RootNode || !thread->multiPV) {
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, ttBound);
+        storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, ttBound, 1);
     }
 
     return best;

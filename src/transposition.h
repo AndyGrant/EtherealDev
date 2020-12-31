@@ -62,4 +62,4 @@ int valueFromTT(int value, int height);
 int valueToTT(int value, int height);
 void prefetchTTEntry(uint64_t hash);
 int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound);
-void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound);
+void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound, int force);

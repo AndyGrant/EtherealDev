@@ -150,7 +150,7 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     return 0;
 }
 
-void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {
+void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound, int force) {
 
     int i;
     const uint16_t hash16 = hash >> 48;
@@ -172,6 +172,11 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     if (   bound != BOUND_EXACT
         && hash16 == replace->hash16
         && depth < replace->depth - 3)
+        return;
+
+    if (  !force
+        && depth <= replace->depth
+        && hash16 == replace->hash16)
         return;
 
     // Finally, copy the new data into the replaced slot
