@@ -53,7 +53,7 @@ static const int BetaPruningDepth = 8;
 static const int BetaMargin = 85;
 
 static const int AlphaPruningDepth = 5;
-static const int AlphaMargin = 3000;
+static const int AlphaMargin = 2250;
 
 static const int NullMovePruningDepth = 2;
 
