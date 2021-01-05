@@ -14,16 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CC      = gcc
-SRC     = *.c pyrrhic/tbprobe.c nnue/*.c
-LIBS    = -lpthread -lm
-EXE     = Ethereal
+CC   = gcc
+SRC  = *.c pyrrhic/tbprobe.c nnue/*.c
+LIBS = -lpthread -lm
+EXE  = Ethereal
+
+EVALFILE = weights/13EFE081.nnue
+NNFLAGS  = -DEVALFILE=\"$(EVALFILE)\"
 
 WFLAGS   = -std=gnu11 -Wall -Wextra -Wshadow
-CFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto -march=native
-RFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto -static
-TFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
-PGOFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fno-asynchronous-unwind-tables
+CFLAGS   = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -march=native
+RFLAGS   = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -static
+TFLAGS   = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
+PGOFLAGS = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -march=native -fno-asynchronous-unwind-tables
 
 POPCNTFLAGS = -DUSE_POPCNT -msse3 -mpopcnt
 PEXTFLAGS   = $(POPCNTFLAGS) -DUSE_PEXT -mbmi2
