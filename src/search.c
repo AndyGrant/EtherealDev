@@ -329,15 +329,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  eval - BetaMargin * depth > beta)
         return eval;
 
-    // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
-    // that for low depths if eval is so bad that even a large static
-    // bonus doesn't get us beyond alpha, then eval will hold below alpha
-    if (   !PvNode
-        && !inCheck
-        &&  depth <= AlphaPruningDepth
-        &&  eval + AlphaMargin <= alpha)
-        return eval;
-
     // Step 9 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
     // gain control of the game, we can be somewhat safe in saying that
