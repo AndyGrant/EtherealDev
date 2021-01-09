@@ -19,12 +19,11 @@ SRC     = *.c pyrrhic/tbprobe.c
 LIBS    = -lpthread -lm
 EXE     = Ethereal
 
-WFLAGS = -std=gnu11 -Wall -Wextra -Wshadow
-CFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native
-RFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -static
-TFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
-PFLAGS = -O0 $(WFLAGS) -DNDEBUG -p -pg
-DFLAGS = -O0 $(WFLAGS)
+WFLAGS   = -std=gnu11 -Wall -Wextra -Wshadow
+CFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto -march=native
+RFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto -static
+TFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
+PGOFLAGS = -O3 $(WFLAGS) -DNDEBUG -flto -march=native -fno-asynchronous-unwind-tables
 
 POPCNTFLAGS = -DUSE_POPCNT -msse3 -mpopcnt
 PEXTFLAGS   = $(POPCNTFLAGS) -DUSE_PEXT -mbmi2
@@ -33,6 +32,13 @@ AVX2FLAGS   = -msse -msse3 -mpopcnt -mavx2 -msse4.1 -mssse3 -msse2
 ARMV8FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv8-a -m64
 ARMV7FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv7-a -m32
 ARMV7FLAGS += -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb -Wl,--fix-cortex-a8
+
+pgo:
+	rm -f *.gcda pyrrhic/*.gcda
+	$(CC) -fprofile-generate $(PGOFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
+	./$(EXE) bench
+	$(CC) -fprofile-use $(PGOFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
+	rm -f *.gcda pyrrhic/*.gcda
 
 popcnt:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
@@ -53,12 +59,6 @@ release:
 
 tune:
 	$(CC) $(TFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)
-
-profile:
-	$(CC) $(PFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)
-
-debug:
-	$(CC) $(DFLAGS) $(SRC) $(LIBS) $(POPCNT) -o $(EXE)
 
 armv8:
 	$(CC) $(ARMV8FLAGS) $(SRC) -lm -o $(EXE)
