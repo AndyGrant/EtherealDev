@@ -31,11 +31,11 @@
 #define LRDROPRATE     (    1.00) // Cut LR by this each LR-step
 #define LRSTEPRATE     (     250) // Cut LR after this many epochs
 
-#define TuneNormal     (       0) // Flag to enable all Normals      (856)
-#define TuneSafety     (       0) // Flag to enable all Safeties     ( 44)
-#define TuneComplexity (       0) // Flag to enable all Complexities (  4)
+#define TuneNormal     (       1) // Flag to enable all Normals      (856)
+#define TuneSafety     (       1) // Flag to enable all Safeties     ( 44)
+#define TuneComplexity (       1) // Flag to enable all Complexities (  4)
 
-#define NTERMS         (       0) // Total terms in the Tuner (904)
+#define NTERMS         (     904) // Total terms in the Tuner (904)
 #define MAXEPOCHS      (  100000) // Max number of epochs allowed
 #define BATCHSIZE      (   16384) // Training samples per mini-batch
 #define NPOSITIONS     (42487498) // Total Training samples in the book

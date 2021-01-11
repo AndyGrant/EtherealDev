@@ -368,10 +368,11 @@ double linearEvaluation(TEntry *entry, TVector params, TArray methods, TGradient
 
     // Save any modifications for MG or EG for each evaluation type
     for (int i = 0; i < entry->ntuples; i++) {
-        mg[methods[i]][WHITE] += (double) entry->tuples[i].wcoeff * params[entry->tuples[i].index][MG];
-        mg[methods[i]][BLACK] += (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][MG];
-        eg[methods[i]][WHITE] += (double) entry->tuples[i].wcoeff * params[entry->tuples[i].index][EG];
-        eg[methods[i]][BLACK] += (double) entry->tuples[i].bcoeff * params[entry->tuples[i].index][EG];
+        const int idx = entry->tuples[i].index;
+        mg[methods[idx]][WHITE] += (double) entry->tuples[i].wcoeff * params[idx][MG];
+        mg[methods[idx]][BLACK] += (double) entry->tuples[i].bcoeff * params[idx][MG];
+        eg[methods[idx]][WHITE] += (double) entry->tuples[i].wcoeff * params[idx][EG];
+        eg[methods[idx]][BLACK] += (double) entry->tuples[i].bcoeff * params[idx][EG];
     }
 
     // Grab the original "normal" evaluations and add the modified parameters
