@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-#define VERSION_ID "TCEC S20 DivP"
+#define VERSION_ID "12.XX"
 
 #if defined(USE_PEXT)
     #define ETHEREAL_VERSION VERSION_ID" (PEXT)"
