@@ -29,43 +29,31 @@
 #include "thread.h"
 #include "types.h"
 
+
+#include "incbin/incbin.h"
+INCBIN(PKWeights, "weights/pknet.x32.nn");
+
 PKNetwork PKNN;
 
-static char *PKWeights[] = {
-    #include "weights/pknet_224x32x2.net"
-    ""
-};
-
 static int computePKNetworkIndex(int colour, int piece, int sq) {
-    return (64 + 48) * colour
-         + (48 * (piece == KING))
-         + sq - 8 * (piece == PAWN);
+    return (128 * colour) + (64 * (piece == KING)) + sq;
 }
-
 
 void initPKNetwork() {
 
-    for (int i = 0; i < PKNETWORK_LAYER1; i++) {
+    float *data = (float*) gPKWeightsData;
 
-        char weights[strlen(PKWeights[i]) + 1];
-        strcpy(weights, PKWeights[i]);
-        strtok(weights, " ");
+    for (int i = 0; i < PKNETWORK_LAYER1; i++)
+        PKNN.inputBiases[i] = *(data++);
 
-        for (int j = 0; j < PKNETWORK_INPUTS; j++)
-            PKNN.inputWeights[j][i] = atof(strtok(NULL, " "));
-        PKNN.inputBiases[i] = atof(strtok(NULL, " "));
-    }
+    for (int i = 0; i < PKNETWORK_INPUTS * PKNETWORK_LAYER1; i++)
+        PKNN.inputWeights[i] = *(data++);
 
-    for (int i = 0; i < PKNETWORK_OUTPUTS; i++) {
+    for (int i = 0; i < PKNETWORK_OUTPUTS; i++)
+        PKNN.layer1Biases[i] = *(data++);
 
-        char weights[strlen(PKWeights[i + PKNETWORK_LAYER1]) + 1];
-        strcpy(weights, PKWeights[i + PKNETWORK_LAYER1]);
-        strtok(weights, " ");
-
-        for (int j = 0; j < PKNETWORK_LAYER1; j++)
-            PKNN.layer1Weights[i][j] = atof(strtok(NULL, " "));
-        PKNN.layer1Biases[i] = atof(strtok(NULL, " "));
-    }
+    for (int i = 0; i < PKNETWORK_LAYER1 * PKNETWORK_OUTPUTS; i++)
+        PKNN.layer1Weights[i] = *(data++);
 }
 
 int computePKNetwork(Board *board) {
@@ -87,21 +75,21 @@ int computePKNetwork(Board *board) {
         int sq = poplsb(&kings);
         int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
-            layer1Neurons[i] = PKNN.inputBiases[i] + PKNN.inputWeights[idx][i];
+            layer1Neurons[i] = PKNN.inputBiases[i] + PKNN.inputWeights[idx * PKNETWORK_LAYER1 + i];
     }
 
     { // Do the remaining King as we would do normally
         int sq = poplsb(&kings);
         int idx = computePKNetworkIndex(testBit(black, sq), KING, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
-            layer1Neurons[i] += PKNN.inputWeights[idx][i];
+            layer1Neurons[i] += PKNN.inputWeights[idx * PKNETWORK_LAYER1 + i];
     }
 
     while (pawns) {
         int sq = poplsb(&pawns);
         int idx = computePKNetworkIndex(testBit(black, sq), PAWN, sq);
         for (int i = 0; i < PKNETWORK_LAYER1; i++)
-            layer1Neurons[i] += PKNN.inputWeights[idx][i];
+            layer1Neurons[i] += PKNN.inputWeights[idx * PKNETWORK_LAYER1 + i];
     }
 
     // Layer 2: Trivially compute the Output layer. Apply a ReLU here.
@@ -112,7 +100,7 @@ int computePKNetwork(Board *board) {
         outputNeurons[i] = PKNN.layer1Biases[i];
         for (int j = 0; j < PKNETWORK_LAYER1; j++)
             if (layer1Neurons[j] >= 0.0)
-                outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[i][j];
+                outputNeurons[i] += layer1Neurons[j] * PKNN.layer1Weights[j * PKNETWORK_OUTPUTS + i];
     }
 
     assert(PKNETWORK_OUTPUTS == PHASE_NB);
