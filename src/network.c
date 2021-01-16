@@ -31,7 +31,7 @@
 
 
 #include "incbin/incbin.h"
-INCBIN(PKWeights, "weights/pknet.x128.nn");
+INCBIN(PKWeights, "weights/pknet.x32.nn");
 
 PKNetwork PKNN;
 
