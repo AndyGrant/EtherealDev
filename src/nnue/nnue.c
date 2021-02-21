@@ -60,17 +60,17 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, in
     __m256i *out_black = (__m256i *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
     for (int i = 0; i < length / 16; i += 4) {
-        out_white[i+0] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+0]), SHIFT);
-        out_white[i+1] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+1]), SHIFT);
-        out_white[i+2] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+2]), SHIFT);
-        out_white[i+3] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_white[i+3]), SHIFT);
+        out_white[i+0] = _mm256_max_epi16(zero, in_white[i+0]);
+        out_white[i+1] = _mm256_max_epi16(zero, in_white[i+1]);
+        out_white[i+2] = _mm256_max_epi16(zero, in_white[i+2]);
+        out_white[i+3] = _mm256_max_epi16(zero, in_white[i+3]);
     }
 
     for (int i = 0; i < length / 16; i += 4) {
-        out_black[i+0] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+0]), SHIFT);
-        out_black[i+1] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+1]), SHIFT);
-        out_black[i+2] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+2]), SHIFT);
-        out_black[i+3] = _mm256_srai_epi16(_mm256_max_epi16(zero, in_black[i+3]), SHIFT);
+        out_black[i+0] = _mm256_max_epi16(zero, in_black[i+0]);
+        out_black[i+1] = _mm256_max_epi16(zero, in_black[i+1]);
+        out_black[i+2] = _mm256_max_epi16(zero, in_black[i+2]);
+        out_black[i+3] = _mm256_max_epi16(zero, in_black[i+3]);
     }
 }
 
@@ -133,7 +133,7 @@ INLINE void quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs
 
         const __m256i biased  = _mm256_add_epi32(bia[i], acc0);
         const __m256i relu    = _mm256_max_epi32(zero, biased);
-        const __m256i shifted = _mm256_srai_epi32(relu, SHIFT);
+        const __m256i shifted = _mm256_srai_epi32(relu, 2 * SHIFT);
 
         out[i] = _mm256_cvtepi32_ps(shifted);
     }
