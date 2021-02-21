@@ -133,9 +133,8 @@ INLINE void quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs
 
         const __m256i biased  = _mm256_add_epi32(bia[i], acc0);
         const __m256i relu    = _mm256_max_epi32(zero, biased);
-        const __m256i shifted = _mm256_srai_epi32(relu, 2 * SHIFT);
 
-        out[i] = _mm256_cvtepi32_ps(shifted);
+        out[i] = _mm256_cvtepi32_ps(relu);
     }
 }
 
@@ -214,9 +213,8 @@ INLINE void output_transform(float *weights, float *biases, float *inputs, float
     const __m128 hi      = _mm_shuffle_ps(sumDual, sumDual, 0x1);
     const __m128 sum     = _mm_add_ss(sumDual, hi);
 
-    *outputs = _mm_cvtss_f32(sum) + *biases;
+    *outputs = (_mm_cvtss_f32(sum) + *biases);
 }
-
 
 
 static void compute_hash(const char* fname) {
@@ -264,6 +262,12 @@ static void scale_weights() {
 
     for (int i = 0; i < L2SIZE; i++)
         l1_biases[i] *= (1 << SHIFT);
+
+    for (int i = 0; i < L3SIZE; i++)
+        l2_biases[i] *= (1 << (2 * SHIFT));
+
+    for (int i = 0; i < OUTSIZE; i++)
+        l3_biases[i] *= (1 << (2 * SHIFT));
 }
 
 static void quant_transpose(int16_t *matrix, int rows, int cols) {
@@ -393,5 +397,5 @@ int nnue_evaluate(Thread *thread, Board *board) {
     float_affine_relu(l2_weights, l2_biases, outN1, outN2, L2SIZE, L3SIZE);
     output_transform(l3_weights, l3_biases, outN2, outN1, L3SIZE);
 
-    return outN1[0];
+    return (int)(outN1[0]) >> (2 * SHIFT);
 }
