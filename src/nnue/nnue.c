@@ -218,6 +218,7 @@ INLINE void output_transform(float *weights, float *biases, float *inputs, float
 }
 
 
+
 static void compute_hash(const char* fname) {
 
     #define nnue_hash_insert(V) \
@@ -257,6 +258,12 @@ static void compute_hash(const char* fname) {
     fflush(stdout);
 
     #undef nnue_hash_insert
+}
+
+static void scale_weights() {
+
+    for (int i = 0; i < L2SIZE; i++)
+        l1_biases[i] *= (1 << SHIFT);
 }
 
 static void quant_transpose(int16_t *matrix, int rows, int cols) {
@@ -304,6 +311,7 @@ void nnue_init(const char* fname) {
         || fread(l3_weights, sizeof(float), L3SIZE * OUTSIZE, fin) != (size_t) L3SIZE * OUTSIZE)
         printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
+    scale_weights();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
 
@@ -343,6 +351,7 @@ void nnue_incbin_init() {
     for (int i = 0; i < L3SIZE * OUTSIZE; i++)
         l3_weights[i] = *(dataf++);
 
+    scale_weights();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
 
