@@ -49,7 +49,60 @@ ALIGN64 float   l2_biases[L3SIZE ];
 ALIGN64 float   l3_biases[OUTSIZE];
 
 
-INLINE void halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, int turn) {
+static void scale_weights() {
+
+    // Delayed dequantization forces an upshift of biases in later layers,
+    // as the number of delays grows. This nets large speed gains, as well
+    // as precision gains, for the slight risk of under flows or over flows.
+
+    for (int i = 0; i < L2SIZE; i++)
+        l1_biases[i] *= (1 << SHIFT);
+
+    for (int i = 0; i < L3SIZE; i++)
+        l2_biases[i] *= (1 << (2 * SHIFT));
+
+    for (int i = 0; i < OUTSIZE; i++)
+        l3_biases[i] *= (1 << (2 * SHIFT));
+}
+
+static void quant_transpose(int16_t *matrix, int rows, int cols) {
+
+    // Typical Matrix Transposition using int16_t. Ethereal's trainer
+    // stores weights in a way to allow faster updates, not computes
+
+    int16_t *cpy = malloc(sizeof(int16_t) * rows * cols);
+
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            cpy[j * rows + i] = matrix[i * cols + j];
+
+    memcpy(matrix, cpy, sizeof(int16_t) * rows * cols);
+    free(cpy);
+}
+
+static void float_transpose(float *matrix, int rows, int cols) {
+
+    // Typical Matrix Transposition using float_t. Ethereal's trainer
+    // stores weights in a way to allow faster updates, not computes
+
+    float *cpy = malloc(sizeof(float) * rows * cols);
+
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            cpy[j * rows + i] = matrix[i * cols + j];
+
+    memcpy(matrix, cpy, sizeof(float) * rows * cols);
+    free(cpy);
+}
+
+
+INLINE void halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int turn) {
+
+    // The accumulation of king-piece values has already been computed.
+    // Perform the ReLU operation on each accumuatlor, and place them
+    // such that the side-to-move is first, then the non-side-to-move
+
+    assert(KPSIZE % 64 == 0);
 
     const __m256i zero = _mm256_setzero_si256();
 
@@ -59,14 +112,14 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, in
     __m256i *out_white = (__m256i *) (turn == WHITE ? outputs : &outputs[KPSIZE]);
     __m256i *out_black = (__m256i *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
-    for (int i = 0; i < length / 16; i += 4) {
+    for (int i = 0; i < KPSIZE / 16; i += 4) {
         out_white[i+0] = _mm256_max_epi16(zero, in_white[i+0]);
         out_white[i+1] = _mm256_max_epi16(zero, in_white[i+1]);
         out_white[i+2] = _mm256_max_epi16(zero, in_white[i+2]);
         out_white[i+3] = _mm256_max_epi16(zero, in_white[i+3]);
     }
 
-    for (int i = 0; i < length / 16; i += 4) {
+    for (int i = 0; i < KPSIZE / 16; i += 4) {
         out_black[i+0] = _mm256_max_epi16(zero, in_black[i+0]);
         out_black[i+1] = _mm256_max_epi16(zero, in_black[i+1]);
         out_black[i+2] = _mm256_max_epi16(zero, in_black[i+2]);
@@ -74,10 +127,12 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, int16_t *outputs, int length, in
     }
 }
 
-INLINE void quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs, float *outputs, int rows, int cols) {
+INLINE void quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs, float *outputs) {
 
-    const int InChunks  = rows / 16;
-    const int OutChunks = cols / 8;
+    assert(L1SIZE % 16 == 0 && L2SIZE % 8 == 0);
+
+    const int InChunks  = L1SIZE / 16;
+    const int OutChunks = L2SIZE / 8;
 
     const __m256i zero = _mm256_setzero_si256();
 
@@ -138,10 +193,12 @@ INLINE void quant_affine_relu(int16_t *weights, int32_t *biases, int16_t *inputs
     }
 }
 
-INLINE void float_affine_relu(float *weights, float *biases, float *inputs, float *outputs, int rows, int cols) {
+INLINE void float_affine_relu(float *weights, float *biases, float *inputs, float *outputs) {
 
-    const int InChunks  = rows / 8;
-    const int OutChunks = cols / 8;
+    assert(L2SIZE % 8 == 0 && L3SIZE % 8 == 0);
+
+    const int InChunks  = L2SIZE / 8;
+    const int OutChunks = L3SIZE / 8;
 
     const __m256 zero = _mm256_setzero_ps();
 
@@ -193,9 +250,12 @@ INLINE void float_affine_relu(float *weights, float *biases, float *inputs, floa
     }
 }
 
-INLINE void output_transform(float *weights, float *biases, float *inputs, float *outputs, int rows) {
+INLINE void output_transform(float *weights, float *biases, float *inputs, float *outputs) {
 
-    const int InChunks = rows / 8;
+    assert(L3SIZE % 8 == 0);
+
+    const int InChunks = L3SIZE / 8;
+
     const __m256 *inp  = (__m256 *) inputs;
     const __m256 *wgt  = (__m256 *) weights;
 
@@ -217,85 +277,11 @@ INLINE void output_transform(float *weights, float *biases, float *inputs, float
 }
 
 
-static void compute_hash(const char* fname) {
-
-    #define nnue_hash_insert(V) \
-        do {                    \
-            hash ^= (V) >>  7;  \
-            hash ^= (V) << 15;  \
-            hash ^= (V) >> 23;  \
-        } while (0)
-
-    uint32_t hash = 0;
-
-    for (int i = 0; i < INSIZE * KPSIZE; i++)
-        nnue_hash_insert(i * (int32_t) in_weights[i]);
-
-    for (int i = 0; i < L1SIZE * L2SIZE; i++)
-        nnue_hash_insert(i * (int32_t) l1_weights[i]);
-
-    for (int i = 0; i < L2SIZE * L3SIZE; i++)
-        nnue_hash_insert(i * ((int32_t*) l2_weights)[i]);
-
-    for (int i = 0; i < L3SIZE * OUTSIZE; i++)
-        nnue_hash_insert(i * ((int32_t*) l3_weights)[i]);
-
-    for (int i = 0; i < KPSIZE; i++)
-        nnue_hash_insert(i * (int32_t) in_biases[i]);
-
-    for (int i = 0; i < L2SIZE; i++)
-        nnue_hash_insert(i * (int32_t) l1_biases[i]);
-
-    for (int i = 0; i < L3SIZE; i++)
-        nnue_hash_insert(i * ((int32_t*) l2_biases)[i]);
-
-    for (int i = 0; i < OUTSIZE; i++)
-        nnue_hash_insert(i * ((int32_t*) l3_biases)[i]);
-
-    printf("info string Hash for %s is %X\n", fname, hash);
-    fflush(stdout);
-
-    #undef nnue_hash_insert
-}
-
-static void scale_weights() {
-
-    for (int i = 0; i < L2SIZE; i++)
-        l1_biases[i] *= (1 << SHIFT);
-
-    for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] *= (1 << (2 * SHIFT));
-
-    for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] *= (1 << (2 * SHIFT));
-}
-
-static void quant_transpose(int16_t *matrix, int rows, int cols) {
-
-    int16_t *cpy = malloc(sizeof(int16_t) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(int16_t) * rows * cols);
-    free(cpy);
-}
-
-static void float_transpose(float *matrix, int rows, int cols) {
-
-    float *cpy = malloc(sizeof(float) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(float) * rows * cols);
-    free(cpy);
-}
-
-
 void nnue_init(const char* fname) {
+
+    // Reads an NNUE file specificed by a User. If the datasize does not match
+    // the compiled NNUE configuration, abort. Afterwords, scale some weights
+    // for speed optimizations, and transpose the weights in L1 and L2
 
     FILE *fin = fopen(fname, "rb");
 
@@ -318,12 +304,14 @@ void nnue_init(const char* fname) {
     scale_weights();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
-
-    compute_hash(fname);
     fclose(fin);
 }
 
 void nnue_incbin_init() {
+
+    // Inits from an NNUE file compiled into the binary. Assume the compiled
+    // data is correct for the given NNUE config. Afterwords, scale some
+    // weights for speed optimizations, and transpose the weights in L1 and L2
 
     int16_t *data16; int32_t *data32; float *dataf;
 
@@ -358,15 +346,9 @@ void nnue_incbin_init() {
     scale_weights();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
-
-    compute_hash(NNUEDefault);
 }
 
 int nnue_evaluate(Thread *thread, Board *board) {
-
-    // To perform some optimizations, auto-flag KvK as drawn to assume pieces >= 1
-    if ((board->colours[WHITE] | board->colours[BLACK]) == board->pieces[KING])
-        return 0;
 
     const uint64_t white = board->colours[WHITE];
     const uint64_t black = board->colours[BLACK];
@@ -374,6 +356,9 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     board->ksquares[WHITE] = getlsb(white & kings);
     board->ksquares[BLACK] = getlsb(black & kings);
+
+    // For optimizations, auto-flag KvK as drawn
+    if (kings == (white | black)) return 0;
 
     // Large enough to handle layer computations
     ALIGN64 int16_t out16[L1SIZE];
@@ -392,10 +377,12 @@ int nnue_evaluate(Thread *thread, Board *board) {
             nnue_refresh_accumulators(accum, board);
     }
 
-    halfkp_relu (accum, out16, KPSIZE, board->turn);
-    quant_affine_relu(l1_weights, l1_biases, out16, outN1, L1SIZE, L2SIZE);
-    float_affine_relu(l2_weights, l2_biases, outN1, outN2, L2SIZE, L3SIZE);
-    output_transform(l3_weights, l3_biases, outN2, outN1, L3SIZE);
+    // Feed-forward the entire evaluation function
+    halfkp_relu(accum, out16, board->turn);
+    quant_affine_relu(l1_weights, l1_biases, out16, outN1);
+    float_affine_relu(l2_weights, l2_biases, outN1, outN2);
+    output_transform(l3_weights, l3_biases, outN2, outN1);
 
+    // Finally perform the dequantization step
     return (int)(outN1[0]) >> (2 * SHIFT);
 }
