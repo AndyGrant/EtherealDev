@@ -384,5 +384,5 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Finally perform the dequantization step
-    return 110 * ((int)(outN1[0]) >> (2 * SHIFT)) / 100;
+    return 90 * ((int)(outN1[0]) >> (2 * SHIFT)) / 100;
 }
