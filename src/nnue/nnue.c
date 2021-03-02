@@ -35,8 +35,10 @@
 
 #include "../incbin/incbin.h"
 
+#ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
 INCBIN(IncWeights, EVALFILE);
+#endif
 
 ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
 ALIGN64 int16_t l1_weights[L1SIZE * L2SIZE ];
@@ -313,6 +315,8 @@ void nnue_incbin_init() {
     // data is correct for the given NNUE config. Afterwords, scale some
     // weights for speed optimizations, and transpose the weights in L1 and L2
 
+    #ifdef EVALFILE
+
     int16_t *data16; int32_t *data32; float *dataf;
 
     data16 = (int16_t*) gIncWeightsData;
@@ -346,6 +350,8 @@ void nnue_incbin_init() {
     scale_weights();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
+
+    #endif
 }
 
 int nnue_evaluate(Thread *thread, Board *board) {

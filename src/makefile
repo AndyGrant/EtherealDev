@@ -19,14 +19,15 @@ SRC  = *.c pyrrhic/tbprobe.c nnue/*.c
 LIBS = -lpthread -lm
 EXE  = Ethereal
 
-EVALFILE = weights/13EFE081.nnue
-NNFLAGS  = -DEVALFILE=\"$(EVALFILE)\"
+ifdef EVALFILE
+    NN = -DEVALFILE=\"$(EVALFILE)\"
+endif
 
 WFLAGS   = -std=gnu11 -Wall -Wextra -Wshadow
-CFLAGS   = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -march=native
-RFLAGS   = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -static
-TFLAGS   = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -march=native -fopenmp -DTUNE
-PGOFLAGS = -O3 $(WFLAGS) $(NNFLAGS) -DNDEBUG -flto -march=native -fno-asynchronous-unwind-tables
+CFLAGS   = -O3 $(WFLAGS) $(NN) -DNDEBUG -flto -march=native
+RFLAGS   = -O3 $(WFLAGS) $(NN) -DNDEBUG -flto -static
+TFLAGS   = -O3 $(WFLAGS) $(NN) -DNDEBUG -flto -march=native -fopenmp -DTUNE
+PGOFLAGS = -O3 $(WFLAGS) $(NN) -DNDEBUG -flto -march=native -fno-asynchronous-unwind-tables
 
 POPCNTFLAGS = -DUSE_POPCNT -msse3 -mpopcnt
 PEXTFLAGS   = $(POPCNTFLAGS) -DUSE_PEXT -mbmi2
