@@ -303,10 +303,10 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
         printf("info string set MoveOverhead to %d\n", MoveOverhead);
     }
 
-    if (strStartsWith(str, "setoption name SyzygyPath value ")) {
-        char *ptr = str + strlen("setoption name SyzygyPath value ");
-        tb_init(ptr); printf("info string set SyzygyPath to %s\n", ptr);
-    }
+    // if (strStartsWith(str, "setoption name SyzygyPath value ")) {
+    //     char *ptr = str + strlen("setoption name SyzygyPath value ");
+    //     tb_init(ptr); printf("info string set SyzygyPath to %s\n", ptr);
+    // }
 
     if (strStartsWith(str, "setoption name SyzygyProbeDepth value ")) {
         TB_PROBE_DEPTH = atoi(str + strlen("setoption name SyzygyProbeDepth value "));
