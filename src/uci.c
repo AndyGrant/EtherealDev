@@ -56,7 +56,7 @@ const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 
 int main(int argc, char **argv) {
 
-    Board board;
+    Board board
     char str[8192];
     Thread *threads;
     pthread_t pthreadsgo;
