@@ -532,8 +532,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Increase if we made the last NULL Move
-            R += thread->latestNullMover == STM;
+            // Increase if we made the last NULL Move and are faltering
+            R -= eval + 128 < alpha && thread->latestNullMover == STM;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
