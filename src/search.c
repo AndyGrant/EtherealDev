@@ -200,6 +200,7 @@ void aspirationWindow(Thread *thread) {
 
 int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
+    const int STM      = thread->board.turn;
     const int PvNode   = (alpha != beta - 1);
     const int RootNode = (thread->height == 0);
     Board *const board = &thread->board;
@@ -365,9 +366,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
+        int old = thread->latestNullMover;
+        thread->latestNullMover = STM;
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
         revert(thread, board, NULL_MOVE);
+        thread->latestNullMover = old;
 
         if (value >= beta) return beta;
     }
@@ -527,6 +531,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Increase if we made the last NULL Move
+            R += thread->latestNullMover == STM;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;

@@ -109,6 +109,7 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
         threads[i].board.thread = &threads[i];
         threads[i].nnueStack[0].accurate = 0;
 
+        threads[i].latestNullMover = COLOUR_NB;
         threads[i].contempt = board->turn == WHITE ? contempt : -contempt;
     }
 }
