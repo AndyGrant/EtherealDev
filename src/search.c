@@ -528,6 +528,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
+            // NNUE Margin = 400 ?
+            R += abs(ScoreEG(board->psqtmat)) >= 400;
+
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
 
