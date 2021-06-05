@@ -172,7 +172,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     if (   bound != BOUND_EXACT
         && hash16 == replace->hash16
         && 2 * depth <= replace->depth
-        && replace->depth - depth <= 8)
+        && replace->depth - depth >= 8)
         return;
 
     // Finally, copy the new data into the replaced slot
