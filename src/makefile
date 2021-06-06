@@ -35,9 +35,9 @@ PGOFLAGS = -O3 $(WFLAGS) $(NN) -DNDEBUG -flto -march=native -fno-asynchronous-un
 POPCNTFLAGS = -DUSE_POPCNT -msse3 -mpopcnt
 PEXTFLAGS   = $(POPCNTFLAGS) -DUSE_PEXT -mbmi2
 
-SSSE3FLAGS  = -DUSE_SSSE3 -msse -msse2 -mssse3 -mfma
+SSSE3FLAGS  = -DUSE_SSSE3 -msse -msse2 -mssse3
 AVXFLAGS    = -DUSE_AVX $(SSSE3FLAGS) -msse4.1 -mavx
-AVX2FLAGS   = -DUSE_AVX2 $(AVXFLAGS) -mavx2
+AVX2FLAGS   = -DUSE_AVX2 $(AVXFLAGS) -mavx2 -mfma
 
 ARMV8FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv8-a -m64
 ARMV7FLAGS  = -O3 $(WFLAGS) -DNDEBUG -flto -march=armv7-a -m32

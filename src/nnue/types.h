@@ -41,6 +41,8 @@
     #define vepi32_zero _mm256_setzero_si256
     #define vepi32_cnt  8
 
+    #define vps32_fma(A, B, C) _mm256_fmadd_ps(A, B, C)
+
 #elif USE_AVX
 
     #define vepi16      __m128i
@@ -57,6 +59,8 @@
     #define vepi32_hadd _mm_hadd_epi32
     #define vepi32_zero _mm_setzero_si128
     #define vepi32_cnt  4
+
+    #define vps32_fma(A, B, C) _mm256_add_ps(_mm256_mul_ps(A, B), C)
 
 #endif
 
