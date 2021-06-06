@@ -443,21 +443,23 @@ int evaluateBoard(Thread *thread, Board *board) {
     EvalInfo ei;
     int phase, factor, eval, pkeval, hashed;
 
+    int useNNUE =  USE_NNUE
+               && !board->kingAttackers
+               &&  abs(ScoreEG(board->psqtmat)) <= 400;
+
     // We can recognize positions we just evaluated
     if (thread->moveStack[thread->height-1] == NULL_MOVE)
         return -thread->evalStack[thread->height-1] + 2 * Tempo;
 
     // Check for this evaluation being cached already
-    if (!TRACE && getCachedEvaluation(thread, board, &hashed))
+    if (!TRACE && getCachedEvaluation(thread, board, &hashed, useNNUE))
         return hashed + Tempo;
 
     // On some-what balanced positions, use just NNUE
-    if (    USE_NNUE
-        && !board->kingAttackers
-        &&  abs(ScoreEG(board->psqtmat)) <= 400) {
+    if (useNNUE) {
         eval = nnue_evaluate(thread, board);
         hashed = board->turn == WHITE ? eval : -eval;
-        storeCachedEvaluation(thread, board, hashed);
+        storeCachedEvaluation(thread, board, hashed, useNNUE);
         return eval + Tempo;
     }
 
@@ -484,7 +486,7 @@ int evaluateBoard(Thread *thread, Board *board) {
     // Compute and store an interpolated evaluation from white's POV
     eval = (ScoreMG(eval) * phase
          +  ScoreEG(eval) * (24 - phase) * factor / SCALE_NORMAL) / 24;
-    storeCachedEvaluation(thread, board, eval);
+    storeCachedEvaluation(thread, board, eval, useNNUE);
 
     // Store a new Pawn King Entry if we did not have one
     if (!TRACE && ei.pkentry == NULL)

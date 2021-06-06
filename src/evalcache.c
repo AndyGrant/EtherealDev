@@ -22,22 +22,40 @@
 #include "types.h"
 #include "zobrist.h"
 
-int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
+int getCachedEvaluation(Thread *thread, Board *board, int *eval, int useNNUE) {
 
-    EvalEntry eve;
-    uint64_t key;
+    EvalEntry entry;
+    uint64_t key, adjusted;
 
-    eve =  thread->evtable[board->hash & EVAL_CACHE_MASK];
-    key = (eve & ~0xFFFF) | (board->hash & 0xFFFF);
+    // Ignore STM when not using NNUE
+    adjusted = useNNUE ? board->hash
+             : board->turn == WHITE ? board->hash
+             : board->hash ^ ZobristTurnKey;
 
-    *eval = (int16_t)((uint16_t)(eve & 0xFFFF));
+    // Fetch the Entry and extract the stored Key
+    entry = thread->evtable[adjusted & EVAL_CACHE_MASK];
+    key   = (entry & ~EVAL_CACHE_MASK) | (adjusted & EVAL_CACHE_MASK);
+
+    // Extract the eval and put it in the correct POV
+    *eval = (int16_t)((uint16_t)(entry & EVAL_CACHE_MASK));
     *eval = board->turn == WHITE ? *eval : -*eval;
-    return board->hash == key;
+
+    // Lookup was only valid if the keys matched
+    return adjusted == key;
 }
 
-void storeCachedEvaluation(Thread *thread, Board *board, int eval) {
-    thread->evtable[board->hash & EVAL_CACHE_MASK]
-        = (board->hash & ~0xFFFF) | (uint16_t)((int16_t)eval);
+void storeCachedEvaluation(Thread *thread, Board *board, int eval, int useNNUE) {
+
+    uint64_t adjusted;
+
+    // Ignore STM when not using NNUE
+    adjusted = useNNUE ? board->hash
+             : board->turn == WHITE ? board->hash
+             : board->hash ^ ZobristTurnKey;
+
+    // Store the Entry and encode (Key, Eval)
+    thread->evtable[adjusted & EVAL_CACHE_MASK]
+        = (adjusted & ~EVAL_CACHE_MASK) | (uint16_t)((int16_t)eval);
 }
 
 
