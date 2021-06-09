@@ -449,7 +449,7 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     // We can recognize positions we just evaluated
     if (thread->moveStack[thread->height-1] == NULL_MOVE)
-        return evalNN ? -thread->evalStack[thread->height-1] + 6 * Tempo
+        return evalNN ? -thread->evalStack[thread->height-1] + 4 * Tempo
                       : -thread->evalStack[thread->height-1] + 2 * Tempo;
 
     // Check for this evaluation being cached already
