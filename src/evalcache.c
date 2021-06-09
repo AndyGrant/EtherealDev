@@ -25,19 +25,22 @@
 int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
 
     EvalEntry eve;
-    uint64_t key;
+    uint64_t key, stmmask = board->turn == WHITE ? 0ull : ZobristTurnKey;
 
-    eve =  thread->evtable[board->hash & EVAL_CACHE_MASK];
-    key = (eve & ~0xFFFF) | (board->hash & 0xFFFF);
+    eve =  thread->evtable[(board->hash ^ stmmask) & EVAL_CACHE_MASK];
+    key = (eve & ~0xFFFF) | ((board->hash ^ stmmask) & 0xFFFF);
 
     *eval = (int16_t)((uint16_t)(eve & 0xFFFF));
     *eval = board->turn == WHITE ? *eval : -*eval;
-    return board->hash == key;
+    return (board->hash ^ stmmask) == key;
 }
 
 void storeCachedEvaluation(Thread *thread, Board *board, int eval) {
-    thread->evtable[board->hash & EVAL_CACHE_MASK]
-        = (board->hash & ~0xFFFF) | (uint16_t)((int16_t)eval);
+
+    uint64_t stmmask = board->turn == WHITE ? 0ull : ZobristTurnKey;
+
+    thread->evtable[(board->hash ^ stmmask) & EVAL_CACHE_MASK]
+        = ((board->hash ^ stmmask) & ~0xFFFF) | (uint16_t)((int16_t)eval);
 }
 
 
