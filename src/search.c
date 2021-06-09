@@ -300,7 +300,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             || (ttBound == BOUND_UPPER && value <= alpha)) {
 
             storeTTEntry(board->hash, NONE_MOVE, valueToTT(value, thread->height),
-                VALUE_NONE, MIN(MAX_PLY - 1, depth + 6), ttBound);
+                VALUE_NONE, MAX(0, depth - 6), ttBound);
             return value;
         }
     }
