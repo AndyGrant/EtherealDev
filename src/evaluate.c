@@ -443,18 +443,21 @@ int evaluateBoard(Thread *thread, Board *board) {
     EvalInfo ei;
     int phase, factor, eval, pkeval, hashed;
 
+    bool evalNN =  USE_NNUE
+               && !board->kingAttackers
+               &&  abs(ScoreEG(board->psqtmat)) <= 400;
+
     // We can recognize positions we just evaluated
     if (thread->moveStack[thread->height-1] == NULL_MOVE)
-        return -thread->evalStack[thread->height-1] + 2 * Tempo;
+        return evalNN ? -thread->evalStack[thread->height-1] + 6 * Tempo
+                      : -thread->evalStack[thread->height-1] + 2 * Tempo;
 
     // Check for this evaluation being cached already
     if (!TRACE && getCachedEvaluation(thread, board, &hashed))
         return hashed + Tempo;
 
     // On some-what balanced positions, use just NNUE
-    if (    USE_NNUE
-        && !board->kingAttackers
-        &&  abs(ScoreEG(board->psqtmat)) <= 400) {
+    if (evalNN) {
         eval = nnue_evaluate(thread, board);
         hashed = board->turn == WHITE ? eval : -eval;
         storeCachedEvaluation(thread, board, hashed);
