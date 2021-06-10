@@ -20,10 +20,12 @@
 
 #pragma once
 
+#define vepi8  __m256i
 #define vepi16 __m256i
 #define vepi32 __m256i
 #define vps32  __m256
 
+#define vepi8_cnt  32
 #define vepi16_cnt 16
 #define vepi32_cnt 8
 #define vps32_cnt  8
