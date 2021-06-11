@@ -109,7 +109,6 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
     assert(KPSIZE % 64 == 0);
 
-    const vepi16 zero = vepi16_zero();
     const vepi16 mask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
     vepi16 *in_white  = (vepi16 *) &accum->values[WHITE];
@@ -121,17 +120,15 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
         vepi16 shift1 = _mm256_srai_epi16(in_white[i * 2 + 0], 4);
         vepi16 shift2 = _mm256_srai_epi16(in_white[i * 2 + 1], 4);
-        vepi8 packed = _mm256_packs_epi16(shift1, shift2);
-        vepi8 relued = _mm256_max_epi8(packed, zero);
-        out_white[i] = _mm256_permutevar8x32_epi32(relued, mask);
+        vepi8 packed  = _mm256_packus_epi16(shift1, shift2);
+        out_white[i]  = _mm256_permutevar8x32_epi32(packed, mask);
     }
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
         vepi16 shift1 = _mm256_srai_epi16(in_black[i * 2 + 0], 4);
         vepi16 shift2 = _mm256_srai_epi16(in_black[i * 2 + 1], 4);
-        vepi8 packed = _mm256_packs_epi16(shift1, shift2);
-        vepi8 relued = _mm256_max_epi8(packed, zero);
-        out_black[i] = _mm256_permutevar8x32_epi32(relued, mask);
+        vepi8 packed  = _mm256_packus_epi16(shift1, shift2);
+        out_black[i]  = _mm256_permutevar8x32_epi32(packed, mask);
     }
 }
 
