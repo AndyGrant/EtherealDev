@@ -115,16 +115,16 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     vepi8 *out_black = (vepi8 *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
-        vepi16 shift1 = _mm256_srai_epi16(in_white[i * 2 + 0], SHIFT);
-        vepi16 shift2 = _mm256_srai_epi16(in_white[i * 2 + 1], SHIFT);
-        vepi8 packed  = _mm256_packus_epi16(shift1, shift2);
+        vepi16 shift1 = vepi16_srai(in_white[i * 2 + 0], SHIFT);
+        vepi16 shift2 = vepi16_srai(in_white[i * 2 + 1], SHIFT);
+        vepi8 packed  = vepi16_packu(shift1, shift2);
         out_white[i]  = _mm256_permutevar8x32_epi32(packed, mask);
     }
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
-        vepi16 shift1 = _mm256_srai_epi16(in_black[i * 2 + 0], SHIFT);
-        vepi16 shift2 = _mm256_srai_epi16(in_black[i * 2 + 1], SHIFT);
-        vepi8 packed  = _mm256_packus_epi16(shift1, shift2);
+        vepi16 shift1 = vepi16_srai(in_black[i * 2 + 0], SHIFT);
+        vepi16 shift2 = vepi16_srai(in_black[i * 2 + 1], SHIFT);
+        vepi8 packed  = vepi16_packu(shift1, shift2);
         out_black[i]  = _mm256_permutevar8x32_epi32(packed, mask);
     }
 }
@@ -136,8 +136,13 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
     const int InChunks  = L1SIZE / vepi8_cnt;
     const int OutChunks = L2SIZE / 8;
 
+    #if defined(USE_AVX2) || defined(USE_AVX)
     const vepi32 zero = vepi32_zero();
-    const vepi16 ones = _mm256_set1_epi16(1);
+    #elif defined(USE_SSSE3)
+    const vps32  zero = vps32_zero();
+    #endif
+
+    const vepi16 ones = vepi16_one;
 
     const vepi8  *inp = (vepi8  *) inputs;
     const vepi8  *wgt = (vepi8  *) weights;
@@ -157,50 +162,48 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
 
         for (int j = 0; j < InChunks; j += 2) {
 
-            vepi16 sum0A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 0) + j + 0]);
-            vepi16 sum0B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 0) + j + 1]);
+            vepi16 sum0A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 0) + j + 0]);
+            vepi16 sum0B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 0) + j + 1]);
             acc0 = vepi32_add(acc0, vepi16_madd(ones, vepi16_add(sum0A, sum0B)));
 
-            vepi16 sum1A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 1) + j + 0]);
-            vepi16 sum1B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 1) + j + 1]);
+            vepi16 sum1A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 1) + j + 0]);
+            vepi16 sum1B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 1) + j + 1]);
             acc1 = vepi32_add(acc1, vepi16_madd(ones, vepi16_add(sum1A, sum1B)));
 
-            vepi16 sum2A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 2) + j + 0]);
-            vepi16 sum2B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 2) + j + 1]);
+            vepi16 sum2A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 2) + j + 0]);
+            vepi16 sum2B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 2) + j + 1]);
             acc2 = vepi32_add(acc2, vepi16_madd(ones, vepi16_add(sum2A, sum2B)));
 
-            vepi16 sum3A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 3) + j + 0]);
-            vepi16 sum3B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 3) + j + 1]);
+            vepi16 sum3A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 3) + j + 0]);
+            vepi16 sum3B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 3) + j + 1]);
             acc3 = vepi32_add(acc3, vepi16_madd(ones, vepi16_add(sum3A, sum3B)));
 
-            vepi16 sum4A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 4) + j + 0]);
-            vepi16 sum4B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 4) + j + 1]);
+            vepi16 sum4A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 4) + j + 0]);
+            vepi16 sum4B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 4) + j + 1]);
             acc4 = vepi32_add(acc4, vepi16_madd(ones, vepi16_add(sum4A, sum4B)));
 
-            vepi16 sum5A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 5) + j + 0]);
-            vepi16 sum5B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 5) + j + 1]);
+            vepi16 sum5A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 5) + j + 0]);
+            vepi16 sum5B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 5) + j + 1]);
             acc5 = vepi32_add(acc5, vepi16_madd(ones, vepi16_add(sum5A, sum5B)));
 
-            vepi16 sum6A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 6) + j + 0]);
-            vepi16 sum6B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 6) + j + 1]);
+            vepi16 sum6A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 6) + j + 0]);
+            vepi16 sum6B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 6) + j + 1]);
             acc6 = vepi32_add(acc6, vepi16_madd(ones, vepi16_add(sum6A, sum6B)));
 
-            vepi16 sum7A = _mm256_maddubs_epi16(inp[j+0], wgt[InChunks * (i * 8 + 7) + j + 0]);
-            vepi16 sum7B = _mm256_maddubs_epi16(inp[j+1], wgt[InChunks * (i * 8 + 7) + j + 1]);
+            vepi16 sum7A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 7) + j + 0]);
+            vepi16 sum7B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 7) + j + 1]);
             acc7 = vepi32_add(acc7, vepi16_madd(ones, vepi16_add(sum7A, sum7B)));
         }
 
-        acc0 = _mm256_hadd_epi32(acc0, acc1);
-        acc2 = _mm256_hadd_epi32(acc2, acc3);
-        acc0 = _mm256_hadd_epi32(acc0, acc2);
+        acc0 = vepi32_hadd(acc0, acc1);
+        acc2 = vepi32_hadd(acc2, acc3);
+        acc0 = vepi32_hadd(acc0, acc2);
 
-        //
+        acc4 = vepi32_hadd(acc4, acc5);
+        acc6 = vepi32_hadd(acc6, acc7);
+        acc4 = vepi32_hadd(acc4, acc6);
 
-        acc4 = _mm256_hadd_epi32(acc4, acc5);
-        acc6 = _mm256_hadd_epi32(acc6, acc7);
-        acc4 = _mm256_hadd_epi32(acc4, acc6);
-
-        //
+        #if defined(USE_AVX2)
 
         __m128i sumabcd1 = _mm256_extracti128_si256(acc0, 0);
         __m128i sumabcd2 = _mm256_extracti128_si256(acc0, 1);
@@ -214,6 +217,21 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         acc0 = _mm256_add_epi32(acc0, bia[i]);
         acc0 = _mm256_max_epi32(acc0, zero);
         out[i] = _mm256_cvtepi32_ps(acc0);
+
+        #elif defined (USE_AVX)
+
+        __m128 ps0 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 0], acc0)));
+        __m128 ps1 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 1], acc4)));
+
+        out[i] = _mm256_insertf128_ps(out[i], ps0, 0);
+        out[i] = _mm256_insertf128_ps(out[i], ps1, 1);
+
+        #elif defined (USE_SSSE3)
+
+        out[i * 2 + 0] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 0], acc0)));
+        out[i * 2 + 1] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 1], acc4)));
+
+        #endif
     }
 }
 
