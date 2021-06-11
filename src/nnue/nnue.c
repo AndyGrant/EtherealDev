@@ -36,7 +36,7 @@
 
 #include "../incbin/incbin.h"
 
-#define SHIFT 6
+#define SHIFT 4
 
 #ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
@@ -56,18 +56,15 @@ ALIGN64 float   l3_biases[OUTSIZE];
 
 static void scale_weights() {
 
-    // Delayed dequantization forces an upshift of biases in later layers,
-    // as the number of delays grows. This nets large speed gains, as well
-    // as precision gains, for the slight risk of under flows or over flows.
+    // Delayed dequantization of the results of L1 forces an upshift in
+    // biases of L2 and L3 to compensate. This saves srai calls, as well as
+    // increases the precision of each layer, with no clear downsides.
 
-    // for (int i = 0; i < L2SIZE; i++)
-    //     l1_biases[i] *= (1 << SHIFT);
-    //
     for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] *= (1 << 4);
+        l2_biases[i] *= (1 << SHIFT);
 
     for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] *= (1 << 4);
+        l3_biases[i] *= (1 << SHIFT);
 }
 
 static void quant_transpose(int8_t *matrix, int rows, int cols) {
@@ -118,15 +115,15 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     vepi8 *out_black = (vepi8 *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
-        vepi16 shift1 = _mm256_srai_epi16(in_white[i * 2 + 0], 4);
-        vepi16 shift2 = _mm256_srai_epi16(in_white[i * 2 + 1], 4);
+        vepi16 shift1 = _mm256_srai_epi16(in_white[i * 2 + 0], SHIFT);
+        vepi16 shift2 = _mm256_srai_epi16(in_white[i * 2 + 1], SHIFT);
         vepi8 packed  = _mm256_packus_epi16(shift1, shift2);
         out_white[i]  = _mm256_permutevar8x32_epi32(packed, mask);
     }
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
-        vepi16 shift1 = _mm256_srai_epi16(in_black[i * 2 + 0], 4);
-        vepi16 shift2 = _mm256_srai_epi16(in_black[i * 2 + 1], 4);
+        vepi16 shift1 = _mm256_srai_epi16(in_black[i * 2 + 0], SHIFT);
+        vepi16 shift2 = _mm256_srai_epi16(in_black[i * 2 + 1], SHIFT);
         vepi8 packed  = _mm256_packus_epi16(shift1, shift2);
         out_black[i]  = _mm256_permutevar8x32_epi32(packed, mask);
     }
@@ -442,5 +439,5 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and multiply by 1.10
-    return 110 * ((int)(outN1[0]) >> 4) / 100;
+    return 110 * ((int)(outN1[0]) >> SHIFT) / 100;
 }
