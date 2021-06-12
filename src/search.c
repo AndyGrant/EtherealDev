@@ -53,9 +53,9 @@ volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 
 static int recapturePotential(Thread *thread, Board *board) {
 
-    // Most recent Move, and the Piece that made it
-    const uint16_t move  = thread->moveStack[thread->height-1];
+    // Most recent Piece and the Move that it made
     const int piece = thread->pieceStack[thread->height-1];
+    const uint16_t move = thread->moveStack[thread->height-1];
 
     // Previous two captured pieces, or EMPTY if no capture was made
     const int captured1 = thread->undoStack[thread->height-1].capturePiece;
