@@ -147,42 +147,42 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
 
-        vepi16 shift1A = vepi16_srai(in_white[(i + 0) * 2 + 0], SHIFT);
-        vepi16 shift1B = vepi16_srai(in_white[(i + 0) * 2 + 1], SHIFT);
+        vepi16 shift0A = vepi16_srai(in_white[(i + 0) * 2 + 0], SHIFT);
+        vepi16 shift0B = vepi16_srai(in_white[(i + 0) * 2 + 1], SHIFT);
 
-        vepi16 shift2A = vepi16_srai(in_white[(i + 1) * 2 + 0], SHIFT);
-        vepi16 shift2B = vepi16_srai(in_white[(i + 1) * 2 + 1], SHIFT);
+        vepi16 shift1A = vepi16_srai(in_white[(i + 1) * 2 + 0], SHIFT);
+        vepi16 shift1B = vepi16_srai(in_white[(i + 1) * 2 + 1], SHIFT);
 
-        vepi16 shift3A = vepi16_srai(in_white[(i + 2) * 2 + 0], SHIFT);
-        vepi16 shift3B = vepi16_srai(in_white[(i + 2) * 2 + 1], SHIFT);
+        vepi16 shift2A = vepi16_srai(in_white[(i + 2) * 2 + 0], SHIFT);
+        vepi16 shift2B = vepi16_srai(in_white[(i + 2) * 2 + 1], SHIFT);
 
-        vepi16 shift4A = vepi16_srai(in_white[(i + 3) * 2 + 0], SHIFT);
-        vepi16 shift4B = vepi16_srai(in_white[(i + 3) * 2 + 1], SHIFT);
+        vepi16 shift3A = vepi16_srai(in_white[(i + 3) * 2 + 0], SHIFT);
+        vepi16 shift3B = vepi16_srai(in_white[(i + 3) * 2 + 1], SHIFT);
 
-        out_white[i+0] = vepi16_packu(shift1A, shift1B);
-        out_white[i+1] = vepi16_packu(shift2A, shift2B);
-        out_white[i+2] = vepi16_packu(shift3A, shift3B);
-        out_white[i+3] = vepi16_packu(shift4A, shift4B);
+        out_white[i+0] = vepi16_packu(shift0A, shift0B);
+        out_white[i+1] = vepi16_packu(shift1A, shift1B);
+        out_white[i+2] = vepi16_packu(shift2A, shift2B);
+        out_white[i+3] = vepi16_packu(shift3A, shift3B);
     }
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
 
-        vepi16 shift1A = vepi16_srai(in_black[(i + 0) * 2 + 0], SHIFT);
-        vepi16 shift1B = vepi16_srai(in_black[(i + 0) * 2 + 1], SHIFT);
+        vepi16 shift0A = vepi16_srai(in_black[(i + 0) * 2 + 0], SHIFT);
+        vepi16 shift0B = vepi16_srai(in_black[(i + 0) * 2 + 1], SHIFT);
 
-        vepi16 shift2A = vepi16_srai(in_black[(i + 1) * 2 + 0], SHIFT);
-        vepi16 shift2B = vepi16_srai(in_black[(i + 1) * 2 + 1], SHIFT);
+        vepi16 shift1A = vepi16_srai(in_black[(i + 1) * 2 + 0], SHIFT);
+        vepi16 shift1B = vepi16_srai(in_black[(i + 1) * 2 + 1], SHIFT);
 
-        vepi16 shift3A = vepi16_srai(in_black[(i + 2) * 2 + 0], SHIFT);
-        vepi16 shift3B = vepi16_srai(in_black[(i + 2) * 2 + 1], SHIFT);
+        vepi16 shift2A = vepi16_srai(in_black[(i + 2) * 2 + 0], SHIFT);
+        vepi16 shift2B = vepi16_srai(in_black[(i + 2) * 2 + 1], SHIFT);
 
-        vepi16 shift4A = vepi16_srai(in_black[(i + 3) * 2 + 0], SHIFT);
-        vepi16 shift4B = vepi16_srai(in_black[(i + 3) * 2 + 1], SHIFT);
+        vepi16 shift3A = vepi16_srai(in_black[(i + 3) * 2 + 0], SHIFT);
+        vepi16 shift3B = vepi16_srai(in_black[(i + 3) * 2 + 1], SHIFT);
 
-        out_black[i+0] = vepi16_packu(shift1A, shift1B);
-        out_black[i+1] = vepi16_packu(shift2A, shift2B);
-        out_black[i+2] = vepi16_packu(shift3A, shift3B);
-        out_black[i+3] = vepi16_packu(shift4A, shift4B);
+        out_black[i+0] = vepi16_packu(shift0A, shift0B);
+        out_black[i+1] = vepi16_packu(shift1A, shift1B);
+        out_black[i+2] = vepi16_packu(shift2A, shift2B);
+        out_black[i+3] = vepi16_packu(shift3A, shift3B);
     }
 }
 
