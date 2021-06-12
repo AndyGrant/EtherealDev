@@ -97,6 +97,39 @@ static void float_transpose(float *matrix, int rows, int cols) {
     free(cpy);
 }
 
+static void shuffle_input_layer() {
+
+    #if defined(USE_AVX2)
+
+    __m256i *wgt = (__m256i *) in_weights;
+    __m256i *bia = (__m256i *) in_biases;
+
+    // Interleave adjacent 256-bit chunks of 2-byte values. During
+    // halfkp_relu() adjacent chunks are split, with the a half of
+    // chunk 1 swapping with a half of chunk 2. This is done to both
+    // the weights and the biases, to avoid unshuffling them later.
+
+    for (int i = 0; i < KPSIZE / vepi16_cnt; i += 2) {
+
+        __m128i half1 = _mm256_extracti128_si256(bia[i+0], 1);
+        __m128i half2 = _mm256_extracti128_si256(bia[i+1], 0);
+
+        bia[i+0] = _mm256_inserti128_si256(bia[i+0], half2, 1);
+        bia[i+1] = _mm256_inserti128_si256(bia[i+1], half1, 0);
+    }
+
+    for (int i = 0; i < INSIZE * KPSIZE / vepi16_cnt; i += 2) {
+
+        __m128i half1 = _mm256_extracti128_si256(wgt[i+0], 1);
+        __m128i half2 = _mm256_extracti128_si256(wgt[i+1], 0);
+
+        wgt[i+0] = _mm256_inserti128_si256(wgt[i+0], half2, 1);
+        wgt[i+1] = _mm256_inserti128_si256(wgt[i+1], half1, 0);
+    }
+
+    #endif
+}
+
 
 INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
@@ -106,26 +139,50 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
     assert(KPSIZE % 64 == 0);
 
-    const vepi16 mask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
-
     vepi16 *in_white  = (vepi16 *) &accum->values[WHITE];
     vepi16 *in_black  = (vepi16 *) &accum->values[BLACK];
 
     vepi8 *out_white = (vepi8 *) (turn == WHITE ? outputs : &outputs[KPSIZE]);
     vepi8 *out_black = (vepi8 *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
-    for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
-        vepi16 shift1 = vepi16_srai(in_white[i * 2 + 0], SHIFT);
-        vepi16 shift2 = vepi16_srai(in_white[i * 2 + 1], SHIFT);
-        vepi8 packed  = vepi16_packu(shift1, shift2);
-        out_white[i]  = _mm256_permutevar8x32_epi32(packed, mask);
+    for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
+
+        vepi16 shift1A = vepi16_srai(in_white[(i + 0) * 2 + 0], SHIFT);
+        vepi16 shift1B = vepi16_srai(in_white[(i + 0) * 2 + 1], SHIFT);
+
+        vepi16 shift2A = vepi16_srai(in_white[(i + 1) * 2 + 0], SHIFT);
+        vepi16 shift2B = vepi16_srai(in_white[(i + 1) * 2 + 1], SHIFT);
+
+        vepi16 shift3A = vepi16_srai(in_white[(i + 2) * 2 + 0], SHIFT);
+        vepi16 shift3B = vepi16_srai(in_white[(i + 2) * 2 + 1], SHIFT);
+
+        vepi16 shift4A = vepi16_srai(in_white[(i + 3) * 2 + 0], SHIFT);
+        vepi16 shift4B = vepi16_srai(in_white[(i + 3) * 2 + 1], SHIFT);
+
+        out_white[i+0] = vepi16_packu(shift1A, shift1B);
+        out_white[i+1] = vepi16_packu(shift2A, shift2B);
+        out_white[i+2] = vepi16_packu(shift3A, shift3B);
+        out_white[i+3] = vepi16_packu(shift4A, shift4B);
     }
 
-    for (int i = 0; i < KPSIZE / vepi8_cnt; i++) {
-        vepi16 shift1 = vepi16_srai(in_black[i * 2 + 0], SHIFT);
-        vepi16 shift2 = vepi16_srai(in_black[i * 2 + 1], SHIFT);
-        vepi8 packed  = vepi16_packu(shift1, shift2);
-        out_black[i]  = _mm256_permutevar8x32_epi32(packed, mask);
+    for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
+
+        vepi16 shift1A = vepi16_srai(in_black[(i + 0) * 2 + 0], SHIFT);
+        vepi16 shift1B = vepi16_srai(in_black[(i + 0) * 2 + 1], SHIFT);
+
+        vepi16 shift2A = vepi16_srai(in_black[(i + 1) * 2 + 0], SHIFT);
+        vepi16 shift2B = vepi16_srai(in_black[(i + 1) * 2 + 1], SHIFT);
+
+        vepi16 shift3A = vepi16_srai(in_black[(i + 2) * 2 + 0], SHIFT);
+        vepi16 shift3B = vepi16_srai(in_black[(i + 2) * 2 + 1], SHIFT);
+
+        vepi16 shift4A = vepi16_srai(in_black[(i + 3) * 2 + 0], SHIFT);
+        vepi16 shift4B = vepi16_srai(in_black[(i + 3) * 2 + 1], SHIFT);
+
+        out_black[i+0] = vepi16_packu(shift1A, shift1B);
+        out_black[i+1] = vepi16_packu(shift2A, shift2B);
+        out_black[i+2] = vepi16_packu(shift3A, shift3B);
+        out_black[i+3] = vepi16_packu(shift4A, shift4B);
     }
 }
 
@@ -361,6 +418,7 @@ void nnue_init(const char* fname) {
         printf("info string Unable to read NNUE file\n"), exit(EXIT_FAILURE);
 
     scale_weights();
+    shuffle_input_layer();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
     fclose(fin);
@@ -413,6 +471,7 @@ void nnue_incbin_init() {
         l3_weights[i] = *(dataf++);
 
     scale_weights();
+    shuffle_input_layer();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
     float_transpose(l2_weights, L2SIZE, L3SIZE);
 
