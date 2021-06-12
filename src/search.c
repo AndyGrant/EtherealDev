@@ -51,6 +51,25 @@ volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 
+static int recapturePotential(Thread *thread, Board *board) {
+
+    // Most recent Move, and the Piece that made it
+    const int move  = thread->moveStack[thread->height-1];
+    const int piece = thread->pieceStack[thread->height-1];
+
+    // Previous two captured pieces, or EMPTY if no capture was made
+    const int captured1 = thread->undoStack[thread->height-1].capturePiece;
+    const int captured2 = thread->undoStack[thread->height-2].capturePiece;
+
+    // We might be able to recapture a seemingly dropped piece
+    if (   captured1 != EMPTY && captured2 == EMPTY
+        && squareIsAttacked(board, board->turn, MoveTo(move)))
+        return SEEPieceValues[piece];
+
+    return 0; // Fall-back and have this function do nothing
+}
+
+
 void initSearch() {
 
     // Init Late Move Reductions Table
@@ -337,7 +356,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
+        &&  eval - BetaMargin * depth - recapturePotential(thread, board) > beta)
         return eval;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
