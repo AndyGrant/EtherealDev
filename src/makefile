@@ -61,12 +61,6 @@ endif
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-popcnt:
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
-
-pext:
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o $(EXE)
-
 pgo:
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
 	$(CC) -fprofile-generate $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
@@ -80,6 +74,12 @@ pgopext:
 	./$(EXE) bench
 	$(CC) -fprofile-use $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o $(EXE)
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
+
+popcnt:
+	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(POPCNTFLAGS) -o $(EXE)
+
+pext:
+	$(CC) $(CFLAGS) $(SRC) $(LIBS) $(PEXTFLAGS) -o $(EXE)
 
 armv8:
 	$(CC) $(ARMV8FLAGS) $(SRC) -lm -o $(EXE)
