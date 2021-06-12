@@ -356,7 +356,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth - recapturePotential(thread, board) > beta)
+        &&  eval - BetaMargin * depth  > beta)
         return eval;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
@@ -383,6 +383,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+
+        R += (recapturePotential(thread, board) != 0);
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
