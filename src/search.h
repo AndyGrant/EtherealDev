@@ -74,7 +74,7 @@ static const int FollowUpMoveHistoryLimit[] = { -2000, -4000 };
 static const int LateMovePruningDepth = 8;
 
 static const int SEEPruningDepth = 9;
-static const int SEEQuietMargin = -58;
+static const int SEEQuietMargin = -70;
 static const int SEENoisyMargin = -19;
 static const int SEEPieceValues[] = {
      100,  450,  450,  675,
