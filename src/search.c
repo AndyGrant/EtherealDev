@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "attacks.h"
 #include "bitboards.h"
@@ -249,7 +250,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Check to see if we have exceeded the maxiumum search draft
         if (thread->height >= MAX_PLY)
-            return evaluateBoard(thread, board);
+            return evaluateBoard(thread, board, false);
 
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in
@@ -311,7 +312,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Save a history of the static evaluations
     eval = thread->evalStack[thread->height]
-         = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+         = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board, false);
 
     // Futility Pruning Margin
     futilityMargin = FutilityMargin * depth;
@@ -657,7 +658,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 3. Max Draft Cutoff. If we are at the maximum search draft,
     // then end the search here with a static eval of the current board
     if (thread->height >= MAX_PLY)
-        return evaluateBoard(thread, board);
+        return evaluateBoard(thread, board, false);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
@@ -673,7 +674,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     // Save a history of the static evaluations
     eval = thread->evalStack[thread->height]
-         = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+         = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board, true);
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static

@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "evalcache.h"
 #include "types.h"
@@ -138,7 +139,7 @@ struct EvalInfo {
     PKEntry *pkentry;
 };
 
-int evaluateBoard(Thread *thread, Board *board);
+int evaluateBoard(Thread *thread, Board *board, bool forceHCE);
 int evaluatePieces(EvalInfo *ei, Board *board);
 int evaluatePawns(EvalInfo *ei, Board *board, int colour);
 int evaluateKnights(EvalInfo *ei, Board *board, int colour);

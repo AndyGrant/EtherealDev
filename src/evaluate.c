@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "attacks.h"
 #include "bitboards.h"
@@ -438,10 +439,15 @@ const int Tempo = 20;
 
 #undef S
 
-int evaluateBoard(Thread *thread, Board *board) {
+int evaluateBoard(Thread *thread, Board *board, bool forceHCE) {
 
     EvalInfo ei;
     int phase, factor, eval, pkeval, hashed;
+
+    // Use the NNUE for non qsearch, balanced positions
+    int useNNUE =  USE_NNUE && !forceHCE
+               && !board->kingAttackers
+               &&  abs(ScoreEG(board->psqtmat)) <= 400;
 
     // We can recognize positions we just evaluated
     if (thread->moveStack[thread->height-1] == NULL_MOVE)
@@ -451,10 +457,8 @@ int evaluateBoard(Thread *thread, Board *board) {
     if (!TRACE && getCachedEvaluation(thread, board, &hashed))
         return hashed + Tempo;
 
-    // On some-what balanced positions, use just NNUE
-    if (    USE_NNUE
-        && !board->kingAttackers
-        &&  abs(ScoreEG(board->psqtmat)) <= 400) {
+    // From above we may sometimes use the NNUE entirely
+    if (useNNUE) {
         eval = nnue_evaluate(thread, board);
         hashed = board->turn == WHITE ? eval : -eval;
         storeCachedEvaluation(thread, board, hashed);
