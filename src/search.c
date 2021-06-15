@@ -304,6 +304,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
+    if (PvNode && !ttHit && depth >= 6)
+        depth -= 1;
+
     // Step 6. Initialize flags and values used by pruning and search methods
 
     // We can grab in check based on the already computed king attackers bitboard
