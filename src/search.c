@@ -696,7 +696,12 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
-        value = -qsearch(thread, &lpv, -beta, -alpha);
+
+
+        value = board->kingAttackers
+              ? -search(thread, &lpv, -beta, -alpha, 0)
+              : -qsearch(thread, &lpv, -beta, -alpha);
+
         revert(thread, board, move);
 
         // Improved current value
