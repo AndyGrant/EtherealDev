@@ -457,8 +457,8 @@ int evaluateBoard(Thread *thread, Board *board) {
         &&  abs(ScoreEG(board->psqtmat)) <= 400) {
         eval = nnue_evaluate(thread, board);
         hashed = board->turn == WHITE ? eval : -eval;
-        storeCachedEvaluation(thread, board, hashed);
-        return eval + Tempo;
+        storeCachedEvaluation(thread, board, hashed - Tempo);
+        return eval;
     }
 
     initEvalInfo(thread, board, &ei);
