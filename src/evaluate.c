@@ -427,10 +427,10 @@ const int ClosednessRookAdjustment[9] = {
 
 /* Complexity Evaluation Terms */
 
-const int ComplexityTotalPawns  = S(   0,   8);
-const int ComplexityPawnFlanks  = S(   0,  82);
-const int ComplexityPawnEndgame = S(   0,  76);
-const int ComplexityAdjustment  = S(   0,-157);
+const int ComplexityTotalPawns  = S(   0,   6);
+const int ComplexityPawnFlanks  = S(   0, 109);
+const int ComplexityPawnEndgame = S(   0,  77);
+const int ComplexityAdjustment  = S(   0,-175);
 
 /* General Evaluation Terms */
 
