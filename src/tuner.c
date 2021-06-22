@@ -122,7 +122,7 @@ void runTuner() {
 
     TEntry *entries;
     TArray methods = {0};
-    TVector params = {0}, cparams = {0}, adagrad = {0};
+    TVector params = {0}, cparams = {0}, momentum = {0}, velocity = {0};
     Thread *thread = createThreadPool(1);
     double K, error, rate = LRRATE;
 
@@ -151,11 +151,20 @@ void runTuner() {
             TVector gradient = {0};
             computeGradient(entries, gradient, params, methods, K, batch);
 
+            #pragma omp for schedule(static, NPARTITIONS)
             for (int i = 0; i < NTERMS; i++) {
-                adagrad[i][MG] += pow((K / 200.0) * gradient[i][MG] / BATCHSIZE, 2.0);
-                adagrad[i][EG] += pow((K / 200.0) * gradient[i][EG] / BATCHSIZE, 2.0);
-                params[i][MG] += (K / 200.0) * (gradient[i][MG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][MG]));
-                params[i][EG] += (K / 200.0) * (gradient[i][EG] / BATCHSIZE) * (rate / sqrt(1e-8 + adagrad[i][EG]));
+
+                double mg_grad = (-K / 200.0) * gradient[i][MG] / BATCHSIZE;
+                double eg_grad = (-K / 200.0) * gradient[i][EG] / BATCHSIZE;
+
+                momentum[i][MG] = (BETA_1 * momentum[i][MG]) + (1.0 - BETA_1) * mg_grad;
+                momentum[i][EG] = (BETA_1 * momentum[i][EG]) + (1.0 - BETA_1) * eg_grad;
+
+                velocity[i][MG] = (BETA_2 * velocity[i][MG]) + (1.0 - BETA_2) * pow(mg_grad, 2);
+                velocity[i][EG] = (BETA_2 * velocity[i][EG]) + (1.0 - BETA_2) * pow(eg_grad, 2);
+
+                params[i][MG] -= rate * momentum[i][MG] * (1.0 / (1e-8 + sqrt(velocity[i][MG])));
+                params[i][EG] -= rate * momentum[i][EG] * (1.0 / (1e-8 + sqrt(velocity[i][EG])));
             }
         }
 
