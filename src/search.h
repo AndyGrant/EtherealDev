@@ -58,7 +58,7 @@ static const int AlphaMargin = 3000;
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 80;
+static const int ProbCutMargin = 90;
 
 static const int FutilityMargin = 65;
 static const int FutilityMarginNoHistory = 210;
@@ -82,7 +82,7 @@ static const int SEEPieceValues[] = {
 };
 
 static const int QSSeeMargin = 110;
-static const int QSDeltaMargin = 150;
+static const int QSDeltaMargin = 165;
 
 static const int SingularQuietLimit = 6;
 static const int SingularTacticalLimit = 3;
