@@ -492,7 +492,10 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     // Factor in the Tempo after interpolation and scaling, so that
     // if a null move is made, then we know eval = last_eval + 2 * Tempo
-    return Tempo + (board->turn == WHITE ? eval : -eval);
+    eval = Tempo + (board->turn == WHITE ? eval : -eval);
+
+    // Scale down the evaluation using the 50-move Rule
+    return eval * (100 - board->halfMoveCounter) / 100;
 }
 
 int evaluatePieces(EvalInfo *ei, Board *board) {
