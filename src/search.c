@@ -722,9 +722,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Step 8. Store results of search into the Transposition Table.
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, 0, ttBound);
+    if (bestMove != NONE_MOVE) {
+        ttBound = best >= beta    ? BOUND_LOWER
+                : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+        storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, 0, ttBound);
+    }
 
     return best;
 }
