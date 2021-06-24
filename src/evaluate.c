@@ -455,7 +455,11 @@ int evaluateBoard(Thread *thread, Board *board) {
     if (    USE_NNUE
         && !board->kingAttackers
         &&  abs(ScoreEG(board->psqtmat)) <= 400) {
-        eval = nnue_evaluate(thread, board);
+
+        eval   = nnue_evaluate(thread, board);
+        factor = evaluateScaleFactor(board, eval);
+        eval   = eval * factor / SCALE_NORMAL;
+
         hashed = board->turn == WHITE ? eval : -eval;
         storeCachedEvaluation(thread, board, hashed);
         return eval + Tempo;
@@ -478,7 +482,7 @@ int evaluateBoard(Thread *thread, Board *board) {
           + 1 * popcount(board->pieces[KNIGHT]|board->pieces[BISHOP]);
 
     // Scale evaluation based on remaining material
-    factor = evaluateScaleFactor(board, eval);
+    factor = evaluateScaleFactor(board, ScoreEG(eval));
     if (TRACE) T.factor = factor;
 
     // Compute and store an interpolated evaluation from white's POV
@@ -1262,7 +1266,7 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     return MakeScore(0, v);
 }
 
-int evaluateScaleFactor(Board *board, int eval) {
+int evaluateScaleFactor(Board *board, int egEval) {
 
     // Scale endgames based upon the remaining material. We check
     // for various Opposite Coloured Bishop cases, positions with
@@ -1281,8 +1285,8 @@ int evaluateScaleFactor(Board *board, int eval) {
     const uint64_t white   = board->colours[WHITE];
     const uint64_t black   = board->colours[BLACK];
 
-    const uint64_t weak    = ScoreEG(eval) < 0 ? white : black;
-    const uint64_t strong  = ScoreEG(eval) < 0 ? black : white;
+    const uint64_t weak    = egEval < 0 ? white : black;
+    const uint64_t strong  = egEval < 0 ? black : white;
 
 
     // Check for opposite coloured bishops
