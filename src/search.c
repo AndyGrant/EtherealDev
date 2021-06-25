@@ -694,6 +694,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
+        // Koibois
+        int taken = SEEPieceValues[pieceType(board->squares[  MoveTo(move)])];
+        int lost  = SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+        if (eval + taken - lost > beta + 300) return eval + taken - lost;
+
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
         value = -qsearch(thread, &lpv, -beta, -alpha);
