@@ -697,7 +697,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         // Koibois
         int taken = SEEPieceValues[pieceType(board->squares[  MoveTo(move)])];
         int lost  = SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
-        if (eval + taken - lost > beta + 300) return eval + taken - lost;
+        if (eval + taken - lost > beta + 300) return beta;
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
