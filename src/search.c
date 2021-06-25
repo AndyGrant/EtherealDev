@@ -210,7 +210,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
+    int eval, adjeval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     MovePicker movePicker;
@@ -310,8 +310,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     inCheck = !!board->kingAttackers;
 
     // Save a history of the static evaluations
-    eval = thread->evalStack[thread->height]
+    eval = adjeval = thread->evalStack[thread->height]
          = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+
+    // Please God, make this work. Everyone has it. Its literal free elo.
+    // Picking it right off the F*!@ing elo tree.
+    if (   ttHit
+        && ttValue != VALUE_NONE
+        && ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER))
+        adjeval = ttValue;
 
     // Futility Pruning Margin
     futilityMargin = FutilityMargin * depth;
@@ -337,8 +344,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  abs(adjeval) < TBWIN_IN_MAX
+        &&  adjeval - BetaMargin * depth > beta)
+        return adjeval;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
     // that for low depths if eval is so bad that even a large static
@@ -346,8 +354,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= AlphaPruningDepth
-        &&  eval + AlphaMargin <= alpha)
-        return eval;
+        &&  abs(adjeval) < TBWIN_IN_MAX
+        &&  adjeval + AlphaMargin <= alpha)
+        return adjeval;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
@@ -356,14 +365,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  eval >= beta
+        &&  adjeval >= MAX(beta, eval)
         &&  depth >= NullMovePruningDepth
         &&  thread->moveStack[thread->height-1] != NULL_MOVE
         &&  thread->moveStack[thread->height-2] != NULL_MOVE
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = 4 + depth / 6 + MIN(3, (adjeval - beta) / 200);
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
@@ -377,7 +386,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         &&  depth >= ProbCutDepth
-        &&  abs(beta) < MATE_IN_MAX
+        &&  abs(beta) < TBWIN_IN_MAX
         && (eval >= beta || eval + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
 
         // Try tactical moves which maintain rBeta
@@ -439,7 +448,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin <= alpha
+                && adjeval + futilityMargin <= alpha
                 && hist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
@@ -447,7 +456,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
             if (   depth <= FutilityPruningDepth
-                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
+                && adjeval + futilityMargin + FutilityMarginNoHistory <= alpha)
                 skipQuiets = 1;
 
             // Step 13C (~8 elo). Counter Move Pruning. Moves with poor counter
