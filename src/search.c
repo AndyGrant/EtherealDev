@@ -317,7 +317,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Picking it right off the F*!@ing elo tree.
     if (   ttHit
         && ttValue != VALUE_NONE
-        && ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER))
+        && ttBound & (ttValue < eval ? BOUND_LOWER : BOUND_UPPER))
         adjeval = ttValue;
 
     // Futility Pruning Margin
