@@ -377,14 +377,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // with an adjusted beta value at a reduced search depth, we expect that it will
     // cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
+        && !inCheck
         &&  depth >= ProbCutDepth
         &&  abs(beta) < MATE_IN_MAX
-        && (inCheck || eval >= beta || eval + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
+        && (eval >= beta || eval + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
 
-        // Try tactical moves which maintain rBeta. When in check, try
-        // any capture which is a winning capture that resolves the check
+        // Try tactical moves which maintain rBeta.
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, inCheck ? 0 : rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
