@@ -721,10 +721,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         }
     }
 
-    // Step 8. Store results of search into the Transposition Table.
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, 0, ttBound);
+    // Step 8. Store results of search into the Transposition Table. We avoid storing
+    // when no cutoff was produced. This is because we try only a subset of the legal
+    // moves, and cannot say with much confidence anything about non-cut nodes.
+    if (best >= beta)
+        storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, 0, BOUND_LOWER);
 
     return best;
 }
