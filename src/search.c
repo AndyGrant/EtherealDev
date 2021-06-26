@@ -218,7 +218,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
+    if (depth <= 0)
         return qsearch(thread, pv, alpha, beta);
 
     // Prefetch TT as early as reasonable
@@ -266,7 +266,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        if (ttDepth >= depth && !PvNode) {
 
             // Table is exact or produces a cutoff
             if (   ((ttBound & BOUND_LOWER) && ttValue >= beta)
