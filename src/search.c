@@ -631,7 +631,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     Board *const board = &thread->board;
     const int InCheck  = !!board->kingAttackers;
 
-    int eval, value, best = -MATE, threshold, oldAlpha = alpha;
+    int eval, value, best = -MATE, threshold, skipQuiets, oldAlpha = alpha;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     MovePicker movePicker;
@@ -689,15 +689,19 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
 
+    skipQuiets = !InCheck;
     threshold = InCheck ? 0 : MAX(1, alpha - eval - QSSeeMargin);
     initQsearchMovePicker(&movePicker, thread, threshold, InCheck);
 
-    while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE) {
+    while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
         value = -qsearch(thread, &lpv, -beta, -alpha);
         revert(thread, board, move);
+
+        // Legality proved!
+        skipQuiets = 1;
 
         // Improved current value
         if (value > best) {
