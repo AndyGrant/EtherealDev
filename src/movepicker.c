@@ -150,7 +150,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             }
 
             // Jump to bad noisy moves when skipping quiets
-            if (skipQuiets || mp->type == QSEARCH_PICKER) {
+            if (skipQuiets) {
                 mp->stage = STAGE_BAD_NOISY;
                 return selectNextMove(mp, board, skipQuiets);
             }
@@ -252,12 +252,6 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                     return selectNextMove(mp, board, skipQuiets);
 
                 return bestMove;
-            }
-
-            // During QS-Evasions, we try Quiets as a final step
-            if (mp->type == QSEARCH_PICKER) {
-                mp->stage = STAGE_GENERATE_QUIET;
-                return selectNextMove(mp, board, skipQuiets);
             }
 
             mp->stage = STAGE_DONE;
