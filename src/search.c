@@ -344,9 +344,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  abs(adjeval) < TBWIN_IN_MAX
-        &&  adjeval - BetaMargin * depth > beta)
-        return adjeval;
+        &&  MIN(adjeval, eval) - BetaMargin * depth > beta)
+        return MIN(adjeval, eval);
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
     // that for low depths if eval is so bad that even a large static
@@ -354,9 +353,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= AlphaPruningDepth
-        &&  abs(adjeval) < TBWIN_IN_MAX
-        &&  adjeval + AlphaMargin <= alpha)
-        return adjeval;
+        &&  MAX(adjeval, eval) + AlphaMargin <= alpha)
+        return MAX(adjeval, eval);
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so good that giving
     // our opponent back-to-back moves is still not enough for them to
@@ -372,7 +370,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (adjeval - beta) / 200);
+        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
