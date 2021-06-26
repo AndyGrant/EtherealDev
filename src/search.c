@@ -365,7 +365,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  adjeval >= MAX(beta, eval)
+        &&  MIN(eval, adjeval) >= beta
         &&  depth >= NullMovePruningDepth
         &&  thread->moveStack[thread->height-1] != NULL_MOVE
         &&  thread->moveStack[thread->height-2] != NULL_MOVE
