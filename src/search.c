@@ -208,7 +208,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
-    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, rAlpha, rBeta;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -579,10 +579,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (value > best) {
 
             best = value;
-            bestMove = move;
 
             if (value > alpha) {
+
                 alpha = value;
+                bestMove = move;
 
                 // Copy our child's PV and prepend this move to it
                 pv->length = 1 + lpv.length;
@@ -617,8 +618,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 22. Store results of search into the Transposition Table. We do
     // not overwrite the Root entry from the first line of play we examined
     if (!RootNode || !thread->multiPV) {
-        ttBound = best >= beta    ? BOUND_LOWER
-                : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+        ttBound = best >= beta ? BOUND_LOWER
+                : PvNode && bestMove ? BOUND_EXACT : BOUND_UPPER;
         storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, depth, ttBound);
     }
 
@@ -628,8 +629,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     Board *const board = &thread->board;
+    const int PvNode   = (alpha != beta - 1);
 
-    int eval, value, best, oldAlpha = alpha;
+    int eval, value, best;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     MovePicker movePicker;
@@ -703,11 +705,12 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         if (value > best) {
 
             best = value;
-            bestMove = move;
 
             // Improved current lower bound
             if (value > alpha) {
+
                 alpha = value;
+                bestMove = move;
 
                 // Update the Principle Variation
                 pv->length = 1 + lpv.length;
@@ -722,8 +725,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Step 8. Store results of search into the Transposition Table.
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+    ttBound = best >= beta ? BOUND_LOWER
+            : PvNode && bestMove ? BOUND_EXACT : BOUND_UPPER;
     storeTTEntry(board->hash, bestMove, valueToTT(best, thread->height), eval, 0, ttBound);
 
     return best;
