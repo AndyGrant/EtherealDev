@@ -365,7 +365,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // information from the Transposition Table which suggests it will fail
     if (   !PvNode
         && !inCheck
-        &&  MIN(eval, adjeval) >= beta
+        &&  eval >= beta
         &&  depth >= NullMovePruningDepth
         &&  thread->moveStack[thread->height-1] != NULL_MOVE
         &&  thread->moveStack[thread->height-2] != NULL_MOVE
@@ -448,7 +448,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   depth <= FutilityPruningDepth
-                && adjeval + futilityMargin <= alpha
+                && eval + futilityMargin <= alpha
                 && hist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
@@ -456,7 +456,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // below alpha but still far below alpha after adding the FutilityMargin,
             // we can somewhat safely skip all quiet moves after this one
             if (   depth <= FutilityPruningDepth
-                && adjeval + futilityMargin + FutilityMarginNoHistory <= alpha)
+                && eval + futilityMargin + FutilityMarginNoHistory <= alpha)
                 skipQuiets = 1;
 
             // Step 13C (~8 elo). Counter Move Pruning. Moves with poor counter
