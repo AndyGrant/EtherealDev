@@ -315,9 +315,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Please God, make this work. Everyone has it. Its literal free elo.
     // Picking it right off the F*!@ing elo tree.
-    if (   ttHit
-        && ttValue != VALUE_NONE
-        && ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER))
+    if (ttHit && ttValue != VALUE_NONE && ttBound == BOUND_EXACT)
         adjeval = ttValue;
 
     // Futility Pruning Margin
