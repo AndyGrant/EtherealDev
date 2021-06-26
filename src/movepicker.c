@@ -150,7 +150,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             }
 
             // Jump to bad noisy moves when skipping quiets
-            if (skipQuiets) {
+            if (skipQuiets || mp->type == QSEARCH_PICKER) {
                 mp->stage = STAGE_BAD_NOISY;
                 return selectNextMove(mp, board, skipQuiets);
             }
