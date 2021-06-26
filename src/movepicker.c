@@ -82,6 +82,13 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
     mp->type = NOISY_PICKER;
 }
 
+void initQsearchMovePicker(MovePicker *mp, Thread *thread, int threshold, int inCheck) {
+
+    // Wrapper around initNoisyMovePicker() when evading Checks
+    initNoisyMovePicker(mp, thread, threshold);
+    mp->type = inCheck ? QSEARCH_PICKER : NOISY_PICKER;
+}
+
 uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
     int best; uint16_t bestMove;
