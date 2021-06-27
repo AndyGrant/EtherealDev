@@ -690,7 +690,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // to beat the margin computed in the Delta Pruning step found above
 
     skipQuiets = !InCheck;
-    threshold = InCheck ? 0 : MAX(1, alpha - eval - QSSeeMargin);
+    threshold = InCheck ? 1 : MAX(1, alpha - eval - QSSeeMargin);
     initQsearchMovePicker(&movePicker, thread, threshold, InCheck);
 
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
