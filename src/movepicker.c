@@ -232,6 +232,12 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
         case STAGE_BAD_NOISY:
 
+            // QS-Evasions only need to find a legal move
+            if (skipQuiets && mp->type == QSEARCH_PICKER) {
+                mp->stage = STAGE_DONE;
+                return NONE_MOVE;
+            }
+
             // Check to see if there are still more noisy moves
             if (mp->noisySize && mp->type != NOISY_PICKER) {
 
