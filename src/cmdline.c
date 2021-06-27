@@ -22,6 +22,7 @@
 
 #include "board.h"
 #include "cmdline.h"
+#include "evaluate.h"
 #include "move.h"
 #include "search.h"
 #include "thread.h"
@@ -31,6 +32,8 @@
 #include "uci.h"
 
 #include "nnue/nnue.h"
+
+void filterNNUEPositions(int argc, char **argv);
 
 void handleCommandLine(int argc, char **argv) {
 
@@ -45,6 +48,13 @@ void handleCommandLine(int argc, char **argv) {
     // USAGE: ./Ethereal evalbook <book> <depth> <threads> <hash>
     if (argc > 2 && strEquals(argv[1], "evalbook")) {
         runEvalBook(argc, argv);
+        exit(EXIT_SUCCESS);
+    }
+
+    // Bench is being run from the command line
+    // USAGE: ./Ethereal evalbook <book> <depth> <threads> <hash>
+    if (argc > 2 && strEquals(argv[1], "hce")) {
+        filterNNUEPositions(argc, argv);
         exit(EXIT_SUCCESS);
     }
 
@@ -161,4 +171,25 @@ void runEvalBook(int argc, char **argv) {
     }
 
     printf("Time %dms\n", (int)(getRealTime() - start));
+}
+
+void filterNNUEPositions(int argc, char **argv) {
+
+    Board board;
+    char line[256];
+    FILE *book = fopen(argv[2], "r");
+
+    while ((fgets(line, 256, book)) != NULL) {
+
+        boardFromFEN(&board, line, 0);
+
+        if (board.kingAttackers)
+            continue;
+
+        if (abs(ScoreEG(board.psqtmat) < 300))
+            continue;
+
+        printf("%s", line);
+        fflush(stdout);
+    }
 }
