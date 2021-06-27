@@ -666,9 +666,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         ttValue = valueFromTT(ttValue, thread->height); // Adjust any MATE scores
 
         // Table is exact or produces a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && ttValue >= beta)
-            || (ttBound == BOUND_UPPER && ttValue <= alpha))
+        if (   ((ttBound & BOUND_LOWER) && ttValue >= beta)
+            || ((ttBound & BOUND_UPPER) && ttValue <= alpha))
             return ttValue;
     }
 
