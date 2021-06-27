@@ -269,8 +269,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (ttDepth >= depth && (depth == 0 || !PvNode)) {
 
             // Table is exact or produces a cutoff
-            if (   ((ttBound & BOUND_LOWER) && ttValue >= beta)
-                || ((ttBound & BOUND_UPPER) && ttValue <= alpha))
+            if (    ttBound == BOUND_EXACT
+                || (ttBound == BOUND_LOWER && ttValue >= beta)
+                || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
     }
@@ -666,8 +667,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         ttValue = valueFromTT(ttValue, thread->height); // Adjust any MATE scores
 
         // Table is exact or produces a cutoff
-        if (   ((ttBound & BOUND_LOWER) && ttValue >= beta)
-            || ((ttBound & BOUND_UPPER) && ttValue <= alpha))
+        if (    ttBound == BOUND_EXACT
+            || (ttBound == BOUND_LOWER && ttValue >= beta)
+            || (ttBound == BOUND_UPPER && ttValue <= alpha))
             return ttValue;
     }
 
