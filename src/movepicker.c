@@ -225,12 +225,6 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 return bestMove;
             }
 
-            // This is the final stage during QS-Evasions
-            if (mp->type == QSEARCH_PICKER) {
-                mp->stage = STAGE_DONE;
-                return NONE_MOVE;
-            }
-
             // Out of quiet moves, only bad quiets remain
             mp->stage = STAGE_BAD_NOISY;
 
