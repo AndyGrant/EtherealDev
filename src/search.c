@@ -433,7 +433,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -MATE_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            R = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            int lmrDepth = MAX(0, depth - R - !improving);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
@@ -456,14 +457,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // move history are pruned at near leaf nodes of the search.
             if (   movePicker.stage > STAGE_COUNTER_MOVE
                 && cmhist < CounterMoveHistoryLimit[improving]
-                && lmrDepth <= CounterMovePruningDepth[improving])
+                && depth - R <= CounterMovePruningDepth[improving])
                 continue;
 
             // Step 13D (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
             if (   movePicker.stage > STAGE_COUNTER_MOVE
                 && fmhist < FollowUpMoveHistoryLimit[improving]
-                && lmrDepth <= FollowUpMovePruningDepth[improving])
+                && depth - R <= FollowUpMovePruningDepth[improving])
                 continue;
         }
 
