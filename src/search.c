@@ -208,7 +208,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
-    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, pruneDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
@@ -313,12 +313,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     eval = thread->evalStack[thread->height] = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
-    // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
-
     // Improving if our static eval increased in the last move
     improving = !inCheck && eval > thread->evalStack[thread->height-2];
+    pruneDepth = MAX(0, depth + (PvNode && improving) - !(PvNode || improving));
+
+    // Static Exchange Evaluation Pruning Margins
+    seeMargin[0] = SEENoisyMargin * pruneDepth * pruneDepth;
+    seeMargin[1] = SEEQuietMargin * pruneDepth;
 
     // Reset Killer moves for our children
     thread->killers[thread->height+1][0] = NONE_MOVE;
@@ -433,7 +434,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -MATE_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            int lmrDepth = MAX(0, pruneDepth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
