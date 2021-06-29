@@ -220,6 +220,10 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         // Add Followup Move History if it exists
         if (follow != NONE_MOVE && follow != NULL_MOVE)
             scores[i] += thread->continuation[1][fmPiece][fmTo][piece][to];
+
+        // Discourage King Movements to aid NNUE
+        if (piece == KING)
+            scores[i] -= 1024;
     }
 }
 
