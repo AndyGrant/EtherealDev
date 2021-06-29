@@ -223,7 +223,7 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
 
         // Discourage King Movements to aid NNUE
         if (piece == KING)
-            scores[i] -= 4192;
+            scores[i] -= 4096;
     }
 }
 
