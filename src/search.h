@@ -77,10 +77,7 @@ static const int LateMovePruningDepth = 8;
 static const int SEEPruningDepth = 9;
 static const int SEEQuietMargin = -64;
 static const int SEENoisyMargin = -19;
-static const int SEEPieceValues[] = {
-     100,  450,  450,  675,
-    1300,    0,    0,    0,
-};
+static const int SEEPieceValues[8] = { 124,  432,  432,  875, 1555 };
 
 static const int QSSeeMargin = 110;
 static const int QSDeltaMargin = 150;
