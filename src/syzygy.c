@@ -30,7 +30,7 @@
 #include "uci.h"
 
 unsigned TB_PROBE_DEPTH;          // Set by UCI options
-extern int TB_LARGEST;       // Set by Pyrrhic in tb_init()
+extern int TB_LARGEST;            // Set by Pyrrhic in tb_init()
 extern volatile int ANALYSISMODE; // Defined by Search.c
 
 static uint16_t convertPyrrhicMove(Board *board, unsigned result) {

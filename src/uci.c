@@ -31,7 +31,6 @@
 #include "masks.h"
 #include "move.h"
 #include "movegen.h"
-#include "network.h"
 #include "nnue/nnue.h"
 #include "pyrrhic/tbprobe.h"
 #include "search.h"
@@ -42,14 +41,11 @@
 #include "uci.h"
 #include "zobrist.h"
 
-extern int ContemptDrawPenalty;   // Defined by thread.c
-extern int ContemptComplexity;    // Defined by thread.c
 extern int MoveOverhead;          // Defined by time.c
 extern unsigned TB_PROBE_DEPTH;   // Defined by syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by search.c
 extern volatile int IS_PONDERING; // Defined by search.c
 extern volatile int ANALYSISMODE; // Defined by search.c
-extern PKNetwork PKNN;            // Defined by network.c
 
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t PONDERLOCK = PTHREAD_MUTEX_INITIALIZER;
@@ -67,9 +63,8 @@ int main(int argc, char **argv) {
     int multiPV  = 1;
 
     // Initialize core components of Ethereal
-    initAttacks(); initMasks(); initEval();
-    initSearch(); initZobrist(); initTT(16);
-    initPKNetwork(&PKNN); nnue_incbin_init();
+    initAttacks(); initMasks(); initSearch();
+    initZobrist(); initTT(16); nnue_incbin_init();
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
@@ -105,8 +100,6 @@ int main(int argc, char **argv) {
             printf("option name Threads type spin default 1 min 1 max 2048\n");
             printf("option name EvalFile type string default <empty>\n");
             printf("option name MultiPV type spin default 1 min 1 max 256\n");
-            printf("option name ContemptDrawPenalty type spin default 0 min -300 max 300\n");
-            printf("option name ContemptComplexity type spin default 0 min -100 max 100\n");
             printf("option name MoveOverhead type spin default 300 min 0 max 10000\n");
             printf("option name SyzygyPath type string default <empty>\n");
             printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
@@ -280,8 +273,6 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
     //  Threads             : Number of search threads to use
     //  EvalFile            : Network weights for Ethereal's NNUE evaluation
     //  MultiPV             : Number of search lines to report per iteration
-    //  ContemptDrawPenalty : Evaluation bonus in internal units to avoid forced draws
-    //  ContemptComplexity  : Evaluation bonus for keeping a position with more non-pawn material
     //  MoveOverhead        : Overhead on time allocation to avoid time losses
     //  SyzygyPath          : Path to Syzygy Tablebases
     //  SyzygyProbeDepth    : Minimal Depth to probe the highest cardinality Tablebase
@@ -306,16 +297,6 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
     if (strStartsWith(str, "setoption name MultiPV value ")) {
         *multiPV = atoi(str + strlen("setoption name MultiPV value "));
         printf("info string set MultiPV to %d\n", *multiPV);
-    }
-
-    if (strStartsWith(str, "setoption name ContemptDrawPenalty value ")){
-        ContemptDrawPenalty = atoi(str + strlen("setoption name ContemptDrawPenalty value "));
-        printf("info string set ContemptDrawPenalty to %d\n", ContemptDrawPenalty);
-    }
-
-    if (strStartsWith(str, "setoption name ContemptComplexity value ")){
-        ContemptComplexity = atoi(str + strlen("setoption name ContemptComplexity value "));
-        printf("info string set ContemptComplexity to %d\n", ContemptComplexity);
     }
 
     if (strStartsWith(str, "setoption name MoveOverhead value ")) {

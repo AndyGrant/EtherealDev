@@ -31,11 +31,6 @@
 #include "nnue/accumulator.h"
 #include "nnue/utils.h"
 
-// Default contempt values, UCI options can set them to other values
-int ContemptDrawPenalty = 0;
-int ContemptComplexity  = 0;
-
-
 Thread* createThreadPool(int nthreads) {
 
     Thread *threads = calloc(nthreads, sizeof(Thread));
@@ -77,11 +72,8 @@ void resetThreadPool(Thread *threads) {
     for (int i = 0; i < threads->nthreads; i++) {
 
         memset(&threads[i].evtable, 0, sizeof(EvalTable));
-        memset(&threads[i].pktable, 0, sizeof(PKTable));
-
         memset(&threads[i].killers, 0, sizeof(KillerTable));
         memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));
-
         memset(&threads[i].history, 0, sizeof(HistoryTable));
         memset(&threads[i].chistory, 0, sizeof(CaptureHistoryTable));
         memset(&threads[i].continuation, 0, sizeof(ContinuationTable));
@@ -95,8 +87,6 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
     // somewhere to store the results of each iteration by the main, and
     // our own copy of the board. Also, we reset the seach statistics
 
-    int contempt = MakeScore(ContemptDrawPenalty + ContemptComplexity, ContemptDrawPenalty);
-
     for (int i = 0; i < threads->nthreads; i++) {
 
         threads[i].limits = limits;
@@ -108,8 +98,6 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
         memcpy(&threads[i].board, board, sizeof(Board));
         threads[i].board.thread = &threads[i];
         threads[i].nnueStack[0].accurate = 0;
-
-        threads[i].contempt = board->turn == WHITE ? contempt : -contempt;
     }
 }
 

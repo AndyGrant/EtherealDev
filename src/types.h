@@ -79,15 +79,12 @@ static inline int makePiece(int type, int colour) {
 typedef struct Magic Magic;
 typedef struct Board Board;
 typedef struct Undo Undo;
-typedef struct EvalTrace EvalTrace;
-typedef struct EvalInfo EvalInfo;
 typedef struct MovePicker MovePicker;
 typedef struct SearchInfo SearchInfo;
 typedef struct PVariation PVariation;
 typedef struct Thread Thread;
 typedef struct TTEntry TTEntry;
 typedef struct TTBucket TTBucket;
-typedef struct PKEntry PKEntry;
 typedef struct TTable TTable;
 typedef struct Limits Limits;
 typedef struct UCIGoStruct UCIGoStruct;

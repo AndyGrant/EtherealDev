@@ -26,21 +26,8 @@ enum {
     EVAL_CACHE_SIZE     = 1 << EVAL_CACHE_KEY_SIZE,
 };
 
-enum {
-    PK_CACHE_KEY_SIZE   = 16,
-    PK_CACHE_MASK       = 0xFFFF,
-    PK_CACHE_SIZE       = 1 << PK_CACHE_KEY_SIZE,
-};
-
 typedef uint64_t EvalEntry;
 typedef EvalEntry EvalTable[EVAL_CACHE_SIZE];
 
-struct PKEntry { uint64_t pkhash, passed; int eval, safetyw, safetyb; };
-typedef PKEntry PKTable[PK_CACHE_SIZE];
-
 int getCachedEvaluation(Thread *thread, Board *board, int *eval);
 void storeCachedEvaluation(Thread *thread, Board *board, int eval);
-
-PKEntry* getCachedPawnKingEval(Thread *thread, Board *board);
-void storeCachedPawnKingEval(Thread *thread, Board *board, uint64_t passed, int eval, int safetyw, int safetyb);
-

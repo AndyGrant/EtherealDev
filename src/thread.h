@@ -24,7 +24,6 @@
 
 #include "board.h"
 #include "evalcache.h"
-#include "network.h"
 #include "search.h"
 #include "transposition.h"
 #include "types.h"
@@ -47,7 +46,6 @@ struct Thread {
     uint16_t bestMoves[MAX_MOVES];
     uint16_t ponderMoves[MAX_MOVES];
 
-    int contempt;
     int depth, seldepth, height;
     uint64_t nodes, tbhits;
 
@@ -60,7 +58,6 @@ struct Thread {
     Undo undoStack[STACK_SIZE];
 
     ALIGN64 EvalTable evtable;
-    ALIGN64 PKTable pktable;
     ALIGN64 KillerTable killers;
     ALIGN64 CounterMoveTable cmtable;
     ALIGN64 HistoryTable history;

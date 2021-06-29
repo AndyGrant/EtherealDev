@@ -39,15 +39,3 @@ void storeCachedEvaluation(Thread *thread, Board *board, int eval) {
     thread->evtable[board->hash & EVAL_CACHE_MASK]
         = (board->hash & ~0xFFFF) | (uint16_t)((int16_t)eval);
 }
-
-
-PKEntry* getCachedPawnKingEval(Thread *thread, Board *board) {
-    PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
-    return pke->pkhash == board->pkhash ? pke : NULL;
-}
-
-void storeCachedPawnKingEval(Thread *thread, Board *board, uint64_t passed, int eval, int safetyw, int safetyb) {
-    PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
-    *pke = (PKEntry) {board->pkhash, passed, eval, safetyw, safetyb};
-}
-

@@ -27,7 +27,6 @@
 #include "bitboards.h"
 #include "board.h"
 #include "evaluate.h"
-#include "masks.h"
 #include "move.h"
 #include "movegen.h"
 #include "search.h"
@@ -64,7 +63,6 @@ static void setSquare(Board *board, int colour, int piece, int sq) {
     setBit(&board->colours[colour], sq);
     setBit(&board->pieces[piece], sq);
 
-    board->psqtmat += PSQT[board->squares[sq]][sq];
     board->hash ^= ZobristKeys[board->squares[sq]][sq];
     if (piece == PAWN || piece == KING)
         board->pkhash ^= ZobristKeys[board->squares[sq]][sq];
