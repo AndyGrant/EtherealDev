@@ -29,16 +29,6 @@
     #define TRACE (0)
 #endif
 
-enum {
-    SCALE_DRAW             =   0,
-    SCALE_OCB_BISHOPS_ONLY =  64,
-    SCALE_OCB_ONE_KNIGHT   = 106,
-    SCALE_OCB_ONE_ROOK     =  96,
-    SCALE_LONE_QUEEN       =  88,
-    SCALE_NORMAL           = 128,
-    SCALE_LARGE_PAWN_ADV   = 144,
-};
-
 struct EvalTrace {
     int PawnValue[COLOUR_NB];
     int KnightValue[COLOUR_NB];
@@ -134,7 +124,6 @@ struct EvalInfo {
     int kingAttackersCount[COLOUR_NB];
     int kingAttackersWeight[COLOUR_NB];
     int pkeval[COLOUR_NB];
-    int pksafety[COLOUR_NB];
     PKEntry *pkentry;
 };
 
@@ -145,14 +134,12 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour);
 int evaluateBishops(EvalInfo *ei, Board *board, int colour);
 int evaluateRooks(EvalInfo *ei, Board *board, int colour);
 int evaluateQueens(EvalInfo *ei, Board *board, int colour);
-int evaluateKingsPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassed(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
 int evaluateSpace(EvalInfo *ei, Board *board, int colour);
 int evaluateClosedness(EvalInfo *ei, Board *board);
 int evaluateComplexity(EvalInfo *ei, Board *board, int eval);
-int evaluateScaleFactor(Board *board, int eval);
 void initEvalInfo(Thread *thread, Board *board, EvalInfo *ei);
 void initEval();
 
