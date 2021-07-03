@@ -60,7 +60,7 @@ void initSearch() {
 
     // Init Late Move Pruning Table ( Stockfish Formula )
     for (int depth = 1; depth < 9; depth++)
-        for (int impr = 0; impr < 1; impr++)
+        for (int impr = 0; impr <= 1; impr++)
             LateMovePruningCounts[impr][depth] = (3.0 + depth * depth) / (2 - impr);
 }
 
