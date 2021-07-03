@@ -466,7 +466,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Step 13E. If we've already tried a quiet, and have now met multiple
             // conditions to skip future moves, we will also skip this move too
-            if (quietsPlayed && skipQuiets >= 3)
+            if (skipQuiets >= 3)
                 continue;
         }
 
