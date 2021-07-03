@@ -59,8 +59,8 @@ void initSearch() {
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 
     for (int depth = 1; depth < 9; depth++) {
-        LateMovePruningCounts[0][depth] = 1.5 + 2 * depth * depth / 4.5;
-        LateMovePruningCounts[1][depth] = 3.0 + 4 * depth * depth / 4.5;
+        LateMovePruningCounts[0][depth] = 1.50 + depth * depth / 2.00;
+        LateMovePruningCounts[1][depth] = 3.00 + depth * depth / 1.00;
     }
 }
 
