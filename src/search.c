@@ -58,10 +58,10 @@ void initSearch() {
         for (int played = 1; played < 64; played++)
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 
-    for (int depth = 1; depth < 9; depth++) {
-        LateMovePruningCounts[0][depth] = 2.5 + 2 * depth * depth / 4.5;
-        LateMovePruningCounts[1][depth] = 4.0 + 4 * depth * depth / 4.5;
-    }
+    // Init Late Move Pruning Table ( Stockfish Formula )
+    for (int depth = 1; depth < 9; depth++)
+        for (int impr = 0; impr < 1; impr++)
+            LateMovePruningCounts[impr][depth] = (3.0 + depth * depth) / (2 - impr);
 }
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
