@@ -440,7 +440,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 &&  eval + fmpMargin <= alpha
                 &&  lmrDepth <= FutilityPruningDepth
                 &&  hist < FutilityPruningHistoryLimit[improving])
-                skipQuiets = 1;
+                skipQuiets++;
 
             // Step 13B (~2.5 elo). Futility Pruning. If our score is not only far
             // below alpha but still far below alpha after adding the Futility Margin,
@@ -448,7 +448,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             if (   !inCheck
                 &&  lmrDepth <= FutilityPruningDepth
                 &&  eval + fmpMargin + FutilityMarginNoHistory <= alpha)
-                skipQuiets = 1;
+                skipQuiets++;
 
             // Step 13C (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
@@ -462,6 +462,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             if (   movePicker.stage > STAGE_COUNTER_MOVE
                 && fmhist < FollowUpMoveHistoryLimit[improving]
                 && lmrDepth <= FollowUpMovePruningDepth[improving])
+                continue;
+
+            // Step 13E. If we've already tried a quiet, and have now met multiple
+            // conditions to skip future moves, we will also skip this move too
+            if (quietsPlayed && skipQuiets >= 2)
                 continue;
         }
 
