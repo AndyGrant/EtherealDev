@@ -59,8 +59,8 @@ void initSearch() {
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 
     for (int depth = 1; depth < 9; depth++) {
-        LateMovePruningCounts[0][depth] = 2.5 + 2 * depth * depth / 4.5;
-        LateMovePruningCounts[1][depth] = 4.0 + 4 * depth * depth / 4.5;
+        LateMovePruningCounts[0][depth] = 1.5 + 2 * depth * depth / 4.5;
+        LateMovePruningCounts[1][depth] = 3.0 + 4 * depth * depth / 4.5;
     }
 }
 
@@ -206,7 +206,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
-    int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
+    int quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -410,20 +410,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
 
-        // Track Moves Seen for Late Move Pruning
-        movesSeen += 1;
-        isQuiet = !moveIsTactical(board, move);
-
         // All moves have one or more History scores
-        hist = !isQuiet ? getCaptureHistory(thread, move)
-             : getHistory(thread, move, &cmhist, &fmhist);
+        hist = (isQuiet = !moveIsTactical(board, move))
+             ? getHistory(thread, move, &cmhist, &fmhist)
+             : getCaptureHistory(thread, move);
 
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
         if (   best > -MATE_IN_MAX
             && depth <= LateMovePruningDepth
-            && movesSeen >= LateMovePruningCounts[improving][depth])
+            && played >= LateMovePruningCounts[improving][depth])
             skipQuiets = 1;
 
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
