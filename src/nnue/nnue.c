@@ -431,5 +431,5 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     // Perform the dequantization step and multiply by 1.10
     eval = 110 * ((int)(outN1[0]) >> (2 * SHIFT)) / 100;
-    return MAX(-1000, MIN(1000, eval));
+    return MAX(-800, MIN(800, eval));
 }
