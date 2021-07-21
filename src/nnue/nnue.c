@@ -402,8 +402,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
     if (kings == (white | black)) return 0;
 
     // Optimized computation of various input indices
-    int wkingidx = 640 * relativeSquare(WHITE, getlsb(white & kings));
-    int bkingidx = 640 * relativeSquare(BLACK, getlsb(black & kings));
+    int wrelksq = relativeSquare(WHITE, getlsb(white & kings));
+    int brelksq = relativeSquare(BLACK, getlsb(black & kings));
 
     // Large enough to handle layer computations
     ALIGN64 int16_t out16[L1SIZE];
@@ -416,11 +416,11 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
         // Possible to recurse and incrementally update each
         if (nnue_can_update(accum, board))
-            nnue_update_accumulator(accum, board, wkingidx, bkingidx);
+            nnue_update_accumulator(accum, board, wrelksq, brelksq);
 
         // History is missing, we must refresh completely
         else
-            nnue_refresh_accumulators(accum, board, wkingidx, bkingidx);
+            nnue_refresh_accumulators(accum, board, wrelksq, brelksq);
     }
 
     // Feed-forward the entire evaluation function
