@@ -30,8 +30,8 @@ struct SearchInfo {
 };
 
 struct PVariation {
+    int length, score;
     uint16_t line[MAX_PLY];
-    int length;
 };
 
 void initSearch();

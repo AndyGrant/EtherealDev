@@ -385,7 +385,7 @@ void uciPosition(char *str, Board *board, int chess960) {
     }
 }
 
-void uciReport(Thread *threads, int alpha, int beta, int value) {
+void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) {
 
     // Gather all of the statistics that the UCI protocol would be
     // interested in. Also, bound the value passed by alpha and
@@ -417,9 +417,9 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
            depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
 
     // Iterate over the PV and print each move
-    for (int i = 0; i < threads->pv.length; i++) {
+    for (int i = 0; i < pv->length; i++) {
         char moveStr[6];
-        moveToString(threads->pv.line[i], moveStr, threads->board.chess960);
+        moveToString(pv->line[i], moveStr, threads->board.chess960);
         printf("%s ", moveStr);
     }
 
