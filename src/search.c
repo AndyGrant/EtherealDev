@@ -52,28 +52,47 @@ volatile int IS_PONDERING; // Global PONDER flag for threads
 volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 
 
-static void select_best_from_threads(Thread *threads, uint16_t *best_move, uint16_t *ponder_move) {
+static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
 
-    Thread *best = &threads[0];
+    // A thread is better than another if any are true:
+    // [1] The thread has an equal depth and greater score.
+    // [2] The thread has a mate score and is closer to mate.
+    // [3] The thread has a greater depth without replacing a closer mate
+
+    Thread *best_thread = &threads[0];
 
     for (int i = 1; i < threads->nthreads; i++) {
 
-        const int best_depth = best->completed;
+        const int best_depth = best_thread->completed;
+        const int best_score = best_thread->pvs[best_depth].score;
+
         const int this_depth = threads[i].completed;
+        const int this_score = threads[i].pvs[this_depth].score;
 
-        if (this_depth > best_depth)
-            best = &threads[i];
+        if (   (this_depth == best_depth && this_score > best_score)
+            || (this_score > MATE_IN_MAX && this_score > best_score))
+            best_thread = &threads[i];
 
-        if (   this_depth == best_depth
-            && threads[i].pvs[this_depth].score > best->pvs[best_depth].score)
-            best = &threads[i];
+        if (    this_depth > best_depth
+            && (this_score > best_score || best_score < MATE_IN_MAX))
+            best_thread = &threads[i];
     }
 
-    *best_move   = best->pvs[best->completed].line[0];
-    *ponder_move = best->pvs[best->completed].line[1];
+    // Best and Ponder moves are simply the PV moves
+    *best   = best_thread->pvs[best_thread->completed].line[0];
+    *ponder = best_thread->pvs[best_thread->completed].line[1];
+    *score  = best_thread->pvs[best_thread->completed].score;
 
-    if (best->pvs[best->completed].length < 2)
-        *ponder_move = NONE_MOVE;
+    // Incomplete searches or low depth ones may result in a short PV
+    if (best_thread->pvs[best_thread->completed].length < 2)
+        *ponder = NONE_MOVE;
+
+    // Report via UCI when our best thread is not the main thread
+    if (best_thread != &threads[0]) {
+        const int best_depth = best_thread->completed;
+        const int best_score = best_thread->pvs[best_depth].score;
+        uciReport(best_thread, &best_thread->pvs[best_depth], -MATE, MATE, best_score);
+    }
 }
 
 
@@ -90,7 +109,7 @@ void initSearch() {
     }
 }
 
-void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
+void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder, int *score) {
 
     SearchInfo info = {0};
     pthread_t pthreads[threads->nthreads];
@@ -120,7 +139,7 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
         pthread_join(pthreads[i], NULL);
 
     // Pick the best of our completed threads
-    select_best_from_threads(threads, best, ponder);
+    select_from_threads(threads, best, ponder, score);
 }
 
 void* iterativeDeepening(void *vthread) {
@@ -154,14 +173,8 @@ void* iterativeDeepening(void *vthread) {
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
 
-        // Update SearchInfo and report some results
-        info->depth                    = thread->depth;
-        info->values[info->depth]      = thread->values[0];
-        info->bestMoves[info->depth]   = thread->bestMoves[0];
-        info->ponderMoves[info->depth] = thread->ponderMoves[0];
-
-        // Update time allocation based on score and pv changes
-        updateTimeManagment(info, limits);
+        // Update clock based on score and pv changes
+        update_time_manager(thread, info, limits);
 
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;

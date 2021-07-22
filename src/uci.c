@@ -178,6 +178,7 @@ void *uciGo(void *cargo) {
     Limits limits = {0};
     uint16_t bestMove, ponderMove;
     char moveStr[6];
+    int score;
 
     uint64_t nodes = 0;
     int depth = 0, infinite = 0;
@@ -245,7 +246,7 @@ void *uciGo(void *cargo) {
     pthread_mutex_unlock(&PONDERLOCK);
 
     // Execute search, return best and ponder moves
-    getBestMove(threads, board, &limits, &bestMove, &ponderMove);
+    getBestMove(threads, board, &limits, &bestMove, &ponderMove, &score);
 
     // UCI spec does not want reports until out of pondering
     while (IS_PONDERING);
