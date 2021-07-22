@@ -61,7 +61,7 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
 
     // Find the worst score as a baseline for thread voting
     for (int i = 0; i < threads->nthreads; i++)
-        worst_score = MIN(worst_score, threads[0].pvs[threads[0].completed].score);
+        worst_score = MIN(worst_score, threads[i].pvs[threads[i].completed].score);
 
     // Identify all candidate moves and allow threads to place their votes
     for (int i = 0; i < threads->nthreads; i++) {
