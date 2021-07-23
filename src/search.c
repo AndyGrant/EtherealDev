@@ -55,7 +55,7 @@ volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
 
     uint16_t moves[MAX_MOVES];
-    int scores[MAX_MOVES] = {0}, counts[MAX_MOVES] = {0};
+    int scores[MAX_MOVES] = {0};
     int idx, ncandidates = 0, worst_score = MATE;
     Thread *best_thread = &threads[0];
 
@@ -76,8 +76,8 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
 
         // Place the votes and update ncandidates
         moves[idx]   = threads[i].pvs[this_depth].line[0];
-        scores[idx] += (this_score - worst_score + 10) * this_depth;
-        counts[idx] += 1; ncandidates += idx == ncandidates;
+        scores[idx] += (this_score - worst_score + 5) * this_depth;
+        ncandidates += idx == ncandidates;
     }
 
     for (int i = 0; i < threads->nthreads; i++) {
@@ -106,8 +106,8 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
             int best_tally = 0, this_tally = 0;
 
             for (idx = 0; idx < ncandidates; idx++) {
-                if (moves[idx] == best_move) best_tally = scores[idx] / counts[idx];
-                if (moves[idx] == this_move) this_tally = scores[idx] / counts[idx];
+                if (moves[idx] == best_move) best_tally = scores[idx];
+                if (moves[idx] == this_move) this_tally = scores[idx];
             }
 
             if (this_tally > best_tally)
