@@ -170,8 +170,20 @@ void* iterativeDeepening(void *vthread) {
         // Signal we've finish this depth completely
         thread->completed = thread->depth;
 
-        // Helper threads need not worry about time and search info updates
-        if (!mainThread) continue;
+        if (!mainThread) {
+
+            // Check for termination by any of the possible limits.
+            // Only terminate when this thread finishes the depth that
+            // the Main thread is working on, or an even greater depth one
+
+            if (   (limits->limitedBySelf  && terminateTimeManagment(info))
+                || (limits->limitedBySelf  && elapsedTime(info) > info->maxUsage)
+                || (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
+                || (limits->limitedByDepth && thread->depth >= limits->depthLimit))
+                ABORT_SIGNAL = (thread->completed > thread->threads[0].completed);
+
+            continue;
+        }
 
         // Update clock based on score and pv changes
         update_time_manager(thread, info, limits);
