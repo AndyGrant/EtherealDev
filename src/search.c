@@ -76,7 +76,7 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
 
         // Place the votes and update ncandidates
         moves[idx]   = threads[i].pvs[this_depth].line[0];
-        scores[idx] += (this_score - worst_score + 5) * this_depth;
+        scores[idx] += (this_score - worst_score + 32) * this_depth;
         ncandidates += idx == ncandidates;
     }
 
