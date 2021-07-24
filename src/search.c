@@ -102,6 +102,7 @@ static int half_threads_are_done(Thread *threads) {
     return 2 * count >= threads->nthreads;
 }
 
+
 void initSearch() {
 
     // Init Late Move Reductions Table
@@ -180,10 +181,11 @@ void* iterativeDeepening(void *vthread) {
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;
 
-        // Check for termination by any of the possible limits
-        if (limits->limitedBySelf  && terminate_thread_via_clock(thread))
-            thread->ready_to_abort = 1;
+        // Signal whether this thread is satisfied with stopping the search
+        if (limits->limitedBySelf)
+            thread->ready_to_abort = terminate_thread_via_clock(thread);
 
+        // Check for termination by any of the possible limits
         if (   (limits->limitedBySelf  && half_threads_are_done(thread->threads))
             || (limits->limitedByDepth && thread->depth >= limits->depthLimit)
             || (limits->limitedByTime  && elapsed_time(&thread->clock) > limits->timeLimit))
