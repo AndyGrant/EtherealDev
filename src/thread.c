@@ -95,6 +95,7 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, Clock *c
         threads[i].height = 0;
         threads[i].nodes  = 0ull;
         threads[i].tbhits = 0ull;
+        threads[i].ready_to_abort = 0;
 
         memcpy(&threads[i].clock, clock, sizeof(Clock));
         memcpy(&threads[i].board, board, sizeof(Board));

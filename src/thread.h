@@ -49,6 +49,7 @@ struct Thread {
 
     uint64_t nodes, tbhits;
     int depth, seldepth, height, completed;
+    volatile int ready_to_abort;
 
     int *evalStack, _evalStack[STACK_SIZE];
     uint16_t *moveStack, _moveStack[STACK_SIZE];

@@ -95,6 +95,12 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
     }
 }
 
+static int half_threads_are_done(Thread *threads) {
+    int count = 0;
+    for (int i = 0; i < threads->nthreads; i++)
+        count += threads[i].ready_to_abort;
+    return 2 * count >= threads->nthreads;
+}
 
 void initSearch() {
 
@@ -175,7 +181,10 @@ void* iterativeDeepening(void *vthread) {
         if (IS_PONDERING) continue;
 
         // Check for termination by any of the possible limits
-        if (   (limits->limitedBySelf  && terminate_thread_via_clock(thread))
+        if (limits->limitedBySelf  && terminate_thread_via_clock(thread))
+            thread->ready_to_abort = 1;
+
+        if (   (limits->limitedBySelf  && half_threads_are_done(thread->threads))
             || (limits->limitedByDepth && thread->depth >= limits->depthLimit)
             || (limits->limitedByTime  && elapsed_time(&thread->clock) > limits->timeLimit))
             break;
