@@ -26,12 +26,20 @@
 
 #include "types.h"
 
-double getRealTime();
-double elapsedTime(SearchInfo *info);
-void initTimeManagment(SearchInfo *info, Limits *limits);
-void update_time_manager(Thread *thread, SearchInfo *info, Limits *limits);
-int terminateTimeManagment(SearchInfo *info);
-int terminateSearchEarly(Thread *thread);
+struct Clock {
+    double start_time;
+    double ideal_time;
+    double max_alloc_time;
+    double max_usage_time;
+    int pv_factor;
+};
+
+double get_real_time();
+double elapsed_time(Clock *clock);
+void init_clock(Clock *clock, Limits *limits);
+void update_thread_clock(Thread *thread);
+int terminate_thread_via_clock(Thread *thread);
+int terminate_search_early(Thread *thread);
 
 static const double PVFactorCount  = 9;
 static const double PVFactorWeight = 0.105;

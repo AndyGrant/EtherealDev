@@ -111,7 +111,7 @@ void initSearch() {
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder, int *score) {
 
-    SearchInfo info = {0};
+    Clock clock = {0};
     pthread_t pthreads[threads->nthreads];
 
     // Allow Syzygy to refine the move list for optimal results
@@ -122,8 +122,8 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
     // Minor house keeping for starting a search
     update_TT(); // Table has an age component
     ABORT_SIGNAL = 0; // Otherwise Threads will exit
-    initTimeManagment(&info, limits);
-    newSearchThreadPool(threads, board, limits, &info);
+    init_clock(&clock, limits);
+    newSearchThreadPool(threads, board, limits, &clock);
 
     // Create a new thread for each of the helpers and reuse the current
     // thread for the main thread, which avoids some overhead and saves
@@ -134,7 +134,6 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
 
     // When the main thread exits it should signal for the helpers to
     // shutdown. Wait until all helpers have finished before moving on
-    ABORT_SIGNAL = 1;
     for (int i = 1; i < threads->nthreads; i++)
         pthread_join(pthreads[i], NULL);
 
@@ -145,7 +144,6 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
 void* iterativeDeepening(void *vthread) {
 
     Thread *const thread   = (Thread*) vthread;
-    SearchInfo *const info = thread->info;
     Limits *const limits   = thread->limits;
     const int mainThread   = thread->index == 0;
 
@@ -170,23 +168,20 @@ void* iterativeDeepening(void *vthread) {
         // Signal we've finish this depth completely
         thread->completed = thread->depth;
 
-        // Helper threads need not worry about time and search info updates
-        if (!mainThread) continue;
-
         // Update clock based on score and pv changes
-        update_time_manager(thread, info, limits);
+        update_thread_clock(thread);
 
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;
 
         // Check for termination by any of the possible limits
-        if (   (limits->limitedBySelf  && terminateTimeManagment(info))
-            || (limits->limitedBySelf  && elapsedTime(info) > info->maxUsage)
-            || (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
-            || (limits->limitedByDepth && thread->depth >= limits->depthLimit))
+        if (   (limits->limitedBySelf  && terminate_thread_via_clock(thread))
+            || (limits->limitedByDepth && thread->depth >= limits->depthLimit)
+            || (limits->limitedByTime  && elapsed_time(&thread->clock) > limits->timeLimit))
             break;
     }
 
+    ABORT_SIGNAL = 1;
     return NULL;
 }
 
@@ -209,7 +204,7 @@ void aspirationWindow(Thread *thread) {
         // Perform a search and consider reporting results
         pv->score = search(thread, pv, alpha, beta, MAX(1, depth));
         if (   (!thread->index && pv->score > alpha && pv->score < beta)
-            || (!thread->index && elapsedTime(thread->info) >= WindowTimerMS))
+            || (!thread->index && elapsed_time(&thread->clock) >= WindowTimerMS))
             uciReport(thread->threads, pv, alpha, beta, pv->score);
 
         // Search returned a result within our window
@@ -274,9 +269,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 2. Abort Check. Exit the search if signaled by main thread or the
     // UCI thread, or if the search time has expired outside pondering mode
-    if (   (ABORT_SIGNAL && thread->depth > 1)
-        || (terminateSearchEarly(thread) && !IS_PONDERING))
-        longjmp(thread->jbuffer, 1);
+    if (terminate_search_early(thread)) longjmp(thread->jbuffer, 1);
 
     // Step 3. Check for early exit conditions. Don't take early exits in
     // the RootNode, since this would prevent us from having a best move
@@ -524,7 +517,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
         // and we wait a few seconds in order to avoid floiding the output
-        if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
+        if (RootNode && !thread->index && elapsed_time(&thread->clock) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
         // Identify moves which are candidate singular moves
@@ -684,9 +677,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     // Step 1. Abort Check. Exit the search if signaled by main thread or the
     // UCI thread, or if the search time has expired outside pondering mode
-    if (   (ABORT_SIGNAL && thread->depth > 1)
-        || (terminateSearchEarly(thread) && !IS_PONDERING))
-        longjmp(thread->jbuffer, 1);
+    if (terminate_search_early(thread)) longjmp(thread->jbuffer, 1);
 
     // Step 2. Draw Detection. Check for the fifty move rule, repetition, or insufficient
     // material. Add variance to the draw score, to avoid blindness to 3-fold lines

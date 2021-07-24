@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 void *uciGo(void *cargo) {
 
     // Get our starting time as soon as possible
-    double start = getRealTime();
+    double start = get_real_time();
 
     Limits limits = {0};
     uint16_t bestMove, ponderMove;
@@ -396,7 +396,7 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) 
     int depth       = threads->depth;
     int seldepth    = threads->seldepth;
     int multiPV     = threads->multiPV + 1;
-    int elapsed     = elapsedTime(threads->info);
+    int elapsed     = elapsed_time(&threads->clock);
     int bounded     = MAX(alpha, MIN(value, beta));
     uint64_t nodes  = nodesSearchedThreadPool(threads);
     uint64_t tbhits = tbhitsThreadPool(threads);

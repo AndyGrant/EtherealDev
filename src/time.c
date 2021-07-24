@@ -26,7 +26,10 @@
 
 int MoveOverhead = 300; // Set by UCI options
 
-double getRealTime() {
+extern volatile int ABORT_SIGNAL; // Global ABORT flag for threads
+extern volatile int IS_PONDERING; // Global PONDER flag for threads
+
+double get_real_time() {
 #if defined(_WIN32) || defined(_WIN64)
     return (double)(GetTickCount());
 #else
@@ -41,84 +44,83 @@ double getRealTime() {
 #endif
 }
 
-double elapsedTime(SearchInfo *info) {
-    return getRealTime() - info->startTime;
+double elapsed_time(Clock *clock) {
+    return get_real_time() - clock->start_time;
 }
 
-void initTimeManagment(SearchInfo *info, Limits *limits) {
+void init_clock(Clock *clock, Limits *limits) {
 
-    info->startTime = limits->start; // Save off the start time of the search
-
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    clock->start_time = limits->start; // Save off the start time of the search
+    clock->pv_factor  = 0; // Clear our stability time usage heuristic
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf) {
 
         // Playing using X / Y + Z time control
         if (limits->mtg >= 0) {
-            info->idealUsage =  0.67 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
-            info->maxAlloc   =  4.00 * (limits->time - MoveOverhead) / (limits->mtg +  7) + limits->inc;
-            info->maxUsage   = 10.00 * (limits->time - MoveOverhead) / (limits->mtg + 10) + limits->inc;
+            clock->ideal_time     =  0.67 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
+            clock->max_alloc_time =  4.00 * (limits->time - MoveOverhead) / (limits->mtg +  7) + limits->inc;
+            clock->max_usage_time = 10.00 * (limits->time - MoveOverhead) / (limits->mtg + 10) + limits->inc;
         }
 
         // Playing using X + Y time controls
         else {
-            info->idealUsage =  0.90 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
-            info->maxAlloc   =  5.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
-            info->maxUsage   = 10.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
+            clock->ideal_time     =  0.90 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
+            clock->max_alloc_time =  5.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
+            clock->max_usage_time = 10.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
         }
 
         // Cap time allocations using the move overhead
-        info->idealUsage = MIN(info->idealUsage, limits->time - MoveOverhead);
-        info->maxAlloc   = MIN(info->maxAlloc,   limits->time - MoveOverhead);
-        info->maxUsage   = MIN(info->maxUsage,   limits->time - MoveOverhead);
+        clock->ideal_time     = MIN(clock->ideal_time,     limits->time - MoveOverhead);
+        clock->max_alloc_time = MIN(clock->max_alloc_time, limits->time - MoveOverhead);
+        clock->max_usage_time = MIN(clock->max_usage_time, limits->time - MoveOverhead);
     }
 
     // Interface told us to search for a predefined duration
-    if (limits->limitedByTime) {
-        info->idealUsage = limits->timeLimit;
-        info->maxAlloc   = limits->timeLimit;
-        info->maxUsage   = limits->timeLimit;
+    else if (limits->limitedByTime) {
+        clock->ideal_time     = limits->timeLimit;
+        clock->max_alloc_time = limits->timeLimit;
+        clock->max_usage_time = limits->timeLimit;
     }
 }
 
-void update_time_manager(Thread *thread, SearchInfo *info, Limits *limits) {
+void update_thread_clock(Thread *thread) {
 
     const int this_depth = thread->completed;
     const int this_value = thread->pvs[this_depth].score;
     const int last_value = thread->pvs[this_depth-1].score;
 
     // Don't update the self-clock at low depths
-    if (!limits->limitedBySelf || this_depth < 4) return;
+    if (!thread->limits->limitedBySelf || this_depth < 4) return;
 
     // Increase our time if the score suddenly dropped
-    if (last_value > this_value + 10) info->idealUsage *= 1.050;
-    if (last_value > this_value + 20) info->idealUsage *= 1.050;
-    if (last_value > this_value + 40) info->idealUsage *= 1.050;
+    if (last_value > this_value + 10) thread->clock.ideal_time *= 1.050;
+    if (last_value > this_value + 20) thread->clock.ideal_time *= 1.050;
+    if (last_value > this_value + 40) thread->clock.ideal_time *= 1.050;
 
     // Increase our time if the score suddenly jumped
-    if (last_value + 15 < this_value) info->idealUsage *= 1.025;
-    if (last_value + 30 < this_value) info->idealUsage *= 1.050;
+    if (last_value + 15 < this_value) thread->clock.ideal_time *= 1.025;
+    if (last_value + 30 < this_value) thread->clock.ideal_time *= 1.050;
 
     // Scale back the PV time factor, but reset if the move changed
-    info->pvFactor = MAX(0, info->pvFactor - 1);
+    thread->clock.pv_factor = MAX(0, thread->clock.pv_factor - 1);
     if (thread->pvs[this_depth].line[0] != thread->pvs[this_depth-1].line[0])
-        info->pvFactor = PVFactorCount;
+        thread->clock.pv_factor = PVFactorCount;
 }
 
-int terminateTimeManagment(SearchInfo *info) {
+int terminate_thread_via_clock(Thread *thread) {
 
     // Adjust our ideal usage based on variance in the best move
     // between iterations of the search. We won't allow the new
     // usage value to exceed our maximum allocation. The cutoff
     // is reached if the elapsed time exceeds the ideal usage
 
-    double cutoff = info->idealUsage;
-    cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
-    return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
+    double cutoff = thread->clock.ideal_time;
+    cutoff *= 1.00 + thread->clock.pv_factor * PVFactorWeight;
+    return elapsed_time(&thread->clock) > MIN(cutoff, thread->clock.max_alloc_time);
 }
 
-int terminateSearchEarly(Thread *thread) {
+int terminate_search_early(Thread *thread) {
 
     // Terminate the search early if the max usage time has passed.
     // Only check this once for every 1024 nodes examined, in case
@@ -127,12 +129,18 @@ int terminateSearchEarly(Thread *thread) {
 
     const Limits *limits = thread->limits;
 
-    if (limits->limitedByNodes)
-        return thread->depth > 1
-            && thread->nodes >= limits->nodeLimit / thread->nthreads;
+    if (ABORT_SIGNAL && thread->depth > 1)
+        return 1;
 
-    return  thread->depth > 1
+    if (limits->limitedByNodes)
+        return !IS_PONDERING
+            &&  thread->depth > 1
+            &&  thread->nodes >= limits->nodeLimit / thread->nthreads;
+
+    return !IS_PONDERING
+        &&  thread->depth > 1
         && (thread->nodes & 1023) == 1023
-        && (limits->limitedBySelf || limits->limitedByTime)
-        &&  elapsedTime(thread->info) >= thread->info->maxUsage;
+        && (thread->limits->limitedBySelf || thread->limits->limitedByTime)
+        &&  elapsed_time(&thread->clock) >= thread->clock.max_usage_time;
+
 }

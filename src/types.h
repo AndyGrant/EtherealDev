@@ -76,21 +76,21 @@ static inline int makePiece(int type, int colour) {
 
 // Forward definition of all structs
 
-typedef struct Magic Magic;
 typedef struct Board Board;
-typedef struct Undo Undo;
-typedef struct EvalTrace EvalTrace;
+typedef struct Clock Clock;
 typedef struct EvalInfo EvalInfo;
-typedef struct MovePicker MovePicker;
-typedef struct SearchInfo SearchInfo;
-typedef struct PVariation PVariation;
-typedef struct Thread Thread;
-typedef struct TTEntry TTEntry;
-typedef struct TTBucket TTBucket;
-typedef struct PKEntry PKEntry;
-typedef struct TTable TTable;
+typedef struct EvalTrace EvalTrace;
 typedef struct Limits Limits;
+typedef struct Magic Magic;
+typedef struct MovePicker MovePicker;
+typedef struct PKEntry PKEntry;
+typedef struct PVariation PVariation;
+typedef struct TTBucket TTBucket;
+typedef struct TTEntry TTEntry;
+typedef struct TTable TTable;
+typedef struct Thread Thread;
 typedef struct UCIGoStruct UCIGoStruct;
+typedef struct Undo Undo;
 
 // Renamings, currently for move ordering
 

@@ -23,6 +23,7 @@
 #include "history.h"
 #include "search.h"
 #include "thread.h"
+#include "time.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -81,7 +82,7 @@ void resetThreadPool(Thread *threads) {
     }
 }
 
-void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchInfo *info) {
+void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, Clock *clock) {
 
     // Initialize each Thread in the Thread Pool. We need a reference
     // to the UCI seach parameters, access to the timing information,
@@ -91,12 +92,13 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
     for (int i = 0; i < threads->nthreads; i++) {
 
         threads[i].limits = limits;
-        threads[i].info   = info;
         threads[i].height = 0;
         threads[i].nodes  = 0ull;
         threads[i].tbhits = 0ull;
 
+        memcpy(&threads[i].clock, clock, sizeof(Clock));
         memcpy(&threads[i].board, board, sizeof(Board));
+
         threads[i].board.thread = &threads[i];
         threads[i].nnueStack[0].accurate = 0;
     }

@@ -22,6 +22,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "time.h"
 #include "board.h"
 #include "evalcache.h"
 #include "network.h"
@@ -38,9 +39,9 @@ enum {
 
 struct Thread {
 
+    Clock clock;
     Board board;
     Limits *limits;
-    SearchInfo *info;
     PVariation pvs[MAX_PLY];
 
     int multiPV, values[MAX_MOVES];
@@ -75,7 +76,7 @@ Thread* createThreadPool(int nthreads);
 void deleteThreadPool(Thread *threads);
 
 void resetThreadPool(Thread *threads);
-void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchInfo *info);
+void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, Clock *clock);
 
 uint64_t nodesSearchedThreadPool(Thread *threads);
 uint64_t tbhitsThreadPool(Thread *threads);
