@@ -69,6 +69,7 @@ void resetThreadPool(Thread *threads) {
 
     for (int i = 0; i < threads->nthreads; i++) {
 
+        memset(&threads[i].pvtable, 0, sizeof(PVTable));
         memset(&threads[i].evtable, 0, sizeof(EvalTable));
         memset(&threads[i].pktable, 0, sizeof(PKTable));
 

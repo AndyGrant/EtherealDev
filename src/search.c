@@ -311,7 +311,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
-    }
+    } else if (PvNode) ttMove = probe_pv_table(thread, board->hash);
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
     // the conditions about the board, the existance of tables, the probe depth,
@@ -530,6 +530,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Identify moves which are candidate singular moves
         singular =  !RootNode
                  &&  depth >= 8
+                 &&  ttHit
                  &&  move == ttMove
                  &&  ttDepth >= depth - 2
                  && (ttBound & BOUND_LOWER);
@@ -658,6 +659,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
         storeTTEntry(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
     }
+
+    if (PvNode) store_pv_table(thread, board->hash, bestMove);
 
     return best;
 }

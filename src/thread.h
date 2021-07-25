@@ -28,6 +28,7 @@
 #include "search.h"
 #include "transposition.h"
 #include "types.h"
+#include "pvtable.h"
 
 #include "nnue/types.h"
 
@@ -57,6 +58,7 @@ struct Thread {
 
     Undo undoStack[STACK_SIZE];
 
+    ALIGN64 PVTable pvtable;
     ALIGN64 EvalTable evtable;
     ALIGN64 PKTable pktable;
     ALIGN64 KillerTable killers;

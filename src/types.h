@@ -91,6 +91,8 @@ typedef struct PKEntry PKEntry;
 typedef struct TTable TTable;
 typedef struct Limits Limits;
 typedef struct UCIGoStruct UCIGoStruct;
+typedef struct PVEntry PVEntry;
+typedef struct PVTable PVTable;
 
 // Renamings, currently for move ordering
 
