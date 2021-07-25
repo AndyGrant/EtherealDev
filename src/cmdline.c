@@ -17,14 +17,17 @@
 */
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "bitboards.h"
 #include "board.h"
+#include "evaluate.h"
 #include "cmdline.h"
 #include "move.h"
+#include "movegen.h"
 #include "pgn.h"
 #include "search.h"
 #include "thread.h"
@@ -72,6 +75,42 @@ static void packBitboard(uint8_t *packed, Board* board, uint64_t pieces) {
     #undef pack_pieces
 }
 
+static void randomize_opening(Board *board, int booklen) {
+
+    Undo undo;
+    int nmoves;
+    uint16_t moves[MAX_MOVES];
+
+    // Init the board with a fresh state from the starting position
+    boardFromFEN(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 0);
+
+    // Apply each book move an ensure we don't reach a checkmate
+    for (int i = 0; i < booklen; i++) {
+        nmoves = genAllLegalMoves(board, moves);
+        if (nmoves) applyMove(board, moves[rand() % nmoves], &undo);
+        else { randomize_opening(board, booklen); return; };
+    }
+
+    // Abort and retry if we reached a checkmate
+    if (!genAllLegalMoves(board, moves))
+        randomize_opening(board, booklen);
+}
+
+static int search_to_depth(Thread *thread, Board *board) {
+    UCIGoStruct ucigo = { 1, "go depth 9\n", board, thread };
+    uciGo((void*) &ucigo);
+    return thread->pvs[thread->completed].score;
+}
+
+static bool position_is_terminal(Board *board, int plies) {
+    uint16_t moves[MAX_MOVES];
+    return !genAllLegalMoves(board, moves) || boardIsDrawn(board, plies);
+}
+
+static bool position_is_checkmate(Board *board) {
+    uint16_t moves[MAX_MOVES];
+    return board->kingAttackers && !genAllLegalMoves(board, moves);
+}
 
 static void runBenchmark(int argc, char **argv) {
 
@@ -266,6 +305,53 @@ static void buildHalfKPBook(int argc, char **argv) {
     fclose(fout);
 }
 
+static void generate_fens(int argc, char **argv) {
+
+    Board board;
+    Thread *thread = createThreadPool(1);
+
+    enum Result { LOSS, DRAW, WIN };
+    const char *Labels[3] = { "[0.0]", "[0.5]", "[1.0]" };
+
+    FILE* fout  = fopen(argv[2], "w");
+    const int depth   = argc > 3 ? atoi(argv[3]) : 9;
+    const int cutoff  = argc > 4 ? atoi(argv[4]) : 1000;
+    const int games   = argc > 5 ? atoi(argv[5]) : 10000;
+    const int booklen = argc > 6 ? atoi(argv[6]) : 10;
+
+    int *evals = malloc(sizeof(int) * 8192);
+    char *fens = malloc(sizeof(char) * 8192 * 128);
+
+    for (int game = 0; game < games; game++) {
+
+        int result = DRAW, ply = 0;
+
+        do { randomize_opening(&board, booklen); }
+        while (abs(search_to_depth(thread, &board)) > cutoff);
+
+        while (!position_is_terminal(&board, ply) && ply < 8192) {
+            search_to_depth(thread, &board);
+            evals[ply] = (board.turn == WHITE ? 1 : -1) * thread->pvs[depth].score;
+            apply(thread, &board, thread->pvs[depth].line[0]);
+            boardToFEN(&board, &fens[ply * 128]);
+            if (abs(evals[ply++]) > cutoff) break;
+        }
+
+        if (evals[ply-1] > cutoff) result = WIN;
+        if (evals[ply-1] < cutoff) result = LOSS;
+        if (position_is_checkmate(&board))
+            result = (board.turn == WHITE) ? LOSS : WIN;
+
+        for (int i = 0; i < ply; i++)
+            printf("%s %s %d\n", &fens[128 * i], Labels[result], evals[i]);
+    }
+
+    free(evals);
+    free(fens);
+    fclose(fout);
+
+    printf("all done");
+}
 
 void handleCommandLine(int argc, char **argv) {
 
@@ -319,6 +405,12 @@ void handleCommandLine(int argc, char **argv) {
     // USAGE: ./Ethereal pgnfen <input>
     if (argc > 2 && strEquals(argv[1], "pgnfen")) {
         process_pgn(argv[2]);
+        exit(EXIT_SUCCESS);
+    }
+
+    // Perform self-play games and generate output a list of FENs
+    if (argc > 2 && strEquals(argv[1], "genfens")) {
+        generate_fens(argc, argv);
         exit(EXIT_SUCCESS);
     }
 

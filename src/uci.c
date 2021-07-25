@@ -252,17 +252,17 @@ void *uciGo(void *cargo) {
     while (IS_PONDERING);
 
     // Report best move ( we should always have one )
-    moveToString(bestMove, moveStr, board->chess960);
-    printf("bestmove %s ", moveStr);
-
-    // Report ponder move ( if we have one )
-    if (ponderMove != NONE_MOVE) {
-        moveToString(ponderMove, moveStr, board->chess960);
-        printf("ponder %s", moveStr);
-    }
-
-    // Make sure this all gets reported
-    printf("\n"); fflush(stdout);
+    // moveToString(bestMove, moveStr, board->chess960);
+    // printf("bestmove %s ", moveStr);
+    //
+    // // Report ponder move ( if we have one )
+    // if (ponderMove != NONE_MOVE) {
+    //     moveToString(ponderMove, moveStr, board->chess960);
+    //     printf("ponder %s", moveStr);
+    // }
+    //
+    // // Make sure this all gets reported
+    // printf("\n"); fflush(stdout);
 
     // Drop the ready lock, as we are prepared to handle a new search
     pthread_mutex_unlock(&READYLOCK);
@@ -392,6 +392,8 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) 
     // interested in. Also, bound the value passed by alpha and
     // beta, since Ethereal uses a mix of fail-hard and fail-soft
 
+    return;
+
     int hashfull    = hashfullTT();
     int depth       = threads->depth;
     int seldepth    = threads->seldepth;
@@ -429,6 +431,8 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) 
 }
 
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) {
+
+    return;
 
     char moveStr[6];
     moveToString(move, moveStr, board->chess960);
