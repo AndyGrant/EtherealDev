@@ -550,21 +550,27 @@ int moveEstimatedValue(Board *board, uint16_t move) {
 
 int moveBestCaseValue(Board *board) {
 
-    // Assume the opponent has at least a pawn
-    int value = SEEPieceValues[PAWN];
-
-    // Check for a higher value target
-    for (int piece = QUEEN; piece > PAWN; piece--)
-        if (board->pieces[piece] & board->colours[!board->turn])
-          { value = SEEPieceValues[piece]; break; }
-
-    // Check for a potential pawn promotion
+    // Check for a potential pawn promotion ( ignore captures )
     if (   board->pieces[PAWN]
         &  board->colours[board->turn]
         & (board->turn == WHITE ? RANK_7 : RANK_2))
-        value += SEEPieceValues[QUEEN] - SEEPieceValues[PAWN];
+        return SEEPieceValues[QUEEN] - SEEPieceValues[PAWN];
 
-    return value;
+    { // Actually confirm that we can attack a Queen
+        uint64_t queens = board->pieces[QUEEN] & board->colours[!board->turn];
+        while (queens) {
+            if (squareIsAttacked(board, !board->turn, poplsb(&queens)))
+                return SEEPieceValues[QUEEN];
+        }
+    }
+
+    // Check for the next highest value piece on the board
+    for (int piece = ROOK; piece > PAWN; piece--)
+        if (board->pieces[piece] & board->colours[!board->turn])
+            return SEEPieceValues[piece];
+
+    // At worst assume at least a Pawn
+    return SEEPieceValues[PAWN];
 }
 
 int moveIsLegal(Board *board, uint16_t move) {
