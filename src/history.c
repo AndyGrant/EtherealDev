@@ -121,6 +121,10 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
 
     static const int MVVAugment[] = {0, 2400, 2400, 4800, 9600};
 
+    const Board *board = &thread->board;
+    const uint64_t enemyPawns = board->colours[!board->turn] | board->pieces[PAWN];
+    const uint64_t danger     = pawnAttackSpan(enemyPawns, ~0ull, !board->turn);
+
     for (int i = start; i < start + length; i++) {
 
         const int to = MoveTo(moves[i]);
@@ -138,6 +142,9 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
         scores[i] = 64000 + thread->chistory[piece][to][captured];
         if (MovePromoPiece(moves[i]) == QUEEN) scores[i] += 64000;
         scores[i] += MVVAugment[captured];
+
+        if (MVVAugment[piece] > MVVAugment[captured] && testBit(danger, to))
+            scores[i] -= 4000;
 
         assert(scores[i] >= 0);
     }
