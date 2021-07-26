@@ -540,7 +540,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         extension = singular
                   ? singularity(thread, &movePicker, ttValue, depth, beta)
-                  : inCheck && best > -MATE_IN_MAX && movePicker.stage != STAGE_BAD_NOISY;
+                  : inCheck && !(best > -MATE_IN_MAX && movePicker.stage == STAGE_BAD_NOISY);
 
         newDepth = depth + (extension && !RootNode);
 
