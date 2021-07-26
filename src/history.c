@@ -229,7 +229,7 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
 
         // Reduce if moving in danger of a pawn
         if (piece != PAWN && testBit(danger, from))
-            scores[i] += 4096;
+            scores[i] += 8192;
     }
 }
 
