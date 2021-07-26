@@ -228,8 +228,8 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
             scores[i] += thread->continuation[1][fmPiece][fmTo][piece][to];
 
         // Reduce if moving in danger of a pawn
-        if (piece != PAWN && testBit(danger, to))
-            scores[i] -= 4096;
+        if (piece != PAWN && testBit(danger, from))
+            scores[i] += 4096;
     }
 }
 
