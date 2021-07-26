@@ -193,6 +193,10 @@ int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
+    Board *board = &thread->board;
+    uint64_t enemyPawns = board->colours[!board->turn] | board->pieces[PAWN];
+    uint64_t danger = pawnAttackSpan(enemyPawns, ~0ull, !board->turn);
+
     // Extract information from last move
     uint16_t counter = thread->moveStack[thread->height-1];
     int cmPiece = thread->pieceStack[thread->height-1];
@@ -220,6 +224,10 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         // Add Followup Move History if it exists
         if (follow != NONE_MOVE && follow != NULL_MOVE)
             scores[i] += thread->continuation[1][fmPiece][fmTo][piece][to];
+
+        // Reduce if moving in danger of a pawn
+        if (piece != PAWN && testBit(danger, to))
+            scores[i] -= 4096;
     }
 }
 
