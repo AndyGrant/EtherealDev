@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "attacks.h"
+#include "bitboards.h"
 #include "board.h"
 #include "history.h"
 #include "move.h"
