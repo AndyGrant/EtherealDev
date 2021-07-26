@@ -86,8 +86,10 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
 
 void updateKillerMoves(Thread *thread, uint16_t move) {
 
-    // Avoid saving the same Killer Move twice
-    if (thread->killers[thread->height][0] == move) return;
+    // Don't duplicate Killers nor save after a Null Move
+    if (   thread->killers[thread->height][0] == move
+        || thread->moveStack[thread->height-1] == NULL_MOVE)
+        return;
 
     thread->killers[thread->height][1] = thread->killers[thread->height][0];
     thread->killers[thread->height][0] = move;
