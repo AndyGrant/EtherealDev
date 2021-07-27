@@ -107,8 +107,9 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);
 
-        if (MoveType(moves[i]) == ENPASS_MOVE   ) captured = PAWN;
-        if (MoveType(moves[i]) == PROMOTION_MOVE) captured = PAWN;
+        if (    MoveType(moves[i]) == ENPASS_MOVE
+            || (MoveType(moves[i]) == PROMOTION_MOVE && captured == EMPTY))
+            captured = PAWN;
 
         assert(PAWN <= piece && piece <= KING);
         assert(PAWN <= captured && captured <= QUEEN);
@@ -129,8 +130,9 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);
 
-        if (MoveType(moves[i]) == ENPASS_MOVE   ) captured = PAWN;
-        if (MoveType(moves[i]) == PROMOTION_MOVE) captured = PAWN;
+        if (    MoveType(moves[i]) == ENPASS_MOVE
+            || (MoveType(moves[i]) == PROMOTION_MOVE && captured == EMPTY))
+            captured = PAWN;
 
         assert(PAWN <= piece && piece <= KING);
         assert(PAWN <= captured && captured <= QUEEN);
@@ -151,8 +153,9 @@ int getCaptureHistory(Thread *thread, uint16_t move) {
     int piece = pieceType(thread->board.squares[from]);
     int captured = pieceType(thread->board.squares[to]);
 
-    if (MoveType(move) == ENPASS_MOVE   ) captured = PAWN;
-    if (MoveType(move) == PROMOTION_MOVE) captured = PAWN;
+        if (    MoveType(move) == ENPASS_MOVE
+            || (MoveType(move) == PROMOTION_MOVE && captured == EMPTY))
+            captured = PAWN;
 
     assert(PAWN <= piece && piece <= KING);
     assert(PAWN <= captured && captured <= QUEEN);
