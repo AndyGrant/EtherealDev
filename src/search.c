@@ -579,7 +579,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         else if (!isQuiet && depth > 2 && played > 1) {
 
             // Initialize R based on Capture History
-            R = MIN(3, 3 - (hist + 4000) / 2000);
+            R = MIN(4, 3 - (hist + 6000) / 2000);
 
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
