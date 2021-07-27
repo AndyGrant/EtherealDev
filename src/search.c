@@ -584,6 +584,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
 
+            // Reduce for known SEE winning moves
+            R -= movePicker.stage == STAGE_GOOD_NOISY;
+
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
         }
