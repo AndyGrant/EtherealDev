@@ -504,6 +504,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
+        // ...
+        if (   !isQuiet
+            &&  hist < 0
+            &&  best > -MATE_IN_MAX
+            &&  depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] < 1)
+            continue;
+
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
