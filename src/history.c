@@ -51,7 +51,8 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
     }
 
     // Update Counter Moves (BestMove refutes the previous move)
-    if (counter != NONE_MOVE && counter != NULL_MOVE)
+    if (   counter != NONE_MOVE && counter != NULL_MOVE
+        &&  follow != NONE_MOVE &&  follow != NULL_MOVE)
         thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
 
     // If the 1st quiet move failed-high below depth 4, we don't update history tables
