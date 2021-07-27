@@ -45,7 +45,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
     int fmTo = MoveTo(follow);
 
     // Update Killer Moves (Avoid duplicates)
-    if (thread->killers[thread->height][0] != bestMove) {
+    if (length > 1 && thread->killers[thread->height][0] != bestMove) {
         thread->killers[thread->height][1] = thread->killers[thread->height][0];
         thread->killers[thread->height][0] = bestMove;
     }
