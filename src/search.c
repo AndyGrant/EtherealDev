@@ -523,7 +523,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  hist < 0
             &&  best > -MATE_IN_MAX
             && !board->kingAttackers
-            &&  depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] <= 0) {
+            &&  depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] <= 1) {
             revert(thread, board, move);
             continue;
         }
