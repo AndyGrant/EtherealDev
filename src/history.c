@@ -75,12 +75,11 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
         updateHistoryWithDecay(&thread->history[colour][from][to], delta);
 
         // Update Counter Move History
-        if (counter != NONE_MOVE && counter != NULL_MOVE)
+        if (   counter != NONE_MOVE && counter != NULL_MOVE
+            &&  follow != NONE_MOVE &&  follow != NULL_MOVE) {
             updateHistoryWithDecay(&thread->continuation[0][cmPiece][cmTo][piece][to], delta);
-
-        // Update Followup Move History
-        if (follow != NONE_MOVE && follow != NULL_MOVE)
             updateHistoryWithDecay(&thread->continuation[1][fmPiece][fmTo][piece][to], delta);
+        }
     }
 }
 
