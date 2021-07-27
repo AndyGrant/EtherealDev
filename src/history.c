@@ -45,13 +45,13 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
     int fmTo = MoveTo(follow);
 
     // Update Killer Moves (Avoid duplicates)
-    if (thread->killers[thread->height][0] != bestMove) {
+    if (!first_try && thread->killers[thread->height][0] != bestMove) {
         thread->killers[thread->height][1] = thread->killers[thread->height][0];
         thread->killers[thread->height][0] = bestMove;
     }
 
     // Update Counter Moves (BestMove refutes the previous move)
-    if (counter != NONE_MOVE && counter != NULL_MOVE)
+    if (!first_try && counter != NONE_MOVE && counter != NULL_MOVE)
         thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
 
     // If the 1st quiet move failed-high below depth 4, we don't update history tables
