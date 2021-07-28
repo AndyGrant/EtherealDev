@@ -56,7 +56,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
 
     // If the 1st quiet move failed-high below depth 4, we don't update history tables
     // Depth 0 gives no bonus in any case
-    if (first_try && depth <= 3) return;
+    if (first_try) return;
 
     // Cap update size to avoid saturation
     bonus = MIN(depth*depth, HistoryMax);
