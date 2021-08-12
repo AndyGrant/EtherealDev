@@ -30,6 +30,9 @@
 #define vepi32_cnt 8
 #define vps32_cnt  8
 
+#define vepi8_max  _mm256_max_epi8
+#define vepi8_zero _mm256_setzero_si256()
+
 #define vepi16_add   _mm256_add_epi16
 #define vepi16_sub   _mm256_sub_epi16
 #define vepi16_max   _mm256_max_epi16
@@ -37,7 +40,7 @@
 #define vepi16_one   _mm256_set1_epi16(1)
 #define vepi16_zero  _mm256_setzero_si256
 #define vepi16_srai  _mm256_srai_epi16
-#define vepi16_packu _mm256_packus_epi16
+#define vepi16_packs _mm256_packs_epi16
 #define vepi16_maubs _mm256_maddubs_epi16
 
 #define vepi32_add  _mm256_add_epi32
