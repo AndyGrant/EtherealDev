@@ -30,6 +30,9 @@
 #define vepi32_cnt 8
 #define vps32_cnt  8
 
+#define vepi8_max  _mm256_max_epi8
+#define vepi8_zero _mm256_setzero_si256()
+
 #define vepi16_add   _mm256_add_epi16
 #define vepi16_sub   _mm256_sub_epi16
 #define vepi16_max   _mm256_max_epi16
@@ -37,18 +40,23 @@
 #define vepi16_one   _mm256_set1_epi16(1)
 #define vepi16_zero  _mm256_setzero_si256
 #define vepi16_srai  _mm256_srai_epi16
-#define vepi16_packu _mm256_packus_epi16
+#define vepi16_packs _mm256_packs_epi16
 #define vepi16_maubs _mm256_maddubs_epi16
 
 #define vepi32_add  _mm256_add_epi32
+#define vepi32_min  _mm256_min_epi32
 #define vepi32_max  _mm256_max_epi32
 #define vepi32_hadd _mm256_hadd_epi32
-#define vepi32_zero _mm256_setzero_si256
+#define vepi32_zero _mm256_setzero_si256()
 
 #define vps32_add  _mm256_add_ps
 #define vps32_mul  _mm256_mul_ps
+#define vps32_min  _mm256_min_ps
 #define vps32_max  _mm256_max_ps
 #define vps32_hadd _mm256_hadd_ps
-#define vps32_zero _mm256_setzero_ps
+#define vps32_zero _mm256_setzero_ps()
 
+#define vepi8_clip(A, B)   vepi8_max(vepi8_zero, vepi16_packs(A, B))
+#define vepi32_crelu(A)    vepi32_max(vepi32_zero, vepi32_min(_mm256_set1_epi32(127 * 64), A))
 #define vps32_fma(A, B, C) _mm256_fmadd_ps(A, B, C)
+#define vps32_crelu(A)     vps32_max(vps32_zero, vps32_min(_mm256_set1_ps(127.0 * 64.0), A))

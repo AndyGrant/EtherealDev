@@ -36,9 +36,6 @@
 
 #include "../incbin/incbin.h"
 
-#define SHIFT_L0 6
-#define SHIFT_L1 5
-
 #ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
 INCBIN(IncWeights, EVALFILE);
@@ -58,15 +55,15 @@ static int NNUE_LOADED = 0;
 
 static void scale_weights() {
 
-    // Delayed dequantization of the results of L1 forces an upshift in
+    // Delayed dequantization of the results of L0 & L1 forces an upshift in
     // biases of L2 and L3 to compensate. This saves SRAI calls, as well as
     // increases the precision of each layer, with no clear downsides.
 
     for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] *= (1 << SHIFT_L1);
+        l2_biases[i] *= 127.0 * 64.0;
 
     for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] *= (1 << SHIFT_L1);
+        l3_biases[i] *= 127.0 * 64.0;
 }
 
 static void quant_transpose(int8_t *matrix, int rows, int cols) {
@@ -141,10 +138,8 @@ static void abort_nnue(const char *reason) {
 INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
     // The accumulation of king-piece values has already been computed.
-    // Perform the ReLU operation on each accumuatlor, and place them
+    // Perform the CReLU operation on each accumuatlor, and place them
     // such that the side-to-move is first, then the non-side-to-move
-
-    assert(KPSIZE % 64 == 0);
 
     vepi16 *in_white = (vepi16 *) &accum->values[WHITE];
     vepi16 *in_black = (vepi16 *) &accum->values[BLACK];
@@ -153,54 +148,24 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     vepi8 *out_black = (vepi8 *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
-
-        vepi16 shift0A = vepi16_srai(in_white[(i + 0) * 2 + 0], SHIFT_L0);
-        vepi16 shift0B = vepi16_srai(in_white[(i + 0) * 2 + 1], SHIFT_L0);
-        vepi16 shift1A = vepi16_srai(in_white[(i + 1) * 2 + 0], SHIFT_L0);
-        vepi16 shift1B = vepi16_srai(in_white[(i + 1) * 2 + 1], SHIFT_L0);
-        vepi16 shift2A = vepi16_srai(in_white[(i + 2) * 2 + 0], SHIFT_L0);
-        vepi16 shift2B = vepi16_srai(in_white[(i + 2) * 2 + 1], SHIFT_L0);
-        vepi16 shift3A = vepi16_srai(in_white[(i + 3) * 2 + 0], SHIFT_L0);
-        vepi16 shift3B = vepi16_srai(in_white[(i + 3) * 2 + 1], SHIFT_L0);
-
-        out_white[i+0] = vepi16_packu(shift0A, shift0B);
-        out_white[i+1] = vepi16_packu(shift1A, shift1B);
-        out_white[i+2] = vepi16_packu(shift2A, shift2B);
-        out_white[i+3] = vepi16_packu(shift3A, shift3B);
+        out_white[i+0] = vepi8_clip(in_white[(i + 0) * 2 + 0], in_white[(i + 0) * 2 + 1]);
+        out_white[i+1] = vepi8_clip(in_white[(i + 1) * 2 + 0], in_white[(i + 1) * 2 + 1]);
+        out_white[i+2] = vepi8_clip(in_white[(i + 2) * 2 + 0], in_white[(i + 2) * 2 + 1]);
+        out_white[i+3] = vepi8_clip(in_white[(i + 3) * 2 + 0], in_white[(i + 3) * 2 + 1]);
     }
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
-
-        vepi16 shift0A = vepi16_srai(in_black[(i + 0) * 2 + 0], SHIFT_L0);
-        vepi16 shift0B = vepi16_srai(in_black[(i + 0) * 2 + 1], SHIFT_L0);
-        vepi16 shift1A = vepi16_srai(in_black[(i + 1) * 2 + 0], SHIFT_L0);
-        vepi16 shift1B = vepi16_srai(in_black[(i + 1) * 2 + 1], SHIFT_L0);
-        vepi16 shift2A = vepi16_srai(in_black[(i + 2) * 2 + 0], SHIFT_L0);
-        vepi16 shift2B = vepi16_srai(in_black[(i + 2) * 2 + 1], SHIFT_L0);
-        vepi16 shift3A = vepi16_srai(in_black[(i + 3) * 2 + 0], SHIFT_L0);
-        vepi16 shift3B = vepi16_srai(in_black[(i + 3) * 2 + 1], SHIFT_L0);
-
-        out_black[i+0] = vepi16_packu(shift0A, shift0B);
-        out_black[i+1] = vepi16_packu(shift1A, shift1B);
-        out_black[i+2] = vepi16_packu(shift2A, shift2B);
-        out_black[i+3] = vepi16_packu(shift3A, shift3B);
+        out_black[i+0] = vepi8_clip(in_black[(i + 0) * 2 + 0], in_black[(i + 0) * 2 + 1]);
+        out_black[i+1] = vepi8_clip(in_black[(i + 1) * 2 + 0], in_black[(i + 1) * 2 + 1]);
+        out_black[i+2] = vepi8_clip(in_black[(i + 2) * 2 + 0], in_black[(i + 2) * 2 + 1]);
+        out_black[i+3] = vepi8_clip(in_black[(i + 3) * 2 + 0], in_black[(i + 3) * 2 + 1]);
     }
 }
 
 INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs, float *outputs) {
 
-    assert(L1SIZE % 16 == 0 && L2SIZE % 8 == 0);
-
     const int InChunks  = L1SIZE / vepi8_cnt;
     const int OutChunks = L2SIZE / 8;
-
-    #if defined(USE_AVX2) || defined(USE_AVX)
-    const vepi32 zero = vepi32_zero();
-    #elif defined(USE_SSSE3)
-    const vps32  zero = vps32_zero();
-    #endif
-
-    const vepi16 ones = vepi16_one;
 
     const vepi8  *inp = (vepi8  *) inputs;
     const vepi8  *wgt = (vepi8  *) weights;
@@ -209,50 +174,49 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
 
     for (int i = 0; i < OutChunks; i++) {
 
-        vepi32 acc0 = vepi32_zero();
-        vepi32 acc1 = vepi32_zero();
-        vepi32 acc2 = vepi32_zero();
-        vepi32 acc3 = vepi32_zero();
-        vepi32 acc4 = vepi32_zero();
-        vepi32 acc5 = vepi32_zero();
-        vepi32 acc6 = vepi32_zero();
-        vepi32 acc7 = vepi32_zero();
+        vepi32 acc0 = vepi32_zero;
+        vepi32 acc1 = vepi32_zero;
+        vepi32 acc2 = vepi32_zero;
+        vepi32 acc3 = vepi32_zero;
+        vepi32 acc4 = vepi32_zero;
+        vepi32 acc5 = vepi32_zero;
+        vepi32 acc6 = vepi32_zero;
+        vepi32 acc7 = vepi32_zero;
 
         for (int j = 0; j < InChunks; j += 2) {
 
             vepi16 sum0A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 0) + j + 0]);
             vepi16 sum0B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 0) + j + 1]);
-            acc0 = vepi32_add(acc0, vepi16_madd(ones, vepi16_add(sum0A, sum0B)));
+            acc0 = vepi32_add(acc0, vepi16_madd(vepi16_one, vepi16_add(sum0A, sum0B)));
 
             vepi16 sum1A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 1) + j + 0]);
             vepi16 sum1B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 1) + j + 1]);
-            acc1 = vepi32_add(acc1, vepi16_madd(ones, vepi16_add(sum1A, sum1B)));
+            acc1 = vepi32_add(acc1, vepi16_madd(vepi16_one, vepi16_add(sum1A, sum1B)));
 
             vepi16 sum2A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 2) + j + 0]);
             vepi16 sum2B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 2) + j + 1]);
-            acc2 = vepi32_add(acc2, vepi16_madd(ones, vepi16_add(sum2A, sum2B)));
+            acc2 = vepi32_add(acc2, vepi16_madd(vepi16_one, vepi16_add(sum2A, sum2B)));
 
             vepi16 sum3A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 3) + j + 0]);
             vepi16 sum3B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 3) + j + 1]);
-            acc3 = vepi32_add(acc3, vepi16_madd(ones, vepi16_add(sum3A, sum3B)));
+            acc3 = vepi32_add(acc3, vepi16_madd(vepi16_one, vepi16_add(sum3A, sum3B)));
 
             vepi16 sum4A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 4) + j + 0]);
             vepi16 sum4B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 4) + j + 1]);
-            acc4 = vepi32_add(acc4, vepi16_madd(ones, vepi16_add(sum4A, sum4B)));
+            acc4 = vepi32_add(acc4, vepi16_madd(vepi16_one, vepi16_add(sum4A, sum4B)));
 
             vepi16 sum5A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 5) + j + 0]);
             vepi16 sum5B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 5) + j + 1]);
-            acc5 = vepi32_add(acc5, vepi16_madd(ones, vepi16_add(sum5A, sum5B)));
+            acc5 = vepi32_add(acc5, vepi16_madd(vepi16_one, vepi16_add(sum5A, sum5B)));
 
             vepi16 sum6A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 6) + j + 0]);
             vepi16 sum6B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 6) + j + 1]);
-            acc6 = vepi32_add(acc6, vepi16_madd(ones, vepi16_add(sum6A, sum6B)));
+            acc6 = vepi32_add(acc6, vepi16_madd(vepi16_one, vepi16_add(sum6A, sum6B)));
 
             vepi16 sum7A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 7) + j + 0]);
             vepi16 sum7B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 7) + j + 1]);
-            acc7 = vepi32_add(acc7, vepi16_madd(ones, vepi16_add(sum7A, sum7B)));
+            acc7 = vepi32_add(acc7, vepi16_madd(vepi16_one, vepi16_add(sum7A, sum7B)));
         }
-
 
         acc0 = vepi32_hadd(acc0, acc1);
         acc2 = vepi32_hadd(acc2, acc3);
@@ -271,23 +235,22 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         sumabcd1 = _mm_add_epi32(sumabcd1, sumabcd2);
         sumefgh1 = _mm_add_epi32(sumefgh1, sumefgh2);
 
-        acc0 = _mm256_inserti128_si256(_mm256_castsi128_si256(sumabcd1), sumefgh1, 1);
-        acc0 = _mm256_add_epi32(acc0, bia[i]);
-        acc0 = _mm256_max_epi32(acc0, zero);
-        out[i] = _mm256_cvtepi32_ps(acc0);
+        acc0   = _mm256_inserti128_si256(_mm256_castsi128_si256(sumabcd1), sumefgh1, 1);
+        acc0   = _mm256_add_epi32(acc0, bia[i]);
+        out[i] = _mm256_cvtepi32_ps(vepi32_crelu(acc0));
 
-        #elif defined (USE_AVX)
-
-        __m128 ps0 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 0], acc0)));
-        __m128 ps1 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 1], acc4)));
-
-        out[i] = _mm256_insertf128_ps(out[i], ps0, 0);
-        out[i] = _mm256_insertf128_ps(out[i], ps1, 1);
-
-        #elif defined (USE_SSSE3)
-
-        out[i * 2 + 0] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 0], acc0)));
-        out[i * 2 + 1] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 1], acc4)));
+        // #elif defined (USE_AVX)
+        //
+        // __m128 ps0 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 0], acc0)));
+        // __m128 ps1 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 1], acc4)));
+        //
+        // out[i] = _mm256_insertf128_ps(out[i], ps0, 0);
+        // out[i] = _mm256_insertf128_ps(out[i], ps1, 1);
+        //
+        // #elif defined (USE_SSSE3)
+        //
+        // out[i * 2 + 0] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 0], acc0)));
+        // out[i * 2 + 1] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 1], acc4)));
 
         #endif
     }
@@ -295,12 +258,8 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
 
 INLINE void float_affine_relu(float *weights, float *biases, float *inputs, float *outputs) {
 
-    assert(L2SIZE % 8 == 0 && L3SIZE % 8 == 0);
-
     const int InChunks  = L2SIZE / vps32_cnt;
     const int OutChunks = L3SIZE / 8;
-
-    const vps32 zero = vps32_zero();
 
     const vps32 *inp = (vps32 *) inputs;
     const vps32 *bia = (vps32 *) biases;
@@ -348,12 +307,12 @@ INLINE void float_affine_relu(float *weights, float *biases, float *inputs, floa
         sumefgh1 = _mm_add_ps(sumefgh1, sumefgh2);
 
         acc0 = _mm256_insertf128_ps(_mm256_castps128_ps256(sumabcd1), sumefgh1, 1);
-        out[i] = _mm256_max_ps(zero, _mm256_add_ps(bia[i], acc0));
+        out[i] = vps32_crelu(_mm256_add_ps(bia[i], acc0));
 
-        #elif defined(USE_SSSE3)
-
-        out[i * 2 + 0] = vps32_max(zero, vps32_add(bia[i * 2 + 0], acc0));
-        out[i * 2 + 1] = vps32_max(zero, vps32_add(bia[i * 2 + 1], acc4));
+        // #elif defined(USE_SSSE3)
+        //
+        // out[i * 2 + 0] = vps32_max(zero, vps32_add(bia[i * 2 + 0], acc0));
+        // out[i * 2 + 1] = vps32_max(zero, vps32_add(bia[i * 2 + 1], acc4));
 
         #endif
     }
@@ -525,6 +484,6 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and multiply by 1.20
-    eval = 120 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    eval = 120 * ((int)(outN1[0]) / 27) / 100;
     return MAX(-1000, MIN(1000, eval));
 }
