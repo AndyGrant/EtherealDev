@@ -36,8 +36,8 @@
 
 #include "../incbin/incbin.h"
 
-#define SHIFT_L0 6
-#define SHIFT_L1 5
+#define SHIFT 6
+#define NNUE_SCALE 16
 
 #ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
@@ -46,28 +46,16 @@ INCBIN(IncWeights, EVALFILE);
 
 ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
 ALIGN64 int8_t  l1_weights[L1SIZE * L2SIZE ];
-ALIGN64 float   l2_weights[L2SIZE * L3SIZE ];
-ALIGN64 float   l3_weights[L3SIZE * OUTSIZE];
+ALIGN64 int8_t  l2_weights[L2SIZE * L3SIZE ];
+ALIGN64 int8_t  l3_weights[L3SIZE * OUTSIZE];
 
 ALIGN64 int16_t in_biases[KPSIZE ];
 ALIGN64 int32_t l1_biases[L2SIZE ];
-ALIGN64 float   l2_biases[L3SIZE ];
-ALIGN64 float   l3_biases[OUTSIZE];
+ALIGN64 int32_t l2_biases[L3SIZE ];
+ALIGN64 int32_t l3_biases[OUTSIZE];
 
 static int NNUE_LOADED = 0;
 
-static void scale_weights() {
-
-    // Delayed dequantization of the results of L1 forces an upshift in
-    // biases of L2 and L3 to compensate. This saves SRAI calls, as well as
-    // increases the precision of each layer, with no clear downsides.
-
-    for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] *= (1 << SHIFT_L1);
-
-    for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] *= (1 << SHIFT_L1);
-}
 
 static void quant_transpose(int8_t *matrix, int rows, int cols) {
 
@@ -81,21 +69,6 @@ static void quant_transpose(int8_t *matrix, int rows, int cols) {
             cpy[j * rows + i] = matrix[i * cols + j];
 
     memcpy(matrix, cpy, sizeof(int8_t) * rows * cols);
-    free(cpy);
-}
-
-static void float_transpose(float *matrix, int rows, int cols) {
-
-    // Typical Matrix Transposition using floats. Ethereal's trainer
-    // stores weights in a way to allow faster updates, not computes
-
-    float *cpy = malloc(sizeof(float) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(float) * rows * cols);
     free(cpy);
 }
 
@@ -144,8 +117,6 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     // Perform the ReLU operation on each accumuatlor, and place them
     // such that the side-to-move is first, then the non-side-to-move
 
-    assert(KPSIZE % 64 == 0);
-
     vepi16 *in_white = (vepi16 *) &accum->values[WHITE];
     vepi16 *in_black = (vepi16 *) &accum->values[BLACK];
 
@@ -153,59 +124,31 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     vepi8 *out_black = (vepi8 *) (turn == BLACK ? outputs : &outputs[KPSIZE]);
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
-
-        vepi16 shift0A = vepi16_srai(in_white[(i + 0) * 2 + 0], SHIFT_L0);
-        vepi16 shift0B = vepi16_srai(in_white[(i + 0) * 2 + 1], SHIFT_L0);
-        vepi16 shift1A = vepi16_srai(in_white[(i + 1) * 2 + 0], SHIFT_L0);
-        vepi16 shift1B = vepi16_srai(in_white[(i + 1) * 2 + 1], SHIFT_L0);
-        vepi16 shift2A = vepi16_srai(in_white[(i + 2) * 2 + 0], SHIFT_L0);
-        vepi16 shift2B = vepi16_srai(in_white[(i + 2) * 2 + 1], SHIFT_L0);
-        vepi16 shift3A = vepi16_srai(in_white[(i + 3) * 2 + 0], SHIFT_L0);
-        vepi16 shift3B = vepi16_srai(in_white[(i + 3) * 2 + 1], SHIFT_L0);
-
-        out_white[i+0] = vepi16_packu(shift0A, shift0B);
-        out_white[i+1] = vepi16_packu(shift1A, shift1B);
-        out_white[i+2] = vepi16_packu(shift2A, shift2B);
-        out_white[i+3] = vepi16_packu(shift3A, shift3B);
+        out_white[i+0] = vepi8_clip(in_white[(i + 0) * 2 + 0], in_white[(i + 0) * 2 + 1]);
+        out_white[i+1] = vepi8_clip(in_white[(i + 1) * 2 + 0], in_white[(i + 1) * 2 + 1]);
+        out_white[i+2] = vepi8_clip(in_white[(i + 2) * 2 + 0], in_white[(i + 2) * 2 + 1]);
+        out_white[i+3] = vepi8_clip(in_white[(i + 3) * 2 + 0], in_white[(i + 3) * 2 + 1]);
     }
 
     for (int i = 0; i < KPSIZE / vepi8_cnt; i += 4) {
-
-        vepi16 shift0A = vepi16_srai(in_black[(i + 0) * 2 + 0], SHIFT_L0);
-        vepi16 shift0B = vepi16_srai(in_black[(i + 0) * 2 + 1], SHIFT_L0);
-        vepi16 shift1A = vepi16_srai(in_black[(i + 1) * 2 + 0], SHIFT_L0);
-        vepi16 shift1B = vepi16_srai(in_black[(i + 1) * 2 + 1], SHIFT_L0);
-        vepi16 shift2A = vepi16_srai(in_black[(i + 2) * 2 + 0], SHIFT_L0);
-        vepi16 shift2B = vepi16_srai(in_black[(i + 2) * 2 + 1], SHIFT_L0);
-        vepi16 shift3A = vepi16_srai(in_black[(i + 3) * 2 + 0], SHIFT_L0);
-        vepi16 shift3B = vepi16_srai(in_black[(i + 3) * 2 + 1], SHIFT_L0);
-
-        out_black[i+0] = vepi16_packu(shift0A, shift0B);
-        out_black[i+1] = vepi16_packu(shift1A, shift1B);
-        out_black[i+2] = vepi16_packu(shift2A, shift2B);
-        out_black[i+3] = vepi16_packu(shift3A, shift3B);
+        out_black[i+0] = vepi8_clip(in_black[(i + 0) * 2 + 0], in_black[(i + 0) * 2 + 1]);
+        out_black[i+1] = vepi8_clip(in_black[(i + 1) * 2 + 0], in_black[(i + 1) * 2 + 1]);
+        out_black[i+2] = vepi8_clip(in_black[(i + 2) * 2 + 0], in_black[(i + 2) * 2 + 1]);
+        out_black[i+3] = vepi8_clip(in_black[(i + 3) * 2 + 0], in_black[(i + 3) * 2 + 1]);
     }
 }
 
-INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs, float *outputs) {
-
-    assert(L1SIZE % 16 == 0 && L2SIZE % 8 == 0);
+INLINE void affine_transform_L1(int8_t *weights, int32_t *biases, uint8_t *inputs, int32_t *outputs) {
 
     const int InChunks  = L1SIZE / vepi8_cnt;
     const int OutChunks = L2SIZE / 8;
-
-    #if defined(USE_AVX2) || defined(USE_AVX)
-    const vepi32 zero = vepi32_zero();
-    #elif defined(USE_SSSE3)
-    const vps32  zero = vps32_zero();
-    #endif
 
     const vepi16 ones = vepi16_one;
 
     const vepi8  *inp = (vepi8  *) inputs;
     const vepi8  *wgt = (vepi8  *) weights;
     const vepi32 *bia = (vepi32 *) biases;
-    vps32 *const out  = (vps32  *) outputs;
+    vepi32 *const out = (vepi32 *) outputs;
 
     for (int i = 0; i < OutChunks; i++) {
 
@@ -271,126 +214,114 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         sumabcd1 = _mm_add_epi32(sumabcd1, sumabcd2);
         sumefgh1 = _mm_add_epi32(sumefgh1, sumefgh2);
 
+        acc0   = _mm256_inserti128_si256(_mm256_castsi128_si256(sumabcd1), sumefgh1, 1);
+        out[i] = _mm256_add_epi32(acc0, bia[i]);
+
+        // #elif defined (USE_AVX)
+        //
+        // acc0 = vepi32_add(bia[i * 2 + 0], acc0);
+        // acc4 = vepi32_add(bia[i * 2 + 1], acc4);
+        //
+        // out[i] = _mm256_insertf128_ps(out[i], ps0, 0);
+        // out[i] = _mm256_insertf128_ps(out[i], ps1, 1);
+        //
+        // #elif defined (USE_SSSE3)
+        //
+        // out[i * 2 + 0] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 0], acc0)));
+        // out[i * 2 + 1] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 1], acc4)));
+
+        #endif
+    }
+}
+
+INLINE void affine_transform_L2(int8_t *weights, int32_t *biases, uint8_t *inputs, int32_t *outputs) {
+
+    const __m256i *inp = (__m256i *) inputs;
+    const __m256i *bia = (__m256i *) biases;
+    const __m256i *wgt = (__m256i *) weights;
+
+    __m256i *out  = (__m256i*) outputs;
+
+    for (int i = 0; i < L3SIZE / 8; i++) {
+
+        vepi32 acc0 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 0]));
+        vepi32 acc1 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 1]));
+        vepi32 acc2 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 2]));
+        vepi32 acc3 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 3]));
+        vepi32 acc4 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 4]));
+        vepi32 acc5 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 5]));
+        vepi32 acc6 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 6]));
+        vepi32 acc7 = vepi16_madd(vepi16_one, vepi16_maubs(*inp, wgt[i * 8 + 7]));
+
+        acc0 = _mm256_hadd_epi32(acc0, acc1);
+        acc2 = _mm256_hadd_epi32(acc2, acc3);
+        acc4 = _mm256_hadd_epi32(acc4, acc5);
+        acc6 = _mm256_hadd_epi32(acc6, acc7);
+
+        acc0 = _mm256_hadd_epi32(acc0, acc2);
+        acc4 = _mm256_hadd_epi32(acc4, acc6);
+
+        __m128i sumabcd1 = _mm256_extracti128_si256(acc0, 0);
+        __m128i sumabcd2 = _mm256_extracti128_si256(acc0, 1);
+        __m128i sumefgh1 = _mm256_extracti128_si256(acc4, 0);
+        __m128i sumefgh2 = _mm256_extracti128_si256(acc4, 1);
+
+        sumabcd1 = _mm_add_epi32(sumabcd1, sumabcd2);
+        sumefgh1 = _mm_add_epi32(sumefgh1, sumefgh2);
+
         acc0 = _mm256_inserti128_si256(_mm256_castsi128_si256(sumabcd1), sumefgh1, 1);
-        acc0 = _mm256_add_epi32(acc0, bia[i]);
-        acc0 = _mm256_max_epi32(acc0, zero);
-        out[i] = _mm256_cvtepi32_ps(acc0);
-
-        #elif defined (USE_AVX)
-
-        __m128 ps0 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 0], acc0)));
-        __m128 ps1 = _mm_cvtepi32_ps(vepi32_max(zero, vepi32_add(bia[i * 2 + 1], acc4)));
-
-        out[i] = _mm256_insertf128_ps(out[i], ps0, 0);
-        out[i] = _mm256_insertf128_ps(out[i], ps1, 1);
-
-        #elif defined (USE_SSSE3)
-
-        out[i * 2 + 0] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 0], acc0)));
-        out[i * 2 + 1] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 1], acc4)));
-
-        #endif
+        out[i] = _mm256_add_epi32(acc0, bia[i]);
     }
 }
 
-INLINE void float_affine_relu(float *weights, float *biases, float *inputs, float *outputs) {
+INLINE void affine_transform_L3(int8_t *weights, int32_t *biases, uint8_t *inputs, int32_t *outputs) {
 
-    assert(L2SIZE % 8 == 0 && L3SIZE % 8 == 0);
+    assert(L3SIZE == 32);
 
-    const int InChunks  = L2SIZE / vps32_cnt;
-    const int OutChunks = L3SIZE / 8;
+    const __m256i *inp  = (__m256i *) inputs;
+    const __m256i *wgt  = (__m256i *) weights;
 
-    const vps32 zero = vps32_zero();
+    const __m256i ones  = _mm256_set1_epi16(1);
+    const __m256i sum16 = _mm256_maddubs_epi16(*inp, *wgt);
+    const __m256i sum32 = _mm256_madd_epi16(sum16, ones);
+    const __m256i upper = _mm256_permute2x128_si256(sum32, sum32, 1);
 
-    const vps32 *inp = (vps32 *) inputs;
-    const vps32 *bia = (vps32 *) biases;
-    const vps32 *wgt = (vps32 *) weights;
-    vps32 *const out = (vps32 *) outputs;
+    const __m256i step1 = _mm256_hadd_epi32(sum32, upper);
+    const __m256i step2 = _mm256_hadd_epi32(step1, step1);
+    const __m256i step3 = _mm256_hadd_epi32(step2, step2);
 
-    for (int i = 0; i < OutChunks; i++) {
-
-        vps32 acc0 = vps32_mul(wgt[InChunks * (i * 8 + 0) + 0], inp[0]);
-        vps32 acc1 = vps32_mul(wgt[InChunks * (i * 8 + 1) + 0], inp[0]);
-        vps32 acc2 = vps32_mul(wgt[InChunks * (i * 8 + 2) + 0], inp[0]);
-        vps32 acc3 = vps32_mul(wgt[InChunks * (i * 8 + 3) + 0], inp[0]);
-        vps32 acc4 = vps32_mul(wgt[InChunks * (i * 8 + 4) + 0], inp[0]);
-        vps32 acc5 = vps32_mul(wgt[InChunks * (i * 8 + 5) + 0], inp[0]);
-        vps32 acc6 = vps32_mul(wgt[InChunks * (i * 8 + 6) + 0], inp[0]);
-        vps32 acc7 = vps32_mul(wgt[InChunks * (i * 8 + 7) + 0], inp[0]);
-
-        for (int j = 1; j < InChunks; j++) {
-            acc0 = vps32_fma(wgt[InChunks * (i * 8 + 0) + j], inp[j], acc0);
-            acc1 = vps32_fma(wgt[InChunks * (i * 8 + 1) + j], inp[j], acc1);
-            acc2 = vps32_fma(wgt[InChunks * (i * 8 + 2) + j], inp[j], acc2);
-            acc3 = vps32_fma(wgt[InChunks * (i * 8 + 3) + j], inp[j], acc3);
-            acc4 = vps32_fma(wgt[InChunks * (i * 8 + 4) + j], inp[j], acc4);
-            acc5 = vps32_fma(wgt[InChunks * (i * 8 + 5) + j], inp[j], acc5);
-            acc6 = vps32_fma(wgt[InChunks * (i * 8 + 6) + j], inp[j], acc6);
-            acc7 = vps32_fma(wgt[InChunks * (i * 8 + 7) + j], inp[j], acc7);
-        }
-
-        acc0 = vps32_hadd(acc0, acc1);
-        acc2 = vps32_hadd(acc2, acc3);
-        acc4 = vps32_hadd(acc4, acc5);
-        acc6 = vps32_hadd(acc6, acc7);
-
-        acc0 = vps32_hadd(acc0, acc2);
-        acc4 = vps32_hadd(acc4, acc6);
-
-        #if defined(USE_AVX2) || defined(USE_AVX)
-
-        __m128 sumabcd1 = _mm256_extractf128_ps(acc0, 0);
-        __m128 sumabcd2 = _mm256_extractf128_ps(acc0, 1);
-        __m128 sumefgh1 = _mm256_extractf128_ps(acc4, 0);
-        __m128 sumefgh2 = _mm256_extractf128_ps(acc4, 1);
-
-        sumabcd1 = _mm_add_ps(sumabcd1, sumabcd2);
-        sumefgh1 = _mm_add_ps(sumefgh1, sumefgh2);
-
-        acc0 = _mm256_insertf128_ps(_mm256_castps128_ps256(sumabcd1), sumefgh1, 1);
-        out[i] = _mm256_max_ps(zero, _mm256_add_ps(bia[i], acc0));
-
-        #elif defined(USE_SSSE3)
-
-        out[i * 2 + 0] = vps32_max(zero, vps32_add(bia[i * 2 + 0], acc0));
-        out[i * 2 + 1] = vps32_max(zero, vps32_add(bia[i * 2 + 1], acc4));
-
-        #endif
-    }
+    *outputs = (_mm256_extract_epi32(step3, 0) + *biases) / NNUE_SCALE;
 }
 
-INLINE void output_transform(float *weights, float *biases, float *inputs, float *outputs) {
+INLINE void affine_clipped_relu(int size, int32_t *inputs, uint8_t *outputs) {
 
-    assert(L3SIZE % 8 == 0);
+    assert(size == 32); (void) size;
 
-    const int InChunks = L3SIZE / vps32_cnt;
+    const __m256i zero  = _mm256_setzero_si256();
+    const __m256i pmask = _mm256_set_epi32(7, 3, 6, 2, 5, 1, 4, 0);
+    // const __m256i pmask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
-    const vps32 *inp  = (vps32 *) inputs;
-    const vps32 *wgt  = (vps32 *) weights;
+    __m256i *inp = (__m256i *) inputs;
+    __m256i *out = (__m256i *) outputs;
 
-    vps32 acc = vps32_mul(wgt[0], inp[0]);
-    for (int i = 1; i < InChunks; i++)
-        acc = vps32_fma(wgt[i], inp[i], acc);
+    __m256i pack12 = _mm256_srai_epi16(_mm256_packs_epi32(inp[0], inp[1]), SHIFT);
+    __m256i pack34 = _mm256_srai_epi16(_mm256_packs_epi32(inp[2], inp[3]), SHIFT);
 
-    #if defined(USE_AVX) || defined(USE_AVX2)
+    *out = _mm256_max_epi8(_mm256_packs_epi16(pack12, pack34), zero);
+    *out = _mm256_permutevar8x32_epi32(*out, pmask);
 
-    const __m128 hiQuad  = _mm256_extractf128_ps(acc, 1);
-    const __m128 loQuad  = _mm256_castps256_ps128(acc);
-    const __m128 sumQuad = _mm_add_ps(loQuad, hiQuad);
-
-    #elif defined(USE_SSSE3)
-
-    const __m128 sumQuad = acc;
-
-    #endif
-
-    const __m128 hiDual  = _mm_movehl_ps(sumQuad, sumQuad);
-    const __m128 sumDual = _mm_add_ps(sumQuad, hiDual);
-
-    const __m128 hi      = _mm_shuffle_ps(sumDual, sumDual, 0x1);
-    const __m128 sum     = _mm_add_ss(sumDual, hi);
-
-    *outputs = (_mm_cvtss_f32(sum) + *biases);
+    // const int Chunks = size / vepi8_cnt;
+    //
+    // vepi32 *inp = (vepi32 *) inputs;
+    // vepi8  *out = (vepi8  *) outputs;
+    //
+    // for (int i = 0; i < Chunks; i++) {
+    //     vepi32 half1 = vepi16_srai(vepi32_packs(inp[i * 4 + 0], inp[i * 4 + 1]), SHIFT);
+    //     vepi32 half2 = vepi16_srai(vepi32_packs(inp[i * 4 + 2], inp[i * 4 + 3]), SHIFT);
+    //     out[i] = vepi8_clip(half1, half2);
+    //
+    //     out[i] = _mm256_permutevar8x32_epi32(out[i], _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0));
+    // }
 }
 
 
@@ -402,26 +333,25 @@ void nnue_init(const char* fname) {
 
     FILE *fin = fopen(fname, "rb");
 
-    if (   fread(in_biases, sizeof(int16_t), KPSIZE, fin) != (size_t) KPSIZE
+    if (   fread(in_biases,  sizeof(int16_t), KPSIZE, fin) != (size_t) KPSIZE
         || fread(in_weights, sizeof(int16_t), INSIZE * KPSIZE, fin) != (size_t) INSIZE * KPSIZE)
         abort_nnue("Unable to read NNUE File");
 
-    if (   fread(l1_biases, sizeof(int32_t), L2SIZE, fin) != (size_t) L2SIZE
-        || fread(l1_weights, sizeof(int8_t), L1SIZE * L2SIZE, fin) != (size_t) L1SIZE * L2SIZE)
+    if (   fread(l1_biases,  sizeof(int32_t), L2SIZE, fin) != (size_t) L2SIZE
+        || fread(l1_weights, sizeof(int8_t ), L1SIZE * L2SIZE, fin) != (size_t) L1SIZE * L2SIZE)
         abort_nnue("Unable to read NNUE File");
 
-    if (   fread(l2_biases, sizeof(float), L3SIZE, fin) != (size_t) L3SIZE
-        || fread(l2_weights, sizeof(float), L2SIZE * L3SIZE, fin) != (size_t) L2SIZE * L3SIZE)
+    if (   fread(l2_biases,  sizeof(int32_t), L3SIZE, fin) != (size_t) L3SIZE
+        || fread(l2_weights, sizeof(int8_t ), L2SIZE * L3SIZE, fin) != (size_t) L2SIZE * L3SIZE)
         abort_nnue("Unable to read NNUE File");
 
-    if (   fread(l3_biases, sizeof(float), OUTSIZE, fin) != (size_t) OUTSIZE
-        || fread(l3_weights, sizeof(float), L3SIZE * OUTSIZE, fin) != (size_t) L3SIZE * OUTSIZE)
+    if (   fread(l3_biases,  sizeof(int32_t), OUTSIZE, fin) != (size_t) OUTSIZE
+        || fread(l3_weights, sizeof(int8_t ), L3SIZE * OUTSIZE, fin) != (size_t) L3SIZE * OUTSIZE)
         abort_nnue("Unable to read NNUE File");
 
-    scale_weights();
     shuffle_input_layer();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    float_transpose(l2_weights, L2SIZE, L3SIZE);
+    quant_transpose(l2_weights, L2SIZE, L3SIZE);
     fclose(fin);
 
     NNUE_LOADED = 1;
@@ -435,7 +365,7 @@ void nnue_incbin_init() {
 
     #ifdef EVALFILE
 
-    int8_t *data8; int16_t *data16; int32_t *data32; float *dataf;
+    int8_t *data8; int16_t *data16; int32_t *data32;
 
     // Input layer uses 16-bit Biases and Weights
 
@@ -456,27 +386,29 @@ void nnue_incbin_init() {
     for (int i = 0; i < L1SIZE * L2SIZE; i++)
         l1_weights[i] = *(data8++);
 
-    // Layer two and uses Floating Point Biases and Weights
+    // Layer two uses 32-bit Biases and 8-bit Weights
 
-    dataf = (float*) data8;
+    data32 = (int32_t*) data8;
     for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] = *(dataf++);
+        l2_biases[i] = *(data32++);
 
+    data8 = (int8_t*) data32;
     for (int i = 0; i < L2SIZE * L3SIZE; i++)
-        l2_weights[i] = *(dataf++);
+        l2_weights[i] = *(data8++);
 
-    // Layer three and uses Floating Point Biases and Weights
+    // Layer three uses 32-bit Biases and 8-bit Weights
 
+    data32 = (int32_t*) data8;
     for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] = *(dataf++);
+        l3_biases[i] = *(data32++);
 
+    data8 = (int8_t*) data32;
     for (int i = 0; i < L3SIZE * OUTSIZE; i++)
-        l3_weights[i] = *(dataf++);
+        l3_weights[i] = *(data8++);
 
-    scale_weights();
     shuffle_input_layer();
     quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    float_transpose(l2_weights, L2SIZE, L3SIZE);
+    quant_transpose(l2_weights, L2SIZE, L3SIZE);
 
     NNUE_LOADED = 1;
 
@@ -502,8 +434,7 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     // Large enough to handle layer computations
     ALIGN64 uint8_t out8[L1SIZE];
-    ALIGN64 float outN1[L1SIZE];
-    ALIGN64 float outN2[L1SIZE];
+    ALIGN64 int32_t out32[L1SIZE];
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
@@ -520,11 +451,16 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     // Feed-forward the entire evaluation function
     halfkp_relu(accum, out8, board->turn);
-    quant_affine_relu(l1_weights, l1_biases, out8, outN1);
-    float_affine_relu(l2_weights, l2_biases, outN1, outN2);
-    output_transform(l3_weights, l3_biases, outN2, outN1);
+
+    affine_transform_L1(l1_weights, l1_biases, out8, out32);
+    affine_clipped_relu(L2SIZE, out32, out8);
+
+    affine_transform_L2(l2_weights, l2_biases, out8, out32);
+    affine_clipped_relu(L3SIZE, out32, out8);
+
+    affine_transform_L3(l3_weights, l3_biases, out8, out32);
 
     // Perform the dequantization step and multiply by 1.20
-    eval = 120 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    eval = 120 * (int)(out32[0]) / 100;
     return MAX(-1000, MIN(1000, eval));
 }
