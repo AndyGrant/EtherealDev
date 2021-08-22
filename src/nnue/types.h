@@ -33,8 +33,8 @@
 #endif
 
 #define INSIZE  20480
-#define KPSIZE  128
-#define L1SIZE  256
+#define KPSIZE  192
+#define L1SIZE  384
 #define L2SIZE  32
 #define L3SIZE  32
 #define OUTSIZE 1
