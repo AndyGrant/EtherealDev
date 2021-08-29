@@ -514,7 +514,7 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and multiply MG by 1.20
-    mg_eval = 120 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
     eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
 
     // Cap the NNUE with [-1000, 1000] for safety
