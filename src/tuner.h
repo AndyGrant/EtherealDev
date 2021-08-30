@@ -32,10 +32,10 @@
 #define LRSTEPRATE     (     250) // Cut LR after this many epochs
 
 #define TuneNormal     (       0) // Flag to enable all Normals      (856)
-#define TuneSafety     (       0) // Flag to enable all Safeties     ( 44)
+#define TuneSafety     (       0) // Flag to enable all Safeties     ( 12)
 #define TuneComplexity (       0) // Flag to enable all Complexities (  4)
 
-#define NTERMS         (       0) // Total terms in the Tuner (904)
+#define NTERMS         (       0) // Total terms in the Tuner (872)
 #define MAXEPOCHS      (  100000) // Max number of epochs allowed
 #define BATCHSIZE      (   16384) // Training samples per mini-batch
 #define NPOSITIONS     (42487498) // Total Training samples in the book
@@ -89,8 +89,6 @@
 #define TuneSafetySafeBishopCheck       (0 || TuneSafety)
 #define TuneSafetySafeKnightCheck       (0 || TuneSafety)
 #define TuneSafetyAdjustment            (0 || TuneSafety)
-#define TuneSafetyShelter               (0 || TuneSafety)
-#define TuneSafetyStorm                 (0 || TuneSafety)
 #define TunePassedPawn                  (0 || TuneNormal)
 #define TunePassedFriendlyDistance      (0 || TuneNormal)
 #define TunePassedEnemyDistance         (0 || TuneNormal)
@@ -333,8 +331,6 @@ void print_3(char *name, TVector params, int i, int A, int B, int C, char *S);
     ENABLE_0(F, SafetySafeBishopCheck, SAFETY, "");                         \
     ENABLE_0(F, SafetySafeKnightCheck, SAFETY, "");                         \
     ENABLE_0(F, SafetyAdjustment, SAFETY, "     ");                         \
-    ENABLE_2(F, SafetyShelter, 2, 8, SAFETY, "[2][RANK_NB]");               \
-    ENABLE_2(F, SafetyStorm, 2, 8, SAFETY, "[2][RANK_NB]");                 \
                                                                             \
     COMMENTS(F, "\n/* Passed Pawn Evaluation Terms */\n\n");                \
     ENABLE_3(F, PassedPawn, 2, 2, 8, NORMAL, "[2][2][RANK_NB]");            \

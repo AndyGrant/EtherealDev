@@ -88,8 +88,6 @@ struct EvalTrace {
     int SafetySafeBishopCheck[COLOUR_NB];
     int SafetySafeKnightCheck[COLOUR_NB];
     int SafetyAdjustment[COLOUR_NB];
-    int SafetyShelter[2][8][COLOUR_NB];
-    int SafetyStorm[2][8][COLOUR_NB];
     int PassedPawn[2][2][8][COLOUR_NB];
     int PassedFriendlyDistance[8][COLOUR_NB];
     int PassedEnemyDistance[8][COLOUR_NB];
@@ -134,7 +132,6 @@ struct EvalInfo {
     int kingAttackersCount[COLOUR_NB];
     int kingAttackersWeight[COLOUR_NB];
     int pkeval[COLOUR_NB];
-    int pksafety[COLOUR_NB];
     PKEntry *pkentry;
 };
 
@@ -145,7 +142,6 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour);
 int evaluateBishops(EvalInfo *ei, Board *board, int colour);
 int evaluateRooks(EvalInfo *ei, Board *board, int colour);
 int evaluateQueens(EvalInfo *ei, Board *board, int colour);
-int evaluateKingsPawns(EvalInfo *ei, Board *board, int colour);
 int evaluateKings(EvalInfo *ei, Board *board, int colour);
 int evaluatePassed(EvalInfo *ei, Board *board, int colour);
 int evaluateThreats(EvalInfo *ei, Board *board, int colour);
