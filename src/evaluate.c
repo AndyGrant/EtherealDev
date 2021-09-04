@@ -452,9 +452,11 @@ int evaluateBoard(Thread *thread, Board *board) {
         return hashed + Tempo;
 
     // On some-what balanced positions, use just NNUE
-    if (    USE_NNUE
-        && !board->kingAttackers
-        &&  abs(ScoreEG(board->psqtmat)) <= 400) {
+    if (     USE_NNUE
+        &&  !board->kingAttackers
+        &&   abs(ScoreEG(board->psqtmat)) <= 400
+        && !(board->colours[WHITE] & board->pieces[PAWN] & RANK_7)
+        && !(board->colours[BLACK] & board->pieces[PAWN] & RANK_2)) {
 
         eval = nnue_evaluate(thread, board);
         eval = board->turn == WHITE  ? eval : -eval;
