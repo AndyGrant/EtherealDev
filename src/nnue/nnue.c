@@ -478,6 +478,7 @@ int nnue_evaluate(Thread *thread, Board *board) {
     const uint64_t white = board->colours[WHITE];
     const uint64_t black = board->colours[BLACK];
     const uint64_t kings = board->pieces[KING];
+    const uint64_t pawns = board->pieces[PAWN];
 
     if (!NNUE_LOADED)
         abort_nnue("NNUE File was not provided");
@@ -514,8 +515,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = (124 + popcount(pawns)) * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    eg_eval = ( 92 + popcount(pawns)) * ((int)(outN1[0]) >> SHIFT_L1) / 100;
 
     // Cap the NNUE evaluation within [-1000, 1000]
     mg_eval = MAX(-1000, MIN(1000, mg_eval));
