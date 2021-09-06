@@ -539,6 +539,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
+
+        extension = extension || (PvNode && !isQuiet && played != 1);
+
         newDepth = depth + (extension && !RootNode);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
