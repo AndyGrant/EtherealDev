@@ -513,9 +513,9 @@ int nnue_evaluate(Thread *thread, Board *board) {
     float_affine_relu(l2_weights, l2_biases, outN1, outN2);
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
-    // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    // Perform the dequantization step and adjust the phases
+    mg_eval = 130 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    eg_eval = 110 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
 
     // Cap the NNUE evaluation within [-1000, 1000]
     mg_eval = MAX(-1000, MIN(1000, mg_eval));
