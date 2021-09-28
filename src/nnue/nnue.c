@@ -38,7 +38,7 @@
 #include "../incbin/incbin.h"
 
 #define SHIFT_L0 6
-#define MULT_L1  24
+#define MULT_L1  48
 
 #ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
