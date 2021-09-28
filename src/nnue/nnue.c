@@ -38,7 +38,7 @@
 #include "../incbin/incbin.h"
 
 #define SHIFT_L0 6
-#define SHIFT_L1 5
+#define MULT_L1  24
 
 #ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
@@ -64,10 +64,10 @@ static void scale_weights() {
     // increases the precision of each layer, with no clear downsides.
 
     for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] *= (1 << SHIFT_L1);
+        l2_biases[i] *= MULT_L1;
 
     for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] *= (1 << SHIFT_L1);
+        l3_biases[i] *= MULT_L1;
 }
 
 static void quant_transpose(int8_t *matrix, int rows, int cols) {
@@ -514,8 +514,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = 140 * (int)(outN1[0]) / (MULT_L1 * 100);
+    eg_eval = 100 * (int)(outN1[0]) / (MULT_L1 * 100);
 
     // Cap the NNUE evaluation within [-1000, 1000]
     mg_eval = MAX(-1000, MIN(1000, mg_eval));
