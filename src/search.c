@@ -542,8 +542,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         extension |= PvNode
                   && depth >= 6
+                  && cmhist >= 8000
                   && move == ttMove
-                  && move == movePicker.killer1; // Vizvez
+                  && move == movePicker.killer1;
 
         newDepth = depth + (extension && !RootNode);
 
