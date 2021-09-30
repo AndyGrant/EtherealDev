@@ -542,7 +542,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         extension |= PvNode
                   && depth >= 6
-                  && cmhist >= 8000
+                  && cmhist >= 16000
                   && move == ttMove
                   && move == movePicker.killer1;
 
