@@ -664,6 +664,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
+    const int PvNode   = (alpha != beta - 1);
     Board *const board = &thread->board;
 
     int eval, value, best, oldAlpha = alpha;
@@ -758,9 +759,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Step 8. Store results of search into the Transposition Table.
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    if (PvNode || best >= beta) {
+        ttBound = best >= beta    ? BOUND_LOWER
+                : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+        storeTTEntry(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    }
 
     return best;
 }
