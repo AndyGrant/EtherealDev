@@ -411,9 +411,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         && !inCheck
+        &&  eval >= beta
         &&  depth >= ProbCutDepth
-        &&  abs(beta) < MATE_IN_MAX
-        && (eval >= beta && eval + moveBestCaseValue(board) >= beta + ProbCutMargin)) {
+        &&  abs(beta) < MATE_IN_MAX) {
 
         // Try tactical moves which maintain rBeta.
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
