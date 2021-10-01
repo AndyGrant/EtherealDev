@@ -346,6 +346,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
+    bool ttTactial = ttHit && moveIsTactical(board, ttMove);
+
     // Save a history of the static evaluations when not checked
     eval = thread->evalStack[thread->height] = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
@@ -565,7 +567,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Killers and Counters
-            R -= movePicker.stage < STAGE_QUIET;
+            R -= (!ttHit || ttTactial) && movePicker.stage < STAGE_QUIET;
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
