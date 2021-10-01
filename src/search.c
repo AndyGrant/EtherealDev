@@ -664,6 +664,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
+    const int PvNode   = (alpha != beta - 1);
     Board *const board = &thread->board;
 
     int eval, value, best, oldAlpha = alpha;
@@ -698,7 +699,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         return evaluateBoard(thread, board);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if (!PvNode && getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound)) {
 
         // Table is exact or produces a cutoff
         if (    ttBound == BOUND_EXACT
