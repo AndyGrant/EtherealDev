@@ -46,6 +46,7 @@
 
 int LMRTable[64][64];
 int LateMovePruningCounts[2][9];
+int SEEPruningMargins[2][10];
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
@@ -103,9 +104,14 @@ void initSearch() {
         for (int played = 1; played < 64; played++)
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 
-    for (int depth = 1; depth < 9; depth++) {
+    for (int depth = 1; depth <= LateMovePruningDepth; depth++) {
         LateMovePruningCounts[0][depth] = 2.5 + 2 * depth * depth / 4.5;
         LateMovePruningCounts[1][depth] = 4.0 + 4 * depth * depth / 4.5;
+    }
+
+    for (int depth = 0; depth <= SEEPruningDepth; depth++) {
+        SEEPruningMargins[0][depth] = SEENoisyMargin * depth * depth;
+        SEEPruningMargins[1][depth] = SEEQuietMargin * depth;
     }
 }
 
@@ -248,7 +254,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, seeMargin[2];
+    int eval, value = -MATE, best = -MATE;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     MovePicker movePicker;
@@ -349,10 +355,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Save a history of the static evaluations when not checked
     eval = thread->evalStack[thread->height] = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
-
-    // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
     improving = !inCheck && eval > thread->evalStack[thread->height-2];
@@ -507,10 +509,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
+
+        int seedepth = MAX(0, depth - skipQuiets);
+
         if (    best > -MATE_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
-            && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
+            && !staticExchangeEvaluation(board, move, SEEPruningMargins[isQuiet][seedepth]))
             continue;
 
         // Apply move, skip if move is illegal
