@@ -357,10 +357,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Improving if our static eval increased in the last move
     improving = !inCheck && eval > thread->evalStack[thread->height-2];
 
-    // Reset Killer moves for our children
-    thread->killers[thread->height+1][0] = NONE_MOVE;
-    thread->killers[thread->height+1][1] = NONE_MOVE;
-
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
     // ------------------------------------------------------------------------
@@ -439,6 +435,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             }
         }
     }
+
+    // Reset Killer moves for our children
+    thread->killers[thread->height+1][0] = NONE_MOVE;
+    thread->killers[thread->height+1][1] = NONE_MOVE;
 
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
