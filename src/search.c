@@ -598,7 +598,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // expectation that this move will be worth looking into deeper
         if (R != 1) {
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
-            rangeReductions += (eval - value <= 30) && depth >= 6;
+            rangeReductions += (eval - value <= 15) && depth >= 8;
         }
 
         // Step 18B. There are two situations in which we will search again on a null window,
