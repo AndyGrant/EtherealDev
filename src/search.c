@@ -243,7 +243,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     Board *const board = &thread->board;
 
     unsigned tbresult;
-    int hist = 0, cmhist = 0, fmhist = 0;
+    int hist = 0, cmhist = 0, fmhist = 0, rangeReductions = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
@@ -570,6 +570,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
 
+            R += rangeReductions >= 3;
+
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
         }
@@ -594,7 +596,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 18A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
+        if (R != 1) {
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
+            rangeReductions += (eval - value <= 30) && depth >= 6;
+        }
 
         // Step 18B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
