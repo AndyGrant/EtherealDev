@@ -730,9 +730,17 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
+        //
+        int pessimism = moveEstimatedValue(board, move)
+                      - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
-        value = -qsearch(thread, &lpv, -beta, -alpha);
+
+        // Accept a pessimistic value if it exceeds alpha
+        value = (eval + pessimism > alpha)
+              ?  eval + pessimism : -qsearch(thread, &lpv, -beta, -alpha);
+
         revert(thread, board, move);
 
         // Improved current value
