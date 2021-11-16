@@ -730,7 +730,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-        //
+        // Worst case which assumes we lose our piece immediately
         int pessimism = moveEstimatedValue(board, move)
                       - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
