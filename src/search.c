@@ -862,8 +862,8 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta) {
 
     uint16_t move;
-    int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int skipQuiets = 0, quiets = 0, tacticals = 0, value = -MATE;
+    int rBeta = MIN(beta, MAX(ttValue - depth, -MATE));
 
     MovePicker movePicker;
     PVariation lpv; lpv.length = 0;
