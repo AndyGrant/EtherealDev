@@ -742,7 +742,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
-            return eval + pessimism;
+            return beta; // eval + pessimism;
         }
 
         value = -qsearch(thread, &lpv, -beta, -alpha);
