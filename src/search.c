@@ -738,9 +738,12 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
+
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
+
+            storeTTEntry(board->hash, thread->height, move, beta, eval, 0, ttBound);
             return beta;
         }
 
