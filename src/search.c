@@ -743,7 +743,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             pv->length = 1;
             pv->line[0] = move;
 
-            storeTTEntry(board->hash, thread->height, move, beta, eval, 0, ttBound);
+            storeTTEntry(board->hash, thread->height, move, beta, eval, 0, BOUND_LOWER);
             return beta;
         }
 
