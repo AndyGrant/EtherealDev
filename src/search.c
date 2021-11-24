@@ -569,6 +569,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
 
+            // Cap the reduction at 2x the original table lookup
+            R = MIN(R, 2 * LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
         }
