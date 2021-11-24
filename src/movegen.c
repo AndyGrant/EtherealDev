@@ -97,7 +97,7 @@ int genAllLegalMoves(Board *board, uint16_t *moves) {
     uint16_t pseudoMoves[MAX_MOVES];
 
     // Call genAllNoisyMoves() & genAllNoisyMoves()
-    pseudo  = genAllNoisyMoves(board, pseudoMoves);
+    pseudo  = genAllNoisyMoves(board, pseudoMoves, ~0ull);
     pseudo += genAllQuietMoves(board, pseudoMoves + pseudo);
 
     // Check each move for legality before copying
@@ -110,7 +110,7 @@ int genAllLegalMoves(Board *board, uint16_t *moves) {
     return size;
 }
 
-int genAllNoisyMoves(Board *board, uint16_t *moves) {
+int genAllNoisyMoves(Board *board, uint16_t *moves, uint64_t target_mask) {
 
     const uint16_t *start = moves;
 
@@ -142,13 +142,16 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     // When checked, we may only uncheck by capturing the checker
     destinations = board->kingAttackers ? board->kingAttackers : them;
 
+    // Allow limiting of targets
+    destinations &= target_mask;
+
     // Compute bitboards for each type of Pawn movement
     pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
     pawnLeft         = pawnLeftAttacks(pawns, them, board->turn);
     pawnRight        = pawnRightAttacks(pawns, them, board->turn);
     pawnPromoForward = pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS;
-    pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS;
-    pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS;
+    pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS & target_mask;
+    pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS & target_mask;
 
     // Generate moves for all the Pawns, so long as they are noisy
     moves = buildEnpassMoves(moves, pawnEnpass, board->epSquare);
@@ -162,7 +165,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     moves = buildJumperMoves(&knightAttacks, moves, knights, destinations);
     moves = buildSliderMoves(&bishopAttacks, moves, bishops, destinations, occupied);
     moves = buildSliderMoves(&rookAttacks, moves, rooks, destinations, occupied);
-    moves = buildJumperMoves(&kingAttacks, moves, kings, them);
+    moves = buildJumperMoves(&kingAttacks, moves, kings, them & target_mask);
 
     return moves - start;
 }

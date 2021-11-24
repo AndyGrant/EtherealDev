@@ -44,6 +44,16 @@ static int getBestMoveIndex(MovePicker *mp, int start, int end) {
     return best;
 }
 
+static uint64_t target_mask(MovePicker *mp) {
+
+    uint64_t targets = ~0ull;
+
+    for (int i = PAWN; i <= QUEEN; i++)
+        if (mp->threshold > SEEPieceValues[i])
+            targets &= ~mp->thread->board.pieces[i];
+
+    return targets;
+}
 
 void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
 
@@ -102,7 +112,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             // Generate and evaluate noisy moves. mp->split sets a break point
             // to seperate the noisy from the quiet moves, so that we can skip
             // some of the noisy moves during STAGE_GOOD_NOISY and return later
-            mp->noisySize = mp->split = genAllNoisyMoves(board, mp->moves);
+            mp->noisySize = mp->split = genAllNoisyMoves(board, mp->moves, target_mask(mp));
             getCaptureHistories(mp->thread, mp->moves, mp->values, 0, mp->noisySize);
             mp->stage = STAGE_GOOD_NOISY;
 
