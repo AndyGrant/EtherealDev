@@ -458,7 +458,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // QSearch pre-razoring
         if (    best > -MATE_IN_MAX
-            && !PvNode && !inCheck && !isQuiet &&  depth <= 1
+            && !isQuiet && depth <= 1
             &&  eval + moveEstimatedValue(board, move) < alpha)
             continue;
 
