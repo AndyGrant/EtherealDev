@@ -520,6 +520,21 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet) quietsTried[quietsPlayed++] = move;
         else capturesTried[capturesPlayed++] = move;
 
+
+
+        if (    depth <= 1
+            && !inCheck && !board->kingAttackers
+            &&  eval >= beta && best > -MATE_IN_MAX
+            &&  movePicker.stage == STAGE_GOOD_NOISY) {
+
+            best = beta;
+            pv->length = 1;
+            pv->line[0] = bestMove = move;
+            revert(thread, board, move);
+            break;
+        }
+
+
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
         // and we wait a few seconds in order to avoid floiding the output
