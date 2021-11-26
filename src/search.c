@@ -456,6 +456,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         hist = !isQuiet ? getCaptureHistory(thread, move)
              : getHistory(thread, move, &cmhist, &fmhist);
 
+        // QSearch pre-razoring
+        if (   !PvNode && !inCheck && !isQuiet &&  depth <= 1
+            &&  eval + moveEstimatedValue(board, move) < alpha)
+            continue;
+
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
