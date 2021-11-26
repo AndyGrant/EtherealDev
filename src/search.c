@@ -448,6 +448,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
 
+        int capt_piece = pieceType(board->squares[MoveTo(move)]);
+
         // Track Moves Seen for Late Move Pruning
         movesSeen += 1;
         isQuiet = !moveIsTactical(board, move);
@@ -543,6 +545,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         if (   depth <= 2
             && eval <= beta
+            && eval + SEEPieceValues[capt_piece] <= beta
             && movePicker.stage == STAGE_GOOD_NOISY)
             extension = 1;
 
