@@ -503,7 +503,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
-        if (   !PvNode && depth <= 1 && !isQuiet && movePicker.stage == STAGE_GOOD_NOISY
+        if (    depth <= 1
+            &&  best > -MATE_IN_MAX
+            &&  movePicker.stage == STAGE_GOOD_NOISY
             &&  ttBound == BOUND_UPPER && ttValue <= alpha)
             continue;
 
