@@ -457,7 +457,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
              : getHistory(thread, move, &cmhist, &fmhist);
 
         // QSearch pre-razoring
-        if (   !PvNode && !inCheck && !isQuiet &&  depth <= 1
+        if (    best > -MATE_IN_MAX
+            && !PvNode && !inCheck && !isQuiet &&  depth <= 1
             &&  eval + moveEstimatedValue(board, move) < alpha)
             continue;
 
