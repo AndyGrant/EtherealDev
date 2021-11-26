@@ -522,7 +522,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
 
 
-        if (    depth <= 1
+        if (    depth <= 2
             && !inCheck && !board->kingAttackers
             &&  eval >= beta && best > -MATE_IN_MAX
             &&  movePicker.stage == STAGE_GOOD_NOISY) {
