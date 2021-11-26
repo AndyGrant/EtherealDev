@@ -503,6 +503,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
+        if (   !PvNode && depth <= 1 && !isQuiet && movePicker.stage == STAGE_GOOD_NOISY
+            &&  ttBound == BOUND_UPPER && ttValue <= alpha)
+            continue;
+
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
