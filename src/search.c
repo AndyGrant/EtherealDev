@@ -456,12 +456,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         hist = !isQuiet ? getCaptureHistory(thread, move)
              : getHistory(thread, move, &cmhist, &fmhist);
 
-        // QSearch pre-razoring
-        if (    best > -MATE_IN_MAX
-            && !PvNode && !inCheck && !isQuiet &&  depth <= 1
-            &&  eval + moveEstimatedValue(board, move) < alpha)
-            continue;
-
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
@@ -508,6 +502,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 && lmrDepth <= FollowUpMovePruningDepth[improving])
                 continue;
         }
+
+        // QSearch pre-razoring
+        if (    best > -MATE_IN_MAX
+            && !PvNode && !inCheck && !isQuiet && depth <= 1
+            &&  eval + moveEstimatedValue(board, move) + (movePicker.stage > STAGE_GOOD_NOISY ? 0 : 100) < alpha)
+            continue;
 
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
