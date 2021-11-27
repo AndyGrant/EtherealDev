@@ -591,7 +591,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Increase for moves which place us in risk of a losing capture
-            R -=  testBit(threat_info[pieceType(board->squares[MoveTo(move)])], MoveFrom(move))
+            R -=  MoveType(move) == NORMAL_MOVE
+              &&  testBit(threat_info[pieceType(board->squares[MoveTo(move)])], MoveFrom(move))
               && !testBit(threat_info[pieceType(board->squares[MoveTo(move)])],   MoveTo(move));
 
             // Reduce for Killers and Counters
