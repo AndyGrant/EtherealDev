@@ -95,6 +95,30 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
     }
 }
 
+static void compute_threats(Board *board, ThreatInfo threat_info) {
+
+    const int colour  = board->turn;
+    uint64_t enemy    = board->colours[!colour];
+    uint64_t occupied = board->colours[ colour] | enemy;
+
+    uint64_t enemyPawns   = enemy &  board->pieces[PAWN  ];
+    uint64_t enemyKnights = enemy &  board->pieces[KNIGHT];
+    uint64_t enemyBishops = enemy &  board->pieces[BISHOP];
+    uint64_t enemyRooks   = enemy &  board->pieces[ROOK  ];
+
+    uint64_t threats_by_piece[4] = {};
+
+    threats_by_piece[PAWN] = pawnAttackSpan(enemyPawns, ~0ull, !colour);
+    while (enemyKnights) threats_by_piece[KNIGHT] |= knightAttacks(poplsb(&enemyKnights));
+    while (enemyBishops) threats_by_piece[BISHOP] |= bishopAttacks(poplsb(&enemyBishops), occupied);
+    while (enemyRooks  ) threats_by_piece[ROOK  ] |=   rookAttacks(poplsb(&enemyRooks), occupied);
+
+    threat_info[PAWN]   = threat_info[KING] = 0ull;
+    threat_info[KNIGHT] = threat_info[BISHOP] = threats_by_piece[PAWN];
+    threat_info[ROOK]   = threats_by_piece[PAWN] | threats_by_piece[KNIGHT] | threats_by_piece[ROOK];
+    threat_info[QUEEN]  = threat_info[ROOK] | threats_by_piece[ROOK];
+}
+
 
 void initSearch() {
 
@@ -251,6 +275,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int eval, value = -MATE, best = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
+    ThreatInfo threat_info;
     MovePicker movePicker;
     PVariation lpv;
 
@@ -439,6 +464,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
+    compute_threats(board, threat_info);
+
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove);
@@ -562,6 +589,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Increase for moves which place us in risk of a losing capture
+            R += testBit(threat_info[pieceType(board->squares[MoveTo(move)])], MoveTo(move));
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;

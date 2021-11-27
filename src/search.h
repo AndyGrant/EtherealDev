@@ -32,6 +32,8 @@ struct PVariation {
     uint16_t line[MAX_PLY];
 };
 
+typedef uint64_t ThreatInfo[PIECE_NB];
+
 void initSearch();
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder, int *score);
 void* iterativeDeepening(void *vthread);
