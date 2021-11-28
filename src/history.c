@@ -25,26 +25,42 @@
 #include "thread.h"
 #include "types.h"
 
+typedef int16_t (*ContHist)[PIECE_NB][SQUARE_NB];
+
 static void updateHistoryWithDecay(int16_t *current, int delta) {
     *current += HistoryMultiplier * delta - *current * abs(delta) / HistoryDivisor;
 }
+
+static void getContinuationTables(Thread *thread, ContHist *cmtable, ContHist *fmtable) {
+
+    const uint16_t counter = thread->moveStack[thread->height-1];
+    const int cmType       = thread->moveTypeStack[thread->height-1];
+    const int cmPiece      = thread->pieceStack[thread->height-1];
+
+    const uint16_t follow  = thread->moveStack[thread->height-2];
+    const int fmType       = thread->moveTypeStack[thread->height-2];
+    const int fmPiece      = thread->pieceStack[thread->height-2];
+
+    *cmtable = counter == NONE_MOVE || counter == NULL_MOVE ? NULL
+             : &thread->continuation[0][cmType][cmPiece][MoveTo(counter)];
+
+    *fmtable = follow == NONE_MOVE || follow == NULL_MOVE ? NULL
+             : &thread->continuation[1][fmType][fmPiece][MoveTo(follow)];
+}
+
 
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int depth) {
 
     int bonus, colour = thread->board.turn;
     uint16_t bestMove = moves[length-1];
 
-    // Extract information from last move
-    int cmType = thread->moveTypeStack[thread->height-1];
+    // Move from one ply ago ( Counter Move )
     uint16_t counter = thread->moveStack[thread->height-1];
-    int cmPiece = thread->pieceStack[thread->height-1];
-    int cmTo = MoveTo(counter);
+    int cmType       = thread->moveTypeStack[thread->height-1];
+    int cmPiece      = thread->pieceStack[thread->height-1];
 
-    // Extract information from two moves ago
-    int fmType = thread->moveTypeStack[thread->height-2];
-    uint16_t follow = thread->moveStack[thread->height-2];
-    int fmPiece = thread->pieceStack[thread->height-2];
-    int fmTo = MoveTo(follow);
+    ContHist cmtable, fmtable;
+    getContinuationTables(thread, &cmtable, &fmtable);
 
     // Update Killer Moves (Avoid duplicates)
     if (thread->killers[thread->height][0] != bestMove) {
@@ -54,7 +70,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
 
     // Update Counter Moves (BestMove refutes the previous move)
     if (counter != NONE_MOVE && counter != NULL_MOVE)
-        thread->cmtable[!colour][cmPiece][cmTo] = bestMove;
+        thread->cmtable[!colour][cmPiece][MoveTo(counter)] = bestMove;
 
     // If the 1st quiet move failed-high below depth 4, we don't update history tables
     // Depth 0 gives no bonus in any case
@@ -76,13 +92,9 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
         // Update Butterfly History
         updateHistoryWithDecay(&thread->history[colour][from][to], delta);
 
-        // Update Counter Move History
-        if (counter != NONE_MOVE && counter != NULL_MOVE)
-            updateHistoryWithDecay(&thread->continuation[0][cmType][cmPiece][cmTo][piece][to], delta);
-
-        // Update Followup Move History
-        if (follow != NONE_MOVE && follow != NULL_MOVE)
-            updateHistoryWithDecay(&thread->continuation[1][fmType][fmPiece][fmTo][piece][to], delta);
+        // Update Counter and Follow-up Move History
+        if (cmtable != NULL) updateHistoryWithDecay(&(*cmtable)[piece][to], delta);
+        if (fmtable != NULL) updateHistoryWithDecay(&(*fmtable)[piece][to], delta);
     }
 }
 
@@ -94,7 +106,6 @@ void updateKillerMoves(Thread *thread, uint16_t move) {
     thread->killers[thread->height][1] = thread->killers[thread->height][0];
     thread->killers[thread->height][0] = move;
 }
-
 
 void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
 
@@ -118,6 +129,7 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         updateHistoryWithDecay(&thread->chistory[piece][to][captured], delta);
     }
 }
+
 
 void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
@@ -167,21 +179,21 @@ int getCaptureHistory(Thread *thread, uint16_t move) {
 int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
     // Extract information from this move
-    int to = MoveTo(move);
-    int from = MoveFrom(move);
+    int to    = MoveTo(move);
+    int from  = MoveFrom(move);
     int piece = pieceType(thread->board.squares[from]);
 
-    // Extract information from last move
-    int cmType = thread->moveTypeStack[thread->height-1];
+    // Move from one ply ago ( Counter Move )
     uint16_t counter = thread->moveStack[thread->height-1];
-    int cmPiece = thread->pieceStack[thread->height-1];
-    int cmTo = MoveTo(counter);
+    int cmType       = thread->moveTypeStack[thread->height-1];
+    int cmPiece      = thread->pieceStack[thread->height-1];
+    int cmTo         = MoveTo(counter);
 
-    // Extract information from two moves ago
-    int fmType = thread->moveTypeStack[thread->height-2];
+    // Move from two ply ago ( Follow-up Move )
     uint16_t follow = thread->moveStack[thread->height-2];
-    int fmPiece = thread->pieceStack[thread->height-2];
-    int fmTo = MoveTo(follow);
+    int fmType      = thread->moveTypeStack[thread->height-2];
+    int fmPiece     = thread->pieceStack[thread->height-2];
+    int fmTo        = MoveTo(follow);
 
     // Set Counter Move History if it exists
     if (counter == NONE_MOVE || counter == NULL_MOVE) *cmhist = 0;
@@ -197,17 +209,8 @@ int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    // Extract information from last move
-    int cmType = thread->moveTypeStack[thread->height-1];
-    uint16_t counter = thread->moveStack[thread->height-1];
-    int cmPiece = thread->pieceStack[thread->height-1];
-    int cmTo = MoveTo(counter);
-
-    // Extract information from two moves ago
-    int fmType = thread->moveTypeStack[thread->height-2];
-    uint16_t follow = thread->moveStack[thread->height-2];
-    int fmPiece = thread->pieceStack[thread->height-2];
-    int fmTo = MoveTo(follow);
+    ContHist cmtable, fmtable;
+    getContinuationTables(thread, &cmtable, &fmtable);
 
     for (int i = start; i < start + length; i++) {
 
@@ -220,12 +223,10 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         scores[i] = thread->history[thread->board.turn][from][to];
 
         // Add Counter Move History if it exists
-        if (counter != NONE_MOVE && counter != NULL_MOVE)
-            scores[i] += thread->continuation[0][cmType][cmPiece][cmTo][piece][to];
+        if (cmtable != NULL) scores[i] += (*cmtable)[piece][to];
 
         // Add Followup Move History if it exists
-        if (follow != NONE_MOVE && follow != NULL_MOVE)
-            scores[i] += thread->continuation[1][fmType][fmPiece][fmTo][piece][to];
+        if (fmtable != NULL) scores[i] += (*fmtable)[piece][to];
     }
 }
 
