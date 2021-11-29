@@ -54,7 +54,6 @@ int castleRookTo(int king, int rook) {
 
 int apply(Thread *thread, Board *board, uint16_t move) {
 
-    const int InCheck   = !!board->kingAttackers;
     NodeState *const ns = &thread->states[thread->height];
 
     // NULL moves are only tried when legal
@@ -72,13 +71,14 @@ int apply(Thread *thread, Board *board, uint16_t move) {
 
         ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
         ns->tactical      = moveIsTactical(board, move);
-        ns->continuations = &thread->continuation[InCheck][ns->tactical][ns->movedPiece][MoveTo(move)];
         ns->move          = move;
 
         // Apply the move and reject if illegal
         applyMove(board, move, &thread->undoStack[thread->height]);
         if (!moveWasLegal(board))
             return revertMove(board, move, &thread->undoStack[thread->height]), 0;
+
+        ns->continuations = &thread->continuation[!!board->kingAttackers][ns->tactical][ns->movedPiece][MoveTo(move)];
     }
 
     // Advance the Stack before updating
@@ -89,17 +89,17 @@ int apply(Thread *thread, Board *board, uint16_t move) {
 
 void applyLegal(Thread *thread, Board *board, uint16_t move) {
 
-    const int InCheck   = !!board->kingAttackers;
     NodeState *const ns = &thread->states[thread->height];
 
     ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
     ns->tactical      = moveIsTactical(board, move);
-    ns->continuations = &thread->continuation[InCheck][ns->tactical][ns->movedPiece][MoveTo(move)];
     ns->move          = move;
 
     // Assumed that this move is legal
     applyMove(board, move, &thread->undoStack[thread->height]);
     assert(moveWasLegal(board));
+
+    ns->continuations = &thread->continuation[!!board->kingAttackers][ns->tactical][ns->movedPiece][MoveTo(move)];
 
     // Advance the Stack before updating
     thread->height++;
