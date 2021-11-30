@@ -44,7 +44,7 @@ struct NodeState {
     uint16_t move;  // Move applied at the Node
 
     // Fast reference for future use for History lookups
-    int16_t (*continuations)[CONT_NB][PIECE_NB][SQUARE_NB];
+    int16_t (*continuations)[CONT_NB][2][PIECE_NB][SQUARE_NB];
 };
 
 struct Thread {

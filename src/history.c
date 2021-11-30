@@ -32,6 +32,7 @@ static void updateHistoryWithDecay(int16_t *current, int delta) {
 
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int depth) {
 
+    const bool InCheck = !!thread->board.kingAttackers;
     NodeState *const ns = &thread->states[thread->height];
 
     int bonus, colour = thread->board.turn;
@@ -69,11 +70,11 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
 
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-            updateHistoryWithDecay(&(*(ns-1)->continuations)[0][piece][to], delta);
+            updateHistoryWithDecay(&(*(ns-1)->continuations)[0][InCheck][piece][to], delta);
 
         // Update Move History if it exists
         if ((ns-2)->continuations != NULL)
-            updateHistoryWithDecay(&(*(ns-2)->continuations)[1][piece][to], delta);
+            updateHistoryWithDecay(&(*(ns-2)->continuations)[1][InCheck][piece][to], delta);
     }
 }
 
@@ -157,6 +158,7 @@ int getCaptureHistory(Thread *thread, uint16_t move) {
 
 int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
+    const bool InCheck = !!thread->board.kingAttackers;
     NodeState *const ns = &thread->states[thread->height];
 
     // Extract information from this move
@@ -166,11 +168,11 @@ int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
     // Set Counter Move History if it exists
     *cmhist = (ns-1)->continuations == NULL ? 0
-            : (*(ns-1)->continuations)[0][piece][to];
+            : (*(ns-1)->continuations)[0][InCheck][piece][to];
 
     // Set Followup Move History if it exists
     *fmhist = (ns-2)->continuations == NULL ? 0
-            : (*(ns-2)->continuations)[1][piece][to];
+            : (*(ns-2)->continuations)[1][InCheck][piece][to];
 
     // Return CMHist + FMHist + ButterflyHist
     return *cmhist + *fmhist + thread->history[thread->board.turn][from][to];
@@ -178,6 +180,7 @@ int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
+    const bool InCheck = !!thread->board.kingAttackers;
     NodeState *const ns = &thread->states[thread->height];
 
     for (int i = start; i < start + length; i++) {
@@ -192,11 +195,11 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
 
         // Add Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-            scores[i] += (*(ns-1)->continuations)[0][piece][to];
+            scores[i] += (*(ns-1)->continuations)[0][InCheck][piece][to];
 
         // Add Followup Move History if it exists
         if ((ns-2)->continuations != NULL)
-            scores[i] += (*(ns-2)->continuations)[1][piece][to];
+            scores[i] += (*(ns-2)->continuations)[1][InCheck][piece][to];
     }
 }
 
