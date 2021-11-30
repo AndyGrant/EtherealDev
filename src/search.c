@@ -361,6 +361,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     thread->killers[thread->height+1][0] = NONE_MOVE;
     thread->killers[thread->height+1][1] = NONE_MOVE;
 
+    bool ttTactical = ttHit && ttMove != NONE_MOVE && moveIsTactical(board, ttMove);
+
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
     // ------------------------------------------------------------------------
@@ -370,6 +372,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // dependent margin, then we assume the eval will hold above beta
     if (   !PvNode
         && !inCheck
+        && !ttTactical
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return eval;
@@ -379,6 +382,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // bonus doesn't get us beyond alpha, then eval will hold below alpha
     if (   !PvNode
         && !inCheck
+        && !ttTactical
         &&  depth <= AlphaPruningDepth
         &&  eval + AlphaMargin <= alpha)
         return eval;
