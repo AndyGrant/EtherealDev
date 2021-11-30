@@ -398,6 +398,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R += thread->states[thread->height-1].tactical;
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
