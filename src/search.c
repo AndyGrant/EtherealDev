@@ -537,7 +537,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = !singular ? inCheck && abs(eval) > 100
+        extension = !singular ? inCheck && played < depth
                   :  singularity(thread, &movePicker, ttValue, depth, beta);
 
         newDepth = depth + (extension && !RootNode);
