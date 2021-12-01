@@ -563,6 +563,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
+            // Reduce when all history metrics are winning
+            R -= (hist - cmhist - fmhist > 0) && (cmhist > 0) && (fmhist > 0);
+
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
 
