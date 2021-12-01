@@ -395,7 +395,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  thread->states[thread->height-1].move != NULL_MOVE
         &&  thread->states[thread->height-2].move != NULL_MOVE
         &&  boardHasNonPawnMaterial(board, board->turn)
-        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
+        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)
+        && (   !ttHit
+            || !moveIsPseudoLegal(board, ttMove)
+            || !staticExchangeEvaluation(board, ttMove, 2 * SEEPieceValues[PAWN]))) {
 
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
