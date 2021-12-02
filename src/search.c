@@ -583,6 +583,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
 
+            // Always reduce at least one depth for bad captures
+            R = (movePicker.stage == STAGE_BAD_NOISY) ? MAX(2, R) : R;
+
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
         }
