@@ -400,7 +400,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Increase following a potentially hung piece
         R +=  thread->states[thread->height-1].tactical
-          && !thread->states[thread->height-1].tactical;
+          && !thread->states[thread->height-2].tactical;
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
