@@ -464,12 +464,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             && movesSeen >= LateMovePruningCounts[improving][depth])
             skipQuiets = 1;
 
+        int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > -MATE_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            // int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
@@ -506,8 +508,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         static const int CaptureHistoryMargin = -1024;
 
         if (    best > -MATE_IN_MAX
-            &&  movePicker.stage == STAGE_BAD_NOISY
-            &&  hist <= CaptureHistoryMargin * depth * depth)
+            &&  hist < 0 && lmrDepth <= 0
+            &&  movePicker.stage == STAGE_BAD_NOISY)
             continue;
 
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
