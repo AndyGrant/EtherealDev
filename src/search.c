@@ -503,6 +503,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
+        static const int CaptureHistoryMargin = -1024;
+
+        if (    best > -MATE_IN_MAX
+            &&  movePicker.stage == STAGE_BAD_NOISY
+            &&  hist <= CaptureHistoryMargin * depth * depth)
+            continue;
+
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
