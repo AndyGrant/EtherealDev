@@ -396,14 +396,29 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
-        R += thread->states[thread->height-1].tactical;
+        const int      piece    = thread->states[thread->height-1].movedPiece;
+        const uint16_t previous = thread->states[thread->height-1].move;
+        const uint64_t targets  = attacksFromSquare(board, MoveTo(previous));
+        const uint64_t friendly = board->colours[board->turn];
 
-        apply(thread, board, NULL_MOVE);
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R);
-        revert(thread, board, NULL_MOVE);
+        const int      target   = (targets & friendly & board->pieces[QUEEN ]) ? QUEEN
+                                : (targets & friendly & board->pieces[ROOK  ]) ? ROOK
+                                : (targets & friendly & board->pieces[BISHOP]) ? BISHOP
+                                : (targets & friendly & board->pieces[KNIGHT]) ? KNIGHT
+                                : (targets & friendly & board->pieces[PAWN  ]) ? PAWN : EMPTY;
 
-        if (value >= beta) return beta;
+        if (   piece == EMPTY || target == EMPTY
+            || eval - (SEEPieceValues[target] - SEEPieceValues[piece]) >= beta) {
+
+            R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+            R += thread->states[thread->height-1].tactical;
+
+            apply(thread, board, NULL_MOVE);
+            value = -search(thread, &lpv, -beta, -beta+1, depth-R);
+            revert(thread, board, NULL_MOVE);
+
+            if (value >= beta) return beta;
+        }
     }
 
     // Step 10 (~9 elo). Probcut Pruning. If we have a good capture that causes a

@@ -240,6 +240,23 @@ uint64_t attackersToKingSquare(Board *board) {
     return allAttackersToSquare(board, occupied, kingsq) & board->colours[!board->turn];
 }
 
+uint64_t attacksFromSquare(Board *board, int sq) {
+
+    const int us = pieceColour(board->squares[sq]);
+    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+
+    switch (pieceType(board->squares[sq])) {
+        case PAWN   : return pawnAttacks(us, sq);
+        case KNIGHT : return knightAttacks(sq);
+        case BISHOP : return bishopAttacks(sq, occupied);
+        case ROOK   : return rookAttacks(sq, occupied);
+        case QUEEN  : return queenAttacks(sq, occupied);
+        case KING   : return kingAttacks(sq);
+        default     : return 0ull;
+    };
+}
+
+
 uint64_t discoveredAttacks(Board *board, int sq, int US) {
 
     uint64_t enemy    = board->colours[!US];
