@@ -505,8 +505,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
-        static const int CaptureHistoryMargin = -1024;
-
         if (    best > -MATE_IN_MAX
             &&  hist < 0 && lmrDepth <= 0
             &&  movePicker.stage == STAGE_BAD_NOISY)
