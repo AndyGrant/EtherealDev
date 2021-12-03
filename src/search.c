@@ -726,13 +726,13 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
     // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
+    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - seval)
+        return seval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
+    initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - seval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
