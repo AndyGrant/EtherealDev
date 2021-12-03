@@ -665,7 +665,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     Board *const board = &thread->board;
 
-    int eval, value, best, oldAlpha = alpha;
+    int eval, seval, value, best, oldAlpha = alpha;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     MovePicker movePicker;
@@ -707,8 +707,13 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Save a history of the static evaluations
-    eval = thread->states[thread->height].eval
+    eval = seval = thread->states[thread->height].eval
          = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+
+    if (    ttHit
+        &&  ttValue != VALUE_NONE
+        && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
+        eval = ttValue;
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
@@ -737,7 +742,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         if (!apply(thread, board, move)) continue;
 
         // Short-circuit QS and assume a stand-pat matches the SEE
-        if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
+        if (seval + pessimism > beta && abs(seval + pessimism) < MATE / 2) {
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
@@ -772,7 +777,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
             : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    storeTTEntry(board->hash, thread->height, bestMove, best, seval, 0, ttBound);
 
     return best;
 }
