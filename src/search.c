@@ -711,6 +711,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
          = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
     if (    ttHit
+        &&  ttDepth >= 1
         &&  ttValue != VALUE_NONE
         && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
         eval = ttValue;
