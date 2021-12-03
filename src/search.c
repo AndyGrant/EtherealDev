@@ -365,23 +365,30 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
     // ------------------------------------------------------------------------
 
+    int adjusted = eval;
+    if (    ttValue != VALUE_NONE
+        && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
+        adjusted = ttValue;
+
     // Step 7 (~32 elo). Beta Pruning / Reverse Futility Pruning / Static
     // Null Move Pruning. If the eval is well above beta, defined by a depth
     // dependent margin, then we assume the eval will hold above beta
     if (   !PvNode
         && !inCheck
+        &&  abs(adjusted) < NEAR_WINNING
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  adjusted - BetaMargin * depth > beta)
+        return adjusted;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
     // that for low depths if eval is so bad that even a large static
     // bonus doesn't get us beyond alpha, then eval will hold below alpha
     if (   !PvNode
         && !inCheck
+        &&  abs(adjusted) < NEAR_WINNING
         &&  depth <= AlphaPruningDepth
-        &&  eval + AlphaMargin <= alpha)
-        return eval;
+        &&  adjusted + AlphaMargin <= alpha)
+        return adjusted;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so strong
     // that giving our opponent a double move still allows us to maintain
@@ -390,6 +397,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  eval >= beta
+        &&  adjusted >= eval
         &&  depth >= NullMovePruningDepth
         &&  thread->states[thread->height-1].move != NULL_MOVE
         &&  thread->states[thread->height-2].move != NULL_MOVE
@@ -412,7 +420,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth >= ProbCutDepth
-        &&  abs(beta) < MATE_IN_MAX) {
+        &&  abs(beta) < NEAR_WINNING) {
 
         // Try tactical moves which maintain rBeta.
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);

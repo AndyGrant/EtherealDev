@@ -41,9 +41,12 @@ enum {
 };
 
 enum {
-    MATE  = 32000 + MAX_PLY, MATE_IN_MAX  =  MATE - MAX_PLY,
-    TBWIN = 31000 + MAX_PLY, TBWIN_IN_MAX = TBWIN - MAX_PLY,
-    VALUE_NONE = MATE + 1
+    MATE         = 32000 + MAX_PLY,
+    MATE_IN_MAX  =  MATE - MAX_PLY,
+    TBWIN        = 31000 + MAX_PLY,
+    TBWIN_IN_MAX = TBWIN - MAX_PLY,
+    VALUE_NONE   = MATE + 1,
+    NEAR_WINNING = 4000
 };
 
 enum {
