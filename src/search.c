@@ -663,6 +663,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
+    const int PvNode   = (alpha != beta - 1);
     Board *const board = &thread->board;
 
     int eval, seval, value, best, oldAlpha = alpha;
@@ -711,7 +712,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
          = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
     if (    ttHit
-        &&  ttDepth >= 1
         &&  ttValue != VALUE_NONE
         && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
         eval = ttValue;
@@ -720,8 +720,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
     best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+    if (PvNode) alpha = MAX(alpha, eval);
+    if (best >= beta) return eval;
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
