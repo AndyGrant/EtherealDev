@@ -739,8 +739,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
 
-        if (    played
-            && !InCheck
+        if (    best > -MATE_IN_MAX
             && !board->kingAttackers
             &&  MoveType(move) != PROMOTION_MOVE) {
 
@@ -751,14 +750,14 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             }
 
             // Even taking the piece for free won't beat alpha
-            if (eval + QSFutilityMargin + estimate <= alpha) {
+            if (!InCheck && eval + QSFutilityMargin + estimate <= alpha) {
                 best = MAX(best, eval + QSFutilityMargin + estimate);
                 revert(thread, board, move);
                 continue;
             }
 
             // Taking the piece would win, but we know we lose
-            if (eval + QSFutilityMargin <= alpha && !winning) {
+            if (!InCheck && eval + QSFutilityMargin <= alpha && !winning) {
                 best = MAX(best, eval + QSFutilityMargin);
                 revert(thread, board, move);
                 continue;
