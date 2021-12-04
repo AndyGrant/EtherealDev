@@ -666,7 +666,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     Board *const board = &thread->board;
     const bool InCheck = board->kingAttackers;
 
-    int eval, value, best, oldAlpha = alpha, played = 0;
+    int eval, value, best = -MATE_IN_MAX, oldAlpha = alpha, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     MovePicker movePicker;
@@ -714,9 +714,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+    if (!InCheck) {
+        best = eval;
+        alpha = MAX(alpha, eval);
+        if (alpha >= beta) return eval;
+    }
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
@@ -741,20 +743,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         if (InCheck && !tactical && played > 2)
             break;
 
-        // Worst case which assumes we lose our piece immediately
-        int pessimism = !tactical ? 0 : moveEstimatedValue(board, move)
-                      - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
-
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
-
-        // Short-circuit QS and assume a stand-pat matches the SEE
-        if (tactical && eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
-            revert(thread, board, move);
-            pv->length = 1;
-            pv->line[0] = move;
-            return beta;
-        }
 
         played++;
         value = -qsearch(thread, &lpv, -beta, -alpha);
