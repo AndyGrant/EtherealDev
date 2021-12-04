@@ -731,7 +731,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
     initQSearchPicker(&movePicker, thread, 0);
-    while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE) {
+    while ((move = selectNextMove(&movePicker, board, !InCheck || played > 2)) != NONE_MOVE) {
 
         const int estimate = moveEstimatedValue(board, move);
         const bool winning = staticExchangeEvaluation(board, move, 1);
