@@ -68,7 +68,7 @@ void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
 
 }
 
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
+void initProbcutPicker(MovePicker *mp, Thread *thread, int threshold) {
 
     // Start with just the noisy moves
     mp->stage = STAGE_GENERATE_NOISY;
@@ -78,9 +78,24 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
 
     // General housekeeping
     mp->threshold = threshold;
-    mp->thread = thread;
-    mp->type = NOISY_PICKER;
+    mp->thread    = thread;
+    mp->type      = PROBCUT_PICKER;
 }
+
+void initQSearchPicker(MovePicker *mp, Thread *thread, int threshold) {
+
+    // Start with just the noisy moves
+    mp->stage = STAGE_GENERATE_NOISY;
+
+    // Skip all of the special (refutation and table) moves
+    mp->tableMove = mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+
+    // General housekeeping
+    mp->threshold = threshold;
+    mp->thread    = thread;
+    mp->type      = QSEARCH_PICKER;
+}
+
 
 uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
 
@@ -195,6 +210,12 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
                 getHistoryScores(mp->thread, mp->moves, mp->values, mp->split, mp->quietSize);
             }
 
+            // Generate and evaluate all quiet checks when in QSearch
+            else if (mp->type == QSEARCH_PICKER) {
+                mp->quietSize = genAllQuietChecks(board, mp->moves + mp->split);
+                getHistoryScores(mp->thread, mp->moves, mp->values, mp->split, mp->quietSize);
+            }
+
             mp->stage = STAGE_QUIET;
 
             /* fallthrough */
@@ -202,7 +223,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_QUIET:
 
             // Check to see if there are still more quiet moves
-            if (!skipQuiets && mp->quietSize) {
+            if ((!skipQuiets || mp->type == QSEARCH_PICKER) && mp->quietSize) {
 
                 // Select next best quiet and reduce the effective move list size
                 best = getBestMoveIndex(mp, mp->split, mp->split + mp->quietSize) - mp->split;
@@ -226,7 +247,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
         case STAGE_BAD_NOISY:
 
             // Check to see if there are still more noisy moves
-            if (mp->noisySize && mp->type != NOISY_PICKER) {
+            if (mp->noisySize && mp->type != PROBCUT_PICKER) {
 
                 // Reduce effective move list size
                 bestMove = popMove(&mp->noisySize, mp->moves, mp->values, 0);
