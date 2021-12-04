@@ -30,7 +30,7 @@
 typedef uint64_t (*JumperFunc)(int);
 typedef uint64_t (*SliderFunc)(int, uint64_t);
 
-uint16_t * buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
+uint16_t *buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
 
     while (attacks)
         *(moves++) = MoveMake(poplsb(&attacks), epsq, ENPASS_MOVE);
@@ -38,7 +38,7 @@ uint16_t * buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
     return moves;
 }
 
-uint16_t * buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
+uint16_t *buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
 
     while (attacks) {
         int sq = poplsb(&attacks);
@@ -48,7 +48,7 @@ uint16_t * buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
     return moves;
 }
 
-uint16_t * buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
+uint16_t *buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
 
     while (attacks) {
         int sq = poplsb(&attacks);
@@ -61,7 +61,7 @@ uint16_t * buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
     return moves;
 }
 
-uint16_t * buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
+uint16_t *buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
 
     while (attacks)
         *(moves++) = MoveMake(sq, poplsb(&attacks), NORMAL_MOVE);
@@ -69,7 +69,7 @@ uint16_t * buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
     return moves;
 }
 
-uint16_t * buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets) {
+uint16_t *buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets) {
 
     while (pieces) {
         int sq = poplsb(&pieces);
@@ -79,7 +79,7 @@ uint16_t * buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint
     return moves;
 }
 
-uint16_t * buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets, uint64_t occupied) {
+uint16_t *buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets, uint64_t occupied) {
 
     while (pieces) {
         int sq = poplsb(&pieces);
@@ -221,6 +221,145 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
         rookTo = castleRookTo(king, rook);
         kingTo = castleKingTo(king, rook);
         attacked = 0;
+
+        // Castle is illegal if we would go over a piece
+        mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
+        mask |= bitsBetweenMasks(rook, rookTo) | (1ull << rookTo);
+        mask &= ~((1ull << king) | (1ull << rook));
+        if (occupied & mask) continue;
+
+        // Castle is illegal if we move through a checking threat
+        mask = bitsBetweenMasks(king, kingTo);
+        while (mask)
+            if (squareIsAttacked(board, board->turn, poplsb(&mask)))
+                { attacked = 1; break; }
+        if (attacked) continue;
+
+        // All conditions have been met. Identify which side we are castling to
+        *(moves++) = MoveMake(king, rook, CASTLE_MOVE);
+    }
+
+    return moves - start;
+}
+
+int genAllQuietChecks(Board *board, uint16_t *moves) {
+
+    uint16_t *start   = moves;
+    int      Forward  = board->turn == WHITE ?     -8 :      8;
+    uint64_t RANK3REL = board->turn == WHITE ? RANK_3 : RANK_6;
+
+    uint64_t us       = board->colours[board->turn];
+    uint64_t occupied = us | board->colours[!board->turn];
+    uint64_t castles  = us & board->castleRooks;
+
+    // All of our piece Bitboards
+    uint64_t pawns   = us & board->pieces[PAWN  ];
+    uint64_t knights = us & board->pieces[KNIGHT];
+    uint64_t bishops = us & board->pieces[BISHOP];
+    uint64_t rooks   = us & board->pieces[ROOK  ];
+    uint64_t queens  = us & board->pieces[QUEEN ];
+    uint64_t kings   = us & board->pieces[KING  ];
+
+    // Squares which would place the King in check directly
+    int      enemy_ksq      = getlsb((occupied & ~us) & board->pieces[KING]);
+    uint64_t pawn_targets   = pawnAttacks(!board->turn, enemy_ksq);
+    uint64_t knight_targets = knightAttacks(enemy_ksq);
+    uint64_t bishop_targets = bishopAttacks(enemy_ksq, occupied);
+    uint64_t rook_targets   = rookAttacks(enemy_ksq, occupied);
+    uint64_t queen_targets  = bishop_targets | rook_targets;
+
+    // Squares of pieces which would check if-not-for a blocking piece
+    uint64_t pinners = ((bishops | queens) & bishopAttacks(enemy_ksq, occupied & ~bishop_targets))
+                     | ((rooks   | queens) &   rookAttacks(enemy_ksq, occupied &   ~rook_targets));
+
+    int rook, king, rookTo, kingTo, attacked;
+    uint64_t destinations, pawn_single, pawn_double, mask;
+
+    // >>>>> // Double checks can only be evaded by moving the King, which cannot check
+    // >>>>> // if (several(board->kingAttackers)) return start;
+
+    // When checked, we must block the checker with non-King pieces
+    destinations = !board->kingAttackers ? ~occupied
+                 :  bitsBetweenMasks(getlsb(kings), getlsb(board->kingAttackers));
+
+    // Compute bitboards for each type of Pawn movement
+    pawn_single = pawnAdvance(pawns, occupied, board->turn) & ~PROMOTION_RANKS;
+    pawn_double = pawnAdvance(pawn_single & RANK3REL, occupied, board->turn);
+
+    /*** Generate basic direct checks, except for checks via castling ***/
+
+    if (!several(board->kingAttackers)) {
+
+        // Generate checking pawn advances, which should be very few
+        moves = buildPawnMoves(moves, pawn_single & destinations & pawn_targets, Forward);
+        moves = buildPawnMoves(moves, pawn_double & destinations & pawn_targets, Forward * 2);
+
+        // Generate quiet checks for Knights, Bishops, Rooks, Queens
+        moves = buildJumperMoves(&knightAttacks, moves, knights, destinations & knight_targets);
+        moves = buildSliderMoves(&bishopAttacks, moves, bishops, destinations & bishop_targets, occupied);
+        moves = buildSliderMoves(&rookAttacks  , moves, rooks  , destinations & rook_targets  , occupied);
+        moves = buildSliderMoves(&queenAttacks , moves, queens , destinations & queen_targets , occupied);
+    }
+
+    /*** Generate discovered checks, by moving a piece to reveal a threat ***/
+
+    while (pinners) {
+
+        uint64_t pinline = bitsBetweenMasks(enemy_ksq, poplsb(&pinners));
+        uint64_t targets = destinations & ~pinline;
+        uint64_t blocker = pinline & us;
+
+        if (!blocker) continue; // We can only move our own pieces
+
+        switch (pieceType(board->squares[getlsb(blocker)])) {
+
+            case PAWN   :
+                moves = buildPawnMoves(moves, pawn_single & targets & ~pawn_targets, Forward);
+                moves = buildPawnMoves(moves, pawn_double & targets & ~pawn_targets, Forward * 2);
+                break;
+
+            case KNIGHT :
+                moves = buildJumperMoves(&knightAttacks, moves, blocker, targets & ~knight_targets);
+                break;
+
+            case BISHOP :
+                moves = buildSliderMoves(&bishopAttacks, moves, blocker, targets & ~bishop_targets, occupied);
+                break;
+
+            case ROOK   :
+                moves = buildSliderMoves(&rookAttacks  , moves, blocker, targets & ~rook_targets  , occupied);
+                break;
+
+            case QUEEN  :
+                moves = buildSliderMoves(&queenAttacks , moves, blocker, targets & ~queen_targets , occupied);
+                break;
+
+            case KING   :
+                moves = buildJumperMoves(&kingAttacks  , moves, blocker, ~occupied & ~pinline);
+                break;
+
+            default     :
+                break;
+        }
+    }
+
+    /*** Generate checks via castling, which is extremly rare ***/
+
+    while (castles && !board->kingAttackers) {
+
+        // King would be checked on the rank by a castle
+        bool king_contact = rook_targets & kings
+                          & Ranks[rankOf(enemy_ksq)];
+
+        // Figure out which pieces are moving to which squares
+        rook = poplsb(&castles), king = getlsb(kings);
+        rookTo = castleRookTo(king, rook);
+        kingTo = castleKingTo(king, rook);
+        attacked = 0;
+
+        // New rook location would not produce a check
+        if (!testBit(rook_targets, rookTo) && !king_contact)
+            continue;
 
         // Castle is illegal if we would go over a piece
         mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);

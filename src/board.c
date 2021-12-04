@@ -344,10 +344,43 @@ uint64_t perft(Board *board, int depth) {
     size += genAllNoisyMoves(board, moves);
     size += genAllQuietMoves(board, moves + size);
 
+    // >> DEBUG
+    uint16_t checking_quiets[MAX_MOVES];
+    int checking_size = genAllQuietChecks(board, checking_quiets);
+
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
+
+        bool tactical = moveIsTactical(board, moves[size]);
+
         applyMove(board, moves[size], undo);
-        if (moveWasLegal(board)) found += perft(board, depth-1);
+
+        if (moveWasLegal(board)) {
+
+            found += perft(board, depth-1);
+
+            if (board->kingAttackers && !tactical) {
+
+                bool flag = false;
+
+                for (int i = 0; i < checking_size; i++)
+                    if (checking_quiets[i] == moves[size])
+                        flag = true;
+
+                if (!flag) {
+                    revertMove(board, moves[size], undo);
+                    printBoard(board);
+                    printMove(moves[size], false);
+
+                    printf("Generated:\n");
+                    for (int i = 0; i < checking_size; i++)
+                        printMove(checking_quiets[i], false);
+
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+
         revertMove(board, moves[size], undo);
     }
 
