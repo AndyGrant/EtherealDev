@@ -666,7 +666,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     Board *const board = &thread->board;
     const bool InCheck = board->kingAttackers;
 
-    int eval, value, best, oldAlpha = alpha, played = 0;
+    int eval = VALUE_NONE, value, best = -MATE_IN_MAX, oldAlpha = alpha, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     MovePicker movePicker;
@@ -707,35 +707,38 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             return ttValue;
     }
 
-    // Save a history of the static evaluations
-    eval = thread->states[thread->height].eval
-         = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+    if (!InCheck) {
 
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+        // Save a history of the static evaluations
+        eval = thread->states[thread->height].eval
+             = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo, with a minor boost for pawn captures, would still fail to cover
-    // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
+        // Step 5. Eval Pruning. If a static evaluation of the board will
+        // exceed beta, then we can stop the search here. Also, if the static
+        // eval exceeds alpha, we can call our static eval the new alpha
+        best = eval;
+        alpha = MAX(alpha, eval);
+        if (alpha >= beta) return eval;
+
+        // Step 6. Delta Pruning. Even the best possible capture and or promotion
+        // combo, with a minor boost for pawn captures, would still fail to cover
+        // the distance between alpha and the evaluation. Playing a move is futile.
+        if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
+            return eval;
+    }
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initQSearchPicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
-    while ((move = selectNextMove(&movePicker, board, !InCheck || played)) != NONE_MOVE) {
+    initQSearchPicker(&movePicker, thread, InCheck ? 0 : MAX(1, alpha - eval - QSSeeMargin));
+    while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE) {
 
-        // Skip SEE() < 0 after finding escaping check
+        const bool tactical = moveIsTactical(board, move);
+
+        // Skip bad SEE() after finding escaping check
         if (  (!InCheck || played)
             && movePicker.stage == STAGE_BAD_NOISY)
             break;
-
-        const bool tactical = moveIsTactical(board, move);
 
         // Worst case which assumes we lose our piece immediately
         int pessimism = !tactical ? 0 : moveEstimatedValue(board, move)
@@ -745,7 +748,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         if (!apply(thread, board, move)) continue;
 
         // Short-circuit QS and assume a stand-pat matches the SEE
-        if (tactical && eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
+        if (!InCheck && tactical && eval + pessimism > beta) {
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
