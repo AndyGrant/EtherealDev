@@ -730,34 +730,44 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initQSearchPicker(&movePicker, thread, InCheck ? 0 : MAX(1, alpha - eval - QSSeeMargin));
+    initQSearchPicker(&movePicker, thread, 0);
     while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE) {
 
-        const bool tactical = moveIsTactical(board, move);
-
-        // Skip bad SEE() after finding escaping check
-        if (  (!InCheck || played)
-            && movePicker.stage == STAGE_BAD_NOISY)
-            break;
-
-        // Worst case which assumes we lose our piece immediately
-        int pessimism = !tactical ? 0 : moveEstimatedValue(board, move)
-                      - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+        const int estimate = moveEstimatedValue(board, move);
+        const bool winning = staticExchangeEvaluation(board, move, 1);
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
 
-        // Short-circuit QS and assume a stand-pat matches the SEE
-        if (!InCheck && tactical && eval + pessimism > beta) {
-            revert(thread, board, move);
-            pv->length = 1;
-            pv->line[0] = move;
-            return beta;
+        if (    played
+            && !InCheck
+            && !board->kingAttackers
+            &&  MoveType(move) != PROMOTION_MOVE) {
+
+            // Give up after playing a few SEE() >= 0 moves
+            if (played > 2) {
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Even taking the piece for free won't beat alpha
+            if (eval + QSFutilityMargin + estimate <= alpha) {
+                best = MAX(best, eval + QSFutilityMargin + estimate);
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Taking the piece would win, but we know we lose
+            if (eval + QSFutilityMargin <= alpha && !winning) {
+                best = MAX(best, eval + QSFutilityMargin);
+                revert(thread, board, move);
+                continue;
+            }
         }
 
-        played++;
         value = -qsearch(thread, &lpv, -beta, -alpha);
         revert(thread, board, move);
+        played++;
 
         // Improved current value
         if (value > best) {
