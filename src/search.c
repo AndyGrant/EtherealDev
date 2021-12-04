@@ -730,11 +730,15 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    initQSearchPicker(&movePicker, thread, 0);
+    initQSearchPicker(&movePicker, thread, 1);
     while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE) {
 
         const int estimate = moveEstimatedValue(board, move);
-        const bool winning = staticExchangeEvaluation(board, move, 1);
+
+        // Don't play any of the SEE() <= 0 moves after resolving checks
+        if (    best > -MATE_IN_MAX
+            &&  movePicker.stage == STAGE_BAD_NOISY)
+            break;
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
@@ -757,7 +761,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             }
 
             // Taking the piece would win, but we know we lose
-            if (!InCheck && eval + QSFutilityMargin <= alpha && !winning) {
+            if (!InCheck && eval + QSFutilityMargin <= alpha) {
                 best = MAX(best, eval + QSFutilityMargin);
                 revert(thread, board, move);
                 continue;
