@@ -715,8 +715,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
     if (!InCheck) {
+
         best = eval;
+
         alpha = MAX(alpha, eval);
+
         if (alpha >= beta) return eval;
     }
 
