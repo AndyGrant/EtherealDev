@@ -665,7 +665,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     Board *const board = &thread->board;
 
-    int eval, value, best, oldAlpha = alpha;
+    int eval, value, best, oldAlpha = alpha, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     MovePicker movePicker;
@@ -723,29 +723,45 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
         return eval;
 
-    // Step 7. Move Generation and Looping. Generate all tactical moves
-    // and return those which are winning via SEE, and also strong enough
-    // to beat the margin computed in the Delta Pruning step found above
-    initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
+    // Step 7. Move Generation and Looping. Generate and look at all
+    // tactical moves that have a SEE() >= 0, ignoring those that don't
+    initNoisyMovePicker(&movePicker, thread, 0);
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-        // Worst case which assumes we lose our piece immediately
-        int pessimism = moveEstimatedValue(board, move)
-                      - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+        const int estimate = moveEstimatedValue(board, move);
+        const bool winning = staticExchangeEvaluation(board, move, 1);
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
 
-        // Short-circuit QS and assume a stand-pat matches the SEE
-        if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
-            revert(thread, board, move);
-            pv->length = 1;
-            pv->line[0] = move;
-            return beta;
+        if (    played
+            && !board->kingAttackers
+            &&  MoveType(move) != PROMOTION_MOVE) {
+
+            // Give up after playing a few SEE() >= 0 moves
+            if (played > 2) {
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Even taking the piece for free won't beat alpha
+            if (eval + QSFutilityMargin + estimate <= alpha) {
+                best = MAX(best, eval + QSFutilityMargin + estimate);
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Taking the piece would win, but we know we lose
+            if (eval + QSFutilityMargin <= alpha && !winning) {
+                best = MAX(best, eval + QSFutilityMargin);
+                revert(thread, board, move);
+                continue;
+            }
         }
 
         value = -qsearch(thread, &lpv, -beta, -alpha);
         revert(thread, board, move);
+        played++;
 
         // Improved current value
         if (value > best) {

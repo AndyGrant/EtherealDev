@@ -80,7 +80,7 @@ static const int SEEPieceValues[] = {
     1300,    0,    0,    0,
 };
 
-static const int QSSeeMargin = 110;
+static const int QSFutilityMargin = 75;
 static const int QSDeltaMargin = 150;
 
 static const int SingularQuietLimit = 6;
