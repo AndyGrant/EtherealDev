@@ -740,12 +740,17 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             &&  movePicker.stage == STAGE_BAD_NOISY)
             break;
 
-        // Search the next ply if the move is legal
+        // Abandon all quiets after resolving check
+        if (   InCheck
+            && played > 2
+            && movePicker.stage == STAGE_QUIET)
+            break;
+
+        // Consider the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
 
-        if (    best > -MATE_IN_MAX
-            && !board->kingAttackers
-            &&  MoveType(move) != PROMOTION_MOVE) {
+        //
+        if (best > -MATE_IN_MAX && !board->kingAttackers) {
 
             // Give up after playing a few SEE() >= 0 moves
             if (played > 2) {
