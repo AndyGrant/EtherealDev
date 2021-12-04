@@ -381,7 +381,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !inCheck
         &&  depth <= AlphaPruningDepth
         &&  eval + AlphaMargin <= alpha)
-        return eval;
+        return eval + AlphaMargin;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so strong
     // that giving our opponent a double move still allows us to maintain
