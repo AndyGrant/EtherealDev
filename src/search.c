@@ -728,14 +728,18 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
     initQSearchPicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
-    while ((move = selectNextMove(&movePicker, board, !InCheck || played)) != NONE_MOVE) {
+    while ((move = selectNextMove(&movePicker, board, !InCheck)) != NONE_MOVE) {
 
-        // Skip SEE() < 0 after finding escaping check
+        const bool tactical = moveIsTactical(board, move);
+
+        // Skip SEE() <= 0 after finding escaping check
         if (  (!InCheck || played)
             && movePicker.stage == STAGE_BAD_NOISY)
             break;
 
-        const bool tactical = moveIsTactical(board, move);
+        // Skip remaining quiets and SEE() <= 0 after a bit
+        if (InCheck && !tactical && played > 2)
+            break;
 
         // Worst case which assumes we lose our piece immediately
         int pessimism = !tactical ? 0 : moveEstimatedValue(board, move)
