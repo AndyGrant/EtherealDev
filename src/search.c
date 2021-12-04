@@ -734,7 +734,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     while ((move = selectNextMove(&movePicker, board, !InCheck || played > 2)) != NONE_MOVE) {
 
         const int estimate = moveEstimatedValue(board, move);
-        const bool winning = staticExchangeEvaluation(board, move, 1);
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
@@ -753,13 +752,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             // Even taking the piece for free won't beat alpha
             if (!InCheck && eval + QSFutilityMargin + estimate <= alpha) {
                 best = MAX(best, eval + QSFutilityMargin + estimate);
-                revert(thread, board, move);
-                continue;
-            }
-
-            // Taking the piece would win, but we know we lose
-            if (!InCheck && eval + QSFutilityMargin <= alpha && !winning) {
-                best = MAX(best, eval + QSFutilityMargin);
                 revert(thread, board, move);
                 continue;
             }
