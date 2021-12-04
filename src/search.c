@@ -738,6 +738,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
+        played++;
 
         if (    best > -MATE_IN_MAX
             && !board->kingAttackers
@@ -766,7 +767,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
         value = -qsearch(thread, &lpv, -beta, -alpha);
         revert(thread, board, move);
-        played++;
 
         // Improved current value
         if (value > best) {
