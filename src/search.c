@@ -759,13 +759,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
                 revert(thread, board, move);
                 continue;
             }
-
-            // Taking the piece would win, but we know we lose
-            if (!InCheck && eval + QSFutilityMargin <= alpha) {
-                best = MAX(best, eval + QSFutilityMargin);
-                revert(thread, board, move);
-                continue;
-            }
         }
 
         value = -qsearch(thread, &lpv, -beta, -alpha);
