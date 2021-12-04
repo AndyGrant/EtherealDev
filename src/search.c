@@ -422,12 +422,20 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
 
-                // For high depths, verify the move first with a qsearch
-                if (depth >= 2 * ProbCutDepth)
-                    value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
 
-                // For low depths, or after the above, verify with a reduced search
-                if (depth < 2 * ProbCutDepth || value >= rBeta)
+
+                if (eval <= rBeta) {
+
+                    // For high depths, verify the move first with a qsearch
+                    if (depth >= 2 * ProbCutDepth)
+                        value = -search(thread, &lpv, -rBeta, -rBeta+1, 0);
+
+                    // For low depths, or after the above, verify with a reduced search
+                    if (depth < 2 * ProbCutDepth || value >= rBeta)
+                        value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+                }
+
+                else
                     value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
 
                 // Revert the board state
