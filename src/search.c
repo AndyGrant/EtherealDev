@@ -419,15 +419,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
+            // Verify moves at high depths or if they have negative SEE() scores
+            bool verify =  depth >= 2 * ProbCutDepth
+                       || (rBeta - eval < 0 && !staticExchangeEvaluation(board, move, 0));
+
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
 
                 // For high depths, verify the move first with a qsearch
-                if (depth >= 2 * ProbCutDepth)
+                if (verify)
                     value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
 
                 // For low depths, or after the above, verify with a reduced search
-                if (depth < 2 * ProbCutDepth || value >= rBeta)
+                if (!verify || value >= rBeta)
                     value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
 
                 // Revert the board state
@@ -459,14 +463,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
-        if (   best > -MATE_IN_MAX
+        if (   best > -TBWIN_IN_MAX
             && depth <= LateMovePruningDepth
             && movesSeen >= LateMovePruningCounts[improving][depth])
             skipQuiets = 1;
 
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > -MATE_IN_MAX) {
+        if (isQuiet && best > -TBWIN_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
             int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
@@ -506,7 +510,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (    best > -MATE_IN_MAX
+        if (    best > -TBWIN_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
