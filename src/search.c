@@ -416,25 +416,34 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Try tactical moves which maintain rBeta.
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-        initNoisyMovePicker(&movePicker, thread, rBeta - eval);
-        while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-            // Apply move, skip if move is illegal
-            if (apply(thread, board, move)) {
+        if (    ttHit
+            &&  ttDepth >= depth - 3
+            &&  ttValue != VALUE_NONE && ttValue < rBeta) {}
 
-                // For high depths, verify the move first with a qsearch
-                if (depth >= 2 * ProbCutDepth)
-                    value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
+        else {
+            // Try tactical moves which maintain rBeta.
+            rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
+            initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+            while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
-                // For low depths, or after the above, verify with a reduced search
-                if (depth < 2 * ProbCutDepth || value >= rBeta)
-                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+                // Apply move, skip if move is illegal
+                if (apply(thread, board, move)) {
 
-                // Revert the board state
-                revert(thread, board, move);
+                    // For high depths, verify the move first with a qsearch
+                    if (depth >= 2 * ProbCutDepth)
+                        value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
 
-                // Probcut failed high verifying the cutoff
-                if (value >= rBeta) return value;
+                    // For low depths, or after the above, verify with a reduced search
+                    if (depth < 2 * ProbCutDepth || value >= rBeta)
+                        value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+
+                    // Revert the board state
+                    revert(thread, board, move);
+
+                    // Probcut failed high verifying the cutoff
+                    if (value >= rBeta) return value;
+                }
             }
         }
     }
