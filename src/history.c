@@ -112,7 +112,7 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
 
 void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    static const int MVVAugment[] = {0, 2400, 2400, 4800, 9600};
+    static const int MVVAugment[] = {0, 2400, 2400, 4800, 9600, 0};
 
     for (int i = start; i < start + length; i++) {
 
@@ -130,7 +130,7 @@ void getCaptureHistories(Thread *thread, uint16_t *moves, int *scores, int start
 
         scores[i] = 64000 + thread->chistory[piece][to][captured];
         if (MovePromoPiece(moves[i]) == QUEEN) scores[i] += 64000;
-        scores[i] += MVVAugment[captured];
+        scores[i] += MVVAugment[captured] - MVVAugment[piece] / 4;
 
         assert(scores[i] >= 0);
     }
