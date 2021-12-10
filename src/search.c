@@ -599,6 +599,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // expectation that this move will be worth looking into deeper
         if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
 
+        extension = extension || (R != 1 && value > alpha + 256);
+        newDepth = depth + (extension && !RootNode);
+
         // Step 18B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
