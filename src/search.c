@@ -541,7 +541,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
+        int retval = 0;
+
+        extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta, &retval) : inCheck;
         newDepth = depth + (extension && !RootNode);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
@@ -550,7 +552,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         if (movePicker.stage == STAGE_DONE) {
             revert(thread, board, move);
-            return MAX(ttValue - depth, -MATE);
+            return retval;
         }
 
         // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
@@ -875,7 +877,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     return board->turn != colour;
 }
 
-int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta) {
+int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta, int *retval) {
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
@@ -915,6 +917,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         if (!moveIsTactical(board, move))
             updateKillerMoves(thread, move);
         mp->stage = STAGE_DONE;
+        *retval = value;
     }
 
     // Reapply the table move we took off
