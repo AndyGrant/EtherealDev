@@ -507,6 +507,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
+        // Allow the SEE() pruned moves to still get history maluses
+        if (isQuiet) quietsTried[quietsPlayed++] = move;
+        else capturesTried[capturesPlayed++] = move;
+
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
@@ -521,8 +525,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             continue;
 
         played += 1;
-        if (isQuiet) quietsTried[quietsPlayed++] = move;
-        else capturesTried[capturesPlayed++] = move;
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
