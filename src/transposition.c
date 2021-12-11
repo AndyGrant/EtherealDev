@@ -165,6 +165,13 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
         && depth < replace->depth - 2)
         return;
 
+    // Don't replace a recently added higher depth entry, with
+    // a cheap QSearch or depth-0 search entry
+    if (    depth == 0
+        &&  replace->depth > 2
+        && (replace->generation & TT_MASK_AGE) == Table.generation)
+        return;
+
     // Finally, copy the new data into the replaced slot
     replace->depth      = (int8_t  ) depth;
     replace->generation = (uint8_t ) bound | Table.generation;
