@@ -301,6 +301,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
+        // Ignore the Table Move if it came from a terrible QSearch
+        if (ttDepth == 0 && ttBound == BOUND_UPPER)
+            ttMove = NONE_MOVE;
+
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
         if (ttDepth >= depth && (depth == 0 || !PvNode)) {
