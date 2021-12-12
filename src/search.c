@@ -725,7 +725,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // combo, with a minor boost for pawn captures, would still fail to cover
     // the distance between alpha and the evaluation. Playing a move is futile.
     if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
+        return eval + QSDeltaMargin; // Assume we have at least something
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
