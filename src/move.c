@@ -61,7 +61,7 @@ int apply(Thread *thread, Board *board, uint16_t move) {
 
         ns->movedPiece    = EMPTY;
         ns->tactical      = false;
-        ns->continuations = NULL;
+        ns->continuations = &thread->continuation[0][0][0];
         ns->move          = NULL_MOVE;
 
         applyNullMove(board, &thread->undoStack[thread->height]);
