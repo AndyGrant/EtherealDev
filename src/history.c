@@ -74,6 +74,10 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
         // Update Move History if it exists
         if ((ns-2)->continuations != NULL)
             updateHistoryWithDecay(&(*(ns-2)->continuations)[1][piece][to], delta);
+
+        // Update Move History if it exists
+        if ((ns-4)->continuations != NULL)
+            updateHistoryWithDecay(&(*(ns-4)->continuations)[2][piece][to], delta);
     }
 }
 
@@ -172,8 +176,11 @@ int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
     *fmhist = (ns-2)->continuations == NULL ? 0
             : (*(ns-2)->continuations)[1][piece][to];
 
+    int smhist = (ns-4)->continuations == NULL ? 0
+              : (*(ns-4)->continuations)[2][piece][to];
+
     // Return CMHist + FMHist + ButterflyHist
-    return *cmhist + *fmhist + thread->history[thread->board.turn][from][to];
+    return *cmhist + *fmhist + smhist + thread->history[thread->board.turn][from][to];
 }
 
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
@@ -197,6 +204,10 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
         // Add Followup Move History if it exists
         if ((ns-2)->continuations != NULL)
             scores[i] += (*(ns-2)->continuations)[1][piece][to];
+
+        //
+        if ((ns-4)->continuations != NULL)
+            scores[i] += (*(ns-4)->continuations)[2][piece][to];
     }
 }
 

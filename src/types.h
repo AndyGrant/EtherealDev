@@ -50,7 +50,7 @@ enum {
     SQUARE_NB = 64, COLOUR_NB = 2,
     RANK_NB   =  8, FILE_NB   = 8,
     PHASE_NB  =  2, PIECE_NB  = 6,
-    CONT_NB   =  2
+    CONT_NB   =  3
 };
 
 static inline int pieceType(int piece) {
