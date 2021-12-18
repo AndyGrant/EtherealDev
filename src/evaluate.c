@@ -1376,7 +1376,7 @@ int evaluateFixFRC(Board *board) {
         && testBit(theirs & pawns  , relativeSquare(us, SQ_G7)))
         adjustment += evaluate_fix_frc_helper(!us, SQ_G6, SQ_F6);
 
-    return adjustment;
+    return MakeScore(adjustment, adjustment);
 }
 
 
