@@ -55,9 +55,9 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
     getRefutationMoves(thread, &mp->killer1, &mp->killer2, &mp->counter);
 
     // General housekeeping
-    mp->threshold = 0;
-    mp->thread = thread;
-    mp->type = NORMAL_PICKER;
+    mp->threshold = !thread->board.kingAttackers;
+    mp->thread    = thread;
+    mp->type      = NORMAL_PICKER;
 }
 
 void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
