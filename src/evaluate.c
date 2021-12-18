@@ -1345,7 +1345,7 @@ int evaluateFixFRC(Board *board) {
 
     const int us   =  board->turn;
     const int them = !board->turn;
-    const int p1 = 144, p2 = 94, p3 = 102;
+    const int p1 = 72, p2 = 47, p3 = 51;
 
     const uint64_t ours   = board->colours[us  ];
     const uint64_t theirs = board->colours[them];
