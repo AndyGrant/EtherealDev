@@ -153,6 +153,8 @@ int evaluateSpace(EvalInfo *ei, Board *board, int colour);
 int evaluateClosedness(EvalInfo *ei, Board *board);
 int evaluateComplexity(EvalInfo *ei, Board *board, int eval);
 int evaluateScaleFactor(Board *board, int eval);
+int evaluateFixFRC(Board *board);
+
 void initEvalInfo(Thread *thread, Board *board, EvalInfo *ei);
 void initEval();
 
