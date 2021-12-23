@@ -24,6 +24,7 @@
 #include "bitboards.h"
 #include "board.h"
 #include "cmdline.h"
+#include "evaluate.h"
 #include "move.h"
 #include "pgn.h"
 #include "search.h"
@@ -266,6 +267,22 @@ static void buildHalfKPBook(int argc, char **argv) {
     fclose(fout);
 }
 
+static void evaluatePositions(int argc, char **argv) {
+
+    char line[256];
+    FILE *fin = fopen(argv[2], "r");
+    Thread *thread = createThreadPool(1);
+
+    while (fgets(line, 256, fin) != NULL) {
+
+        thread->height = 0;
+        thread->nnueStack[0].accurate = 0;
+        boardFromFEN(&thread->board, line, 0);
+
+        int eval = nnue_evaluate(thread, &thread->board);
+        printf("Eval = ( %d, %d ); Line = %s", ScoreMG(eval), ScoreEG(eval), line);
+    }
+}
 
 void handleCommandLine(int argc, char **argv) {
 
@@ -319,6 +336,13 @@ void handleCommandLine(int argc, char **argv) {
     // USAGE: ./Ethereal pgnfen <input>
     if (argc > 2 && strEquals(argv[1], "pgnfen")) {
         process_pgn(argv[2]);
+        exit(EXIT_SUCCESS);
+    }
+
+    // Convert a PGN file to a list of FENs with results and evals
+    // USAGE: ./Ethereal pgnfen <input>
+    if (argc >= 2 && strEquals(argv[1], "evaluate")) {
+        evaluatePositions(argc, argv);
         exit(EXIT_SUCCESS);
     }
 

@@ -496,16 +496,16 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
-    if (!accum->accurate) {
-
-        // Possible to recurse and incrementally update each
-        if (nnue_can_update(accum, board))
-            nnue_update_accumulator(accum, board, wrelksq, brelksq);
-
-        // History is missing, we must refresh completely
-        else
+    //if (!accum->accurate) {
+    //
+    //    // Possible to recurse and incrementally update each
+    //    if (nnue_can_update(accum, board))
+    //        nnue_update_accumulator(accum, board, wrelksq, brelksq);
+    //
+    //    // History is missing, we must refresh completely
+    //    else
             nnue_refresh_accumulators(accum, board, wrelksq, brelksq);
-    }
+    //}
 
     // Feed-forward the entire evaluation function
     halfkp_relu(accum, out8, board->turn);
@@ -514,8 +514,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = 154 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    eg_eval = 110 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
 
     // Cap the NNUE evaluation within [-1000, 1000]
     mg_eval = MAX(-1000, MIN(1000, mg_eval));
