@@ -892,6 +892,10 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     initSingularMovePicker(&movePicker, thread, mp->tableMove);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
+        // Skip over remaining good tacticals after the Limit
+        if (tacticals >= SingularTacticalLimit
+            && moveIsTactical(board, move)) continue;
+
         assert(move != mp->tableMove); // Skip the table move
 
         // Perform a reduced depth search on a null rbeta window
@@ -905,10 +909,6 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         // Start skipping quiets after a few have been tried
         moveIsTactical(board, move) ? tacticals++ : quiets++;
         skipQuiets = quiets >= SingularQuietLimit;
-
-        // Skip over remaining good tacticals after the Limit
-        if (tacticals >= SingularTacticalLimit)
-            mp->stage = MAX(mp->stage, STAGE_GOOD_NOISY+1);
 
         // Start skipping bad captures after a few have been tried
         if (    tacticals >= SingularTacticalLimit
