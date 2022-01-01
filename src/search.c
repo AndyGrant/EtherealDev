@@ -907,7 +907,10 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         skipQuiets = quiets >= SingularQuietLimit;
 
         // Start skipping bad captures after a few have been tried
-        if (skipQuiets && tacticals >= SingularTacticalLimit) break;
+        if (   skipQuiets
+            && mp->stage != STAGE_GOOD_NOISY
+            && tacticals >= SingularTacticalLimit)
+            break;
     }
 
     // MultiCut. We signal the Move Picker to terminate the search
