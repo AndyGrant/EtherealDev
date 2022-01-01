@@ -197,6 +197,7 @@ void aspirationWindow(Thread *thread) {
 
     int depth = thread->depth;
     int alpha = -MATE, beta = MATE, delta = WindowSize;
+    uint16_t previous_best = NONE_MOVE;
 
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
@@ -227,8 +228,13 @@ void aspirationWindow(Thread *thread) {
 
         // Search failed high, adjust window and reduce depth
         else if (pv->score >= beta) {
+
             beta = MIN(MATE, beta + delta);
-            depth = depth - (abs(pv->score) <= MATE / 2);
+
+            if (!previous_best || pv->line[0] == previous_best)
+                depth = depth - (abs(pv->score) <= MATE / 2);
+
+            previous_best = pv->line[0];
         }
 
         // Expand the search window
