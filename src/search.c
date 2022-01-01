@@ -44,7 +44,7 @@
 #include "uci.h"
 #include "windows.h"
 
-int LMRTable[64][64];
+int LMRTable[4][64][64];
 int LateMovePruningCounts[2][9];
 
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
@@ -99,9 +99,10 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
 void initSearch() {
 
     // Init Late Move Reductions Table
-    for (int depth = 1; depth < 64; depth++)
-        for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
+    for (int attempt = 0; attempt < 4; attempt++)
+        for (int depth = 1; depth < 64; depth++)
+            for (int played = 1; played < 64; played++)
+                LMRTable[attempt][depth][played] = 0.25 * (3 + attempt) + log(depth) * log(played) / 2.25;
 
     for (int depth = 1; depth < 9; depth++) {
         LateMovePruningCounts[0][depth] = 2.5 + 2 * depth * depth / 4.5;
@@ -198,6 +199,8 @@ void aspirationWindow(Thread *thread) {
     int depth = thread->depth;
     int alpha = -MATE, beta = MATE, delta = WindowSize;
 
+    thread->researches = 0; // Track total fail-low / fail-highs
+
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
         alpha = MAX(-MATE, thread->pvs[thread->completed].score - delta);
@@ -233,6 +236,7 @@ void aspirationWindow(Thread *thread) {
 
         // Expand the search window
         delta = delta + delta / 2;
+        thread->researches++;
     }
 }
 
@@ -473,7 +477,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            int lmrDepth = MAX(0, depth - LMRTable[MIN(3, thread->researches)][MIN(depth, 63)][MIN(played, 63)]);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
@@ -559,7 +563,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(3, thread->researches)][MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
