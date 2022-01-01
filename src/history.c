@@ -89,7 +89,8 @@ void updateKillerMoves(Thread *thread, uint16_t move) {
 
 void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
 
-    const int bonus = MIN(depth * depth, HistoryMax);
+    const int best_tactical = moveIsTactical(&thread->board, best);
+    const int bonus = MIN((best_tactical ? 1 : 2) * depth * depth, HistoryMax);
 
     for (int i = 0; i < length; i++) {
 
