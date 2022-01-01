@@ -443,6 +443,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
+    if (   !PvNode
+        &&  inCheck
+        &&  depth >= ProbCutDepth
+        &&  abs(beta) < TBWIN_IN_MAX
+        &&  abs(ttValue) < TBWIN_IN_MAX
+        &&  ttDepth >= depth - 3
+        && (ttBound & BOUND_LOWER)
+        &&  moveIsTactical(board, ttMove)
+        &&  ttValue >= beta + 2 * ProbCutMargin)
+        return beta + 2 * ProbCutMargin;
+
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove);
