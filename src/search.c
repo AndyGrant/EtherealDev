@@ -359,7 +359,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Reset Killer moves for our children to our parent's killers
     thread->killers[thread->height+1][0] = thread->killers[thread->height-1][0];
-    thread->killers[thread->height+1][1] = thread->killers[thread->height-1][0];
+    thread->killers[thread->height+1][1] = thread->killers[thread->height-1][1];
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
