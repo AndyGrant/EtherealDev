@@ -301,9 +301,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
-        // Only cut with a greater depth search, and do not return
-        // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        // Only cut with a greater depth search
+        if (ttDepth >= depth && !PvNode) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
@@ -332,9 +331,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 : tbresult == TB_WIN  ? BOUND_LOWER : BOUND_EXACT;
 
         // Check to see if the WDL value would cause a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && value >= beta)
-            || (ttBound == BOUND_UPPER && value <= alpha)) {
+        if (   ((ttBound & BOUND_LOWER) && value >= beta)
+            || ((ttBound & BOUND_UPPER) && value <= alpha)) {
 
             storeTTEntry(board->hash, thread->height, NONE_MOVE, value, VALUE_NONE, depth, ttBound);
             return value;
@@ -668,6 +666,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     Board *const board = &thread->board;
+    const int PvNode   = (alpha != beta - 1);
 
     int eval, value, best, oldAlpha = alpha;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
@@ -701,12 +700,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         return evaluateBoard(thread, board);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if (!PvNode && (ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         // Table is exact or produces a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && ttValue >= beta)
-            || (ttBound == BOUND_UPPER && ttValue <= alpha))
+        if (   ((ttBound & BOUND_LOWER) && ttValue >= beta)
+            || ((ttBound & BOUND_UPPER) && ttValue <= alpha))
             return ttValue;
     }
 
@@ -724,7 +722,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
     // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
+    if (!PvNode && MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
         return eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
@@ -741,7 +739,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         if (!apply(thread, board, move)) continue;
 
         // Short-circuit QS and assume a stand-pat matches the SEE
-        if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
+        if (  !PvNode
+            && eval + pessimism > beta
+            && abs(eval + pessimism) < MATE / 2) {
+
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
