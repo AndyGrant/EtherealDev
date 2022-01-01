@@ -474,6 +474,9 @@ void nnue_incbin_init() {
 
 int nnue_evaluate(Thread *thread, Board *board) {
 
+    static int TRIED = 0;
+    static int FAILED = 0;
+
     int mg_eval, eg_eval;
     const uint64_t white = board->colours[WHITE];
     const uint64_t black = board->colours[BLACK];
@@ -496,10 +499,16 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
+    TRIED++;
+    FAILED += !accum->accurate;
+
+    if (TRIED % 100000 == 0)
+        printf("T=%d F=%d S=%d\n", TRIED, FAILED, TRIED - FAILED);
+
     if (!accum->accurate) {
 
         // Possible to recurse and incrementally update each
-        if (nnue_can_update(accum, board))
+        if (thread->nnueStack[thread->height-1].accurate)
             nnue_update_accumulator(accum, board, wrelksq, brelksq);
 
         // History is missing, we must refresh completely
