@@ -308,8 +308,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
                 || (ttBound == BOUND_LOWER && ttValue >= beta)
-                || (ttBound == BOUND_UPPER && ttValue <= alpha))
+                || (ttBound == BOUND_UPPER && ttValue <= alpha)) {
+
+                if (!moveIsTactical(board, ttMove))
+                    updateKillerMoves(thread, ttMove);
+
                 return ttValue;
+            }
         }
     }
 
