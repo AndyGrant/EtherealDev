@@ -254,6 +254,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     MovePicker movePicker;
     PVariation lpv;
 
+    bool couldTTCut = false;
+
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
     if (depth <= 0 && !board->kingAttackers)
@@ -311,6 +313,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
+
+        couldTTCut = ttDepth >= depth
+                  && (   ((ttBound & BOUND_LOWER) && ttValue >= beta)
+                      || ((ttBound & BOUND_UPPER) && ttValue <= alpha));
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -563,6 +569,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
+
+            // Would have cut if not for being in a PV Node
+            R += couldTTCut;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
