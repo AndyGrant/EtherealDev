@@ -570,9 +570,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Increase for non PV, non improving
             R += !PvNode + !improving;
 
-            // Would have cut if not for being in a PV Node
-            R += couldTTCut;
-
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
@@ -652,11 +649,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 20 (~760 elo). Update History counters on a fail high for a quiet move.
     // We also update Capture History Heuristics, which augment or replace MVV-LVA.
 
+    int hist_depth = depth + (couldTTCut && bestMove != ttMove);
+
     if (best >= beta && !moveIsTactical(board, bestMove))
-        updateHistoryHeuristics(thread, quietsTried, quietsPlayed, depth);
+        updateHistoryHeuristics(thread, quietsTried, quietsPlayed, hist_depth);
 
     if (best >= beta)
-        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth);
+        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, hist_depth);
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
