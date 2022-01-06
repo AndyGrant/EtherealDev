@@ -303,7 +303,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
 
     ttHit = getTTEntry(&Table, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
-    if (!ttHit && PvNode && thread->nthreads > 1)
+    if (!ttHit && thread->nthreads > 1)
         ttHit = getTTEntry(&thread->pvtable, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
 
     if (ttHit) {
@@ -670,7 +670,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         storeTTEntry(&Table, board->hash, thread->height, bestMove, best, eval, depth, ttBound);
 
-        if (PvNode && thread->nthreads > 1)
+        if (thread->nthreads > 1)
             storeTTEntry(&thread->pvtable, board->hash, thread->height, bestMove, best, eval, depth, ttBound);
     }
 
