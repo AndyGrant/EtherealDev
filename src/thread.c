@@ -46,6 +46,9 @@ Thread* createThreadPool(int nthreads) {
         // Must dynamically allocate for the ALIGNs needed
         threads[i].nnueStack = nnue_create_accumulators();
 
+        // Init a 2MB thread-local PV TT
+        init_TT(&threads[i].pvtable, 2);
+
         // Threads will know of each other
         threads[i].index = i;
         threads[i].threads = threads;
@@ -59,6 +62,9 @@ void deleteThreadPool(Thread *threads) {
 
     for (int i = 0; i < threads->nthreads; i++)
         nnue_delete_accumulators(threads[i].nnueStack);
+
+    for (int i = 0; i < threads->nthreads; i++)
+        free(threads[i].pvtable.buckets);
 
     free(threads);
 }
@@ -80,6 +86,8 @@ void resetThreadPool(Thread *threads) {
         memset(&threads[i].history, 0, sizeof(HistoryTable));
         memset(&threads[i].chistory, 0, sizeof(CaptureHistoryTable));
         memset(&threads[i].continuation, 0, sizeof(ContinuationTable));
+
+        clear_TT(&threads[i].pvtable);
     }
 }
 
@@ -101,6 +109,8 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
         memcpy(&threads[i].board, board, sizeof(Board));
         threads[i].board.thread = &threads[i];
         threads[i].nnueStack[0].accurate = 0;
+
+        update_TT(&threads[i].pvtable);
     }
 }
 

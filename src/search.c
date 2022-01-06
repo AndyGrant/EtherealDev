@@ -50,7 +50,7 @@ int LateMovePruningCounts[2][9];
 volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 volatile int ANALYSISMODE; // Whether to make some changes for Analysis
-
+extern TTable Table;       // Defined by transposition.c
 
 static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
 
@@ -120,8 +120,8 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
             return;
 
     // Minor house keeping for starting a search
-    update_TT(); // Table has an age component
-    ABORT_SIGNAL = 0; // Otherwise Threads will exit
+    update_TT(&Table); // Table has an age component
+    ABORT_SIGNAL = 0;  // Otherwise Threads will exit
     initTimeManagment(&info, limits);
     newSearchThreadPool(threads, board, limits, &info);
 
@@ -298,8 +298,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (rAlpha >= rBeta) return rAlpha;
     }
 
+
+
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+
+    ttHit = getTTEntry(&Table, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
+    if (!ttHit && PvNode && thread->nthreads > 1)
+        getTTEntry(&thread->pvtable, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
+
+    if (ttHit) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
@@ -336,7 +343,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             || (ttBound == BOUND_LOWER && value >= beta)
             || (ttBound == BOUND_UPPER && value <= alpha)) {
 
-            storeTTEntry(board->hash, thread->height, NONE_MOVE, value, VALUE_NONE, depth, ttBound);
+            storeTTEntry(&Table, board->hash, thread->height, NONE_MOVE, value, VALUE_NONE, depth, ttBound);
             return value;
         }
     }
@@ -435,7 +442,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Store an entry if we don't have a better one already
                 if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
-                    storeTTEntry(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
+                    storeTTEntry(&Table, board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
 
                 // Probcut failed high verifying the cutoff
                 if (value >= rBeta) return value;
@@ -657,9 +664,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 22. Store results of search into the Transposition Table. We do
     // not overwrite the Root entry from the first line of play we examined
     if (!RootNode || !thread->multiPV) {
+
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        storeTTEntry(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
+
+        storeTTEntry(&Table, board->hash, thread->height, bestMove, best, eval, depth, ttBound);
+
+        if (PvNode && thread->nthreads > 1)
+            storeTTEntry(&thread->pvtable, board->hash, thread->height, bestMove, best, eval, depth, ttBound);
     }
 
     return best;
@@ -701,7 +713,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         return evaluateBoard(thread, board);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = getTTEntry(&Table, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         // Table is exact or produces a cutoff
         if (    ttBound == BOUND_EXACT
@@ -776,7 +788,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
             : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    storeTTEntry(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    storeTTEntry(&Table, board->hash, thread->height, bestMove, best, eval, 0, ttBound);
 
     return best;
 }

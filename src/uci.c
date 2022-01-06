@@ -48,6 +48,7 @@ extern volatile int ABORT_SIGNAL; // Defined by search.c
 extern volatile int IS_PONDERING; // Defined by search.c
 extern volatile int ANALYSISMODE; // Defined by search.c
 extern PKNetwork PKNN;            // Defined by network.c
+extern TTable Table;              // Defined by transposition.c
 
 pthread_mutex_t PONDERLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
 
     // Initialize core components of Ethereal
     initAttacks(); initMasks(); initEval();
-    initSearch(); initZobrist(); init_TT(16);
+    initSearch(); initZobrist(); init_TT(&Table, 16);
     initPKNetwork(&PKNN); nnue_incbin_init();
 
     // Create the UCI-board and our threads
@@ -116,7 +117,7 @@ int main(int argc, char **argv) {
             printf("readyok\n"), fflush(stdout);
 
         else if (strEquals(str, "ucinewgame"))
-            resetThreadPool(threads), clear_TT();
+            resetThreadPool(threads), clear_TT(&Table);
 
         else if (strStartsWith(str, "setoption"))
             uciSetOption(str, &threads, &multiPV, &chess960);
@@ -267,7 +268,7 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
 
     if (strStartsWith(str, "setoption name Hash value ")) {
         int megabytes = atoi(str + strlen("setoption name Hash value "));
-        printf("info string set Hash to %dMB\n", init_TT(megabytes));
+        printf("info string set Hash to %dMB\n", init_TT(&Table, megabytes));
     }
 
     if (strStartsWith(str, "setoption name Threads value ")) {
@@ -377,7 +378,7 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) 
     // interested in. Also, bound the value passed by alpha and
     // beta, since Ethereal uses a mix of fail-hard and fail-soft
 
-    int hashfull    = hashfullTT();
+    int hashfull    = hashfullTT(&Table);
     int depth       = threads->depth;
     int seldepth    = threads->seldepth;
     int multiPV     = threads->multiPV + 1;

@@ -48,10 +48,11 @@ struct TTable {
     uint8_t generation;
 };
 
-int init_TT(int megabytes);
-int hashfullTT();
-void update_TT();
-void clear_TT();
+int init_TT(TTable *table, int megabytes);
+int hashfullTT(TTable *table);
+void update_TT(TTable *table);
+void clear_TT(TTable *table);
+
 void prefetchTTEntry(uint64_t hash);
-int getTTEntry(uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound);
-void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound);
+int getTTEntry(TTable *table, uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound);
+void storeTTEntry(TTable *table, uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound);

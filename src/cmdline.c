@@ -35,6 +35,8 @@
 
 #include "nnue/nnue.h"
 
+extern TTable Table;     // Defined by transposition.c
+
 typedef struct PSQBBSample {
     uint64_t occupied;   // 8-byte occupancy bitboard ( All Pieces )
     int16_t  eval;       // 2-byte int for the target evaluation
@@ -102,7 +104,7 @@ static void runBenchmark(int argc, char **argv) {
         printf("info string set EvalFile to %s\n", argv[5]);
     }
 
-    init_TT(megabytes);
+    init_TT(&Table, megabytes);
     time = getRealTime();
     threads = createThreadPool(nthreads);
 
@@ -122,7 +124,7 @@ static void runBenchmark(int argc, char **argv) {
         times[i] = getRealTime() - limits.start;
         nodes[i] = nodesSearchedThreadPool(threads);
 
-        clear_TT(); // Reset TT between searches
+        clear_TT(&Table); // Reset TT between searches
     }
 
     printf("\n===============================================================================\n");
@@ -168,13 +170,13 @@ static void runEvalBook(int argc, char **argv) {
     limits.multiPV = 1;
     limits.limitedByDepth = 1;
     limits.depthLimit = depth;
-    init_TT(megabytes);
+    init_TT(&Table, megabytes);
 
     while ((fgets(line, 256, book)) != NULL) {
         limits.start = getRealTime();
         boardFromFEN(&board, line, 0);
         getBestMove(threads, &board, &limits, &best, &ponder, &score);
-        resetThreadPool(threads); clear_TT();
+        resetThreadPool(threads); clear_TT(&Table);
         printf("FEN: %s", line);
     }
 

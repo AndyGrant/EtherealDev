@@ -64,6 +64,8 @@ struct Thread {
     NNUEAccumulator *nnueStack;
     Undo undoStack[STACK_SIZE];
 
+    TTable pvtable;
+
     ALIGN64 EvalTable evtable;
     ALIGN64 PKTable pktable;
     ALIGN64 KillerTable killers;
