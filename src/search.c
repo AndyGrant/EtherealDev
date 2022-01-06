@@ -301,16 +301,20 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
-        // Only cut with a greater depth search, and do not return
-        // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        const bool cutoff =  ttBound == BOUND_EXACT
+                         || (ttBound == BOUND_LOWER && ttValue >= beta)
+                         || (ttBound == BOUND_UPPER && ttValue <= alpha);
 
-            // Table is exact or produces a cutoff
-            if (    ttBound == BOUND_EXACT
-                || (ttBound == BOUND_LOWER && ttValue >= beta)
-                || (ttBound == BOUND_UPPER && ttValue <= alpha))
-                return ttValue;
-        }
+        if (    cutoff
+            &&  ttDepth >= depth
+            && (depth == 0 || !PvNode))
+            return ttValue;
+
+        if (    cutoff
+            && !RootNode
+            &&  ttDepth >= depth * 2
+            &&  moveIsPseudoLegal(board, ttMove))
+            return ttValue;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
