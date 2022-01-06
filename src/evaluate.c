@@ -476,11 +476,11 @@ int evaluateBoard(Thread *thread, Board *board) {
         // Store a new Pawn King Entry if we did not have one
         if (!TRACE && ei.pkentry == NULL)
             storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval, ei.pksafety[WHITE], ei.pksafety[BLACK]);
-
-        // Scale evaluation based on remaining material
-        factor = evaluateScaleFactor(board, eval);
-        if (TRACE) T.factor = factor;
     }
+
+    // Scale evaluation based on remaining material
+    factor = evaluateScaleFactor(board, eval);
+    if (TRACE) T.factor = factor;
 
     // Calculate the game phase based on remaining material (Fruit Method)
     phase = 4 * popcount(board->pieces[QUEEN ])
