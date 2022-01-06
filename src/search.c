@@ -304,7 +304,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     ttHit = getTTEntry(&Table, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
     if (!ttHit && PvNode && thread->nthreads > 1)
-        getTTEntry(&thread->pvtable, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
+        ttHit = getTTEntry(&thread->pvtable, board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound);
 
     if (ttHit) {
 
