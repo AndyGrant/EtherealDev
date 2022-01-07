@@ -543,7 +543,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
 
-        if (    board->kingAttackers
+        if (    hist > 8000
+            &&  board->kingAttackers
             &&  movePicker.stage == STAGE_GOOD_NOISY)
             extension = 1;
 
