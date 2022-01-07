@@ -545,7 +545,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Extend pawn pushes to the 7th Rank
         if (    isQuiet
-            &&  testBit(MoveTo(move), RANK_2 | RANK_7)
+            &&  testBit(RANK_2 | RANK_7, MoveTo(move))
             &&  pieceType(board->squares[MoveTo(move)]) == PAWN)
             extension = 1;
 
