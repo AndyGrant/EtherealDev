@@ -644,7 +644,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (best >= beta && !moveIsTactical(board, bestMove))
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, depth);
 
-    if (best >= beta)
+    if (best > oldAlpha)
         updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth);
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
