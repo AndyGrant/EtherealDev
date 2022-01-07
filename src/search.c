@@ -910,8 +910,13 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
     // MultiCut. We signal the Move Picker to terminate the search
     if (value > rBeta && rBeta >= beta) {
+
         if (!moveIsTactical(board, move))
             updateKillerMoves(thread, move);
+
+        if (!moveIsTactical(board, mp->tableMove))
+            updateKillerMoves(thread, mp->tableMove);
+
         mp->stage = STAGE_DONE;
     }
 
