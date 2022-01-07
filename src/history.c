@@ -151,7 +151,8 @@ int getCaptureHistory(Thread *thread, uint16_t move) {
     assert(PAWN <= captured && captured <= QUEEN);
 
     return thread->chistory[piece][to][captured]
-         + 64000 * (MovePromoPiece(move) == QUEEN);
+         + 128000 * (MovePromoPiece(move) == QUEEN)
+         -  64000 * (MoveType(move) == PROMOTION_MOVE);
 }
 
 
