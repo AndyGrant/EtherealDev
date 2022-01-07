@@ -542,6 +542,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
+
+        // Extend pawn pushes to the 7th Rank
+        if (    isQuiet
+            &&  testBit(MoveTo(move), RANK_2 | RANK_7)
+            &&  pieceType(board->squares[MoveTo(move)]) == PAWN)
+            extension = 1;
+
         newDepth = depth + (extension && !RootNode);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
