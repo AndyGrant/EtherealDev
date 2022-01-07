@@ -164,16 +164,17 @@ int getHistory(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
     const int from  = MoveFrom(move);
     const int piece = pieceType(thread->board.squares[from]);
 
-    // Set Counter Move History if it exists
-    *cmhist = (ns-1)->continuations == NULL ? 0
-            : (*(ns-1)->continuations)[0][piece][to];
+    const bool has_cmhist = (ns-1)->continuations != NULL;
+    const bool has_fmhist = (ns-2)->continuations != NULL;
 
-    // Set Followup Move History if it exists
-    *fmhist = (ns-2)->continuations == NULL ? 0
-            : (*(ns-2)->continuations)[1][piece][to];
+    // Set Counter Move & Followup Move History if it exists
+    *cmhist = !has_cmhist ? 0 : (*(ns-1)->continuations)[0][piece][to];
+    *fmhist = !has_fmhist ? 0 : (*(ns-2)->continuations)[1][piece][to];
 
-    // Return CMHist + FMHist + ButterflyHist
-    return *cmhist + *fmhist + thread->history[thread->board.turn][from][to];
+    const int total = *cmhist + *fmhist + thread->history[thread->board.turn][from][to];
+
+    // Scale up by 50% when missing either CM or FM histories
+    return (!has_cmhist || !has_fmhist) ? 3 * total / 2 : total;
 }
 
 void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
