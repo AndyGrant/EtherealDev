@@ -542,7 +542,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
-                             : board->kingAttackers;
+                             : !!board->kingAttackers;
 
         newDepth = depth + (extension && !RootNode);
 
