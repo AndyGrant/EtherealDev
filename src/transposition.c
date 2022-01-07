@@ -141,6 +141,14 @@ int getTTEntry(uint64_t hash, int height, uint16_t *move, int *value, int *eval,
     return 0;
 }
 
+static int replacement_score(TTEntry *candidate) {
+
+    int bound_component = (candidate->generation & TT_MASK_BOUND);
+    int age_component   = (259 + Table.generation - candidate->generation) & TT_MASK_AGE;
+
+    return candidate->depth - age_component + bound_component;
+}
+
 void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound) {
 
     int i;
@@ -151,8 +159,7 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
+        if (replacement_score(replace) >= replacement_score(&slots[i]))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
