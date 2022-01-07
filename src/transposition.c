@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -143,10 +144,11 @@ int getTTEntry(uint64_t hash, int height, uint16_t *move, int *value, int *eval,
 
 static int replacement_score(TTEntry *candidate) {
 
+    int depth_component = candidate->depth;
     int bound_component = (candidate->generation & TT_MASK_BOUND);
     int age_component   = (259 + Table.generation - candidate->generation) & TT_MASK_AGE;
 
-    return candidate->depth - age_component + bound_component;
+    return depth_component - age_component + bound_component;
 }
 
 void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound) {
