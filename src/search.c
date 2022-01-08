@@ -422,6 +422,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
 
+                // Sneak this move in for future move ordering
+                if (!ttMove) ttMove = move;
+
                 // For high depths, verify the move first with a qsearch
                 if (depth >= 2 * ProbCutDepth)
                     value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
