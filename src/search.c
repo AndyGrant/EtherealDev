@@ -449,7 +449,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
-    if (!ttHit && thread->nthreads > 1 && tried_probcut || tried_nmp) {
+    if (!ttHit && thread->nthreads > 1 && (tried_probcut || tried_nmp)) {
 
         // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
         if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
