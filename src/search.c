@@ -1,4 +1,4 @@
-/*
+                                                              /*
   Ethereal is a UCI chess playing engine authored by Andrew Grant.
   <https://github.com/AndyGrant/Ethereal>     <andrew@grantnet.us>
 
@@ -313,6 +313,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
+    bool tried_nmp = false, tried_probcut = false;
+
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
     // the conditions about the board, the existance of tables, the probe depth,
     // as well as to not probe at the Root. The return is defined by the Pyrrhic API
@@ -404,6 +406,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         revert(thread, board, NULL_MOVE);
 
         if (value >= beta) return beta;
+
+        tried_nmp = true;
     }
 
     // Step 10 (~9 elo). Probcut Pruning. If we have a good capture that causes a
@@ -439,6 +443,26 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Probcut failed high verifying the cutoff
                 if (value >= rBeta) return value;
+            }
+
+            tried_probcut = true;
+        }
+    }
+
+    if (!ttHit && thread->nthreads > 1 && tried_probcut || tried_nmp) {
+
+        // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
+        if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+
+            // Only cut with a greater depth search, and do not return
+            // when in a PvNode, unless we would otherwise hit a qsearch
+            if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+
+                // Table is exact or produces a cutoff
+                if (    ttBound == BOUND_EXACT
+                    || (ttBound == BOUND_LOWER && ttValue >= beta)
+                    || (ttBound == BOUND_UPPER && ttValue <= alpha))
+                    return ttValue;
             }
         }
     }
