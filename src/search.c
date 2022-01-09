@@ -455,6 +455,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         movesSeen += 1;
         isQuiet = !moveIsTactical(board, move);
 
+
+        applyLegal(thread, board, move);
+        bool gives_check = !!board->kingAttackers;
+        revert(thread, board, move);
+
         // All moves have one or more History scores
         hist = !isQuiet ? getCaptureHistory(thread, move)
              : getHistory(thread, move, &cmhist, &fmhist);
