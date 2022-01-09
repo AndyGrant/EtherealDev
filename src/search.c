@@ -506,7 +506,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
 
             // Step 13D (). General History Pruning
-            if (   hist < -2000 * (lmrDepth + 2)
+            if (   hist < -2000 * (lmrDepth + 4)
                 && movePicker.stage > STAGE_COUNTER_MOVE
                 && lmrDepth <= CounterMoveHistoryLimit[improving])
                 continue;
