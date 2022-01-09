@@ -504,6 +504,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 && fmhist < FollowUpMoveHistoryLimit[improving]
                 && lmrDepth <= FollowUpMovePruningDepth[improving])
                 continue;
+
+            // Step 13D (). General History Pruning
+            if (   hist < -2000 * (lmrDepth + 2)
+                && movePicker.stage > STAGE_COUNTER_MOVE
+                && lmrDepth <= CounterMoveHistoryLimit[improving])
+                continue;
         }
 
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
