@@ -562,18 +562,20 @@ int moveIsLegal(Board *board, uint16_t move) {
 
     int sq, legal = 0;
 
-    const int from  = MoveFrom(move);
-    const int to    = MoveTo(move);
+    int rTo, rFrom;
 
-    const int fromPiece = board->squares[from];
-    const int toPiece   = board->squares[to];
+    int from  = MoveFrom(move);
+    int to    = MoveTo(move);
 
-    const int fromType = pieceType(fromPiece);
-    const int toType   = pieceType(toPiece);
-    const int toColour = pieceColour(toPiece);
+    int fromPiece = board->squares[from];
+    int toPiece   = board->squares[to];
 
-    const int ep = to - 8 + (board->turn << 4);
-    const int promotype = MovePromoPiece(move);
+    int fromType = pieceType(fromPiece);
+    int toType   = pieceType(toPiece);
+    int toColour = pieceColour(toPiece);
+
+    int ep = to - 8 + (board->turn << 4);
+    int promotype = MovePromoPiece(move);
 
     switch (MoveType(move)) {
 
@@ -598,20 +600,26 @@ int moveIsLegal(Board *board, uint16_t move) {
 
         case CASTLE_MOVE:
 
-            board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+            from = MoveFrom(move);
+            rFrom = MoveTo(move);
+
+            to = castleKingTo(from, rFrom);
+            rTo = castleRookTo(from, rFrom);
+
+            board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
             board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
-            board->pieces[toType]    ^= (1ull << to);
-            board->colours[toColour] ^= (1ull << to);
+            board->pieces[ROOK]         ^= (1ull << rFrom) ^ (1ull << rTo);
+            board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
 
             sq = getlsb(board->colours[board->turn] & board->pieces[KING]);
             legal = !squareIsAttacked(board, board->turn, sq);
 
-            board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+            board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
             board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
-            board->pieces[toType]    ^= (1ull << to);
-            board->colours[toColour] ^= (1ull << to);
+            board->pieces[ROOK]         ^= (1ull << rFrom) ^ (1ull << rTo);
+            board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
 
             return legal;
 
