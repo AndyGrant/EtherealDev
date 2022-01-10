@@ -467,9 +467,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
-        if (   best > -TBWIN_IN_MAX
-            && depth <= LateMovePruningDepth
-            && movesSeen >= LateMovePruningCounts[improving][depth])
+        if (   !gives_check
+            &&  best > -TBWIN_IN_MAX
+            &&  depth <= LateMovePruningDepth
+            &&  movesSeen >= LateMovePruningCounts[improving][depth])
             skipQuiets = 1;
 
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
@@ -514,8 +515,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of movePicker.stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
-        if (   !gives_check
-            &&  best > -TBWIN_IN_MAX
+        if (    best > -TBWIN_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  movePicker.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
