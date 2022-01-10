@@ -74,33 +74,13 @@ int apply(Thread *thread, Board *board, uint16_t move) {
         ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
         ns->move          = move;
 
-        // Apply the move and reject if illegal
         applyMove(board, move, &thread->undoStack[thread->height]);
-        if (!moveWasLegal(board))
-            return revertMove(board, move, &thread->undoStack[thread->height]), 0;
     }
 
     // Advance the Stack before updating
     thread->height++;
 
     return 1;
-}
-
-void applyLegal(Thread *thread, Board *board, uint16_t move) {
-
-    NodeState *const ns = &thread->states[thread->height];
-
-    ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
-    ns->tactical      = moveIsTactical(board, move);
-    ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
-    ns->move          = move;
-
-    // Assumed that this move is legal
-    applyMove(board, move, &thread->undoStack[thread->height]);
-    assert(moveWasLegal(board));
-
-    // Advance the Stack before updating
-    thread->height++;
 }
 
 void applyMove(Board *board, uint16_t move, Undo *undo) {
@@ -580,16 +560,104 @@ int moveBestCaseValue(Board *board) {
 
 int moveIsLegal(Board *board, uint16_t move) {
 
-    int legal; Undo undo;
+    int sq, legal = 0;
 
-    if (!moveIsPseudoLegal(board, move))
-        return 0;
+    const int from  = MoveFrom(move);
+    const int to    = MoveTo(move);
 
-    applyMove(board, move, &undo);
-    legal = moveWasLegal(board);
-    revertMove(board, move, &undo);
+    const int fromPiece = board->squares[from];
+    const int toPiece   = board->squares[to];
 
-    return legal;
+    const int fromType = pieceType(fromPiece);
+    const int toType   = pieceType(toPiece);
+    const int toColour = pieceColour(toPiece);
+
+    const int ep = to - 8 + (board->turn << 4);
+    const int promotype = MovePromoPiece(move);
+
+    switch (MoveType(move)) {
+
+        case NORMAL_MOVE:
+
+            board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[toType]    ^= (1ull << to);
+            board->colours[toColour] ^= (1ull << to);
+
+            sq = getlsb(board->colours[board->turn] & board->pieces[KING]);
+            legal = !squareIsAttacked(board, board->turn, sq);
+
+            board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[toType]    ^= (1ull << to);
+            board->colours[toColour] ^= (1ull << to);
+
+            return legal;
+
+        case CASTLE_MOVE:
+
+            board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[toType]    ^= (1ull << to);
+            board->colours[toColour] ^= (1ull << to);
+
+            sq = getlsb(board->colours[board->turn] & board->pieces[KING]);
+            legal = !squareIsAttacked(board, board->turn, sq);
+
+            board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[toType]    ^= (1ull << to);
+            board->colours[toColour] ^= (1ull << to);
+
+            return legal;
+
+        case ENPASS_MOVE:
+
+            board->pieces[PAWN]         ^= (1ull << from) ^ (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[PAWN]          ^= (1ull << ep);
+            board->colours[!board->turn] ^= (1ull << ep);
+
+            sq = getlsb(board->colours[board->turn] & board->pieces[KING]);
+            legal = !squareIsAttacked(board, board->turn, sq);
+
+            board->pieces[PAWN]         ^= (1ull << from) ^ (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[PAWN]          ^= (1ull << ep);
+            board->colours[!board->turn] ^= (1ull << ep);
+
+            return legal;
+
+        case PROMOTION_MOVE:
+
+            board->pieces[PAWN]         ^= (1ull << from);
+            board->pieces[promotype]    ^= (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[toType]    ^= (1ull << to);
+            board->colours[toColour] ^= (1ull << to);
+
+            sq = getlsb(board->colours[board->turn] & board->pieces[KING]);
+            legal = !squareIsAttacked(board, board->turn, sq);
+
+            board->pieces[PAWN]         ^= (1ull << from);
+            board->pieces[promotype]    ^= (1ull << to);
+            board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+            board->pieces[toType]    ^= (1ull << to);
+            board->colours[toColour] ^= (1ull << to);
+
+            return legal;
+    }
+
+    return 0;
+
 }
 
 int moveIsPseudoLegal(Board *board, uint16_t move) {

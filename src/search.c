@@ -418,27 +418,30 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
+            // Skip illegal moves
+            if (!moveIsLegal(board, move))
+                continue;
+
             // Apply move, skip if move is illegal
-            if (apply(thread, board, move)) {
+            apply(thread, board, move);
 
-                // For high depths, verify the move first with a qsearch
-                if (depth >= 2 * ProbCutDepth)
-                    value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
+            // For high depths, verify the move first with a qsearch
+            if (depth >= 2 * ProbCutDepth)
+                value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
 
-                // For low depths, or after the above, verify with a reduced search
-                if (depth < 2 * ProbCutDepth || value >= rBeta)
-                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+            // For low depths, or after the above, verify with a reduced search
+            if (depth < 2 * ProbCutDepth || value >= rBeta)
+                value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
 
-                // Revert the board state
-                revert(thread, board, move);
+            // Revert the board state
+            revert(thread, board, move);
 
-                // Store an entry if we don't have a better one already
-                if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
-                    storeTTEntry(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
+            // Store an entry if we don't have a better one already
+            if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
+                storeTTEntry(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
 
-                // Probcut failed high verifying the cutoff
-                if (value >= rBeta) return value;
-            }
+            // Probcut failed high verifying the cutoff
+            if (value >= rBeta) return value;
         }
     }
 
@@ -450,6 +453,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // MultiPV and searchmoves may limit our search options
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
+
+        // Skip any illegal moves
+        if (!moveIsLegal(board, move))
+            continue;
 
         // Track Moves Seen for Late Move Pruning
         movesSeen += 1;
@@ -515,11 +522,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
-        // Apply move, skip if move is illegal
-        if (!apply(thread, board, move))
-            continue;
-
-        played += 1;
+        apply(thread, board, move); played += 1;
         if (isQuiet) quietsTried[quietsPlayed++] = move;
         else capturesTried[capturesPlayed++] = move;
 
@@ -730,21 +733,23 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     initNoisyMovePicker(&movePicker, thread, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
+        // Skip illegal moves
+        if (!moveIsLegal(board, move))
+            continue;
+
         // Worst case which assumes we lose our piece immediately
         int pessimism = moveEstimatedValue(board, move)
                       - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
-        // Search the next ply if the move is legal
-        if (!apply(thread, board, move)) continue;
-
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
-            revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
             return beta;
         }
 
+        // Search the next ply if the move is legal
+        apply(thread, board, move);
         value = -qsearch(thread, &lpv, -beta, -alpha);
         revert(thread, board, move);
 
@@ -891,8 +896,11 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
         assert(move != mp->tableMove); // Skip the table move
 
+        // Skip illegal moves
+        if (!moveIsLegal(board, move)) continue;
+
         // Perform a reduced depth search on a null rbeta window
-        if (!apply(thread, board, move)) continue;
+        apply(thread, board, move);
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
         revert(thread, board, move);
 
@@ -915,8 +923,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     }
 
     // Reapply the table move we took off
-    else
-        applyLegal(thread, board, mp->tableMove);
+    else apply(thread, board, mp->tableMove);
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
