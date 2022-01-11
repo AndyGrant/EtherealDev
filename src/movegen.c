@@ -16,8 +16,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-
 #include "attacks.h"
 #include "board.h"
 #include "bitboards.h"
@@ -26,11 +24,10 @@
 #include "movegen.h"
 #include "types.h"
 
+typedef Bitboard (*JumperFunc)(Square);
+typedef Bitboard (*SliderFunc)(Square, Bitboard);
 
-typedef uint64_t (*JumperFunc)(int);
-typedef uint64_t (*SliderFunc)(int, uint64_t);
-
-uint16_t * buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
+Move* buildEnpassMoves(Move *moves, Bitboard attacks, Square epsq) {
 
     while (attacks)
         *(moves++) = MoveMake(poplsb(&attacks), epsq, ENPASS_MOVE);
@@ -38,20 +35,20 @@ uint16_t * buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
     return moves;
 }
 
-uint16_t * buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
+Move* buildPawnMoves(Move *moves, Bitboard attacks, Square delta) {
 
     while (attacks) {
-        int sq = poplsb(&attacks);
+        Square sq = poplsb(&attacks);
         *(moves++) = MoveMake(sq + delta, sq, NORMAL_MOVE);
     }
 
     return moves;
 }
 
-uint16_t * buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
+Move* buildPawnPromotions(Move *moves, Bitboard attacks, Square delta) {
 
     while (attacks) {
-        int sq = poplsb(&attacks);
+        Square sq = poplsb(&attacks);
         *(moves++) = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
         *(moves++) = MoveMake(sq + delta, sq,   ROOK_PROMO_MOVE);
         *(moves++) = MoveMake(sq + delta, sq, BISHOP_PROMO_MOVE);
@@ -61,7 +58,7 @@ uint16_t * buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
     return moves;
 }
 
-uint16_t * buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
+Move* buildNormalMoves(Move *moves, Bitboard attacks, Square sq) {
 
     while (attacks)
         *(moves++) = MoveMake(sq, poplsb(&attacks), NORMAL_MOVE);
@@ -69,20 +66,20 @@ uint16_t * buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
     return moves;
 }
 
-uint16_t * buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets) {
+Move* buildJumperMoves(JumperFunc F, Move *moves, Bitboard pieces, Bitboard targets) {
 
     while (pieces) {
-        int sq = poplsb(&pieces);
+        Square sq = poplsb(&pieces);
         moves = buildNormalMoves(moves, F(sq) & targets, sq);
     }
 
     return moves;
 }
 
-uint16_t * buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets, uint64_t occupied) {
+Move* buildSliderMoves(SliderFunc F, Move *moves, Bitboard pieces, Bitboard targets, Bitboard occupied) {
 
     while (pieces) {
-        int sq = poplsb(&pieces);
+        Square sq = poplsb(&pieces);
         moves = buildNormalMoves(moves, F(sq, occupied) & targets, sq);
     }
 
@@ -90,7 +87,7 @@ uint16_t * buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint
 }
 
 
-int genAllLegalMoves(Board *board, uint16_t *moves) {
+int genAllLegalMoves(Board *board, Move *moves) {
 
     Undo undo[1];
     int size = 0, pseudo = 0;
@@ -110,30 +107,25 @@ int genAllLegalMoves(Board *board, uint16_t *moves) {
     return size;
 }
 
-int genAllNoisyMoves(Board *board, uint16_t *moves) {
+int genAllNoisyMoves(Board *board, Move *moves) {
 
-    const uint16_t *start = moves;
+    const Move *start = moves;
 
-    const int Left    = board->turn == WHITE ? -7 : 7;
-    const int Right   = board->turn == WHITE ? -9 : 9;
-    const int Forward = board->turn == WHITE ? -8 : 8;
+    Square Left    = board->turn == WHITE ? -7 : 7;
+    Square Right   = board->turn == WHITE ? -9 : 9;
+    Square Forward = board->turn == WHITE ? -8 : 8;
 
-    uint64_t destinations, pawnEnpass, pawnLeft, pawnRight;
-    uint64_t pawnPromoForward, pawnPromoLeft, pawnPromoRight;
+    Bitboard destinations, pawnEnpass, pawnLeft, pawnRight;
+    Bitboard pawnPromoForward, pawnPromoLeft, pawnPromoRight;
 
-    uint64_t us       = board->colours[board->turn];
-    uint64_t them     = board->colours[!board->turn];
-    uint64_t occupied = us | them;
+    Bitboard occupied = board->get_pieces();
+    Bitboard them     = board->get_pieces(!board->turn);
 
-    uint64_t pawns   = us & (board->pieces[PAWN  ]);
-    uint64_t knights = us & (board->pieces[KNIGHT]);
-    uint64_t bishops = us & (board->pieces[BISHOP]);
-    uint64_t rooks   = us & (board->pieces[ROOK  ]);
-    uint64_t kings   = us & (board->pieces[KING  ]);
-
-    // Merge together duplicate piece ideas
-    bishops |= us & board->pieces[QUEEN];
-    rooks   |= us & board->pieces[QUEEN];
+    Bitboard pawns    = board->get_pieces(board->turn,   PAWN       );
+    Bitboard knights  = board->get_pieces(board->turn, KNIGHT       );
+    Bitboard bishops  = board->get_pieces(board->turn, BISHOP, QUEEN);
+    Bitboard rooks    = board->get_pieces(board->turn,   ROOK, QUEEN);
+    Bitboard kings    = board->get_pieces(board->turn,   KING       );
 
     // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers))
@@ -147,7 +139,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     pawnLeft         = pawnLeftAttacks(pawns, them, board->turn);
     pawnRight        = pawnRightAttacks(pawns, them, board->turn);
     pawnPromoForward = pawnAdvance(pawns, occupied, board->turn) & PROMOTION_RANKS;
-    pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS;
+    pawnPromoLeft    = pawnLeft  & PROMOTION_RANKS; pawnLeft  &= ~PROMOTION_RANKS;
     pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS;
 
     // Generate moves for all the Pawns, so long as they are noisy
@@ -167,7 +159,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     return moves - start;
 }
 
-int genAllQuietMoves(Board *board, uint16_t *moves) {
+int genAllQuietMoves(Board *board, Move *moves) {
 
     const uint16_t *start = moves;
 
@@ -177,19 +169,15 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     int rook, king, rookTo, kingTo, attacked;
     uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
 
-    uint64_t us       = board->colours[board->turn];
-    uint64_t occupied = us | board->colours[!board->turn];
-    uint64_t castles  = us & board->castleRooks;
+    uint64_t occupied = board->get_pieces();
+    uint64_t them     = board->get_pieces(!board->turn);
+    uint64_t castles  = board->castleRooks & ~them;
 
-    uint64_t pawns   = us & (board->pieces[PAWN  ]);
-    uint64_t knights = us & (board->pieces[KNIGHT]);
-    uint64_t bishops = us & (board->pieces[BISHOP]);
-    uint64_t rooks   = us & (board->pieces[ROOK  ]);
-    uint64_t kings   = us & (board->pieces[KING  ]);
-
-    // Merge together duplicate piece ideas
-    bishops |= us & board->pieces[QUEEN];
-    rooks   |= us & board->pieces[QUEEN];
+    uint64_t pawns    = board->get_pieces(board->turn,   PAWN       );
+    uint64_t knights  = board->get_pieces(board->turn, KNIGHT       );
+    uint64_t bishops  = board->get_pieces(board->turn, BISHOP, QUEEN);
+    uint64_t rooks    = board->get_pieces(board->turn,   ROOK, QUEEN);
+    uint64_t kings    = board->get_pieces(board->turn,   KING       );
 
     // Double checks can only be evaded by moving the King
     if (several(board->kingAttackers))

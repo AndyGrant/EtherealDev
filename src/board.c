@@ -353,3 +353,20 @@ uint64_t perft(Board *board, int depth) {
 
     return found;
 }
+
+
+Bitboard Board::get_pieces() const {
+    return colours[WHITE] | colours[BLACK];
+}
+
+Bitboard Board::get_pieces(Colour c) const {
+    return colours[c];
+}
+
+Bitboard Board::get_pieces(Colour c, Piece pt) const {
+    return pieces[pt] & colours[c];
+}
+
+Bitboard Board::get_pieces(Colour c, Piece pt1, Piece pt2) const {
+    return (pieces[pt1] | pieces[pt2]) & colours[c];
+}

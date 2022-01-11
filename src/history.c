@@ -206,7 +206,7 @@ void getRefutationMoves(Thread *thread, uint16_t *killer1, uint16_t *killer2, ui
 
     // Set Counter Move if one exists
     *counter = ((ns-1)->move == NONE_MOVE || (ns-1)->move == NULL_MOVE) ? NONE_MOVE
-             :  thread->cmtable[!thread->board.turn][(ns-1)->movedPiece][MoveTo((ns-1)->move)];
+             : (Move) thread->cmtable[!thread->board.turn][(ns-1)->movedPiece][MoveTo((ns-1)->move)];
 
     // Set Killer Moves by height
     *killer1 = thread->killers[thread->height][0];

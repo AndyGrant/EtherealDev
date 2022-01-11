@@ -28,7 +28,7 @@
 #include "../types.h"
 
 INLINE NNUEAccumulator* nnue_create_accumulators() {
-    return align_malloc(sizeof(NNUEAccumulator) * (MAX_PLY + 4));
+    return (NNUEAccumulator*) align_malloc(sizeof(NNUEAccumulator) * (MAX_PLY + 4));
 }
 
 INLINE void nnue_delete_accumulators(NNUEAccumulator* ptr) {

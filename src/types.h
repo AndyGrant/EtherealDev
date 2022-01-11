@@ -74,10 +74,11 @@ static inline int makePiece(int type, int colour) {
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 
-// Forward definition of all structs
+// Forward definition of all classes and structs
+
+class Board;
 
 typedef struct Magic Magic;
-typedef struct Board Board;
 typedef struct Undo Undo;
 typedef struct EvalTrace EvalTrace;
 typedef struct EvalInfo EvalInfo;
@@ -93,7 +94,13 @@ typedef struct TTable TTable;
 typedef struct Limits Limits;
 typedef struct UCIGoStruct UCIGoStruct;
 
-// Renamings, currently for move ordering
+// Renamings, mostly currently for move ordering
+
+typedef int Colour;
+typedef int Piece;
+typedef int Square;
+typedef uint16_t Move;
+typedef uint64_t Bitboard;
 
 typedef uint16_t KillerTable[MAX_PLY+1][2];
 typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];

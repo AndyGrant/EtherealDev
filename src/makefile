@@ -22,7 +22,7 @@
 ### Section 1. Flag Declarations. Detect NNUE/Classis and Release vs Native
 ### =========================================================================
 
-CC   = gcc
+CC   = g++
 SRC  = *.c pyrrhic/tbprobe.c
 LIBS = -lpthread -lm
 NN   = -DUSE_NNUE=0
@@ -38,11 +38,10 @@ ifdef OWNER
     SRC += nnue/*.c
 endif
 
-WFLAGS   = -std=gnu11 -Wall -Wextra -Wshadow
+WFLAGS   = -std=c++17 -Wall -Wextra -Wshadow
 RFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto $(NN) -static
 CFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto $(NN) -march=native
 TFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto $(NN) -march=native -fopenmp -DTUNE
-PGOFLAGS = -fno-asynchronous-unwind-tables
 
 POPCNTFLAGS = -DUSE_POPCNT -mpopcnt
 PEXTFLAGS   = -DUSE_PEXT -mbmi2 $(POPCNTFLAGS)
@@ -94,9 +93,9 @@ default:
 
 pgo:
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
-	$(CC) -fprofile-generate $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o $(EXE)
+	$(CC) -fprofile-generate $(CFLAGS) $(SRC) $(LIBS) -o $(EXE)
 	./$(EXE) bench
-	$(CC) -fprofile-use $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o $(EXE)
+	$(CC) -fprofile-use $(CFLAGS) $(SRC) $(LIBS) -o $(EXE)
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
 
 tune:

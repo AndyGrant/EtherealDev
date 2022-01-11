@@ -30,8 +30,8 @@
 #include "../thread.h"
 #include "../types.h"
 
-extern ALIGN64 int16_t in_weights[INSIZE * KPSIZE];
-extern ALIGN64 int16_t in_biases[KPSIZE];
+extern /* ALIGN64 */ int16_t in_weights[INSIZE * KPSIZE];
+extern /* ALIGN64 */ int16_t in_biases[KPSIZE];
 
 
 static int sq64_to_sq32(int sq) {

@@ -16,7 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <inttypes.h>
+#include <string>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,7 +83,7 @@ static void runBenchmark(int argc, char **argv) {
 
     Board board;
     Thread *threads;
-    Limits limits = {0};
+    Limits limits = {};
 
     int scores[256];
     double times[256];
@@ -154,7 +155,7 @@ static void runEvalBook(int argc, char **argv) {
     int score;
     Board board;
     char line[256];
-    Limits limits = {0};
+    Limits limits = {};
     uint16_t best, ponder;
     double start = getRealTime();
 
@@ -186,15 +187,13 @@ static void buildPSQBBBook(int argc, char **argv) {
     (void) argc;
 
     char line[256];
-    uint64_t positions = 0;
-    double start = getRealTime(), elapsed;
     FILE *fin = fopen(argv[2], "r");
     FILE *fout = fopen(argv[3], "wb");
 
     while (fgets(line, 256, fin) != NULL) {
 
         Board board;
-        PSQBBSample sample = {0};
+        PSQBBSample sample = {};
         boardFromFEN(&board, line, 0);
 
         sample.occupied = board.colours[WHITE] | board.colours[BLACK];
@@ -203,16 +202,7 @@ static void buildPSQBBBook(int argc, char **argv) {
         packBitboard(sample.packed, &board, sample.occupied);
 
         fwrite(&sample, sizeof(PSQBBSample), 1, fout);
-
-        if (positions++ % (1024 * 1024) == 0) {
-            elapsed = (getRealTime() - start) / 1000.0;
-            printf("\r[%.3fs] %" PRIu64 " Positions", elapsed, positions);
-            fflush(stdout);
-        }
     }
-
-    elapsed = (getRealTime() - start) / 1000.0;
-    printf("\r[%.3fs] %" PRIu64 " Positions\n", elapsed, positions);
 
     fclose(fin);
     fclose(fout);
@@ -223,8 +213,6 @@ static void buildHalfKPBook(int argc, char **argv) {
     (void) argc;
 
     char line[256];
-    uint64_t positions = 0;
-    double start = getRealTime(), elapsed;
     FILE *fin = fopen(argv[2], "r");
     FILE *fout = fopen(argv[3], "wb");
 
@@ -232,7 +220,7 @@ static void buildHalfKPBook(int argc, char **argv) {
     while (fgets(line, 256, fin) != NULL) {
 
         Board board;
-        HalfKPSample sample = {0};
+        HalfKPSample sample = {};
         boardFromFEN(&board, line, 0);
 
         uint64_t white  = board.colours[WHITE];
@@ -251,16 +239,7 @@ static void buildHalfKPBook(int argc, char **argv) {
         sample.result = sample.turn ? 2u - sample.result : sample.result;
 
         fwrite(&sample, sizeof(HalfKPSample), 1, fout);
-
-        if (positions++ % (1024 * 1024) == 0) {
-            elapsed = (getRealTime() - start) / 1000.0;
-            printf("\r[%.3fs] %" PRIu64 " Positions", elapsed, positions);
-            fflush(stdout);
-        }
     }
-
-    elapsed = (getRealTime() - start) / 1000.0;
-    printf("\r[%.3fs] %" PRIu64 " Positions\n", elapsed, positions);
 
     fclose(fin);
     fclose(fout);
@@ -270,7 +249,7 @@ static void buildHalfKPBook(int argc, char **argv) {
 void handleCommandLine(int argc, char **argv) {
 
     // Output all the wonderful things we can do from the Command Line
-    if (argc > 1 && strEquals(argv[1], "--help")) {
+    if (argc > 1 && std::string(argv[1]) == "--help") {
         printf("\nbench       [depth=13] [threads=1] [hash=16] [NNUE=None]");
         printf("\n            Run searches on a set of positions to compute a hash\n");
         printf("\nevalbook    [input-file] [depth=12] [threads=1] [hash=2]");
@@ -289,35 +268,35 @@ void handleCommandLine(int argc, char **argv) {
 
     // Benchmark is being run from the command line
     // USAGE: ./Ethereal bench <depth> <threads> <hash> <evalfile>
-    if (argc > 1 && strEquals(argv[1], "bench")) {
+    if (argc > 1 && std::string(argv[1]) == "bench") {
         runBenchmark(argc, argv);
         exit(EXIT_SUCCESS);
     }
 
     // Evaluate all positions in a datafile to a given depth
     // USAGE: ./Ethereal evalbook <book> <depth> <threads> <hash>
-    if (argc > 2 && strEquals(argv[1], "evalbook")) {
+    if (argc > 2 && std::string(argv[1]) == "evalbook") {
         runEvalBook(argc, argv);
         exit(EXIT_SUCCESS);
     }
 
     // Build a .nndata file using the PSQBB Architecture
     // USAGE: ./Ethereal psqbb <input> <output>
-    if (argc > 3 && strEquals(argv[1], "psqbb")) {
+    if (argc > 3 && std::string(argv[1]) == "psqbb") {
         buildPSQBBBook(argc, argv);
         exit(EXIT_SUCCESS);
     }
 
     // Build a .nndata file using the HalfKP Architecture
     // USAGE: ./Ethereal halfkp <input> <output>
-    if (argc > 3 && strEquals(argv[1], "halfkp")) {
+    if (argc > 3 && std::string(argv[1]) == "halfkp") {
         buildHalfKPBook(argc, argv);
         exit(EXIT_SUCCESS);
     }
 
     // Convert a PGN file to a list of FENs with results and evals
     // USAGE: ./Ethereal pgnfen <input>
-    if (argc > 2 && strEquals(argv[1], "pgnfen")) {
+    if (argc > 2 && std::string(argv[1]) == "pgnfen") {
         process_pgn(argv[2]);
         exit(EXIT_SUCCESS);
     }

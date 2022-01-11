@@ -75,7 +75,7 @@ static void quant_transpose(int8_t *matrix, int rows, int cols) {
     // Typical Matrix Transposition using int8_t. Ethereal's trainer
     // stores weights in a way to allow faster updates, not computes
 
-    int8_t *cpy = malloc(sizeof(int8_t) * rows * cols);
+    int8_t *cpy = (int8_t*) malloc(sizeof(int8_t) * rows * cols);
 
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
@@ -90,7 +90,7 @@ static void float_transpose(float *matrix, int rows, int cols) {
     // Typical Matrix Transposition using floats. Ethereal's trainer
     // stores weights in a way to allow faster updates, not computes
 
-    float *cpy = malloc(sizeof(float) * rows * cols);
+    float *cpy = (float*) malloc(sizeof(float) * rows * cols);
 
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
@@ -474,6 +474,12 @@ void nnue_incbin_init() {
 
 int nnue_evaluate(Thread *thread, Board *board) {
 
+    struct ALIGN64 NNUEEvalData {
+        ALIGN64 uint8_t out8 [L1SIZE];
+        ALIGN64 float   outN1[L1SIZE];
+        ALIGN64 float   outN2[L1SIZE];
+    };
+
     int mg_eval, eg_eval;
     const uint64_t white = board->colours[WHITE];
     const uint64_t black = board->colours[BLACK];
@@ -489,11 +495,7 @@ int nnue_evaluate(Thread *thread, Board *board) {
     int wrelksq = relativeSquare(WHITE, getlsb(white & kings));
     int brelksq = relativeSquare(BLACK, getlsb(black & kings));
 
-    // Large enough to handle layer computations
-    ALIGN64 uint8_t out8[L1SIZE];
-    ALIGN64 float outN1[L1SIZE];
-    ALIGN64 float outN2[L1SIZE];
-
+    struct NNUEEvalData data;
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
     // Possible to recurse and incrementally update each
@@ -505,14 +507,14 @@ int nnue_evaluate(Thread *thread, Board *board) {
         nnue_refresh_accumulators(accum, board, wrelksq, brelksq);
 
     // Feed-forward the entire evaluation function
-    halfkp_relu(accum, out8, board->turn);
-    quant_affine_relu(l1_weights, l1_biases, out8, outN1);
-    float_affine_relu(l2_weights, l2_biases, outN1, outN2);
-    output_transform(l3_weights, l3_biases, outN2, outN1);
+    halfkp_relu(accum, data.out8, board->turn);
+    quant_affine_relu(l1_weights, l1_biases, data.out8,  data.outN1);
+    float_affine_relu(l2_weights, l2_biases, data.outN1, data.outN2);
+    output_transform (l3_weights, l3_biases, data.outN2, data.outN1);
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = 140 * ((int)(data.outN1[0]) >> SHIFT_L1) / 100;
+    eg_eval = 100 * ((int)(data.outN1[0]) >> SHIFT_L1) / 100;
 
     // Cap the NNUE evaluation within [-2000, 2000]
     mg_eval = MAX(-2000, MIN(2000, mg_eval));

@@ -22,9 +22,10 @@
 
 #include "types.h"
 
-enum {
-    NONE_MOVE = 0, NULL_MOVE = 11,
+#define NONE_MOVE 0
+#define NULL_MOVE 11
 
+enum {
     NORMAL_MOVE = 0 << 12, CASTLE_MOVE    = 1 << 12,
     ENPASS_MOVE = 2 << 12, PROMOTION_MOVE = 3 << 12,
 

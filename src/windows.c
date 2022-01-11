@@ -31,9 +31,9 @@ void bindThisThread(int index) { (void)index; };
 
 static int bestGroup(int index) {
 
-    // bestGroup() retrieves logical processor information using Windows specific
-    // API and returns the best group id for the thread with a given index. Original
-    // code from Texel by Peter Österlund. Current code from Stockfish authors.
+    /// bestGroup() retrieves logical processor information using Windows specific
+    /// API and returns the best group id for the thread with a given index. Original
+    /// code from Texel by Peter Österlund. Current code from Stockfish authors.
 
     int groupSize = 0, groups[2048];
     int nodes = 0, cores = 0, threads = 0;
@@ -51,7 +51,7 @@ static int bestGroup(int index) {
 
     // Once we know returnLength, allocate the buffer
     SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *buffer, *ptr;
-    ptr = buffer = malloc(returnLength);
+    ptr = buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*) malloc(returnLength);
 
     // Second call, now we expect to succeed
     if (!fun1(RelationAll, buffer, &returnLength))
@@ -91,7 +91,7 @@ static int bestGroup(int index) {
 
 void bindThisThread(int index) {
 
-    // bindThisThread() sets the group affinity of the current thread
+    /// bindThisThread() sets the group affinity of the current thread
 
     GROUP_AFFINITY affinity;
     int group = bestGroup(index);

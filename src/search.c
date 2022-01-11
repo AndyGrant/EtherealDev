@@ -111,7 +111,7 @@ void initSearch() {
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder, int *score) {
 
-    SearchInfo info = {0};
+    SearchInfo info = {};
     pthread_t pthreads[threads->nthreads];
 
     // Allow Syzygy to refine the move list for optimal results

@@ -224,7 +224,7 @@ static uint16_t parse_san(Board *board, const char *SAN) {
     if (move == NONE_MOVE) move = san_piece_move(board, SAN);
 
     // This should not be needed, but lets verify to be safe
-    return !moveIsLegal(board, move) ? NONE_MOVE : move;
+    return !moveIsLegal(board, move) ? NONE_MOVE : (Move) move;
 }
 
 
@@ -268,7 +268,8 @@ static void pgn_read_moves(FILE *pgn, PGNData *data, Board *board) {
     uint16_t move;
     int eval, index = 0;
 
-    char fen[128], *lookup[3] = { "0.0", "0.5", "1.0" };
+    char fen[128];
+    const char *lookup[3] = { "0.0", "0.5", "1.0" };
 
     if (fgets(data->buffer, 65536, pgn) == NULL)
         return;
@@ -337,7 +338,7 @@ static bool process_next_pgn(FILE *pgn, PGNData *data, Board *board) {
 void process_pgn(const char *fname) {
     Board board;
     FILE *pgn = fopen(fname, "r");
-    PGNData *data = calloc(1, sizeof(PGNData));
+    PGNData *data = (PGNData*) calloc(1, sizeof(PGNData));
     while (process_next_pgn(pgn, data, &board));
     fclose(pgn); free(data);
 }

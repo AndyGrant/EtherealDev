@@ -16,7 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <inttypes.h>
+#include <iostream>
+
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -47,10 +48,39 @@ extern unsigned TB_PROBE_DEPTH;   // Defined by syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by search.c
 extern volatile int IS_PONDERING; // Defined by search.c
 extern volatile int ANALYSISMODE; // Defined by search.c
-extern PKNetwork PKNN;            // Defined by network.c
 
 pthread_mutex_t PONDERLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+
+static bool strEquals(const char *str1, const char *str2) {
+    return strcmp(str1, str2) == 0;
+}
+
+static bool strStartsWith(const char *str, const char *key) {
+    return strstr(str, key) == str;
+}
+
+static bool strContains(const char *str, const char *key) {
+    return strstr(str, key) != NULL;
+}
+
+static bool getInput(char *str) {
+
+    char *ptr;
+
+    if (fgets(str, 8192, stdin) == NULL)
+        return false;
+
+    ptr = strchr(str, '\n');
+    if (ptr != NULL) *ptr = '\0';
+
+    ptr = strchr(str, '\r');
+    if (ptr != NULL) *ptr = '\0';
+
+    return true;
+}
+
 
 int main(int argc, char **argv) {
 
@@ -66,7 +96,7 @@ int main(int argc, char **argv) {
     // Initialize core components of Ethereal
     initAttacks(); initMasks(); initEval();
     initSearch(); initZobrist(); init_TT(16);
-    initPKNetwork(&PKNN); nnue_incbin_init();
+    initPKNetwork(); nnue_incbin_init();
 
     // Create the UCI-board and our threads
     threads = createThreadPool(1);
@@ -147,7 +177,7 @@ int main(int argc, char **argv) {
             break;
 
         else if (strStartsWith(str, "perft"))
-            printf("%"PRIu64"\n", perft(&board, atoi(str + strlen("perft ")))), fflush(stdout);
+            std::cout << perft(&board, atoi(str + strlen("perft "))) << std::endl, fflush(stdout);
 
         else if (strStartsWith(str, "print"))
             printBoard(&board), fflush(stdout);
@@ -156,12 +186,13 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+
 void *uciGo(void *cargo) {
 
     // Get our starting time as soon as possible
     double start = getRealTime();
 
-    Limits limits = {0};
+    Limits limits = {};
     uint16_t bestMove, ponderMove;
     char moveStr[6];
     int score;
@@ -371,6 +402,7 @@ void uciPosition(char *str, Board *board, int chess960) {
     }
 }
 
+
 void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) {
 
     // Gather all of the statistics that the UCI protocol would be
@@ -388,19 +420,22 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) 
     int nps         = (int)(1000 * (nodes / (1 + elapsed)));
 
     // If the score is MATE or MATED in X, convert to X
-    int score   = bounded >=  MATE_IN_MAX ?  (MATE - bounded + 1) / 2
-                : bounded <= -MATE_IN_MAX ? -(bounded + MATE)     / 2 : bounded;
+    const int score = bounded >=  MATE_IN_MAX ?  (MATE - bounded + 1) / 2
+                    : bounded <= -MATE_IN_MAX ? -(bounded + MATE)     / 2 : bounded;
 
     // Two possible score types, mate and cp = centipawns
-    char *type  = abs(bounded) >= MATE_IN_MAX ? "mate" : "cp";
+    const char *type = abs(bounded) >= MATE_IN_MAX ? "mate " : "cp ";
 
     // Partial results from a windowed search have bounds
-    char *bound = bounded >=  beta ? " lowerbound "
-                : bounded <= alpha ? " upperbound " : " ";
+    const char *bound = bounded >=  beta ? "lowerbound"
+                      : bounded <= alpha ? "upperbound" : "";
 
-    printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
-           "nodes %"PRIu64" nps %d tbhits %"PRIu64" hashfull %d pv ",
-           depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
+    // Use std::cout() here to easily handle uint64_t outputting
+    std::cout << "info depth " << depth   << " seldepth "  << seldepth
+              << " multipv "   << multiPV << " score "     << type     << score
+              << ""            << bound   << " time "      << elapsed
+              << " nodes "     << nodes   << " nps "       << nps
+              << " tbhits "    << tbhits  << " hashfull "  << hashfull << " pv ";
 
     // Iterate over the PV and print each move
     for (int i = 0; i < pv->length; i++) {
@@ -422,30 +457,3 @@ void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) 
 
 }
 
-int strEquals(char *str1, char *str2) {
-    return strcmp(str1, str2) == 0;
-}
-
-int strStartsWith(char *str, char *key) {
-    return strstr(str, key) == str;
-}
-
-int strContains(char *str, char *key) {
-    return strstr(str, key) != NULL;
-}
-
-int getInput(char *str) {
-
-    char *ptr;
-
-    if (fgets(str, 8192, stdin) == NULL)
-        return 0;
-
-    ptr = strchr(str, '\n');
-    if (ptr != NULL) *ptr = '\0';
-
-    ptr = strchr(str, '\r');
-    if (ptr != NULL) *ptr = '\0';
-
-    return 1;
-}

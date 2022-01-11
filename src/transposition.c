@@ -63,12 +63,12 @@ int init_TT(int megabytes) {
 #if defined(__linux__) && !defined(__ANDROID__)
 
     // On Linux systems we align on 2MB boundaries and request Huge Pages
-    Table.buckets = aligned_alloc(2 * MB, (1ull << keySize) * sizeof(TTBucket));
+    Table.buckets = (TTBucket*) aligned_alloc(2 * MB, (1ull << keySize) * sizeof(TTBucket));
     madvise(Table.buckets, (1ull << keySize) * sizeof(TTBucket), MADV_HUGEPAGE);
 #else
 
     // Otherwise, we simply allocate as usual and make no requests
-    Table.buckets = malloc((1ull << keySize) * sizeof(TTBucket));
+    Table.buckets = (TTBucket*) malloc((1ull << keySize) * sizeof(TTBucket));
 #endif
 
     // Save the lookup mask

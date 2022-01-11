@@ -31,7 +31,7 @@
 
 PKNetwork PKNN;
 
-static char *PKWeights[] = {
+static const char *PKWeights[] = {
     #include "weights/pknet_224x32x2.net"
     ""
 };
