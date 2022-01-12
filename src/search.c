@@ -54,10 +54,10 @@ volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 
 static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
 
-    // A thread is better than another if any are true:
-    // [1] The thread has an equal depth and greater score.
-    // [2] The thread has a mate score and is closer to mate.
-    // [3] The thread has a greater depth without replacing a closer mate
+    /// A thread is better than another if any are true:
+    /// [1] The thread has an equal depth and greater score.
+    /// [2] The thread has a mate score and is closer to mate.
+    /// [3] The thread has a greater depth without replacing a closer mate
 
     Thread *best_thread = &threads[0];
 
@@ -93,6 +93,30 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
         const int best_score = best_thread->pvs[best_depth].score;
         uciReport(best_thread, &best_thread->pvs[best_depth], -MATE, MATE, best_score);
     }
+}
+
+static void update_best_line(Thread *thread, PVariation *pv) {
+
+    /// Upon finishing a depth, or reaching a fail-high, we update
+    /// this Thread's line of best play for the newly completed depth.
+    /// We do not overwrite better lines found earlier during MultiPV.
+
+    if (  !thread->multiPV
+        || pv->score > thread->pvs[thread->completed].score) {
+
+        thread->completed = thread->depth;
+        memcpy(&thread->pvs[thread->depth], pv, sizeof(PVariation));
+    }
+}
+
+static void revert_best_line(Thread *thread) {
+
+    /// A fail-low during occured during the search, and therefore we need
+    /// to remove any fail-highs that we may have originally marked as best
+    /// lines, since we now believe the line to much worse than before
+
+    if (!thread->multiPV)
+        thread->completed = thread->depth - 1;
 }
 
 
@@ -210,16 +234,8 @@ void aspirationWindow(Thread *thread) {
 
         // Search returned a result within our window
         if (pv.score > alpha && pv.score < beta) {
-
-            // Tracking solely to handle MultiPV searches
             thread->bestMoves[thread->multiPV] = pv.line[0];
-
-            // Store the PVariation of best lines for each depth
-            if (!thread->multiPV) {
-                thread->completed = thread->depth;
-                memcpy(&thread->pvs[thread->depth], &pv, sizeof(PVariation));
-            }
-
+            update_best_line(thread, &pv);
             return;
         }
 
@@ -228,20 +244,14 @@ void aspirationWindow(Thread *thread) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
             depth = thread->depth;
+            revert_best_line(thread);
         }
 
         // Search failed high, adjust window and reduce depth
         else if (pv.score >= beta) {
-
-            // Don't reduce depth too much as we near MATE
             beta = MIN(MATE, beta + delta);
             depth = depth - (abs(pv.score) <= MATE / 2);
-
-            // Store the PVariation of best lines for each depth
-            if (!thread->multiPV) {
-                thread->completed = thread->depth;
-                memcpy(&thread->pvs[thread->depth], &pv, sizeof(PVariation));
-            }
+            update_best_line(thread, &pv);
         }
 
         // Expand the search window
