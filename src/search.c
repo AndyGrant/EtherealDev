@@ -216,7 +216,7 @@ void aspirationWindow(Thread *thread) {
 
             // Store the PVariation of best lines for each depth
             if (!thread->multiPV) {
-                thread->completed = depth;
+                thread->completed = thread->depth;
                 memcpy(&thread->pvs[thread->depth], &pv, sizeof(PVariation));
             }
 
@@ -239,7 +239,7 @@ void aspirationWindow(Thread *thread) {
 
             // Store the PVariation of best lines for each depth
             if (!thread->multiPV) {
-                thread->completed = depth;
+                thread->completed = thread->depth;
                 memcpy(&thread->pvs[thread->depth], &pv, sizeof(PVariation));
             }
         }
