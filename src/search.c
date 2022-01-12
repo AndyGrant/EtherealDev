@@ -167,9 +167,6 @@ void* iterativeDeepening(void *vthread) {
         for (thread->multiPV = 0; thread->multiPV < limits->multiPV; thread->multiPV++)
             aspirationWindow(thread);
 
-        // Signal we've finish this depth completely
-        thread->completed = thread->depth;
-
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
 
@@ -192,8 +189,7 @@ void* iterativeDeepening(void *vthread) {
 
 void aspirationWindow(Thread *thread) {
 
-    PVariation localpv;
-    PVariation *pv = thread->multiPV ? &localpv : &thread->pvs[thread->depth];
+    PVariation pv;
 
     int depth = thread->depth;
     int alpha = -MATE, beta = MATE, delta = WindowSize;
@@ -207,28 +203,45 @@ void aspirationWindow(Thread *thread) {
     while (1) {
 
         // Perform a search and consider reporting results
-        pv->score = search(thread, pv, alpha, beta, MAX(1, depth));
-        if (   (!thread->index && pv->score > alpha && pv->score < beta)
+        pv.score = search(thread, &pv, alpha, beta, MAX(1, depth));
+        if (   (!thread->index && pv.score > alpha && pv.score < beta)
             || (!thread->index && elapsedTime(thread->info) >= WindowTimerMS))
-            uciReport(thread->threads, pv, alpha, beta, pv->score);
+            uciReport(thread->threads, &pv, alpha, beta, pv.score);
 
         // Search returned a result within our window
-        if (pv->score > alpha && pv->score < beta) {
-            thread->bestMoves[thread->multiPV] = pv->line[0];
+        if (pv.score > alpha && pv.score < beta) {
+
+            // Tracking solely to handle MultiPV searches
+            thread->bestMoves[thread->multiPV] = pv.line[0];
+
+            // Store the PVariation of best lines for each depth
+            if (!thread->multiPV) {
+                thread->completed = depth;
+                memcpy(&thread->pvs[thread->depth], &pv, sizeof(PVariation));
+            }
+
             return;
         }
 
         // Search failed low, adjust window and reset depth
-        if (pv->score <= alpha) {
+        if (pv.score <= alpha) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
             depth = thread->depth;
         }
 
         // Search failed high, adjust window and reduce depth
-        else if (pv->score >= beta) {
+        else if (pv.score >= beta) {
+
+            // Don't reduce depth too much as we near MATE
             beta = MIN(MATE, beta + delta);
-            depth = depth - (abs(pv->score) <= MATE / 2);
+            depth = depth - (abs(pv.score) <= MATE / 2);
+
+            // Store the PVariation of best lines for each depth
+            if (!thread->multiPV) {
+                thread->completed = depth;
+                memcpy(&thread->pvs[thread->depth], &pv, sizeof(PVariation));
+            }
         }
 
         // Expand the search window
