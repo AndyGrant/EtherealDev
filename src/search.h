@@ -28,7 +28,7 @@ struct SearchInfo {
 };
 
 struct PVariation {
-    int length, score;
+    int length, score, real_depth;
     uint16_t line[MAX_PLY];
 };
 

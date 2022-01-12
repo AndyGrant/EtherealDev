@@ -378,7 +378,7 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta, int value) 
     // beta, since Ethereal uses a mix of fail-hard and fail-soft
 
     int hashfull    = hashfullTT();
-    int depth       = threads->depth;
+    int depth       = threads->completed;
     int seldepth    = threads->seldepth;
     int multiPV     = threads->multiPV + 1;
     int elapsed     = elapsedTime(threads->info);

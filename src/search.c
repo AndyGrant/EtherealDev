@@ -63,17 +63,19 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
 
     for (int i = 1; i < threads->nthreads; i++) {
 
-        const int best_depth = best_thread->completed;
-        const int best_score = best_thread->pvs[best_depth].score;
+        const int best_depth      = best_thread->completed;
+        const int best_real_depth = best_thread->pvs[best_depth].real_depth;
+        const int best_score      = best_thread->pvs[best_depth].score;
 
-        const int this_depth = threads[i].completed;
-        const int this_score = threads[i].pvs[this_depth].score;
+        const int this_depth      = threads[i].completed;
+        const int this_real_depth = threads[i].pvs[this_depth].real_depth;
+        const int this_score      = threads[i].pvs[this_depth].score;
 
-        if (   (this_depth == best_depth && this_score > best_score)
+        if (   (this_real_depth == best_real_depth && this_score > best_score)
             || (this_score > MATE_IN_MAX && this_score > best_score))
             best_thread = &threads[i];
 
-        if (    this_depth > best_depth
+        if (    this_real_depth > best_real_depth
             && (this_score > best_score || best_score < MATE_IN_MAX))
             best_thread = &threads[i];
     }
@@ -215,6 +217,7 @@ void aspirationWindow(Thread *thread) {
         // Search returned a result within our window
         if (pv->score > alpha && pv->score < beta) {
             thread->bestMoves[thread->multiPV] = pv->line[0];
+            pv->real_depth = MAX(1, depth);
             return;
         }
 
