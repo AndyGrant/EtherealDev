@@ -31,12 +31,18 @@ struct Board {
     int psqtmat, numMoves, chess960;
     uint64_t history[8192];
     Thread *thread;
+
+    uint64_t checking[PIECE_NB]; // Squares which can check the King
+    uint64_t blockers;           // Pieces we can move to discover a check
 };
 
 struct Undo {
     uint64_t hash, pkhash, kingAttackers, castleRooks;
     int epSquare, halfMoveCounter, psqtmat, capturePiece;
+    uint64_t checking[PIECE_NB], blockers;
 };
+
+void refresh_board_state(Board *board);
 
 void squareToString(int sq, char *str);
 void boardFromFEN(Board *board, const char *fen, int chess960);

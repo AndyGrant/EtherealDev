@@ -78,6 +78,40 @@ static int stringToSquare(char *str) {
     return str[0] == '-' ? -1 : square(str[1] - '1', str[0] - 'a');
 }
 
+
+void refresh_board_state(Board *board) {
+
+    const int stm  = board->turn;
+    const int eksq = getlsb(board->colours[!stm] & board->pieces[KING]);
+
+    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+
+    // Needed for move generation and check status
+    board->kingAttackers = attackersToKingSquare(board);
+
+    // Needed for fast computation of move_gives_check()
+    board->checking[PAWN]   = pawnAttacks(!stm, eksq);
+    board->checking[KNIGHT] = knightAttacks(eksq);
+    board->checking[BISHOP] = bishopAttacks(eksq, occupied);
+    board->checking[ROOK  ] = rookAttacks(eksq, occupied);
+    board->checking[QUEEN ] = board->checking[BISHOP] | board->checking[ROOK];
+    board->checking[KING  ] = kingAttacks(eksq);
+
+    // Our sliders which pin a piece to the opposing King
+    uint64_t bishops = board->colours[stm] & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+    uint64_t rooks   = board->colours[stm] & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+    uint64_t pinners = (bishops & bishopAttacks(eksq, occupied & ~bishopAttacks(eksq, occupied)))
+                     | (rooks   &   rookAttacks(eksq, occupied &   ~rookAttacks(eksq, occupied)));
+
+    // Define any blocker as friendly piece pinned by our sliders
+    board->blockers = 0ULL;
+    while (pinners != 0ULL) {
+        const uint64_t pinline = bitsBetweenMasks(eksq, poplsb(&pinners));
+        if (pinline & board->colours[stm]) board->blockers |= pinline;
+    }
+}
+
+
 void squareToString(int sq, char *str) {
 
     // Helper for writing the enpass square, as well as for converting
@@ -168,9 +202,6 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     // Move count: ignore and use zero, as we count since root
     board->numMoves = 0;
 
-    // Need king attackers for move generation
-    board->kingAttackers = attackersToKingSquare(board);
-
     // We save the game mode in order to comply with the UCI rules for printing
     // moves. If chess960 is not enabled, but we have detected an unconventional
     // castle setup, then we set chess960 to be true on our own. Currently, this
@@ -178,6 +209,8 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     board->chess960 = chess960 || (board->castleRooks & ~StandardCastles);
 
     board->thread = NULL; // By default, a Board is not tied to any Thread
+
+    refresh_board_state(board); // Update stateful information
 
     free(str);
 }

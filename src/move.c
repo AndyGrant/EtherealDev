@@ -17,6 +17,7 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,13 +112,20 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     };
 
     // Save information which is hard to recompute
-    undo->hash            = board->hash;
-    undo->pkhash          = board->pkhash;
-    undo->kingAttackers   = board->kingAttackers;
-    undo->castleRooks     = board->castleRooks;
-    undo->epSquare        = board->epSquare;
-    undo->halfMoveCounter = board->halfMoveCounter;
-    undo->psqtmat         = board->psqtmat;
+    undo->hash             = board->hash;
+    undo->pkhash           = board->pkhash;
+    undo->kingAttackers    = board->kingAttackers;
+    undo->castleRooks      = board->castleRooks;
+    undo->epSquare         = board->epSquare;
+    undo->halfMoveCounter  = board->halfMoveCounter;
+    undo->psqtmat          = board->psqtmat;
+    undo->checking[PAWN]   = board->checking[PAWN]  ;
+    undo->checking[KNIGHT] = board->checking[KNIGHT];
+    undo->checking[BISHOP] = board->checking[BISHOP];
+    undo->checking[ROOK  ] = board->checking[ROOK  ];
+    undo->checking[QUEEN ] = board->checking[QUEEN ];
+    undo->checking[KING  ] = board->checking[KING  ];
+    undo->blockers         = board->blockers;
 
     // Store hash history for repetition checking
     board->history[board->numMoves++] = board->hash;
@@ -137,8 +145,8 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // No function updates this so we do it here
     board->turn = !board->turn;
 
-    // Need king attackers to verify move legality
-    board->kingAttackers = attackersToKingSquare(board);
+    // Update stateful information
+    refresh_board_state(board);
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
@@ -357,6 +365,15 @@ void applyNullMove(Board *board, Undo *undo) {
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
 
+    //
+    undo->checking[PAWN]   = board->checking[PAWN]  ;
+    undo->checking[KNIGHT] = board->checking[KNIGHT];
+    undo->checking[BISHOP] = board->checking[BISHOP];
+    undo->checking[ROOK  ] = board->checking[ROOK  ];
+    undo->checking[QUEEN ] = board->checking[QUEEN ];
+    undo->checking[KING  ] = board->checking[KING  ];
+    undo->blockers         = board->blockers;
+
     // NULL moves simply swap the turn only
     board->turn = !board->turn;
     board->history[board->numMoves++] = board->hash;
@@ -370,6 +387,9 @@ void applyNullMove(Board *board, Undo *undo) {
     }
 
     nnue_push(board);
+
+    // Update stateful information
+    refresh_board_state(board);
 }
 
 
@@ -387,13 +407,20 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     const int from = MoveFrom(move);
 
     // Revert information which is hard to recompute
-    board->hash            = undo->hash;
-    board->pkhash          = undo->pkhash;
-    board->kingAttackers   = undo->kingAttackers;
-    board->castleRooks     = undo->castleRooks;
-    board->epSquare        = undo->epSquare;
-    board->halfMoveCounter = undo->halfMoveCounter;
-    board->psqtmat         = undo->psqtmat;
+    board->hash             = undo->hash;
+    board->pkhash           = undo->pkhash;
+    board->kingAttackers    = undo->kingAttackers;
+    board->castleRooks      = undo->castleRooks;
+    board->epSquare         = undo->epSquare;
+    board->halfMoveCounter  = undo->halfMoveCounter;
+    board->psqtmat          = undo->psqtmat;
+    board->checking[PAWN]   = undo->checking[PAWN]  ;
+    board->checking[KNIGHT] = undo->checking[KNIGHT];
+    board->checking[BISHOP] = undo->checking[BISHOP];
+    board->checking[ROOK  ] = undo->checking[ROOK  ];
+    board->checking[QUEEN ] = undo->checking[QUEEN ];
+    board->checking[KING  ] = undo->checking[KING  ];
+    board->blockers         = undo->blockers;
 
     // Swap turns and update the history index
     board->turn = !board->turn;
@@ -476,6 +503,14 @@ void revertNullMove(Board *board, Undo *undo) {
     board->hash            = undo->hash;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
+
+    board->checking[PAWN]   = undo->checking[PAWN]  ;
+    board->checking[KNIGHT] = undo->checking[KNIGHT];
+    board->checking[BISHOP] = undo->checking[BISHOP];
+    board->checking[ROOK  ] = undo->checking[ROOK  ];
+    board->checking[QUEEN ] = undo->checking[QUEEN ];
+    board->checking[KING  ] = undo->checking[KING  ];
+    board->blockers         = undo->blockers;
 
     // NULL moves simply swap the turn only
     board->turn = !board->turn;
@@ -714,6 +749,62 @@ int moveWasLegal(Board *board) {
     int sq = getlsb(board->colours[!board->turn] & board->pieces[KING]);
     assert(board->squares[sq] == makePiece(KING, !board->turn));
     return !squareIsAttacked(board, !board->turn, sq);
+}
+
+bool move_gives_check(Board *board, uint16_t move) {
+
+    const int from  = MoveFrom(move), to = MoveTo(move);
+    const int piece = pieceType(board->squares[from]);
+
+    const int stm  = board->turn;
+    const int eksq = getlsb(board->colours[!stm] & board->pieces[KING]);
+
+    // Direct checks ( Allow illegal "King checks King" )
+    if (testBit(board->checking[piece], to))
+        return TRUE;
+
+    // Discovered checks by moving a blocker from the pinline
+    if (    testBit(board->blockers, from)
+        && !testBit(attackRayMasks(eksq, from), to))
+        return TRUE;
+
+    // Promotion causes a direct check
+    if (MoveType(move) == PROMOTION_MOVE) {
+        const int promo = MovePromoPiece(move);
+        const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+        return testBit(pieceAttacks(promo, stm, to, occupied ^ (1ULL << from)), eksq);
+    }
+
+    // Removing the Enpassant square may reveal a discovered check
+    if (MoveType(move) == ENPASS_MOVE) {
+
+        const int epsq = to - 8 + (board->turn << 4);
+        const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+        const uint64_t updated  = (occupied ^ (1ULL << from) ^ (1ULL << epsq)) | (1ULL << to);
+
+        const uint64_t bishops = board->colours[stm] & board->pieces[BISHOP];
+        const uint64_t rooks   = board->colours[stm] & board->pieces[ROOK  ];
+        const uint64_t queens  = board->colours[stm] & board->pieces[QUEEN ];
+
+        return bishopAttacks(eksq, updated) & (bishops | queens)
+            ||   rookAttacks(eksq, updated) & (rooks   | queens);
+    }
+
+    // Castling may directly check along the file, or rank in FRC
+    if (MoveType(move) == CASTLE_MOVE) {
+
+        const int kfrom = from, rfrom = to;
+        const int kto = castleKingTo(kfrom, rfrom);
+        const int rto = castleRookTo(kfrom, rfrom);
+
+        const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+        const uint64_t updated  = (occupied ^ (1ULL << kfrom) ^ (1ULL << rfrom)) | (1ULL << kto) | (1ULL << rto);
+
+        return testBit(rookAttacks(rto, occupied), eksq)
+            || testBit(rookAttacks(rto, updated ), eksq);
+    }
+
+    return FALSE;
 }
 
 

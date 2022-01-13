@@ -28,6 +28,7 @@
 int DistanceBetween[SQUARE_NB][SQUARE_NB];
 int KingPawnFileDistance[FILE_NB][1 << FILE_NB];
 uint64_t BitsBetweenMasks[SQUARE_NB][SQUARE_NB];
+uint64_t AttackRayMasks[SQUARE_NB][SQUARE_NB];
 uint64_t KingAreaMasks[COLOUR_NB][SQUARE_NB];
 uint64_t ForwardRanksMasks[COLOUR_NB][RANK_NB];
 uint64_t ForwardFileMasks[COLOUR_NB][SQUARE_NB];
@@ -78,6 +79,18 @@ void initMasks() {
             if (testBit(rookAttacks(sq1, 0ull), sq2))
                 BitsBetweenMasks[sq1][sq2] = rookAttacks(sq1, 1ull << sq2)
                                            & rookAttacks(sq2, 1ull << sq1);
+
+    // Init a table of bitmasks for the attack rays from ont square to another (aligned on diagonal)
+    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
+        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+            if (testBit(bishopAttacks(sq1, 0ull), sq2))
+                AttackRayMasks[sq1][sq2] = bishopAttacks(sq1, 0ull) & bishopAttacks(sq2, 1ull << sq1);
+
+    // Init a table of bitmasks for the attack rays from ont square to another (aligned on straight)
+    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
+        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+            if (testBit(rookAttacks(sq1, 0ull), sq2))
+                AttackRayMasks[sq1][sq2] = rookAttacks(sq1, 0ull) & rookAttacks(sq2, 1ull << sq1);
 
     // Init a table for the King Areas. Use the King's square, the King's target
     // squares, and the squares within the pawn shield. When on the A/H files, extend
@@ -160,6 +173,13 @@ uint64_t bitsBetweenMasks(int s1, int s2) {
     assert(0 <= s2 && s2 < SQUARE_NB);
     return BitsBetweenMasks[s1][s2];
 }
+
+uint64_t attackRayMasks(int s1, int s2) {
+    assert(0 <= s1 && s1 < SQUARE_NB);
+    assert(0 <= s2 && s2 < SQUARE_NB);
+    return AttackRayMasks[s1][s2];
+}
+
 
 uint64_t kingAreaMasks(int colour, int sq) {
     assert(0 <= colour && colour < COLOUR_NB);

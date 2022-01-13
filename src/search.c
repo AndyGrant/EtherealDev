@@ -491,7 +491,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > -TBWIN_IN_MAX) {
+        if (isQuiet && best > -TBWIN_IN_MAX && !move_gives_check(board, move)) {
 
             // Base LMR reduced depth value that we expect to use later
             int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);

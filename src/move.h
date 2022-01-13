@@ -63,6 +63,8 @@ int moveIsLegal(Board *board, uint16_t move);
 int moveIsPseudoLegal(Board *board, uint16_t move);
 int moveWasLegal(Board *board);
 
+bool move_gives_check(Board *board, uint16_t move);
+
 void printMove(uint16_t move, int chess960);
 void moveToString(uint16_t move, char *str, int chess960);
 
