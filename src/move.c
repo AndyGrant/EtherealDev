@@ -717,6 +717,77 @@ int moveWasLegal(Board *board) {
 }
 
 
+bool is_blocked_piece(Board *board, int sq) {
+
+    const int stm  = board->turn;
+    const int eksq = getlsb(board->colours[!stm] & board->pieces[KING]);
+
+    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+    const uint64_t bishops  = board->colours[stm] & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+    const uint64_t rooks    = board->colours[stm] & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+
+    uint64_t ray = attackRayMasks(eksq, sq);
+
+    if (!ray) return FALSE;
+
+    return (ray &   rooks &   rookAttacks(eksq, occupied ^ (1ULL << sq)))
+        || (ray & bishops & bishopAttacks(eksq, occupied ^ (1ULL << sq)));
+}
+
+bool move_gives_check(Board *board, uint16_t move) {
+
+    const int from  = MoveFrom(move), to = MoveTo(move);
+    const int piece = pieceType(board->squares[from]);
+
+    const int stm  = board->turn;
+    const int eksq = getlsb(board->colours[!stm] & board->pieces[KING]);
+    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
+
+    // Direct checks ( Allow illegal "King checks King" )
+    if (testBit(pieceAttacks(piece, stm, to, occupied), eksq))
+        return TRUE;
+
+    // Discovered checks by moving a blocker from the pinline
+    if (    is_blocked_piece(board, from)
+        && !testBit(attackRayMasks(eksq, from), to))
+        return TRUE;
+
+    // Promotion causes a direct check
+    if (MoveType(move) == PROMOTION_MOVE) {
+        const int promo = MovePromoPiece(move);
+        return testBit(pieceAttacks(promo, stm, to, occupied ^ (1ULL << from)), eksq);
+    }
+
+    // Removing the Enpassant square may reveal a discovered check
+    if (MoveType(move) == ENPASS_MOVE) {
+
+        const int epsq = to - 8 + (board->turn << 4);
+        const uint64_t updated  = (occupied ^ (1ULL << from) ^ (1ULL << epsq)) | (1ULL << to);
+
+        const uint64_t bishops = board->colours[stm] & board->pieces[BISHOP];
+        const uint64_t rooks   = board->colours[stm] & board->pieces[ROOK  ];
+        const uint64_t queens  = board->colours[stm] & board->pieces[QUEEN ];
+
+        return bishopAttacks(eksq, updated) & (bishops | queens)
+            ||   rookAttacks(eksq, updated) & (rooks   | queens);
+    }
+
+    // Castling may directly check along the file, or rank in FRC
+    if (MoveType(move) == CASTLE_MOVE) {
+
+        const int kfrom = from, rfrom = to;
+        const int kto = castleKingTo(kfrom, rfrom);
+        const int rto = castleRookTo(kfrom, rfrom);
+
+        const uint64_t updated  = (occupied ^ (1ULL << kfrom) ^ (1ULL << rfrom)) | (1ULL << kto) | (1ULL << rto);
+
+        return testBit(rookAttacks(rto, occupied), eksq)
+            || testBit(rookAttacks(rto, updated ), eksq);
+    }
+
+    return FALSE;
+}
+
 void printMove(uint16_t move, int chess960) {
     char str[6]; moveToString(move, str, chess960);
     printf("%s\n", str);

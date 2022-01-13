@@ -164,6 +164,18 @@ uint64_t kingAttacks(int sq) {
     return KingAttacks[sq];
 }
 
+uint64_t pieceAttacks(int piece, int colour, int sq, uint64_t occupied) {
+
+    switch (piece) {
+        case PAWN   : return pawnAttacks(colour, sq);
+        case KNIGHT : return knightAttacks(sq);
+        case BISHOP : return bishopAttacks(sq, occupied);
+        case ROOK   : return rookAttacks(sq, occupied);
+        case QUEEN  : return queenAttacks(sq, occupied);
+        default     : return kingAttacks(sq);
+    }
+}
+
 
 uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour) {
     return targets & (colour == WHITE ? (pawns << 7) & ~FILE_H
