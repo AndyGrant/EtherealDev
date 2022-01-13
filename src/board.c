@@ -379,9 +379,10 @@ uint64_t perft(Board *board, int depth) {
 
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
-        applyMove(board, moves[size], undo);
-        if (moveWasLegal(board)) found += perft(board, depth-1);
-        revertMove(board, moves[size], undo);
+        if (applyMove(board, moves[size], undo)) {
+            found += perft(board, depth-1);
+            revertMove(board, moves[size], undo);
+        }
     }
 
     return found;

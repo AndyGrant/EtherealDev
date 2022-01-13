@@ -102,9 +102,10 @@ int genAllLegalMoves(Board *board, uint16_t *moves) {
 
     // Check each move for legality before copying
     for (int i = 0; i < pseudo; i++) {
-        applyMove(board, pseudoMoves[i], undo);
-        if (moveWasLegal(board)) moves[size++] = pseudoMoves[i];
-        revertMove(board, pseudoMoves[i], undo);
+        if (applyMove(board, pseudoMoves[i], undo)) {
+            moves[size++] = pseudoMoves[i];
+            revertMove(board, pseudoMoves[i], undo);
+        }
     }
 
     return size;

@@ -53,103 +53,17 @@ int castleRookTo(int king, int rook) {
 }
 
 
-int apply(Thread *thread, Board *board, uint16_t move) {
+static bool partial_update_legality(Board *board) {
 
-    NodeState *const ns = &thread->states[thread->height];
+    /// We have updated only board->pieces, and board->colours. From here,
+    /// we will determine legality before going any further in the process
 
-    // NULL moves are only tried when legal
-    if (move == NULL_MOVE) {
-
-        ns->movedPiece    = EMPTY;
-        ns->tactical      = false;
-        ns->continuations = NULL;
-        ns->move          = NULL_MOVE;
-
-        applyNullMove(board, &thread->undoStack[thread->height]);
-    }
-
-    else {
-
-        ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
-        ns->tactical      = moveIsTactical(board, move);
-        ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
-        ns->move          = move;
-
-        // Apply the move and reject if illegal
-        applyMove(board, move, &thread->undoStack[thread->height]);
-        if (!moveWasLegal(board))
-            return revertMove(board, move, &thread->undoStack[thread->height]), 0;
-    }
-
-    // Advance the Stack before updating
-    thread->height++;
-
-    return 1;
+    const uint64_t kings = board->pieces[KING];
+    const uint64_t us    = board->colours[board->turn];
+    return !squareIsAttacked(board, board->turn, getlsb(kings & us));
 }
 
-void applyLegal(Thread *thread, Board *board, uint16_t move) {
-
-    NodeState *const ns = &thread->states[thread->height];
-
-    ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
-    ns->tactical      = moveIsTactical(board, move);
-    ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
-    ns->move          = move;
-
-    // Assumed that this move is legal
-    applyMove(board, move, &thread->undoStack[thread->height]);
-    assert(moveWasLegal(board));
-
-    // Advance the Stack before updating
-    thread->height++;
-}
-
-void applyMove(Board *board, uint16_t move, Undo *undo) {
-
-    static void (*table[4])(Board*, uint16_t, Undo*) = {
-        applyNormalMove, applyCastleMove,
-        applyEnpassMove, applyPromotionMove
-    };
-
-    // Save information which is hard to recompute
-    undo->hash             = board->hash;
-    undo->pkhash           = board->pkhash;
-    undo->kingAttackers    = board->kingAttackers;
-    undo->castleRooks      = board->castleRooks;
-    undo->epSquare         = board->epSquare;
-    undo->halfMoveCounter  = board->halfMoveCounter;
-    undo->psqtmat          = board->psqtmat;
-    undo->checking[PAWN]   = board->checking[PAWN]  ;
-    undo->checking[KNIGHT] = board->checking[KNIGHT];
-    undo->checking[BISHOP] = board->checking[BISHOP];
-    undo->checking[ROOK  ] = board->checking[ROOK  ];
-    undo->checking[QUEEN ] = board->checking[QUEEN ];
-    undo->checking[KING  ] = board->checking[KING  ];
-    undo->blockers         = board->blockers;
-
-    // Store hash history for repetition checking
-    board->history[board->numMoves++] = board->hash;
-    board->fullMoveCounter++;
-
-    // Update the hash for before changing the enpass square
-    if (board->epSquare != -1)
-        board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
-
-    // Run the correct move application function
-    table[MoveType(move) >> 12](board, move, undo);
-
-    // No function updated epsquare so we reset
-    if (board->epSquare == undo->epSquare)
-        board->epSquare = -1;
-
-    // No function updates this so we do it here
-    board->turn = !board->turn;
-
-    // Update stateful information
-    refresh_board_state(board);
-}
-
-void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
+static bool apply_normal(Board *board, uint16_t move, Undo *undo) {
 
     const int from = MoveFrom(move);
     const int to = MoveTo(move);
@@ -161,16 +75,22 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
     const int toType = pieceType(toPiece);
     const int toColour = pieceColour(toPiece);
 
-    if (fromType == PAWN || toPiece != EMPTY)
-        board->halfMoveCounter = 0;
-    else
-        board->halfMoveCounter += 1;
-
     board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
     board->pieces[toType]    ^= (1ull << to);
     board->colours[toColour] ^= (1ull << to);
+
+    if (!partial_update_legality(board)) {
+
+        board->pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
+        board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+        board->pieces[toType]    ^= (1ull << to);
+        board->colours[toColour] ^= (1ull << to);
+
+        return FALSE;
+    }
 
     board->squares[from] = EMPTY;
     board->squares[to]   = fromPiece;
@@ -208,12 +128,19 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
         }
     }
 
+    if (fromType == PAWN || toPiece != EMPTY)
+        board->halfMoveCounter = 0;
+    else
+        board->halfMoveCounter += 1;
+
     nnue_push(board);
     nnue_move_piece(board, fromPiece, from, to);
     nnue_remove_piece(board, toPiece, to);
+
+    return TRUE;
 }
 
-void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
+static bool apply_castling(Board *board, uint16_t move, Undo *undo) {
 
     const int from = MoveFrom(move);
     const int rFrom = MoveTo(move);
@@ -224,13 +151,22 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     const int fromPiece = makePiece(KING, board->turn);
     const int rFromPiece = makePiece(ROOK, board->turn);
 
-    board->halfMoveCounter += 1;
-
     board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
     board->pieces[ROOK]         ^= (1ull << rFrom) ^ (1ull << rTo);
     board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
+
+    if (!partial_update_legality(board)) {
+
+        board->pieces[KING]         ^= (1ull << from) ^ (1ull << to);
+        board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+        board->pieces[ROOK]         ^= (1ull << rFrom) ^ (1ull << rTo);
+        board->colours[board->turn] ^= (1ull << rFrom) ^ (1ull << rTo);
+
+        return FALSE;
+    }
 
     board->squares[from]  = EMPTY;
     board->squares[rFrom] = EMPTY;
@@ -259,12 +195,16 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
 
     undo->capturePiece = EMPTY;
 
+    board->halfMoveCounter += 1;
+
     nnue_push(board);
     if (from != to) nnue_move_piece(board, fromPiece, from, to);
     if (rFrom != rTo) nnue_move_piece(board, rFromPiece, rFrom, rTo);
+
+    return TRUE;
 }
 
-void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
+static bool apply_enpassant(Board *board, uint16_t move, Undo *undo) {
 
     const int from = MoveFrom(move);
     const int to = MoveTo(move);
@@ -273,13 +213,22 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
     const int fromPiece = makePiece(PAWN, board->turn);
     const int enpassPiece = makePiece(PAWN, !board->turn);
 
-    board->halfMoveCounter = 0;
-
     board->pieces[PAWN]         ^= (1ull << from) ^ (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
     board->pieces[PAWN]          ^= (1ull << ep);
     board->colours[!board->turn] ^= (1ull << ep);
+
+    if (!partial_update_legality(board)) {
+
+        board->pieces[PAWN]         ^= (1ull << from) ^ (1ull << to);
+        board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+        board->pieces[PAWN]          ^= (1ull << ep);
+        board->colours[!board->turn] ^= (1ull << ep);
+
+        return FALSE;
+    }
 
     board->squares[from] = EMPTY;
     board->squares[to]   = fromPiece;
@@ -302,12 +251,16 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(enpassPiece) == PAWN);
 
+    board->halfMoveCounter = 0;
+
     nnue_push(board);
     nnue_move_piece(board, fromPiece, from, to);
     nnue_remove_piece(board, enpassPiece, ep);
+
+    return TRUE;
 }
 
-void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
+static bool apply_promotion(Board *board, uint16_t move, Undo *undo) {
 
     const int from = MoveFrom(move);
     const int to = MoveTo(move);
@@ -320,14 +273,24 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     const int toColour = pieceColour(toPiece);
     const int promotype = MovePromoPiece(move);
 
-    board->halfMoveCounter = 0;
-
     board->pieces[PAWN]         ^= (1ull << from);
     board->pieces[promotype]    ^= (1ull << to);
     board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
 
     board->pieces[toType]    ^= (1ull << to);
     board->colours[toColour] ^= (1ull << to);
+
+    if (!partial_update_legality(board)) {
+
+        board->pieces[PAWN]         ^= (1ull << from);
+        board->pieces[promotype]    ^= (1ull << to);
+        board->colours[board->turn] ^= (1ull << from) ^ (1ull << to);
+
+        board->pieces[toType]    ^= (1ull << to);
+        board->colours[toColour] ^= (1ull << to);
+
+        return FALSE;
+    }
 
     board->squares[from] = EMPTY;
     board->squares[to]   = promoPiece;
@@ -351,21 +314,23 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     assert(pieceType(toPiece) != PAWN);
     assert(pieceType(toPiece) != KING);
 
+    board->halfMoveCounter = 0;
+
     nnue_push(board);
     nnue_remove_piece(board, fromPiece, from);
     nnue_remove_piece(board, toPiece, to);
     nnue_add_piece(board, promoPiece, to);
+
+    return TRUE;
 }
 
-void applyNullMove(Board *board, Undo *undo) {
+static void apply_null_move(Board *board, Undo *undo) {
 
     // Save information which is hard to recompute
     // Some information is certain to stay the same
     undo->hash            = board->hash;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
-
-    //
     undo->checking[PAWN]   = board->checking[PAWN]  ;
     undo->checking[KNIGHT] = board->checking[KNIGHT];
     undo->checking[BISHOP] = board->checking[BISHOP];
@@ -387,9 +352,88 @@ void applyNullMove(Board *board, Undo *undo) {
     }
 
     nnue_push(board);
+}
+
+
+bool apply(Thread *thread, Board *board, uint16_t move) {
+
+    NodeState *const ns = &thread->states[thread->height];
+
+    // NULL moves are only tried when legal
+    if (move == NULL_MOVE) {
+
+        ns->movedPiece    = EMPTY;
+        ns->tactical      = false;
+        ns->continuations = NULL;
+        ns->move          = NULL_MOVE;
+
+        apply_null_move(board, &thread->undoStack[thread->height]);
+        refresh_board_state(board);
+    }
+
+    else {
+
+        ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
+        ns->tactical      = moveIsTactical(board, move);
+        ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
+        ns->move          = move;
+
+        // Apply the move and reject if illegal
+        if (!applyMove(board, move, &thread->undoStack[thread->height]))
+            return FALSE;
+    }
+
+    // Advance the Stack before updating
+    thread->height++;
+
+    return TRUE;
+}
+
+bool applyMove(Board *board, uint16_t move, Undo *undo) {
+
+    static bool (*table[4])(Board*, uint16_t, Undo*) = {
+        apply_normal, apply_castling, apply_enpassant, apply_promotion
+    };
+
+    // Save information which is hard to recompute
+    undo->hash             = board->hash;
+    undo->pkhash           = board->pkhash;
+    undo->kingAttackers    = board->kingAttackers;
+    undo->castleRooks      = board->castleRooks;
+    undo->epSquare         = board->epSquare;
+    undo->halfMoveCounter  = board->halfMoveCounter;
+    undo->psqtmat          = board->psqtmat;
+    undo->checking[PAWN]   = board->checking[PAWN]  ;
+    undo->checking[KNIGHT] = board->checking[KNIGHT];
+    undo->checking[BISHOP] = board->checking[BISHOP];
+    undo->checking[ROOK  ] = board->checking[ROOK  ];
+    undo->checking[QUEEN ] = board->checking[QUEEN ];
+    undo->checking[KING  ] = board->checking[KING  ];
+    undo->blockers         = board->blockers;
+
+    // Run the correct move application function
+    if (!table[MoveType(move) >> 12](board, move, undo))
+        return FALSE;
+
+    // Store hash history for repetition checking
+    board->history[board->numMoves++] = undo->hash;
+    board->fullMoveCounter++;
+
+    // Update the hash for the changed enpass square
+    if (undo->epSquare != -1)
+        board->hash ^= ZobristEnpassKeys[fileOf(undo->epSquare)];
+
+    // No function updated epsquare so we reset
+    if (board->epSquare == undo->epSquare)
+        board->epSquare = -1;
+
+    // No function updates this so we do it here
+    board->turn = !board->turn;
 
     // Update stateful information
     refresh_board_state(board);
+
+    return TRUE;
 }
 
 
@@ -615,16 +659,16 @@ int moveBestCaseValue(Board *board) {
 
 int moveIsLegal(Board *board, uint16_t move) {
 
-    int legal; Undo undo;
+    Undo undo;
 
     if (!moveIsPseudoLegal(board, move))
-        return 0;
+        return FALSE;
 
-    applyMove(board, move, &undo);
-    legal = moveWasLegal(board);
+    if (!applyMove(board, move, &undo))
+        return FALSE;
+
     revertMove(board, move, &undo);
-
-    return legal;
+    return TRUE;
 }
 
 int moveIsPseudoLegal(Board *board, uint16_t move) {

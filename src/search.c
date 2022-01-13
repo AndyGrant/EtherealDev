@@ -937,8 +937,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     }
 
     // Reapply the table move we took off
-    else
-        applyLegal(thread, board, mp->tableMove);
+    else apply(thread, board, mp->tableMove);
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
