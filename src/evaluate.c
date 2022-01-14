@@ -473,13 +473,25 @@ int evaluateBoard(Thread *thread, Board *board) {
         eval += evaluateClosedness(&ei, board);
         eval += evaluateComplexity(&ei, board, eval);
 
-        // Store a new Pawn King Entry if we did not have one
-        if (!TRACE && ei.pkentry == NULL)
-            storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval, ei.pksafety[WHITE], ei.pksafety[BLACK]);
+        // Fallback on NNUE when we get a very high evaluation
+        if (    USE_NNUE
+            && !board->kingAttackers
+            &&  abs(ScoreEG(eval)) >= 600) {
 
-        // Scale evaluation based on remaining material
-        factor = evaluateScaleFactor(board, eval);
-        if (TRACE) T.factor = factor;
+            eval = nnue_evaluate(thread, board);
+            eval = board->turn == WHITE  ? eval : -eval;
+        }
+
+        else {
+
+            // Store a new Pawn King Entry if we did not have one
+            if (!TRACE && ei.pkentry == NULL)
+                storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval, ei.pksafety[WHITE], ei.pksafety[BLACK]);
+
+            // Scale evaluation based on remaining material
+            factor = evaluateScaleFactor(board, eval);
+            if (TRACE) T.factor = factor;
+        }
     }
 
     // Calculate the game phase based on remaining material (Fruit Method)
