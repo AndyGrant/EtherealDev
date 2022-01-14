@@ -452,35 +452,35 @@ int evaluateBoard(Thread *thread, Board *board) {
         return hashed + Tempo;
 
     // On some-what balanced positions, use just NNUE
-    if (    USE_NNUE
-        && !board->kingAttackers
-        &&  abs(ScoreEG(board->psqtmat)) <= 400) {
+    // if (    USE_NNUE
+    //     && !board->kingAttackers
+    //     &&  abs(ScoreEG(board->psqtmat)) <= 400) {
 
         eval = nnue_evaluate(thread, board);
         eval = board->turn == WHITE  ? eval : -eval;
-    }
+    // }
 
-    else {
-
-        EvalInfo ei;
-        initEvalInfo(thread, board, &ei);
-        eval = evaluatePieces(&ei, board);
-
-        pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-        if (ei.pkentry == NULL) pkeval += computePKNetwork(board);
-
-        eval += pkeval + board->psqtmat;
-        eval += evaluateClosedness(&ei, board);
-        eval += evaluateComplexity(&ei, board, eval);
-
-        // Store a new Pawn King Entry if we did not have one
-        if (!TRACE && ei.pkentry == NULL)
-            storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval, ei.pksafety[WHITE], ei.pksafety[BLACK]);
-
-        // Scale evaluation based on remaining material
-        factor = evaluateScaleFactor(board, eval);
-        if (TRACE) T.factor = factor;
-    }
+    // else {
+    //
+    //     EvalInfo ei;
+    //     initEvalInfo(thread, board, &ei);
+    //     eval = evaluatePieces(&ei, board);
+    //
+    //     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
+    //     if (ei.pkentry == NULL) pkeval += computePKNetwork(board);
+    //
+    //     eval += pkeval + board->psqtmat;
+    //     eval += evaluateClosedness(&ei, board);
+    //     eval += evaluateComplexity(&ei, board, eval);
+    //
+    //     // Store a new Pawn King Entry if we did not have one
+    //     if (!TRACE && ei.pkentry == NULL)
+    //         storeCachedPawnKingEval(thread, board, ei.passedPawns, pkeval, ei.pksafety[WHITE], ei.pksafety[BLACK]);
+    //
+    //     // Scale evaluation based on remaining material
+    //     factor = evaluateScaleFactor(board, eval);
+    //     if (TRACE) T.factor = factor;
+    // }
 
     // Calculate the game phase based on remaining material (Fruit Method)
     phase = 4 * popcount(board->pieces[QUEEN ])
