@@ -52,7 +52,7 @@ int castleRookTo(int king, int rook) {
 }
 
 
-int apply(Thread *thread, Board *board, uint16_t move) {
+int apply(Thread *thread, Board *board, uint16_t move, bool gives_check) {
 
     NodeState *const ns = &thread->states[thread->height];
 
@@ -75,7 +75,7 @@ int apply(Thread *thread, Board *board, uint16_t move) {
         ns->move          = move;
 
         // Apply the move and reject if illegal
-        applyMove(board, move, &thread->undoStack[thread->height]);
+        applyMove(board, move, &thread->undoStack[thread->height], gives_check);
         if (!moveWasLegal(board))
             return revertMove(board, move, &thread->undoStack[thread->height]), 0;
     }
@@ -86,7 +86,7 @@ int apply(Thread *thread, Board *board, uint16_t move) {
     return 1;
 }
 
-void applyLegal(Thread *thread, Board *board, uint16_t move) {
+void applyLegal(Thread *thread, Board *board, uint16_t move, bool gives_check) {
 
     NodeState *const ns = &thread->states[thread->height];
 
@@ -96,14 +96,14 @@ void applyLegal(Thread *thread, Board *board, uint16_t move) {
     ns->move          = move;
 
     // Assumed that this move is legal
-    applyMove(board, move, &thread->undoStack[thread->height]);
+    applyMove(board, move, &thread->undoStack[thread->height], gives_check);
     assert(moveWasLegal(board));
 
     // Advance the Stack before updating
     thread->height++;
 }
 
-void applyMove(Board *board, uint16_t move, Undo *undo) {
+void applyMove(Board *board, uint16_t move, Undo *undo, bool gives_check) {
 
     static void (*table[4])(Board*, uint16_t, Undo*) = {
         applyNormalMove, applyCastleMove,
@@ -138,8 +138,9 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     board->turn = !board->turn;
 
     // Need king attackers to verify move legality
-    board->kingAttackers = attackersToKingSquare(board);
+    board->kingAttackers = gives_check ? attackersToKingSquare(board) : 0ull;
 }
+
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
 
@@ -585,7 +586,7 @@ int moveIsLegal(Board *board, uint16_t move) {
     if (!moveIsPseudoLegal(board, move))
         return 0;
 
-    applyMove(board, move, &undo);
+    applyMove(board, move, &undo, move_gives_check(board, move));
     legal = moveWasLegal(board);
     revertMove(board, move, &undo);
 

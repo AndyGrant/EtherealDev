@@ -299,7 +299,7 @@ static void pgn_read_moves(FILE *pgn, PGNData *data, Board *board) {
 
         // Skip head to the end of this comment to prepare for the next Move
         index = pgn_read_until_space(data->buffer, index+1); data->plies++;
-        applyMove(board, move, &undo);
+        applyMove(board, move, &undo, move_gives_check(board, move));
     }
 }
 

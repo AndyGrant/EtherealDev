@@ -355,7 +355,7 @@ void uciPosition(char *str, Board *board, int chess960) {
         for (int i = 0; i < size; i++) {
             moveToString(moves[i], testStr, board->chess960);
             if (strEquals(moveStr, testStr)) {
-                applyMove(board, moves[i], undo);
+                applyMove(board, moves[i], undo, move_gives_check(board, moves[i]));
                 break;
             }
         }

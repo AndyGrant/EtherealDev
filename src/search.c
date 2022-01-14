@@ -420,7 +420,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
         R += thread->states[thread->height-1].tactical;
 
-        apply(thread, board, NULL_MOVE);
+        apply(thread, board, NULL_MOVE, false);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
         revert(thread, board, NULL_MOVE);
 
@@ -441,7 +441,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
-            if (apply(thread, board, move)) {
+            if (apply(thread, board, move, move_gives_check(board, move))) {
 
                 // For high depths, verify the move first with a qsearch
                 if (depth >= 2 * ProbCutDepth)
@@ -473,6 +473,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
 
+        bool gives_check = move_gives_check(board, move);
+
         // Track Moves Seen for Late Move Pruning
         movesSeen += 1;
         isQuiet = !moveIsTactical(board, move);
@@ -491,7 +493,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > -TBWIN_IN_MAX && !move_gives_check(board, move)) {
+        if (isQuiet && best > -TBWIN_IN_MAX && !gives_check) {
 
             // Base LMR reduced depth value that we expect to use later
             int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
@@ -538,7 +540,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             continue;
 
         // Apply move, skip if move is illegal
-        if (!apply(thread, board, move))
+        if (!apply(thread, board, move, gives_check))
             continue;
 
         played += 1;
@@ -757,7 +759,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
                       - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
         // Search the next ply if the move is legal
-        if (!apply(thread, board, move)) continue;
+        if (!apply(thread, board, move, move_gives_check(board, move))) continue;
 
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
@@ -904,6 +906,8 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     PVariation lpv; lpv.length = 0;
     Board *const board = &thread->board;
 
+    bool gave_check = !!board->kingAttackers;
+
     // Table move was already applied
     revert(thread, board, mp->tableMove);
 
@@ -914,7 +918,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
         assert(move != mp->tableMove); // Skip the table move
 
         // Perform a reduced depth search on a null rbeta window
-        if (!apply(thread, board, move)) continue;
+        if (!apply(thread, board, move, move_gives_check(board, move))) continue;
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
         revert(thread, board, move);
 
@@ -938,7 +942,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
 
     // Reapply the table move we took off
     else
-        applyLegal(thread, board, mp->tableMove);
+        applyLegal(thread, board, mp->tableMove, gave_check);
 
     // Move is singular if all other moves failed low
     return value <= rBeta;
