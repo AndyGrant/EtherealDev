@@ -476,7 +476,7 @@ int evaluateBoard(Thread *thread, Board *board) {
         // Fallback on NNUE when we get a very high evaluation
         if (    USE_NNUE
             && !board->kingAttackers
-            &&  abs(ScoreEG(eval)) >= 600) {
+            &&  abs(ScoreEG(eval)) <= 200) {
 
             eval = nnue_evaluate(thread, board);
             eval = board->turn == WHITE  ? eval : -eval;
