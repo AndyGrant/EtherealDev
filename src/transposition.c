@@ -158,6 +158,9 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
     // Prefer a matching hash, otherwise score a replacement
     replace = (i != TT_BUCKET_NB) ? &slots[i] : replace;
 
+    // Always update the move
+    replace->move = (uint16_t) move;
+
     // Don't overwrite an entry from the same position, unless we have
     // an exact bound or depth that is nearly as good as the old one
     if (   bound != BOUND_EXACT
@@ -170,6 +173,5 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
     replace->generation = (uint8_t ) bound | Table.generation;
     replace->value      = (int16_t ) value_to_TT(value, height);
     replace->eval       = (int16_t ) eval;
-    replace->move       = (uint16_t) move;
     replace->hash16     = (uint16_t) hash16;
 }
