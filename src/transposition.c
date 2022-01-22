@@ -165,6 +165,13 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
         && depth < replace->depth - 2)
         return;
 
+    if (   depth  <=  replace->depth
+        && hash16 ==  replace->hash16
+        && bound  == (replace->generation & TT_MASK_BOUND)
+        && (   (bound == BOUND_LOWER && value <= replace->value)
+            || (bound == BOUND_UPPER && value >= replace->value)))
+        return;
+
     // Finally, copy the new data into the replaced slot
     replace->depth      = (int8_t  ) depth;
     replace->generation = (uint8_t ) bound | Table.generation;
