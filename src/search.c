@@ -593,7 +593,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
-        newDepth = depth + (extension && !RootNode);
+        newDepth = depth + (extension && !RootNode) - 1;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
@@ -646,21 +646,21 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 18A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, depth-R);
 
         // Step 18B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth);
 
         // Step 18C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth);
 
         // Revert the board state
         revert(thread, board, move);
