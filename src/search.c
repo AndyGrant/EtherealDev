@@ -278,9 +278,14 @@ void aspirationWindow(Thread *thread) {
 
         // Search failed high, adjust window and reduce depth
         else if (pv.score >= beta) {
+
             beta = MIN(MATE, beta + delta);
-            depth -= abs(pv.score) <= MATE / 2
-                  && pv.line[0] == thread->pvs[thread->completed].line[0];
+            depth -= abs(pv.score) <= MATE / 2;
+
+            // Reset the depth reductions if the PV move changed
+            if (pv.line[0] != thread->pvs[thread->completed].line[0])
+                depth = thread->depth;
+
             update_best_line(thread, &pv);
         }
 
