@@ -249,8 +249,9 @@ void aspirationWindow(Thread *thread) {
 
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
-        alpha = MAX(-MATE, thread->pvs[thread->completed].score - delta);
-        beta  = MIN( MATE, thread->pvs[thread->completed].score + delta);
+        const int last_score = thread->pvs[thread->completed].score;
+        alpha = MAX(-MATE, last_score - InitialWindowSize / 2);
+        beta  = MIN( MATE, last_score + InitialWindowSize / 2);
     }
 
     while (1) {

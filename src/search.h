@@ -41,9 +41,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta);
 int staticExchangeEvaluation(Board *board, uint16_t move, int threshold);
 int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta);
 
-static const int WindowDepth   = 5;
-static const int WindowSize    = 10;
-static const int WindowTimerMS = 2500;
+static const int WindowDepth       = 5;
+static const int WindowSize        = 10;
+static const int InitialWindowSize = 12;
+static const int WindowTimerMS     = 2500;
 
 static const int CurrmoveTimerMS = 2500;
 
