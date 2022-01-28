@@ -285,6 +285,10 @@ void aspirationWindow(Thread *thread) {
 
         // Expand the search window
         delta = delta + delta / 2;
+
+        // Score still falls outside the updated window
+        if (pv.score > beta || pv.score < alpha)
+            delta = delta + delta / 2;
     }
 }
 
