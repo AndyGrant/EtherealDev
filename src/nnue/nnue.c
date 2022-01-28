@@ -499,7 +499,7 @@ int nnue_evaluate(Thread *thread, Board *board) {
     if (!accum->accurate) {
 
         // Possible to recurse and incrementally update each
-        if (nnue_can_update(accum, board))
+        if (nnue_can_update(accum, board) <= 4)
             nnue_update_accumulator(accum, board, wrelksq, brelksq);
 
         // History is missing, we must refresh completely

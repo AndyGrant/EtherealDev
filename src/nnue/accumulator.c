@@ -58,24 +58,27 @@ static int nnue_index(Board *board, int relksq, int colour, int sq) {
 
 int nnue_can_update(NNUEAccumulator *accum, Board *board) {
 
-    NNUEAccumulator *start = board->thread->nnueStack;
+    const int CantUpdate = 1024;
 
-    if (accum == start) return 0;
+    const NNUEAccumulator *curr  = accum;
+    const NNUEAccumulator *start = board->thread->nnueStack;
+
+    if (accum == start) return CantUpdate;
 
     if ((accum-1)->accurate) return 1;
 
     while (accum != start) {
 
         if (accum->accurate)
-            return 1;
+            return curr - accum;
 
         if (accum->changes && pieceType(accum->deltas[0].piece) == KING)
-            return 0;
+            return CantUpdate;
 
         accum = accum - 1;
     }
 
-    return 0;
+    return CantUpdate;
 }
 
 void nnue_refresh_accumulators(NNUEAccumulator *accum, Board *board, int wrelksq, int brelksq) {
