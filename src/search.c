@@ -247,6 +247,8 @@ void aspirationWindow(Thread *thread) {
     int alpha  = -MATE, beta = MATE, delta = WindowSize;
     int report = !thread->index && thread->limits->multiPV == 1;
 
+    bool has_fail_high = 0, has_fail_low = 0;
+
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
         alpha = MAX(-MATE, thread->pvs[thread->completed].score - delta);
@@ -274,6 +276,7 @@ void aspirationWindow(Thread *thread) {
             alpha = MAX(-MATE, alpha - delta);
             depth = thread->depth;
             revert_best_line(thread);
+            has_fail_low = 1;
         }
 
         // Search failed high, adjust window and reduce depth
@@ -281,10 +284,15 @@ void aspirationWindow(Thread *thread) {
             beta = MIN(MATE, beta + delta);
             depth = depth - (abs(pv.score) <= MATE / 2);
             update_best_line(thread, &pv);
+            has_fail_high = 1;
         }
 
         // Expand the search window
         delta = delta + delta / 2;
+
+        // Search is unstable, expand the window
+        if (has_fail_low && has_fail_high)
+            delta = delta + delta / 2;
     }
 }
 
