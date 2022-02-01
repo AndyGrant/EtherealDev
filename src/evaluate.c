@@ -443,13 +443,13 @@ int evaluateBoard(Thread *thread, Board *board) {
     int factor = SCALE_NORMAL;
     int phase, eval, pkeval, hashed;
 
-    // We can recognize positions we just evaluated
-    if (thread->states[thread->height-1].move == NULL_MOVE)
-        return -thread->states[thread->height-1].eval + 2 * Tempo;
-
     // Check for this evaluation being cached already
     if (!TRACE && getCachedEvaluation(thread, board, &hashed))
         return hashed + Tempo;
+
+    // We can recognize positions we just evaluated
+    if (thread->states[thread->height-1].move == NULL_MOVE)
+        return -thread->states[thread->height-1].eval + 2 * Tempo;
 
     // Use the NNUE unless we are in an extremely unbalanced position
     if (USE_NNUE && abs(ScoreEG(board->psqtmat)) <= 2000) {
