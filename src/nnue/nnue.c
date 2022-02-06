@@ -55,6 +55,9 @@ ALIGN64 int32_t l1_biases[L2SIZE ];
 ALIGN64 float   l2_biases[L3SIZE ];
 ALIGN64 float   l3_biases[OUTSIZE];
 
+int NNUE_MG_SCALAR = 140;
+int NNUE_EG_SCALAR = 100;
+
 static int NNUE_LOADED = 0;
 
 static void scale_weights() {
@@ -514,8 +517,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
     output_transform(l3_weights, l3_biases, outN2, outN1);
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = NNUE_MG_SCALAR * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    eg_eval = NNUE_EG_SCALAR * ((int)(outN1[0]) >> SHIFT_L1) / 100;
 
     // Cap the NNUE evaluation within [-2000, 2000]
     mg_eval = MAX(-2000, MIN(2000, mg_eval));

@@ -48,6 +48,8 @@ extern volatile int ABORT_SIGNAL; // Defined by search.c
 extern volatile int IS_PONDERING; // Defined by search.c
 extern volatile int ANALYSISMODE; // Defined by search.c
 extern PKNetwork PKNN;            // Defined by network.c
+extern int NNUE_MG_SCALAR;        // Defined by nnue/nnue.c
+extern int NNUE_EG_SCALAR;        // Defined by nnue/nnue.c
 
 pthread_mutex_t PONDERLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -315,6 +317,16 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
             printf("info string set UCI_Chess960 to true\n"), *chess960 = 1;
         if (strStartsWith(str, "setoption name UCI_Chess960 value false"))
             printf("info string set UCI_Chess960 to false\n"), *chess960 = 0;
+    }
+
+    if (strStartsWith(str, "setoption name MGScalar value ")) {
+        NNUE_MG_SCALAR = atoi(str + strlen("setoption name MGScalar value "));
+        printf("info string set MGScalar to %d\n", NNUE_MG_SCALAR);
+    }
+
+    if (strStartsWith(str, "setoption name EGScalar value ")) {
+        NNUE_EG_SCALAR = atoi(str + strlen("setoption name EGScalar value "));
+        printf("info string set EGScalar to %d\n", NNUE_EG_SCALAR);
     }
 
     fflush(stdout);
