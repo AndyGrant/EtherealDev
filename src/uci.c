@@ -110,6 +110,8 @@ int main(int argc, char **argv) {
             printf("option name Ponder type check default false\n");
             printf("option name AnalysisMode type check default false\n");
             printf("option name UCI_Chess960 type check default false\n");
+            printf("option name MGScalar type spin default 140 min 0 max 400\n");
+            printf("option name EGScalar type spin default 100 min 0 max 400\n");
             printf("info string licensed to " LICENSE_OWNER "\n");
             printf("uciok\n"), fflush(stdout);
         }
