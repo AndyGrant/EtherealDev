@@ -202,10 +202,6 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         vepi32 acc1 = vepi32_zero();
         vepi32 acc2 = vepi32_zero();
         vepi32 acc3 = vepi32_zero();
-        vepi32 acc4 = vepi32_zero();
-        vepi32 acc5 = vepi32_zero();
-        vepi32 acc6 = vepi32_zero();
-        vepi32 acc7 = vepi32_zero();
 
         for (int j = 0; j < InChunks; j += 2) {
 
@@ -224,6 +220,19 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
             vepi16 sum3A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 3) + j + 0]);
             vepi16 sum3B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 3) + j + 1]);
             acc3 = vepi32_add(acc3, vepi16_madd(ones, vepi16_add(sum3A, sum3B)));
+        }
+
+
+        acc0 = vepi32_hadd(acc0, acc1);
+        acc2 = vepi32_hadd(acc2, acc3);
+        acc0 = vepi32_hadd(acc0, acc2);
+
+        vepi32 acc4 = vepi32_zero();
+        vepi32 acc5 = vepi32_zero();
+        vepi32 acc6 = vepi32_zero();
+        vepi32 acc7 = vepi32_zero();
+
+        for (int j = 0; j < InChunks; j += 2) {
 
             vepi16 sum4A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 4) + j + 0]);
             vepi16 sum4B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 4) + j + 1]);
@@ -242,10 +251,6 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
             acc7 = vepi32_add(acc7, vepi16_madd(ones, vepi16_add(sum7A, sum7B)));
         }
 
-
-        acc0 = vepi32_hadd(acc0, acc1);
-        acc2 = vepi32_hadd(acc2, acc3);
-        acc0 = vepi32_hadd(acc0, acc2);
         acc4 = vepi32_hadd(acc4, acc5);
         acc6 = vepi32_hadd(acc6, acc7);
         acc4 = vepi32_hadd(acc4, acc6);
@@ -302,28 +307,32 @@ INLINE void float_affine_relu(float *weights, float *biases, float *inputs, floa
         vps32 acc1 = vps32_mul(wgt[InChunks * (i * 8 + 1) + 0], inp[0]);
         vps32 acc2 = vps32_mul(wgt[InChunks * (i * 8 + 2) + 0], inp[0]);
         vps32 acc3 = vps32_mul(wgt[InChunks * (i * 8 + 3) + 0], inp[0]);
-        vps32 acc4 = vps32_mul(wgt[InChunks * (i * 8 + 4) + 0], inp[0]);
-        vps32 acc5 = vps32_mul(wgt[InChunks * (i * 8 + 5) + 0], inp[0]);
-        vps32 acc6 = vps32_mul(wgt[InChunks * (i * 8 + 6) + 0], inp[0]);
-        vps32 acc7 = vps32_mul(wgt[InChunks * (i * 8 + 7) + 0], inp[0]);
 
         for (int j = 1; j < InChunks; j++) {
             acc0 = vps32_fma(wgt[InChunks * (i * 8 + 0) + j], inp[j], acc0);
             acc1 = vps32_fma(wgt[InChunks * (i * 8 + 1) + j], inp[j], acc1);
             acc2 = vps32_fma(wgt[InChunks * (i * 8 + 2) + j], inp[j], acc2);
             acc3 = vps32_fma(wgt[InChunks * (i * 8 + 3) + j], inp[j], acc3);
+        }
+
+        acc0 = vps32_hadd(acc0, acc1);
+        acc2 = vps32_hadd(acc2, acc3);
+        acc0 = vps32_hadd(acc0, acc2);
+
+        vps32 acc4 = vps32_mul(wgt[InChunks * (i * 8 + 4) + 0], inp[0]);
+        vps32 acc5 = vps32_mul(wgt[InChunks * (i * 8 + 5) + 0], inp[0]);
+        vps32 acc6 = vps32_mul(wgt[InChunks * (i * 8 + 6) + 0], inp[0]);
+        vps32 acc7 = vps32_mul(wgt[InChunks * (i * 8 + 7) + 0], inp[0]);
+
+        for (int j = 1; j < InChunks; j++) {
             acc4 = vps32_fma(wgt[InChunks * (i * 8 + 4) + j], inp[j], acc4);
             acc5 = vps32_fma(wgt[InChunks * (i * 8 + 5) + j], inp[j], acc5);
             acc6 = vps32_fma(wgt[InChunks * (i * 8 + 6) + j], inp[j], acc6);
             acc7 = vps32_fma(wgt[InChunks * (i * 8 + 7) + j], inp[j], acc7);
         }
 
-        acc0 = vps32_hadd(acc0, acc1);
-        acc2 = vps32_hadd(acc2, acc3);
         acc4 = vps32_hadd(acc4, acc5);
         acc6 = vps32_hadd(acc6, acc7);
-
-        acc0 = vps32_hadd(acc0, acc2);
         acc4 = vps32_hadd(acc4, acc6);
 
         #if defined(USE_AVX2) || defined(USE_AVX)
