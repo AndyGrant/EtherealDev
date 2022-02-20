@@ -402,6 +402,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     eval = thread->states[thread->height].eval = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
+    if (!ttHit && !inCheck)
+        storeTTEntry(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
     seeMargin[1] = SEEQuietMargin * depth;
