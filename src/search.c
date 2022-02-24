@@ -764,15 +764,18 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Save a history of the static evaluations
-    eval = thread->states[thread->height].eval
+    best = eval = thread->states[thread->height].eval
          = ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
     alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+    if (alpha >= beta) {
+
+        storeTTEntry(board->hash, thread->height, NONE_MOVE, beta, eval, 0, BOUND_LOWER);
+        return eval;
+    }
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
