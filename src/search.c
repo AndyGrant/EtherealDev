@@ -774,7 +774,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     if (alpha >= beta) {
 
         if (!ttHit)
-            storeTTEntry(board->hash, thread->height, NONE_MOVE, beta, eval, 0, BOUND_LOWER);
+            storeTTEntry(board->hash, thread->height, NONE_MOVE, eval, eval, 0, BOUND_LOWER);
 
         return eval;
     }
