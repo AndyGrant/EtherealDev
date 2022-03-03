@@ -300,7 +300,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
-    int eval, value = -MATE, best = -MATE, seeMargin[2];
+    int eval, adjeval, value = -MATE, best = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     MovePicker movePicker;
@@ -399,8 +399,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     inCheck = !!board->kingAttackers;
 
     // Save a history of the static evaluations when not checked
-    eval = thread->states[thread->height].eval = inCheck ? VALUE_NONE
+    eval = adjeval = thread->states[thread->height].eval = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+
+    if (   ttHit
+        && ttDepth >= 3
+        && ttValue != VALUE_NONE
+        && ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER))
+        adjeval = ttValue;
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -427,8 +433,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  adjeval - BetaMargin * depth > beta)
+        return adjeval;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
     // that for low depths if eval is so bad that even a large static
@@ -436,8 +442,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  depth <= AlphaPruningDepth
-        &&  eval + AlphaMargin <= alpha)
-        return eval;
+        &&  adjeval + AlphaMargin <= alpha)
+        return adjeval;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so strong
     // that giving our opponent a double move still allows us to maintain
@@ -446,12 +452,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (   !PvNode
         && !inCheck
         &&  eval >= beta
+        &&  adjeval >= beta
         &&  depth >= NullMovePruningDepth
         &&  boardHasNonPawnMaterial(board, board->turn)
         &&  thread->states[thread->height-1].move != NULL_MOVE
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
+        R = 4 + depth / 6 + MIN(3, (adjeval - beta) / 200);
         R += thread->states[thread->height-1].tactical;
 
         apply(thread, board, NULL_MOVE);

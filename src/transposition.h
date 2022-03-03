@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-enum { BOUND_NONE, BOUND_LOWER, BOUND_UPPER, BOUND_EXACT };
+enum { BOUND_NONE, BOUND_UPPER, BOUND_LOWER, BOUND_EXACT };
 
 enum {
     TT_MASK_BOUND = 0x03,
