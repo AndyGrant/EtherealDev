@@ -165,6 +165,14 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
         && depth < replace->depth - 2)
         return;
 
+    // Don't do pure static eval storage when we would overwrite a much
+    // deeper search with an actual search score associated with it
+    if (    value == VALUE_NONE
+        &&  replace->depth > depth + 5
+        &&  replace->value != VALUE_NONE
+        && (replace->generation & TT_MASK_AGE) == Table.generation)
+        return;
+
     // Finally, copy the new data into the replaced slot
     replace->depth      = (int8_t  ) depth;
     replace->generation = (uint8_t ) bound | Table.generation;
