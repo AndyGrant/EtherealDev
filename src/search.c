@@ -418,7 +418,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         storeTTEntry(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
 
     // Toss the static evaluation into our own local Eval Cache
-    if (ttHit && ttEval != VALUE_NONE && thread->nthreads)
+    if (ttHit && ttEval != VALUE_NONE && thread->nthreads > 1)
         storeCachedEvaluation(thread, board, eval);
 
     // ------------------------------------------------------------------------
