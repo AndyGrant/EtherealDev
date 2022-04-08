@@ -417,6 +417,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (!ttHit && !inCheck)
         storeTTEntry(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
 
+    // Toss the static evaluation into our own local Eval Cache
+    if (ttHit && ttEval != VALUE_NONE && thread->nthreads)
+        storeCachedEvaluation(thread, board, eval);
+
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
     // ------------------------------------------------------------------------
