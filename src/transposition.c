@@ -169,8 +169,7 @@ void storeTTEntry(uint64_t hash, int height, uint16_t move, int value, int eval,
     // deeper search with an actual search score associated with it
     if (    value == VALUE_NONE
         &&  replace->depth > depth + 5
-        &&  replace->value != VALUE_NONE
-        && (replace->generation & TT_MASK_AGE) == Table.generation)
+        &&  replace->value != VALUE_NONE)
         return;
 
     // Finally, copy the new data into the replaced slot
