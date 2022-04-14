@@ -627,7 +627,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Decrease when we might have expected a cutoff but did not get it
-            R -= tt_suggests_cutoff && PvNode;
+            R -= tt_suggests_cutoff && !PvNode;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
