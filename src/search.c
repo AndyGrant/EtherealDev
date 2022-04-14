@@ -350,6 +350,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (rAlpha >= rBeta) return rAlpha;
     }
 
+    bool tt_suggests_cutoff = false;
+
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = getTTEntry(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
@@ -363,6 +365,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
+
+        // Table would cutoff if the the depth or node type were different
+        if (ttBound != BOUND_UPPER && ttValue >= beta)
+            tt_suggests_cutoff = true;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -619,6 +625,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Decrease when we might have expected a cutoff but did not get it
+            R -= tt_suggests_cutoff;
 
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
