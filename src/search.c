@@ -623,6 +623,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Reduce for Killers and Counters
             R -= movePicker.stage < STAGE_QUIET;
 
+            // Increase during Fail-high depth reductions
+            R += RootNode && thread->depth != depth;
+
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
 
