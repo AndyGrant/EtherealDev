@@ -87,15 +87,16 @@ void updateKillerMoves(Thread *thread, uint16_t move) {
 }
 
 
-void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
+void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth, int bad_noisy) {
 
-    const int bonus = MIN(depth * depth, HistoryMax);
+    const int malus = MIN(depth * depth, HistoryMax);
+    const int bonus = MIN((depth + bad_noisy) * (depth + bad_noisy), HistoryMax);
 
     for (int i = 0; i < length; i++) {
 
         const int to = MoveTo(moves[i]);
         const int from = MoveFrom(moves[i]);
-        const int delta = moves[i] == best ? bonus : -bonus;
+        const int delta = moves[i] == best ? bonus : malus;
 
         int piece = pieceType(thread->board.squares[from]);
         int captured = pieceType(thread->board.squares[to]);

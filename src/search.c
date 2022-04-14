@@ -700,7 +700,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         updateHistoryHeuristics(thread, quietsTried, quietsPlayed, depth);
 
     if (best >= beta)
-        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth);
+        updateCaptureHistories(thread, bestMove, capturesTried, capturesPlayed, depth, movePicker.stage == STAGE_BAD_NOISY);
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
