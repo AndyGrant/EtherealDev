@@ -597,7 +597,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                   &&  depth < 8
                   &&  move == ttMove
                   &&  ttValue > eval
-                  &&  eval > alpha + 32
+                  &&  eval + 32 < alpha
                   && (ttBound & BOUND_LOWER);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
