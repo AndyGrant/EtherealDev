@@ -299,7 +299,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, improving, extension, singular, ldsingular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
@@ -592,11 +592,22 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                  &&  ttDepth >= depth - 2
                  && (ttBound & BOUND_LOWER);
 
+        // Identify moves which might have been singular at another depth
+        ldsingular =  !RootNode
+                  &&  depth < 8
+                  &&  move == ttMove
+                  &&  ttValue > eval
+                  &&  eval > alpha + 32
+                  && (ttBound & BOUND_LOWER);
+
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
+        extension = singular
+                  ? singularity(thread, &movePicker, ttValue, depth, beta)
+                  : inCheck || ldsingular;
+
         newDepth = depth + (extension && !RootNode);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
