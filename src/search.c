@@ -587,7 +587,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
-                 &&  depth >= 8
                  &&  move == ttMove
                  &&  ttDepth >= depth - 2
                  && (ttBound & BOUND_LOWER);
@@ -596,7 +595,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta) : inCheck;
+        extension = (singular && depth >= 8) ? singularity(thread, &movePicker, ttValue, depth, beta)
+                  : (singular && depth <  8) ? eval < alpha - 32 && ttValue > eval: inCheck;
+
         newDepth = depth + (extension && !RootNode);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
