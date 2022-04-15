@@ -272,6 +272,7 @@ void aspirationWindow(Thread *thread) {
         if (pv.score <= alpha) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
+            delta = delta + delta / 3;
             depth = thread->depth;
             revert_best_line(thread);
         }
@@ -280,11 +281,9 @@ void aspirationWindow(Thread *thread) {
         else if (pv.score >= beta) {
             beta = MIN(MATE, beta + delta);
             depth = depth - (abs(pv.score) <= MATE / 2);
+            delta = delta + delta / 3;
             update_best_line(thread, &pv);
         }
-
-        // Expand the search window
-        delta = delta + delta / 2;
     }
 }
 
