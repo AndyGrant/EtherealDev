@@ -596,8 +596,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         ldsingular =  !RootNode
                   &&  depth < 8
                   &&  move == ttMove
-                  &&  ttValue > eval
-                  &&  eval + 64 < alpha
+                  &&  eval + 32 < alpha
                   && (ttBound & BOUND_LOWER);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
