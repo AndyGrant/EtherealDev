@@ -596,7 +596,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         ldsingular =  !RootNode
                   &&  depth < 8
                   &&  move == ttMove
-                  &&  ttValue > eval
+                  &&  ttValue > alpha
                   &&  eval + 32 < alpha
                   && (ttBound & BOUND_LOWER);
 
