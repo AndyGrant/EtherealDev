@@ -596,9 +596,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         ldsingular =  !RootNode
                   &&  depth < 8
                   &&  move == ttMove
-                  &&  ttValue > eval
-                  &&  eval + 32 < alpha
-                  && (ttBound & BOUND_LOWER);
+                  && (ttBound & BOUND_LOWER)
+                  &&  eval < MIN(alpha, ttValue);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
