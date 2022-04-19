@@ -577,7 +577,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         played += 1;
         if (isQuiet) quietsTried[quietsPlayed++] = move;
-        else capturesTried[capturesPlayed++] = move;
+        else if (movePicker.stage != STAGE_BAD_NOISY)
+            capturesTried[capturesPlayed++] = move;
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
