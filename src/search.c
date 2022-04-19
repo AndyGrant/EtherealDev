@@ -343,11 +343,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             return board->kingAttackers ? 0 : evaluateBoard(thread, board);
 
         // Mate Distance Pruning. Check to see if this line is so
-        // good, or so bad, that being mated in the ply, or  mating in
+        // good, or so bad, that being mated in the ply, or mating in
         // the next one, would still not create a more extreme line
-        rAlpha = alpha > -MATE + thread->height     ? alpha : -MATE + thread->height;
-        rBeta  =  beta <  MATE - thread->height - 1 ?  beta :  MATE - thread->height - 1;
-        if (rAlpha >= rBeta) return rAlpha;
+        alpha = MAX(alpha, -MATE + thread->height);
+        beta  = MIN(beta,   MATE - thread->height - 1);
+        if (alpha >= beta) return alpha;
     }
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
