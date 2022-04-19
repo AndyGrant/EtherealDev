@@ -627,7 +627,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R -= MAX(-2, MIN(2, hist / 5000));
 
             // Softcap R based on the tree size
-            R = MIN(R, played);
+            R = MIN(R, 2 * played);
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
