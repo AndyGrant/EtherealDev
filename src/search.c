@@ -469,6 +469,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX) {
 
+        // Short-circuit ProbCut
+        if (    ttHit
+            &&  ttDepth >= depth - 3
+            && (ttBound & BOUND_LOWER)
+            &&  moveIsTactical(board, ttMove)
+            &&  ttValue >= beta + ProbCutMargin)
+            return ttValue;
+
         // Try tactical moves which maintain rBeta.
         rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
         initNoisyMovePicker(&movePicker, thread, rBeta - eval);
