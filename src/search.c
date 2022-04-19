@@ -413,6 +413,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     thread->killers[thread->height+1][0] = NONE_MOVE;
     thread->killers[thread->height+1][1] = NONE_MOVE;
 
+    bool tt_negates_probcut, tt_suggests_probcut;
+
+    tt_negates_probcut  =  ttHit
+                       &&  ttValue < beta
+                       &&  ttDepth >= depth - 3
+                       && (ttBound & BOUND_UPPER);
+
+    tt_suggests_probcut =  ttHit
+                       &&  ttValue >= beta
+                       &&  ttDepth >= depth - 3
+                       && (ttBound & BOUND_LOWER);
+
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !inCheck)
         storeTTEntry(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
@@ -466,6 +478,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // it will cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         && !inCheck
+        && !tt_negates_probcut
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX) {
 
