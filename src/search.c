@@ -413,17 +413,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     thread->killers[thread->height+1][0] = NONE_MOVE;
     thread->killers[thread->height+1][1] = NONE_MOVE;
 
-    bool tt_negates_probcut, tt_suggests_probcut;
+    bool tt_negates_probcut;
 
     tt_negates_probcut  =  ttHit
-                       &&  ttValue < beta
                        &&  ttDepth >= depth - 3
-                       && (ttBound & BOUND_UPPER);
-
-    tt_suggests_probcut =  ttHit
-                       &&  ttValue >= beta
-                       &&  ttDepth >= depth - 3
-                       && (ttBound & BOUND_LOWER);
+                       && (ttBound & BOUND_UPPER)
+                       &&  ttValue < beta + ProbCutMargin;
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !inCheck)
