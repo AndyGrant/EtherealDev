@@ -65,13 +65,20 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
 
 void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
 
-    // Simply skip over the TT move
-    initMovePicker(mp, thread, ttMove);
-    mp->stage = STAGE_GENERATE_NOISY;
+    // Skip past the tt-move stage
+    mp->stage     = STAGE_TABLE + 1;
+    mp->tableMove = ttMove;
 
+    // Lookup our refutations (killers and counter moves)
+    getRefutationMoves(thread, &mp->killer1, &mp->killer2, &mp->counter);
+
+    // General housekeeping
+    mp->threshold = 0;
+    mp->thread    = thread;
+    mp->type      = NORMAL_PICKER;
 }
 
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int threshold) {
+void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int ttDepth, int threshold) {
 
     // Start with the table move
     mp->stage     = STAGE_TABLE;
@@ -86,7 +93,8 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int th
     mp->type      = NOISY_PICKER;
 
     // Skip over the TT-move unless its a threshold-winning capture
-    mp->stage += !moveIsTactical(&thread->board, ttMove)
+    mp->stage +=  ttDepth <= 1
+              || !moveIsTactical(&thread->board, ttMove)
               || !moveIsPseudoLegal(&thread->board, ttMove)
               || !staticExchangeEvaluation(&thread->board, ttMove, threshold);
 }
