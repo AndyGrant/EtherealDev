@@ -474,7 +474,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Don't bother trying the tt-move if it might not beat rBeta
-        move = ttHit && ttValue >= rBeta ? ttMove : NONE_MOVE;
+        move = ttHit && ttValue >= beta ? ttMove : NONE_MOVE;
 
         // Try tactical moves which maintain rBeta.
         initNoisyMovePicker(&movePicker, thread, move, rBeta - eval);
