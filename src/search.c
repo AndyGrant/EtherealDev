@@ -473,8 +473,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  abs(beta) < TBWIN_IN_MAX
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
+        // Don't bother trying the tt-move if it might not beat rBeta
+        move = ttHit && ttValue >= rBeta ? ttMove : NONE_MOVE;
+
         // Try tactical moves which maintain rBeta.
-        initNoisyMovePicker(&movePicker, thread, ttMove, rBeta - eval);
+        initNoisyMovePicker(&movePicker, thread, move, rBeta - eval);
         while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
