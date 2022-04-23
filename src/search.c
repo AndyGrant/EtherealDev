@@ -630,21 +630,24 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R -= MAX(-2, MIN(2, hist / 5000));
 
             // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
+            R  = MIN(depth - 1, MAX(R, 1));
         }
 
         // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 15A, but
         // only applied to Tactical moves with unusually poor Capture History scores
         else if (!isQuiet && depth > 2 && played > 1) {
 
+            /// Use the LMR Formula as a starting point
+            R  = LMRTable[MIN(depth, 63)][MIN(capturesPlayed, 63)];
+
             // Initialize R based on Capture History
-            R = MIN(3, 3 - (hist + 4000) / 2000);
+            R += MIN(3, 3 - (hist + 5000) / 2500);
 
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
 
             // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
+            R  = MIN(depth - 1, MAX(R, 1));
         }
 
         // No LMR conditions were met. Use a Standard Reduction
