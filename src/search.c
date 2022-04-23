@@ -643,8 +643,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
 
-            // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
+            // Don't extend, and only go straight to QS for losing captures
+            R = MIN(depth - 1, MAX(R, movePicker.stage != STAGE_BAD_NOISY));
         }
 
         // No LMR conditions were met. Use a Standard Reduction
