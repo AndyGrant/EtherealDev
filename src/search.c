@@ -635,13 +635,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 15A, but
         // only applied to Tactical moves with unusually poor Capture History scores
-        else if (!isQuiet && depth > 2 && played > 1) {
+        else if (!isQuiet && depth > 2 && capturesPlayed > 1) {
 
             // Initialize R based on Capture History
             R = MIN(3, 3 - (hist + 4000) / 2000);
-
-            // ...
-            R += capturesPlayed > 4;
 
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
