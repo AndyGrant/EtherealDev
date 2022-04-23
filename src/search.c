@@ -638,7 +638,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         else if (!isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(capturesPlayed, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)] / 2;
 
             // Initialize R based on Capture History
             R += MIN(3, 3 - (hist + 5000) / 2500);
