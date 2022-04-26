@@ -610,6 +610,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (ns->mp.stage == STAGE_DONE)
             return MAX(ttValue - depth, -MATE);
 
+        if (singular && extension && ttValue + 125 < alpha)
+            return alpha;
+
         // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
         // of Quiet moves after we've explored the main line. If a reduced search
         // manages to beat alpha, against our expectations, we perform a research
