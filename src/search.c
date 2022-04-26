@@ -641,6 +641,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Initialize R based on Capture History
             R = MIN(3, 3 - (hist + 4000) / 2000);
 
+            // We should be able to beat bad Noisy moves
+            R -= (ns-1)->mp.stage == STAGE_BAD_NOISY;
+
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
 
