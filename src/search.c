@@ -938,7 +938,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int bet
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int value = -MATE, rBeta = MAX(ttValue - 2 * depth, -MATE);
     PVariation lpv; lpv.length = 0;
 
     // Table move was already applied
