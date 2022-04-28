@@ -981,8 +981,10 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int bet
     // Quiet-move that essentially acts as a Killer move
     if (    value > rBeta
         &&  value + 32 > beta
-        && !moveIsTactical(board, move))
+        && !moveIsTactical(board, move)) {
+        ns->mp.killer2 = ns->mp.killer1;
         ns->mp.killer1 = move;
+    }
 
     return value <= rBeta   ?  1 // Singular due to no cutoffs produced
          : ttValue >=  beta ? -1 // Potential multi-cut even at current depth
