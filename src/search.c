@@ -979,8 +979,10 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int alp
     else applyLegal(thread, board, ttMove);
 
     // Near Multi-Cut move may win in a PvNode
-    if (value > rBeta && value > alpha)
+    if (value > rBeta && value + 32 > beta)
         ns->mp.skiller = move;
+
+    (void) alpha; // ...
 
     return value <= rBeta   ?  1 // Singular due to no cutoffs produced
          : ttValue >=  beta ? -1 // Potential multi-cut even at current depth
