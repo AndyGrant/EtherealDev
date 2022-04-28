@@ -600,7 +600,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, beta) : inCheck;
+        extension = singular ? singularity(thread, ttMove, ttValue, depth, alpha, beta) : inCheck;
         newDepth = depth + (!RootNode ? extension : 0);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
@@ -931,7 +931,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     return board->turn != colour;
 }
 
-int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int beta) {
+int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int alpha, int beta) {
 
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height-1];
@@ -977,6 +977,10 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int bet
 
     // Reapply the table move we took off
     else applyLegal(thread, board, ttMove);
+
+    // Near Multi-Cut move may win in a PvNode
+    if (value > rBeta && value > alpha)
+        ns->mp.skiller = move;
 
     return value <= rBeta   ?  1 // Singular due to no cutoffs produced
          : ttValue >=  beta ? -1 // Potential multi-cut even at current depth

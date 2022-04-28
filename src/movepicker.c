@@ -52,6 +52,9 @@ void init_picker(MovePicker *mp, Thread *thread, uint16_t tt_move) {
     // Lookup our refutations (killers and counter moves)
     getRefutationMoves(thread, &mp->killer1, &mp->killer2, &mp->counter);
 
+    // Singular-Killer would be set at a later time
+    mp->skiller = NONE_MOVE;
+
     // General housekeeping
     mp->threshold = 0;
     mp->type      = NORMAL_PICKER;
@@ -67,7 +70,7 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
     mp->tt_move = tt_move;
 
     // Skip all of the refutation moves
-    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    mp->skiller = mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
 
     // General housekeeping
     mp->threshold = threshold;
@@ -90,8 +93,19 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
         case STAGE_TABLE:
 
             // Play table move ( Already shown to be legal )
-            mp->stage = STAGE_GENERATE_NOISY;
+            mp->stage = STAGE_SINGULAR_KILLER;
             return mp->tt_move;
+
+        case STAGE_SINGULAR_KILLER:
+
+            // Play singular-killer move if not yet played, and pseudo legal
+            mp->stage = STAGE_GENERATE_NOISY;
+            if (   !skip_quiets
+                &&  mp->skiller != mp->tt_move /* Can't be true ! */
+                &&  moveIsPseudoLegal(board, mp->skiller))
+                return mp->skiller;
+
+            /* fallthrough */
 
         case STAGE_GENERATE_NOISY:
 
@@ -127,7 +141,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, best);
 
                 // Don't play the table move twice
-                if (best_move == mp->tt_move)
+                if (best_move == mp->tt_move || best_move == mp->skiller)
                     continue;
 
                 // Don't play the refutation moves twice
@@ -153,6 +167,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             // Play killer move if not yet played, and pseudo legal
             mp->stage = STAGE_KILLER_2;
             if (   !skip_quiets
+                &&  mp->killer1 != mp->skiller
                 &&  mp->killer1 != mp->tt_move
                 &&  moveIsPseudoLegal(board, mp->killer1))
                 return mp->killer1;
@@ -164,6 +179,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             // Play killer move if not yet played, and pseudo legal
             mp->stage = STAGE_COUNTER_MOVE;
             if (   !skip_quiets
+                &&  mp->killer2 != mp->skiller
                 &&  mp->killer2 != mp->tt_move
                 &&  moveIsPseudoLegal(board, mp->killer2))
                 return mp->killer2;
@@ -176,6 +192,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             mp->stage = STAGE_GENERATE_QUIET;
             if (   !skip_quiets
                 &&  mp->counter != mp->tt_move
+                &&  mp->counter != mp->skiller
                 &&  mp->counter != mp->killer1
                 &&  mp->counter != mp->killer2
                 &&  moveIsPseudoLegal(board, mp->counter))
@@ -205,8 +222,9 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 best_move = pop_move(&mp->quiet_size, mp->moves + mp->split, mp->values + mp->split, best);
 
                 // Don't play a move more than once
-                if (   best_move == mp->tt_move || best_move == mp->killer1
-                    || best_move == mp->killer2 || best_move == mp->counter)
+                if (   best_move == mp->tt_move || best_move == mp->skiller
+                    || best_move == mp->killer1 || best_move == mp->killer2
+                    || best_move == mp->counter)
                     continue;
 
                 return best_move;
@@ -226,8 +244,9 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, 0);
 
                 // Don't play a move more than once
-                if (   best_move == mp->tt_move || best_move == mp->killer1
-                    || best_move == mp->killer2 || best_move == mp->counter)
+                if (   best_move == mp->tt_move || best_move == mp->skiller
+                    || best_move == mp->killer1 || best_move == mp->killer2
+                    || best_move == mp->counter)
                     continue;
 
                 return best_move;

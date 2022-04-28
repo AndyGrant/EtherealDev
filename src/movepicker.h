@@ -24,6 +24,7 @@ enum { NORMAL_PICKER, NOISY_PICKER };
 
 enum {
     STAGE_TABLE,
+    STAGE_SINGULAR_KILLER,
     STAGE_GENERATE_NOISY, STAGE_GOOD_NOISY,
     STAGE_KILLER_1, STAGE_KILLER_2, STAGE_COUNTER_MOVE,
     STAGE_GENERATE_QUIET, STAGE_QUIET,
@@ -36,7 +37,7 @@ struct MovePicker {
     int stage, type, threshold;
     int values[MAX_MOVES];
     uint16_t moves[MAX_MOVES];
-    uint16_t tt_move, killer1, killer2, counter;
+    uint16_t tt_move, skiller, killer1, killer2, counter;
 };
 
 void     init_picker       (MovePicker *mp, Thread *thread, uint16_t tt_move);
