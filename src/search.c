@@ -979,6 +979,6 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int bet
     else applyLegal(thread, board, ttMove);
 
     return value <= rBeta   ?  1 // Singular due to no cutoffs produced
-         : ttValue >=  beta ? -1 // Potential multi-cut even at current depth
+         : ttValue >=  beta ? -2 // Potential multi-cut even at current depth
          : 0;                    // Not singular, and unlikely to produce a cutoff
 }
