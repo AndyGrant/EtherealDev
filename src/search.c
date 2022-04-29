@@ -656,8 +656,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         else R = 1;
 
         // ?????
-        if (   was_singular
-            && newDepth - R <= depth / 2 - 1) {
+        if (   !PvNode
+            &&  was_singular
+            &&  newDepth - R <= depth / 2 - 1) {
 
             revert(thread, board, move);
             continue;
