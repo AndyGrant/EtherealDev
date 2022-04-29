@@ -49,9 +49,6 @@ void init_picker(MovePicker *mp, Thread *thread, uint16_t tt_move) {
     mp->stage   = STAGE_TABLE;
     mp->tt_move = tt_move;
 
-    // Lookup our refutations (killers and counter moves)
-    getRefutationMoves(thread, &mp->killer1, &mp->killer2, &mp->counter);
-
     // General housekeeping
     mp->threshold = 0;
     mp->type      = NORMAL_PICKER;
@@ -144,6 +141,9 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             /* fallthrough */
 
         case STAGE_KILLER_1:
+
+            // Lookup our refutations (killers and counter moves)
+            getRefutationMoves(thread, &mp->killer1, &mp->killer2, &mp->counter);
 
             // Play killer move if not yet played, and pseudo legal
             mp->stage = STAGE_KILLER_2;
