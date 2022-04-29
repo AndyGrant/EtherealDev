@@ -307,6 +307,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     PVariation lpv;
 
+    int was_singular = 0;
+
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
     if (depth <= 0 && !board->kingAttackers)
@@ -603,6 +605,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         extension = singular ? singularity(thread, ttMove, ttValue, depth, beta) : inCheck;
         newDepth = depth + (!RootNode ? extension : 0);
 
+        if (singular && extension > 0) was_singular = 1;
+
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
         // which appear to beat beta at a reduced depth. singularity() sets the stage to STAGE_DONE
@@ -646,6 +650,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
+        }
+
+        // ?????
+        if (   was_singular
+            && newDepth - R <= depth / 2 - 1) {
+
+            revert(thread, board, move);
+            continue;
         }
 
         // No LMR conditions were met. Use a Standard Reduction
