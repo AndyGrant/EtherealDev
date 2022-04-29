@@ -658,8 +658,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // ?????
         if (   !PvNode
             &&  was_singular
-            &&  newDepth - R <= depth / 2 - 1) {
-
+            &&  newDepth - R <= depth / 2 - 1
+            &&  MAX(ttValue - depth, -MATE) <= beta) {
             revert(thread, board, move);
             continue;
         }
