@@ -981,6 +981,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int bet
     // Quiet-move that essentially acts as a Killer move
     if (    value > rBeta
         &&  value + 32 > beta
+        &&  ns->mp.killer2 != move
         && !moveIsTactical(board, move))
         ns->mp.killer1 = move;
 
