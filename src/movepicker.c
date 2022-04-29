@@ -130,11 +130,6 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 if (best_move == mp->tt_move)
                     continue;
 
-                // Don't play the refutation moves twice
-                if (best_move == mp->killer1) mp->killer1 = NONE_MOVE;
-                if (best_move == mp->killer2) mp->killer2 = NONE_MOVE;
-                if (best_move == mp->counter) mp->counter = NONE_MOVE;
-
                 return best_move;
             }
 
@@ -154,6 +149,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             mp->stage = STAGE_KILLER_2;
             if (   !skip_quiets
                 &&  mp->killer1 != mp->tt_move
+                && !moveIsTactical(board, mp->killer1)
                 &&  moveIsPseudoLegal(board, mp->killer1))
                 return mp->killer1;
 
@@ -165,6 +161,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             mp->stage = STAGE_COUNTER_MOVE;
             if (   !skip_quiets
                 &&  mp->killer2 != mp->tt_move
+                && !moveIsTactical(board, mp->killer2)
                 &&  moveIsPseudoLegal(board, mp->killer2))
                 return mp->killer2;
 
@@ -178,6 +175,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 &&  mp->counter != mp->tt_move
                 &&  mp->counter != mp->killer1
                 &&  mp->counter != mp->killer2
+                && !moveIsTactical(board, mp->counter)
                 &&  moveIsPseudoLegal(board, mp->counter))
                 return mp->counter;
 
@@ -226,8 +224,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, 0);
 
                 // Don't play a move more than once
-                if (   best_move == mp->tt_move || best_move == mp->killer1
-                    || best_move == mp->killer2 || best_move == mp->counter)
+                if (best_move == mp->tt_move)
                     continue;
 
                 return best_move;
