@@ -652,6 +652,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R = MIN(depth - 1, MAX(R, 1));
         }
 
+        // No LMR conditions were met. Use a Standard Reduction
+        else R = 1;
+
         // ?????
         if (   was_singular
             && newDepth - R <= depth / 2 - 1) {
@@ -659,9 +662,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             revert(thread, board, move);
             continue;
         }
-
-        // No LMR conditions were met. Use a Standard Reduction
-        else R = 1;
 
         // Step 18A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
