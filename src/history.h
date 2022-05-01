@@ -22,9 +22,7 @@
 
 #include "types.h"
 
-static const int HistoryMax = 400;
-static const int HistoryMultiplier = 32;
-static const int HistoryDivisor = 512;
+static const int HistoryDivisor = 16384;
 
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int depth);
 void updateKillerMoves(Thread *thread, uint16_t move);

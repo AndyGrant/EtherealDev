@@ -25,8 +25,14 @@
 #include "thread.h"
 #include "types.h"
 
-static void updateHistoryWithDecay(int16_t *current, int delta) {
-    *current += HistoryMultiplier * delta - *current * abs(delta) / HistoryDivisor;
+static int stat_bonus(int depth) {
+
+    // Approximately verbatim stat bonus formula from Stockfish
+    return depth > 13 ? 32 : 16 * depth * depth + 128 * (depth - 1);
+}
+
+static void update_history(int16_t *current, int delta) {
+    *current += delta - *current * abs(delta) / HistoryDivisor;
 }
 
 
@@ -52,7 +58,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
     if (length == 1 && depth <= 3) return;
 
     // Cap update size to avoid saturation
-    bonus = MIN(depth*depth, HistoryMax);
+    bonus = stat_bonus(depth);
 
     for (int i = 0; i < length; i++) {
 
@@ -65,15 +71,15 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
         const int piece = pieceType(thread->board.squares[from]);
 
         // Update Butterfly History
-        updateHistoryWithDecay(&thread->history[colour][from][to], delta);
+        update_history(&thread->history[colour][from][to], delta);
 
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-            updateHistoryWithDecay(&(*(ns-1)->continuations)[0][piece][to], delta);
+            update_history(&(*(ns-1)->continuations)[0][piece][to], delta);
 
         // Update Move History if it exists
         if ((ns-2)->continuations != NULL)
-            updateHistoryWithDecay(&(*(ns-2)->continuations)[1][piece][to], delta);
+            update_history(&(*(ns-2)->continuations)[1][piece][to], delta);
     }
 }
 
@@ -89,7 +95,7 @@ void updateKillerMoves(Thread *thread, uint16_t move) {
 
 void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
 
-    const int bonus = MIN(depth * depth, HistoryMax);
+    const int bonus = stat_bonus(depth);
 
     for (int i = 0; i < length; i++) {
 
@@ -106,7 +112,7 @@ void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int 
         assert(PAWN <= piece && piece <= KING);
         assert(PAWN <= captured && captured <= QUEEN);
 
-        updateHistoryWithDecay(&thread->chistory[piece][to][captured], delta);
+        update_history(&thread->chistory[piece][to][captured], delta);
     }
 }
 
