@@ -439,7 +439,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !inCheck
         &&  depth <= RazoringDepth
         &&  eval + RazoringMargin[depth] < alpha
-        && (value = qsearch(thread, pv, alpha, beta)) < alpha)
+        && (value = qsearch(thread, pv, alpha, beta)) <= alpha)
         return value;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so strong
