@@ -434,14 +434,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  eval - BetaMargin * depth > beta)
         return eval;
 
-    // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
-    // that for low depths if eval is so bad that even a large static
-    // bonus doesn't get us beyond alpha, then eval will hold below alpha
+    // Razoring ???
     if (   !PvNode
         && !inCheck
-        &&  depth <= AlphaPruningDepth
-        &&  eval + AlphaMargin <= alpha)
-        return eval;
+        &&  depth <= RazoringDepth
+        &&  eval + RazoringMargin[depth] < alpha
+        && (value = qsearch(thread, pv, alpha, beta)) < alpha)
+        return value;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so strong
     // that giving our opponent a double move still allows us to maintain
