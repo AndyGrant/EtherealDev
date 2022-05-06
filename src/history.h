@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-static const int HistoryDivisor = 16384;
+static const int HistoryDivisor = 32000;
 
 void update_history_heuristics(Thread *thread, uint16_t *moves, int length, int depth);
 void update_killer_moves(Thread *thread, uint16_t move);
