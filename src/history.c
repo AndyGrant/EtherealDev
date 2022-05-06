@@ -48,18 +48,15 @@ static int history_captured_piece(Thread *thread, uint16_t move) {
          : pieceType(thread->board.squares[MoveTo(move)]);
 }
 
-static int16_t* underlying_capture_history(Thread *thread, uint16_t move) {
+static int16_t* ptr_capture_history(Thread *thread, uint16_t move) {
 
     const int captured = history_captured_piece(thread, move);
     const int piece    = pieceType(thread->board.squares[MoveFrom(move)]);
 
-    assert(PAWN <= captured && captured <= QUEEN);
-    assert(PAWN <= piece && piece <= KING);
-
     return &thread->chistory[piece][MoveTo(move)][captured];
 }
 
-static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *histories[3]) {
+static void ptr_quiet_history(Thread *thread, uint16_t move, int16_t *histories[3]) {
 
     static int16_t NULL_HISTORY; // Always zero to handle missing CM/FM history
 
@@ -124,8 +121,8 @@ void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2, 
 int get_capture_history(Thread *thread, uint16_t move) {
 
     // Inflate Queen Promotions beyond the range of reductions
-    return  64000 * (MovePromoPiece(move) == QUEEN)
-         + *underlying_capture_history(thread, move);
+    return *ptr_capture_history(thread, move)
+         + 64000 * (MovePromoPiece(move) == QUEEN);
 }
 
 void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
@@ -146,28 +143,25 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
     // Update the history for each capture move that was attempted. One of them
     // might have been the move which produced a cutoff, and thus earn a bonus
 
-    for (int i = 0; i < length; i++) {
-        int16_t *hist = underlying_capture_history(thread, moves[i]);
-        update_history(hist, depth, moves[i] == best);
-    }
+    for (int i = 0; i < length; i++)
+        update_history(ptr_capture_history(thread, moves[i]), depth, moves[i] == best);
 }
 
 
-int get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
+int get_quiet_history(Thread *thread, uint16_t move, int16_t *cmhist, int16_t *fmhist) {
 
-    int16_t *histories[3];
-    underlying_quiet_history(thread, move, histories);
-
-    *cmhist = *histories[0]; *fmhist = *histories[1];
-    return *histories[0] + *histories[1] + *histories[2];
+    int16_t butterfly = 0, *histories[3] = { cmhist, fmhist, &butterfly };
+    ptr_quiet_history(thread, move, histories);
+    return *cmhist + *fmhist + butterfly;
 }
 
 void get_quiet_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    int null_hist; // cmhist & fmhist are set, although ignored
-
-    for (int i = start; i < start + length; i++)
-        scores[i] = get_quiet_history(thread, moves[i], &null_hist, &null_hist);
+    for (int i = start; i < start + length; i++) {
+        int16_t *histories[3];
+        ptr_quiet_history(thread, moves[i], histories);
+        scores[i] = *histories[0] + *histories[1] + *histories[2];
+    }
 }
 
 void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int depth) {
@@ -181,7 +175,7 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
     for (int i = 0; i < length; i++) {
 
         int16_t *histories[3];
-        underlying_quiet_history(thread, moves[i], histories);
+        ptr_quiet_history(thread, moves[i], histories);
 
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
