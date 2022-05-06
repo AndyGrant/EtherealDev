@@ -29,7 +29,7 @@
 static int stat_bonus(int depth) {
 
     // Approximately verbatim stat bonus formula from Stockfish
-    return depth > 13 ? 32 : 16 * depth * depth + 128 * MAX(depth - 1, 0);
+    return depth > 13 ? 32 : 12 * depth * depth + 128 * MAX(depth - 1, 0);
 }
 
 static void update_history(int16_t *current, int depth, bool good) {
