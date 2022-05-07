@@ -464,7 +464,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Store NMP cutoffs with a greatly reduced depth, to account for the lower quality
         if (value >= beta && !ttHit)
-            storeTTEntry(board->hash, thread->height, move, value, eval, depth-4, BOUND_LOWER);
+            storeTTEntry(board->hash, thread->height, NULL_MOVE, value, eval, depth-4, BOUND_LOWER);
 
         if (value >= beta) return beta;
     }
