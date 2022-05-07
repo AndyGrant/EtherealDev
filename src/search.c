@@ -700,11 +700,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 20 (~760 elo). Update History counters on a fail high for a quiet move.
     // We also update Capture History Heuristics, which augment or replace MVV-LVA.
 
-    if (best >= beta && !moveIsTactical(board, bestMove))
-        update_history_heuristics(thread, quietsTried, quietsPlayed, depth);
+    {
+        const int bonus = (ttHit && (ttBound & BOUND_LOWER) && bestMove != ttMove);
 
-    if (best >= beta)
-        update_capture_histories(thread, bestMove, capturesTried, capturesPlayed, depth);
+        if (best >= beta && !moveIsTactical(board, bestMove))
+            update_history_heuristics(thread, quietsTried, quietsPlayed, depth+bonus);
+
+        if (best >= beta)
+            update_capture_histories(thread, bestMove, capturesTried, capturesPlayed, depth+bonus);
+    }
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
