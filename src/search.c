@@ -703,8 +703,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (best >= beta && !moveIsTactical(board, bestMove))
         update_history_heuristics(thread, quietsTried, quietsPlayed, depth);
 
-    if (best >= beta)
-        update_capture_histories(thread, bestMove, capturesTried, capturesPlayed, depth);
+    if (best >= beta) {
+        const int bonus_depth = depth + (!isQuiet && ns->mp.stage == STAGE_BAD_NOISY);
+        update_capture_histories(thread, bestMove, capturesTried, capturesPlayed, bonus_depth);
+    }
 
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
