@@ -90,7 +90,7 @@ static bool winning_or_equal_recapture(Thread *thread, uint16_t move) {
 
     return (ns-1)->tactical
         && MoveTo((ns-1)->move) == MoveTo(move)
-        && PieceValues[(ns-1)->movedPiece] >= PieceValues[piece];
+        && PieceValues[(ns-1)->movedPiece] > PieceValues[piece];
 }
 
 
