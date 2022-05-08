@@ -152,21 +152,17 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
 }
 
 
-int get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
+int get_quiet_history(Thread *thread, uint16_t move) {
 
     int16_t *histories[3];
     underlying_quiet_history(thread, move, histories);
-
-    *cmhist = *histories[0]; *fmhist = *histories[1];
     return *histories[0] + *histories[1] + *histories[2];
 }
 
 void get_quiet_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    int null_hist; // cmhist & fmhist are set, although ignored
-
     for (int i = start; i < start + length; i++)
-        scores[i] = get_quiet_history(thread, moves[i], &null_hist, &null_hist);
+        scores[i] = get_quiet_history(thread, moves[i]);
 }
 
 void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int depth) {
@@ -193,4 +189,33 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
         // Update Butterfly History, which always exists
         update_history(histories[2], depth, i == length - 1);
     }
+}
+
+
+int get_cmhistory(Thread *thread, uint16_t move) {
+
+    NodeState *const ns = &thread->states[thread->height];
+
+    // Extract information from this move
+    const int to    = MoveTo(move);
+    const int from  = MoveFrom(move);
+    const int piece = pieceType(thread->board.squares[from]);
+
+    // Set Counter Move History if it exists
+    return (ns-1)->continuations == NULL ? 0
+         : (*(ns-1)->continuations)[0][piece][to];
+}
+
+int get_fmhistory(Thread *thread, uint16_t move) {
+
+    NodeState *const ns = &thread->states[thread->height];
+
+    // Extract information from this move
+    const int to    = MoveTo(move);
+    const int from  = MoveFrom(move);
+    const int piece = pieceType(thread->board.squares[from]);
+
+    // Set Counter Move History if it exists
+    return (ns-2)->continuations == NULL ? 0
+         : (*(ns-2)->continuations)[1][piece][to];
 }

@@ -32,6 +32,9 @@ int  get_capture_history(Thread *thread, uint16_t move);
 void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length);
 void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth);
 
-int  get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist);
+int  get_quiet_history(Thread *thread, uint16_t move);
 void get_quiet_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length);
 void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int depth);
+
+int  get_cmhistory(Thread *thread, uint16_t move);
+int  get_fmhistory(Thread *thread, uint16_t move);

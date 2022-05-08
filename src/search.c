@@ -297,7 +297,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     const int RootNode   = (thread->height == 0);
 
     unsigned tbresult;
-    int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
@@ -515,10 +514,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         movesSeen += 1;
         isQuiet = !moveIsTactical(board, move);
 
-        // All moves have one or more History scores
-        hist = !isQuiet ? get_capture_history(thread, move)
-             : get_quiet_history(thread, move, &cmhist, &fmhist);
-
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
@@ -540,7 +535,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             if (   !inCheck
                 &&  eval + fmpMargin <= alpha
                 &&  lmrDepth <= FutilityPruningDepth
-                &&  hist < FutilityPruningHistoryLimit[improving])
+                &&  ns->mp.history < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
 
             // Step 13B (~2.5 elo). Futility Pruning. If our score is not only far
@@ -554,15 +549,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Step 13C (~8 elo). Counter Move Pruning. Moves with poor counter
             // move history are pruned at near leaf nodes of the search.
             if (   ns->mp.stage > STAGE_COUNTER_MOVE
-                && cmhist < CounterMoveHistoryLimit[improving]
-                && lmrDepth <= CounterMovePruningDepth[improving])
+                && lmrDepth <= CounterMovePruningDepth[improving]
+                && get_cmhistory(thread, move) < CounterMoveHistoryLimit[improving])
                 continue;
 
             // Step 13D (~1.5 elo). Follow Up Move Pruning. Moves with poor
             // follow up move history are pruned at near leaf nodes of the search.
             if (   ns->mp.stage > STAGE_COUNTER_MOVE
-                && fmhist < FollowUpMoveHistoryLimit[improving]
-                && lmrDepth <= FollowUpMovePruningDepth[improving])
+                && lmrDepth <= FollowUpMovePruningDepth[improving]
+                && get_fmhistory(thread, move) < FollowUpMoveHistoryLimit[improving])
                 continue;
         }
 
@@ -628,7 +623,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R -= ns->mp.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, hist / 5000));
+            R -= MAX(-2, MIN(2, ns->mp.history / 5000));
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
@@ -639,7 +634,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         else if (!isQuiet && depth > 2 && played > 1) {
 
             // Initialize R based on Capture History
-            R = MIN(3, 3 - (hist + 4000) / 2000);
+            R = MIN(3, 3 - (ns->mp.history + 4000) / 2000);
 
             // Reduce for moves that give check
             R -= !!board->kingAttackers;

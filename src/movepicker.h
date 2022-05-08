@@ -34,7 +34,7 @@ enum {
 struct MovePicker {
     int split, noisy_size, quiet_size;
     int stage, type, threshold;
-    int values[MAX_MOVES];
+    int values[MAX_MOVES], history;
     uint16_t moves[MAX_MOVES];
     uint16_t tt_move, killer1, killer2, counter;
 };

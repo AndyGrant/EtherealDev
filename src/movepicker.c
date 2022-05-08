@@ -24,11 +24,17 @@
 #include "thread.h"
 #include "types.h"
 
-static uint16_t pop_move(int *size, uint16_t *moves, int *values, int index) {
-    uint16_t popped = moves[index];
-    moves[index] = moves[--*size];
+static uint16_t pop_move(MovePicker *mp, int *size, uint16_t *moves, int *values, int index) {
+
+    // Pop off this move and its history
+    uint16_t mv   = moves[index];
+    mp->history   = values[index];
+
+    // Replace this move with the final one
+    moves[index]  = moves[--*size];
     values[index] = values[*size];
-    return popped;
+
+    return mv;
 }
 
 static int best_index(MovePicker *mp, int start, int end) {
@@ -40,6 +46,16 @@ static int best_index(MovePicker *mp, int start, int end) {
             best = i;
 
     return best;
+}
+
+static uint16_t return_move(MovePicker *mp, Thread *thread, uint16_t move, bool has_hist) {
+
+    const bool tactical = moveIsTactical(&thread->board, move);
+
+    mp->history =  tactical ? get_capture_history(thread, move)
+                : !has_hist ? get_quiet_history(thread, move) : mp->history;
+
+    return move;
 }
 
 
@@ -91,7 +107,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
             // Play table move ( Already shown to be legal )
             mp->stage = STAGE_GENERATE_NOISY;
-            return mp->tt_move;
+            return return_move(mp, thread, mp->tt_move, FALSE);
 
         case STAGE_GENERATE_NOISY:
 
@@ -124,7 +140,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 }
 
                 // Reduce effective move list size
-                best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, best);
+                best_move = pop_move(mp, &mp->noisy_size, mp->moves, mp->values, best);
 
                 // Don't play the table move twice
                 if (best_move == mp->tt_move)
@@ -135,7 +151,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 if (best_move == mp->killer2) mp->killer2 = NONE_MOVE;
                 if (best_move == mp->counter) mp->counter = NONE_MOVE;
 
-                return best_move;
+                return return_move(mp, thread, best_move, TRUE);
             }
 
             // Jump to bad noisy moves when skipping quiets
@@ -155,7 +171,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             if (   !skip_quiets
                 &&  mp->killer1 != mp->tt_move
                 &&  moveIsPseudoLegal(board, mp->killer1))
-                return mp->killer1;
+                return return_move(mp, thread, mp->killer1, FALSE);
 
             /* fallthrough */
 
@@ -166,7 +182,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             if (   !skip_quiets
                 &&  mp->killer2 != mp->tt_move
                 &&  moveIsPseudoLegal(board, mp->killer2))
-                return mp->killer2;
+                return return_move(mp, thread, mp->killer2, FALSE);
 
             /* fallthrough */
 
@@ -179,7 +195,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 &&  mp->counter != mp->killer1
                 &&  mp->counter != mp->killer2
                 &&  moveIsPseudoLegal(board, mp->counter))
-                return mp->counter;
+                return return_move(mp, thread, mp->counter, FALSE);
 
             /* fallthrough */
 
@@ -202,14 +218,14 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
                 // Select next best quiet and reduce the effective move list size
                 best = best_index(mp, mp->split, mp->split + mp->quiet_size) - mp->split;
-                best_move = pop_move(&mp->quiet_size, mp->moves + mp->split, mp->values + mp->split, best);
+                best_move = pop_move(mp, &mp->quiet_size, mp->moves + mp->split, mp->values + mp->split, best);
 
                 // Don't play a move more than once
                 if (   best_move == mp->tt_move || best_move == mp->killer1
                     || best_move == mp->killer2 || best_move == mp->counter)
                     continue;
 
-                return best_move;
+                return return_move(mp, thread, best_move, TRUE);
             }
 
             // Out of quiet moves, only bad quiets remain
@@ -223,14 +239,14 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             while (mp->noisy_size && mp->type != NOISY_PICKER) {
 
                 // Reduce effective move list size
-                best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, 0);
+                best_move = pop_move(mp, &mp->noisy_size, mp->moves, mp->values, 0);
 
                 // Don't play a move more than once
                 if (   best_move == mp->tt_move || best_move == mp->killer1
                     || best_move == mp->killer2 || best_move == mp->counter)
                     continue;
 
-                return best_move;
+                return return_move(mp, thread, best_move, TRUE);
             }
 
             mp->stage = STAGE_DONE;
