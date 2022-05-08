@@ -83,10 +83,10 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
 
 static bool winning_or_equal_recapture(Thread *thread, uint16_t move) {
 
-    static const int PieceValues[] = { 1, 3, 3, 5, 9, 100 };
+    static const int PieceValues[] = { 1, 3, 3, 5, 9, 0 };
 
     NodeState *const ns = &thread->states[thread->height];
-    const int piece = pieceType(thread->board.squares[MoveTo(move)]);
+    const int piece = pieceType(thread->board.squares[MoveFrom(move)]);
 
     return (ns-1)->tactical
         && MoveTo((ns-1)->move) == MoveTo(move)
