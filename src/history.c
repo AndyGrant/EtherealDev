@@ -81,6 +81,18 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
     histories[2] = &thread->history[thread->board.turn][from][to];
 }
 
+static bool winning_or_equal_recapture(Thread *thread, uint16_t move) {
+
+    static const int PieceValues[] = { 1, 3, 3, 5, 9, 100 };
+
+    NodeState *const ns = &thread->states[thread->height];
+    const int piece = pieceType(thread->board.squares[MoveTo(move)]);
+
+    return (ns-1)->tactical
+        && MoveTo((ns-1)->move) == MoveTo(move)
+        && PieceValues[(ns-1)->movedPiece] >= PieceValues[piece];
+}
+
 
 void update_history_heuristics(Thread *thread, uint16_t *moves, int length, int depth) {
 
@@ -135,12 +147,10 @@ void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int sta
 
     static const int MVVAugment[] = { 0, 2400, 2400, 4800, 9600 };
 
-    NodeState *const ns  = &thread->states[thread->height];
-
     for (int i = start; i < start + length; i++)
         scores[i] = 64000 + get_capture_history(thread, moves[i])
-                  + MVVAugment[history_captured_piece(thread, moves[i])]
-                  + 5000 * ((ns-1)->tactical && MoveTo((ns-1)->move) == MoveTo(moves[i]));
+                  + 5000 * winning_or_equal_recapture(thread, moves[i])
+                  + MVVAugment[history_captured_piece(thread, moves[i])];
 }
 
 void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
