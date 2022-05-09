@@ -137,7 +137,7 @@ void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int sta
 
     for (int i = start; i < start + length; i++)
         scores[i] = 64000 + get_capture_history(thread, moves[i])
-                  + MVVAugment[history_captured_piece(thread, moves[i])];
+                  + 2 * MVVAugment[history_captured_piece(thread, moves[i])];
 }
 
 void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
