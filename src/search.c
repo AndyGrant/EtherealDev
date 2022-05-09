@@ -255,6 +255,9 @@ void aspirationWindow(Thread *thread) {
 
     while (1) {
 
+        // Size of the aspiration Window
+        thread->window = beta - alpha;
+
         // Perform a search and consider reporting results
         pv.score = search(thread, &pv, alpha, beta, MAX(1, depth));
         if (   (report && pv.score > alpha && pv.score < beta)
@@ -623,6 +626,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            // Vizvez Root Delta: Reduce after finding a good move
+            R += PvNode && (beta - alpha) < thread->window;
 
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
