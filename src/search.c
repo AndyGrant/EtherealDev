@@ -628,7 +628,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Vizvez Root Delta: Reduce after finding a good move
-            R += PvNode && (beta - alpha) < thread->window;
+            R += PvNode && (beta - alpha) * 2 < thread->window;
 
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
