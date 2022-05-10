@@ -475,7 +475,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         //
-        bool verify = depth >= 2 * ProbCutDepth && !inCheck;
+        bool verify = depth >= 2 * ProbCutDepth || inCheck;
 
         // Try tactical moves which maintain rBeta.
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
