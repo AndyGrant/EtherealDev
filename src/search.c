@@ -487,7 +487,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // For low depths, or after the above, verify with a reduced search
                 if (depth < 2 * ProbCutDepth || value >= rBeta)
-                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+                    value = -search(thread, &lpv, -rBeta, -rBeta+1, MAX(2, depth-4));
 
                 // Revert the board state
                 revert(thread, board, move);
