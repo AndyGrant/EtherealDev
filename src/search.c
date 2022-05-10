@@ -296,6 +296,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     const int PvNode     = (alpha != beta - 1);
     const int RootNode   = (thread->height == 0);
 
+    bool safe_multi_cut = false;
+
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
@@ -601,7 +603,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, ttMove, ttValue, depth, beta) : inCheck;
-        newDepth = depth + (!RootNode ? extension : 0);
+        newDepth  = depth + (!RootNode ? extension : 0);
+
+        safe_multi_cut = safe_multi_cut || extension < 0;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
@@ -617,6 +621,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             /// Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+
+            R += safe_multi_cut;
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
