@@ -415,7 +415,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     thread->killers[thread->height+1][1] = NONE_MOVE;
 
     // Beta value for ProbCut Pruning
-    rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
+    rBeta = MIN(beta + ProbCutMargin[improving], MATE - MAX_PLY - 1);
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !inCheck)
