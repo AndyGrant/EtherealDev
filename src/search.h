@@ -56,7 +56,7 @@ static const int AlphaMargin = 3000;
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin[] = { 100, 60 };
+static const int ProbCutMargin[] = { 90, 70 };
 
 static const int FutilityPruningDepth = 8;
 static const int FutilityMarginBase = 92;
