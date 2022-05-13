@@ -570,7 +570,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  best > -TBWIN_IN_MAX
             &&  depth <= SEEPruningDepth
             &&  ns->mp.stage == STAGE_BAD_NOISY
-            &&  eval + 100 * depth + moveEstimatedValue(board, move) < alpha)
+            &&  eval + 50 * depth + moveEstimatedValue(board, move) < alpha)
             continue;
 
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
