@@ -568,6 +568,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         if (   !inCheck
             &&  best > -TBWIN_IN_MAX
+            &&  depth <= SEEPruningDepth
             &&  ns->mp.stage == STAGE_BAD_NOISY
             &&  eval + 100 * depth + moveEstimatedValue(board, move) < alpha)
             continue;
