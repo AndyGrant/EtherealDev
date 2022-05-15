@@ -795,7 +795,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
 
-    const int threshold = InCheck ? 0 : MAX(1, alpha - eval - QSSeeMargin);
+    const int threshold = InCheck ? 1 : MAX(1, alpha - eval - QSSeeMargin);
     init_noisy_picker(&ns->mp, thread, NONE_MOVE, threshold);
 
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
