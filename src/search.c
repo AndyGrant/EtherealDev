@@ -293,8 +293,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     Board *const board   = &thread->board;
     NodeState *const ns  = &thread->states[thread->height];
 
-    const int PvNode     = (alpha != beta - 1);
     const int RootNode   = (thread->height == 0);
+    const int PvNode     = (alpha != beta - 1) && depth > 0;
 
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
@@ -356,7 +356,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        if (ttDepth >= depth) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
