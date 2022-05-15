@@ -356,7 +356,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth) {
+        if (ttDepth >= depth && !PvNode) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
