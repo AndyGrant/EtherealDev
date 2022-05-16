@@ -851,8 +851,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
                 break;
 
             // Found a quiet move which avoids Mate / TB-Loss
-            if (!isCapture && best > -TBWIN_IN_MAX)
+            if (!isCapture && best > -TBWIN_IN_MAX) {
+                best = MAX(best, alpha);
                 break;
+            }
         }
     }
 
