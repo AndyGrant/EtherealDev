@@ -737,6 +737,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
 
+    // We don't prove Mated scores in QSearch
+    if (InCheck && alpha < -TBWIN_IN_MAX)
+        return search(thread, pv, alpha, beta, 0);
+
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
 
@@ -843,6 +847,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         }
     }
 
+    // Failed-low, but we don't want to return an unproven Mate score
     if (best == VALUE_NONE)
         best = alpha;
 
