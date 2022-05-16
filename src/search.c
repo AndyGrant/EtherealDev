@@ -291,11 +291,12 @@ void aspirationWindow(Thread *thread) {
 
 int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
-    Board *const board   = &thread->board;
-    NodeState *const ns  = &thread->states[thread->height];
+    Board *const board  = &thread->board;
+    NodeState *const ns = &thread->states[thread->height];
 
-    const int PvNode     = (alpha != beta - 1);
-    const int RootNode   = (thread->height == 0);
+    const int PvNode    = (alpha != beta - 1);
+    const int RootNode  = (thread->height == 0);
+    const bool InCheck  = board->kingAttackers;
 
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
@@ -308,9 +309,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     PVariation lpv;
 
-    // Step 1. Quiescence Search. Perform a search using mostly tactical
-    // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
+    // Step 1. Quiescence Search. Perform a search using tactical
+    // moves, unless we must prove we are not mated and or TB Lost
+    if (depth <= 0 && (!InCheck || alpha > -TBWIN_IN_MAX))
         return qsearch(thread, pv, alpha, beta);
 
     // Prefetch TT as early as reasonable
@@ -737,8 +738,8 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
 
-    // We don't prove Mated scores in QSearch
-    if (InCheck && alpha < -TBWIN_IN_MAX)
+    // We cannot prove Mated and or TB Lost via QSearch
+    if (InCheck && alpha <= -TBWIN_IN_MAX)
         return search(thread, pv, alpha, beta, 0);
 
     // Prefetch TT as early as reasonable
