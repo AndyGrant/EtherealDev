@@ -310,7 +310,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
+    if (depth <= 0)
         return qsearch(thread, pv, alpha, beta);
 
     // Prefetch TT as early as reasonable
@@ -318,9 +318,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Ensure a fresh PV
     pv->length = 0;
-
-    // Ensure positive depth
-    depth = MAX(0, depth);
 
     // Updates for UCI reporting
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, thread->height);
@@ -357,7 +354,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        if (ttDepth >= depth && !PvNode) {
 
             // Table is exact or produces a cutoff
             if (    ttBound == BOUND_EXACT
@@ -732,7 +729,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     const bool InCheck = !!board->kingAttackers;
 
-    int eval, value, best = VALUE_NONE, oldAlpha = alpha;
+    int eval, value, best = VALUE_NONE, oldAlpha = alpha, pessimism;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
@@ -796,12 +793,23 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // to beat the margin computed in the Delta Pruning step found above
 
     const int threshold = InCheck ? 1 : MAX(1, alpha - eval - QSSeeMargin);
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, threshold);
 
-    while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
+    InCheck ? init_picker(&ns->mp, thread, NONE_MOVE)
+            : init_noisy_picker(&ns->mp, thread, NONE_MOVE, threshold);
+
+    ns->mp.threshold = threshold; // HACK for now
+
+    while ((move = select_next(&ns->mp, thread, best > -TBWIN_IN_MAX)) != NONE_MOVE) {
+
+        // Avoid playing bad captures after proving we are not lost
+        if (best > -TBWIN_IN_MAX && ns->mp.stage == STAGE_BAD_NOISY)
+            break;
+
+        bool isCapture = moveIsTactical(board, move);
 
         // Worst case which assumes we lose our piece immediately
-        int pessimism = moveEstimatedValue(board, move)
+        if (isCapture)
+            pessimism = moveEstimatedValue(board, move)
                       - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
         // Search the next ply if the move is legal
@@ -809,6 +817,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (   !InCheck
+            &&  isCapture
             &&  eval + pessimism > beta
             &&  abs(eval + pessimism) < MATE / 2) {
 
@@ -840,11 +849,12 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             // Search has failed high
             if (alpha >= beta)
                 break;
+
+            // Found a quiet move which avoids Mate / TB-Loss
+            if (!isCapture && best > -TBWIN_IN_MAX)
+                break;
         }
     }
-
-    if (best == VALUE_NONE)
-        best = alpha;
 
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
