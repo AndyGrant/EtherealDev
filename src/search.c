@@ -734,6 +734,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
 
+    // XD
+    if (board->kingAttackers)
+        return search(thread, pv, alpha, beta, 0);
+
     // Prefetch TT as early as reasonable
     prefetchTTEntry(board->hash);
 
