@@ -729,7 +729,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     const bool InCheck = !!board->kingAttackers;
 
-    int eval, value, best = VALUE_NONE, oldAlpha = alpha, pessimism;
+    int eval, value, best = -MATE, oldAlpha = alpha, pessimism;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
@@ -770,7 +770,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Save a history of the static evaluations when not checked
-    eval = ns->eval = best = InCheck ? VALUE_NONE
+    eval = ns->eval = InCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
     if (!InCheck) {
@@ -855,6 +855,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
                 break;
         }
     }
+
+    // Let the static eval be our best when not in check
+    best = InCheck ? best : MAX(best, eval);
 
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
