@@ -452,7 +452,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Attempt to further increase R such that depth-R forces a qsearch
         const bool try_razor = depth - R > 0
                             && depth - R <= RazoringDepth
-                            && eval + RazoringMargin[depth] < alpha;
+                            && eval - RazoringMargin[depth-R] >= beta;
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, try_razor ? 0 : depth-R);
