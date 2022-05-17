@@ -50,8 +50,8 @@ static const int CurrmoveTimerMS = 2500;
 static const int BetaPruningDepth = 8;
 static const int BetaMargin = 75;
 
-static const int AlphaPruningDepth = 5;
-static const int AlphaMargin = 3000;
+static const int RazoringDepth = 4;
+static const int RazoringMargin[] = { 250, 450, 1050, 2050, 3450 };
 
 static const int NullMovePruningDepth = 2;
 
