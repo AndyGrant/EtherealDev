@@ -430,6 +430,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // dependent margin, then we assume the eval will hold above beta
     if (   !PvNode
         && !inCheck
+        && (ns-1)->move != NULL_MOVE
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return eval;
