@@ -449,16 +449,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Dynamic R based on Depth, Eval, and Tactical state
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
 
+        // Attempt to further increase R such that depth-R forces a qsearch
+        const bool try_razor = depth - R > 0
+                            && depth - R <= RazoringDepth
+                            && eval + RazoringMargin[depth] < alpha;
+
         apply(thread, board, NULL_MOVE);
-
-        // Razoring following Null Move Pruning
-        if (    depth - R > 0
-            &&  depth - R <= RazoringDepth
-            &&  eval + RazoringMargin[depth] < alpha
-            && (value = -qsearch(thread, &lpv, -beta, -beta+1)) >= beta)
-            return value;
-
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R);
+        value = -search(thread, &lpv, -beta, -beta+1, try_razor ? 0 : depth-R);
         revert(thread, board, NULL_MOVE);
 
         // Don't return unproven TB-Wins or Mates
