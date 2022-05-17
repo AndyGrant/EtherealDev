@@ -447,7 +447,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         // Dynamic R based on Depth, Eval, and Tactical state
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
+        R = 4 + depth / 6 + /* MIN(3, (eval - beta) / 200) + */ (ns-1)->tactical;
 
         // Attempt to further increase R such that depth-R forces a qsearch
         const bool try_razor = depth - R > 0
