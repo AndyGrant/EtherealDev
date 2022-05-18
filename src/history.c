@@ -80,7 +80,7 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
                  ? &NULL_HISTORY : &(*(ns-2)->continuations)[1][piece][to];
 
     // Set Butterfly History, which will always exist
-    histories[2] = &thread->history[thread->board.turn][testBit(threats, from)][from][to];
+    histories[2] = &thread->history[thread->board.turn][testBit(threats, to)][from][to];
 }
 
 
