@@ -151,7 +151,7 @@ void initSearch() {
     // Init Late Move Reductions Table
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
+            LMRTable[depth][played] = 1.75 + log(depth) * log(played) / 2.25;
 
     for (int depth = 1; depth < 9; depth++) {
         LateMovePruningCounts[0][depth] = 2.5 + 2 * depth * depth / 4.5;
@@ -620,8 +620,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             /// Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Increase for non PV, non improving
-            R += !PvNode + !improving;
+            // Increase for non-PV nodes
+            R += !PvNode;
+
+            // Reduce for improving nodes
+            R -= improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
