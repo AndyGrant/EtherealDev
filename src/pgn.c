@@ -295,7 +295,7 @@ static void pgn_read_moves(FILE *pgn, PGNData *data, PGNEntry *entries, Board *b
         // Save each potential position for later
         entries[placed].eval = eval;
         entries[placed].ply  = data->plies;
-        entries[placed].use  = !board->kingAttackers && !moveIsTactical(board, move);
+        entries[placed].use  = !board->checkers && !moveIsTactical(board, move);
         boardToFEN(board, entries[placed++].fen);
 
         // Skip head to the end of this comment to prepare for the next Move

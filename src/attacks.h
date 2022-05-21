@@ -37,6 +37,7 @@ uint64_t bishopAttacks(int sq, uint64_t occupied);
 uint64_t rookAttacks(int sq, uint64_t occupied);
 uint64_t queenAttacks(int sq, uint64_t occupied);
 uint64_t kingAttacks(int sq);
+uint64_t pieceAttacks(int piece, int colour, int sq, uint64_t occupied);
 
 uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour);
 uint64_t pawnRightAttacks(uint64_t pawns, uint64_t targets, int colour);
@@ -49,8 +50,6 @@ int squareIsAttacked(Board *board, int colour, int sq);
 uint64_t attackersToSquare(Board *board, int colour, int sq);
 uint64_t allAttackedSquares(Board *board, int colour);
 uint64_t allAttackersToSquare(Board *board, uint64_t occupied, int sq);
-uint64_t attackersToKingSquare(Board *board);
-
 uint64_t discoveredAttacks(Board *board, int sq, int US);
 
 static const uint64_t RookMagics[SQUARE_NB] = {

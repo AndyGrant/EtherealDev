@@ -26,6 +26,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "masks.h"
+
 #include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
@@ -309,7 +311,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
+    if (depth <= 0 && !board->checkers)
         return qsearch(thread, pv, alpha, beta);
 
     // Prefetch TT as early as reasonable
@@ -341,7 +343,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Check to see if we have exceeded the maxiumum search draft
         if (thread->height >= MAX_PLY)
-            return board->kingAttackers ? 0 : evaluateBoard(thread, board);
+            return board->checkers ? 0 : evaluateBoard(thread, board);
 
         // Mate Distance Pruning. Check to see if this line is so
         // good, or so bad, that being mated in the ply, or  mating in
@@ -397,7 +399,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 6. Initialize flags and values used by pruning and search methods
 
     // We can grab in check based on the already computed king attackers bitboard
-    inCheck = !!board->kingAttackers;
+    inCheck = !!board->checkers;
 
     // Save a history of the static evaluations when not checked
     eval = ns->eval = inCheck ? VALUE_NONE
@@ -531,7 +533,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Step 13 (~175 elo). Quiet Move Pruning. Prune any quiet move that meets one
         // of the criteria below, only after proving a non mated line exists
-        if (isQuiet && best > -TBWIN_IN_MAX) {
+        if (    isQuiet
+            &&  best > -TBWIN_IN_MAX
+            && !move_gives_check(board, move)) {
 
             // Base LMR reduced depth value that we expect to use later
             int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
@@ -644,7 +648,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R = MIN(3, 3 - (hist + 4000) / 2000);
 
             // Reduce for moves that give check
-            R -= !!board->kingAttackers;
+            R -= !!board->checkers;
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));

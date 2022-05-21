@@ -136,11 +136,11 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     rooks   |= us & board->pieces[QUEEN];
 
     // Double checks can only be evaded by moving the King
-    if (several(board->kingAttackers))
+    if (several(board->checkers))
         return buildJumperMoves(&kingAttacks, moves, kings, them) - start;
 
     // When checked, we may only uncheck by capturing the checker
-    destinations = board->kingAttackers ? board->kingAttackers : them;
+    destinations = board->checkers ? board->checkers : them;
 
     // Compute bitboards for each type of Pawn movement
     pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
@@ -174,7 +174,7 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     const int Forward = board->turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
 
-    int rook, king, rookTo, kingTo, attacked;
+    int rook, king, rookTo, kingTo;
     uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
 
     uint64_t us       = board->colours[board->turn];
@@ -192,12 +192,12 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     rooks   |= us & board->pieces[QUEEN];
 
     // Double checks can only be evaded by moving the King
-    if (several(board->kingAttackers))
+    if (several(board->checkers))
         return buildJumperMoves(&kingAttacks, moves, kings, ~occupied) - start;
 
     // When checked, we must block the checker with non-King pieces
-    destinations = !board->kingAttackers ? ~occupied
-                 : bitsBetweenMasks(getlsb(kings), getlsb(board->kingAttackers));
+    destinations = !board->checkers ? ~occupied
+                 : bitsBetweenMasks(getlsb(kings), getlsb(board->checkers));
 
     // Compute bitboards for each type of Pawn movement
     pawnForwardOne = pawnAdvance(pawns, occupied, board->turn) & ~PROMOTION_RANKS;
@@ -214,13 +214,12 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     moves = buildJumperMoves(&kingAttacks, moves, kings, ~occupied);
 
     // Attempt to generate a castle move for each rook
-    while (castles && !board->kingAttackers) {
+    while (castles && !board->checkers) {
 
         // Figure out which pieces are moving to which squares
         rook = poplsb(&castles), king = getlsb(kings);
         rookTo = castleRookTo(king, rook);
         kingTo = castleKingTo(king, rook);
-        attacked = 0;
 
         // Castle is illegal if we would go over a piece
         mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
@@ -229,11 +228,8 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
         if (occupied & mask) continue;
 
         // Castle is illegal if we move through a checking threat
-        mask = bitsBetweenMasks(king, kingTo);
-        while (mask)
-            if (squareIsAttacked(board, board->turn, poplsb(&mask)))
-                { attacked = 1; break; }
-        if (attacked) continue;
+        if (bitsBetweenMasks(king, kingTo) & board->threats)
+            continue;
 
         // All conditions have been met. Identify which side we are castling to
         *(moves++) = MoveMake(king, rook, CASTLE_MOVE);

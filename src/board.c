@@ -78,6 +78,54 @@ static int stringToSquare(char *str) {
     return str[0] == '-' ? -1 : square(str[1] - '1', str[0] - 'a');
 }
 
+
+void update_board_state(Board *board) {
+
+    /// Update threats and checkers for an individual piece's attacks
+
+    #define individual_update(PT, C, BB, OCC) do {                  \
+        uint64_t ATT;                                               \
+        int SQ = poplsb(&BB);                                       \
+        board->threats  |= (ATT = pieceAttacks(PT, C, SQ, OCC));    \
+        board->checkers |= testBit(ATT, ksq) ? (1ULL << SQ) : 0ULL; \
+    } while (0)
+
+    uint64_t enemy    = board->colours[!board->turn];
+    uint64_t occupied = board->colours[ board->turn] | enemy;
+
+    uint64_t pawns   = enemy &  board->pieces[PAWN  ];
+    uint64_t knights = enemy &  board->pieces[KNIGHT];
+    uint64_t bishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+    uint64_t rooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+    uint64_t kings   = enemy &  board->pieces[KING  ];
+
+    const int ksq = getlsb(board->pieces[KING] & ~enemy);
+    const int eksq = getlsb(board->pieces[KING] & enemy);
+
+    uint64_t pinners;
+
+    // Pawns can be updated all at once without popping individual pieces
+    board->threats  = pawnAttackSpan(pawns, ~0ULL, !board->turn);
+    board->checkers = pawnAttacks(board->turn, ksq) & pawns;
+    board->blockers = 0;
+
+    // Update threats & checkers, using each of the non-pawn pieces
+    while (knights) individual_update(KNIGHT, !board->turn, knights, occupied);
+    while (bishops) individual_update(BISHOP, !board->turn, bishops, occupied);
+    while (rooks)   individual_update(ROOK  , !board->turn, rooks  , occupied);
+    while (kings)   individual_update(KING  , !board->turn, kings  , occupied);
+
+    // Update any pieces that are preventing a check
+    bishops = ~enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+    rooks   = ~enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
+    pinners = (bishops & bishopAttacks(eksq, occupied & ~bishopAttacks(eksq, occupied)))
+            | (rooks   &   rookAttacks(eksq, occupied &   ~rookAttacks(eksq, occupied)));
+    while (pinners) board->blockers |= occupied & bitsBetweenMasks(eksq, poplsb(&pinners));
+
+    #undef individual_update
+}
+
+
 void squareToString(int sq, char *str) {
 
     // Helper for writing the enpass square, as well as for converting
@@ -168,11 +216,8 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     // Move count: ignore and use zero, as we count since root
     board->numMoves = 0;
 
-    // Need king attackers for move generation
-    board->kingAttackers = attackersToKingSquare(board);
-
-    // Need squares attacked by the opposing player
-    board->threats = allAttackedSquares(board, !board->turn);
+    // Compute Checkers, Blockers, and threats
+    update_board_state(board);
 
     // We save the game mode in order to comply with the UCI rules for printing
     // moves. If chess960 is not enabled, but we have detected an unconventional

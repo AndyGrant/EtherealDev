@@ -25,7 +25,7 @@ extern const char *PieceLabel[COLOUR_NB];
 struct Board {
     uint8_t squares[SQUARE_NB];
     uint64_t pieces[8], colours[3];
-    uint64_t hash, pkhash, kingAttackers, threats;
+    uint64_t hash, pkhash, checkers, blockers, threats;
     uint64_t castleRooks, castleMasks[SQUARE_NB];
     int turn, epSquare, halfMoveCounter, fullMoveCounter;
     int psqtmat, numMoves, chess960;
@@ -34,9 +34,11 @@ struct Board {
 };
 
 struct Undo {
-    uint64_t hash, pkhash, kingAttackers, threats, castleRooks;
+    uint64_t hash, pkhash, checkers, blockers, threats, castleRooks;
     int epSquare, halfMoveCounter, psqtmat, capturePiece;
 };
+
+void update_board_state(Board *board);
 
 void squareToString(int sq, char *str);
 void boardFromFEN(Board *board, const char *fen, int chess960);
