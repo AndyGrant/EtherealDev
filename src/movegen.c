@@ -137,7 +137,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
 
     // Double checks can only be evaded by moving the King
     if (several(board->checkers))
-        return buildJumperMoves(&kingAttacks, moves, kings, them) - start;
+        return buildJumperMoves(&kingAttacks, moves, kings, them & ~board->threats) - start;
 
     // When checked, we may only uncheck by capturing the checker
     destinations = board->checkers ? board->checkers : them;
@@ -162,7 +162,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     moves = buildJumperMoves(&knightAttacks, moves, knights, destinations);
     moves = buildSliderMoves(&bishopAttacks, moves, bishops, destinations, occupied);
     moves = buildSliderMoves(&rookAttacks, moves, rooks, destinations, occupied);
-    moves = buildJumperMoves(&kingAttacks, moves, kings, them);
+    moves = buildJumperMoves(&kingAttacks, moves, kings, them & ~board->threats);
 
     return moves - start;
 }
@@ -193,7 +193,7 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
 
     // Double checks can only be evaded by moving the King
     if (several(board->checkers))
-        return buildJumperMoves(&kingAttacks, moves, kings, ~occupied) - start;
+        return buildJumperMoves(&kingAttacks, moves, kings, ~occupied & ~board->threats) - start;
 
     // When checked, we must block the checker with non-King pieces
     destinations = !board->checkers ? ~occupied
@@ -211,7 +211,7 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     moves = buildJumperMoves(&knightAttacks, moves, knights, destinations);
     moves = buildSliderMoves(&bishopAttacks, moves, bishops, destinations, occupied);
     moves = buildSliderMoves(&rookAttacks, moves, rooks, destinations, occupied);
-    moves = buildJumperMoves(&kingAttacks, moves, kings, ~occupied);
+    moves = buildJumperMoves(&kingAttacks, moves, kings, ~occupied & ~board->threats);
 
     // Attempt to generate a castle move for each rook
     while (castles && !board->checkers) {

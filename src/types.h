@@ -19,11 +19,8 @@
 #pragma once
 
 #include <assert.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdalign.h>
-
-enum { FALSE, TRUE };
 
 enum { MG, EG };
 

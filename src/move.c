@@ -114,7 +114,6 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->hash            = board->hash;
     undo->pkhash          = board->pkhash;
     undo->checkers        = board->checkers;
-    undo->blockers        = board->blockers;
     undo->threats         = board->threats;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
@@ -139,7 +138,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // No function updates this so we do it here
     board->turn = !board->turn;
 
-    // Compute Checkers, Blockers, and threats
+    // Compute Checkers and threats
     update_board_state(board);
 }
 
@@ -355,7 +354,6 @@ void applyNullMove(Board *board, Undo *undo) {
 
     // Save information which is hard to recompute
     undo->hash            = board->hash;
-    undo->blockers        = board->blockers;
     undo->threats         = board->threats;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
@@ -395,7 +393,6 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->hash            = undo->hash;
     board->pkhash          = undo->pkhash;
     board->checkers        = undo->checkers;
-    board->blockers        = undo->blockers;
     board->threats         = undo->threats;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
@@ -481,7 +478,6 @@ void revertNullMove(Board *board, Undo *undo) {
 
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
-    board->blockers        = undo->blockers;
     board->threats         = undo->threats;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -721,64 +717,6 @@ int moveWasLegal(Board *board) {
     int sq = getlsb(board->colours[!board->turn] & board->pieces[KING]);
     assert(board->squares[sq] == makePiece(KING, !board->turn));
     return !squareIsAttacked(board, !board->turn, sq);
-}
-
-
-bool move_gives_check(Board *board, uint16_t move) {
-
-    const int from  = MoveFrom(move), to = MoveTo(move);
-    const int piece = pieceType(board->squares[from]);
-
-    const int stm  = board->turn;
-    const int eksq = getlsb(board->colours[!stm] & board->pieces[KING]);
-    const uint64_t occupied = board->colours[WHITE] | board->colours[BLACK];
-
-    // Direct checks ( Allow illegal "King checks King" )
-    if (testBit(pieceAttacks(piece, stm, to, occupied), eksq))
-        return TRUE;
-
-    // Discovered checks by moving a blocker from the pinline
-    if (    testBit(board->blockers, from)
-        && !testBit(attackRayMasks(eksq, from), to))
-        return TRUE;
-
-    // Promotion causes a direct check
-    if (MoveType(move) == PROMOTION_MOVE) {
-        const int promo = MovePromoPiece(move);
-        return testBit(pieceAttacks(promo, stm, to, occupied ^ (1ULL << from)), eksq);
-    }
-
-    // Removing the Enpassant square may reveal a discovered check
-    if (MoveType(move) == ENPASS_MOVE) {
-
-        const int epsq = to - 8 + (board->turn << 4);
-
-        const uint64_t updated = (1ULL << to)
-                               | (occupied ^ (1ULL << from) ^ (1ULL << epsq));
-
-        const uint64_t bishops = board->colours[stm] & board->pieces[BISHOP];
-        const uint64_t rooks   = board->colours[stm] & board->pieces[ROOK  ];
-        const uint64_t queens  = board->colours[stm] & board->pieces[QUEEN ];
-
-        return bishopAttacks(eksq, updated) & (bishops | queens)
-            ||   rookAttacks(eksq, updated) & (rooks   | queens);
-    }
-
-    // Castling may directly check along the file, or rank in FRC
-    if (MoveType(move) == CASTLE_MOVE) {
-
-        const int kfrom = from, rfrom = to;
-        const int kto = castleKingTo(kfrom, rfrom);
-        const int rto = castleRookTo(kfrom, rfrom);
-
-        const uint64_t updated = (1ULL << kto) | (1ULL << rto)
-                               | (occupied ^ (1ULL << kfrom) ^ (1ULL << rfrom));
-
-        return testBit(rookAttacks(rto, occupied), eksq)
-            || testBit(rookAttacks(rto, updated ), eksq);
-    }
-
-    return FALSE;
 }
 
 

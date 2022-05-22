@@ -100,27 +100,16 @@ void update_board_state(Board *board) {
     uint64_t kings   = enemy &  board->pieces[KING  ];
 
     const int ksq = getlsb(board->pieces[KING] & ~enemy);
-    const int eksq = getlsb(board->pieces[KING] & enemy);
-
-    uint64_t pinners;
 
     // Pawns can be updated all at once without popping individual pieces
     board->threats  = pawnAttackSpan(pawns, ~0ULL, !board->turn);
     board->checkers = pawnAttacks(board->turn, ksq) & pawns;
-    board->blockers = 0;
 
     // Update threats & checkers, using each of the non-pawn pieces
     while (knights) individual_update(KNIGHT, !board->turn, knights, occupied);
     while (bishops) individual_update(BISHOP, !board->turn, bishops, occupied);
     while (rooks)   individual_update(ROOK  , !board->turn, rooks  , occupied);
     while (kings)   individual_update(KING  , !board->turn, kings  , occupied);
-
-    // Update any pieces that are preventing a check
-    bishops = ~enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    rooks   = ~enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    pinners = (bishops & bishopAttacks(eksq, occupied & ~bishopAttacks(eksq, occupied)))
-            | (rooks   &   rookAttacks(eksq, occupied &   ~rookAttacks(eksq, occupied)));
-    while (pinners) board->blockers |= occupied & bitsBetweenMasks(eksq, poplsb(&pinners));
 
     #undef individual_update
 }
