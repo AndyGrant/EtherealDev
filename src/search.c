@@ -537,6 +537,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
+            // Skip illegal moves
+            if (!move_is_legal(board, move))
+                continue;
+
             // Base LMR reduced depth value that we expect to use later
             int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
@@ -579,10 +583,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  depth <= SEEPruningDepth
             &&  ns->mp.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
-            continue;
-
-        // Skip illegal moves
-        if (!move_is_legal(board, move))
             continue;
 
         // The UCI spec allows us to output information about the current move
