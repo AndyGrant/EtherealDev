@@ -206,7 +206,7 @@ static uint16_t san_piece_move(Board *board, const char *SAN) {
     // If we have multiple options due to pins, we must verify now
     while (options) {
         uint16_t move = MoveMake(poplsb(&options), tosq, NORMAL_MOVE);
-        if (moveIsLegal(board, move)) return move;
+        if (move_is_legal(board, move)) return move;
     }
 
     // This should never happen, based on the call order of parse_san()
@@ -224,7 +224,7 @@ static uint16_t parse_san(Board *board, const char *SAN) {
     if (move == NONE_MOVE) move = san_piece_move(board, SAN);
 
     // This should not be needed, but lets verify to be safe
-    return !moveIsLegal(board, move) ? NONE_MOVE : move;
+    return !move_is_legal(board, move) ? NONE_MOVE : move;
 }
 
 

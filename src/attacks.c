@@ -206,29 +206,6 @@ uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour) {
 }
 
 
-int squareIsAttacked(Board *board, int colour, int sq) {
-
-    uint64_t enemy    = board->colours[!colour];
-    uint64_t occupied = board->colours[ colour] | enemy;
-
-    uint64_t enemyPawns   = enemy &  board->pieces[PAWN  ];
-    uint64_t enemyKnights = enemy &  board->pieces[KNIGHT];
-    uint64_t enemyBishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t enemyRooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t enemyKings   = enemy &  board->pieces[KING  ];
-
-    // Check for attacks to this square. While this function has the same
-    // result as using attackersToSquare(board, colour, sq) != 0ull, this
-    // has a better running time by avoiding some slider move lookups. The
-    // speed gain is easily proven using the provided PERFT suite
-
-    return (pawnAttacks(colour, sq) & enemyPawns)
-        || (knightAttacks(sq) & enemyKnights)
-        || (enemyBishops && (bishopAttacks(sq, occupied) & enemyBishops))
-        || (enemyRooks && (rookAttacks(sq, occupied) & enemyRooks))
-        || (kingAttacks(sq) & enemyKings);
-}
-
 uint64_t allAttackersToSquare(Board *board, uint64_t occupied, int sq) {
 
     // When performing a static exchange evaluation we need to find all
@@ -242,26 +219,6 @@ uint64_t allAttackersToSquare(Board *board, uint64_t occupied, int sq) {
          | (bishopAttacks(sq, occupied) & (board->pieces[BISHOP] | board->pieces[QUEEN]))
          | (rookAttacks(sq, occupied) & (board->pieces[ROOK] | board->pieces[QUEEN]))
          | (kingAttacks(sq) & board->pieces[KING]);
-}
-
-uint64_t allAttackedSquares(Board *board, int colour) {
-
-    uint64_t friendly = board->colours[ colour];
-    uint64_t occupied = board->colours[!colour] | friendly;
-
-    uint64_t pawns   = friendly &  board->pieces[PAWN  ];
-    uint64_t knights = friendly &  board->pieces[KNIGHT];
-    uint64_t bishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t rooks   = friendly & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t kings   = friendly &  board->pieces[KING  ];
-
-    uint64_t threats         = pawnAttackSpan(pawns, ~0ULL, colour);
-    while (knights) threats |= knightAttacks(poplsb(&knights));
-    while (bishops) threats |= bishopAttacks(poplsb(&bishops), occupied);
-    while (rooks)   threats |= rookAttacks(poplsb(&rooks), occupied);
-    while (kings)   threats |= kingAttacks(poplsb(&kings));
-
-    return threats;
 }
 
 uint64_t discoveredAttacks(Board *board, int sq, int US) {

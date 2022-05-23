@@ -57,7 +57,7 @@ void init_picker(MovePicker *mp, Thread *thread, uint16_t tt_move) {
     mp->type      = NORMAL_PICKER;
 
     // Skip over the TT-move if it is illegal
-    mp->stage += !moveIsPseudoLegal(&thread->board, tt_move);
+    mp->stage += !move_is_pseudo_legal(&thread->board, tt_move);
 }
 
 void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold) {
@@ -75,7 +75,7 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
 
     // Skip over the TT-move unless its a threshold-winning capture
     mp->stage += !moveIsTactical(&thread->board, tt_move)
-              || !moveIsPseudoLegal(&thread->board, tt_move)
+              || !move_is_pseudo_legal(&thread->board, tt_move)
               || !staticExchangeEvaluation(&thread->board, tt_move, threshold);
 }
 
@@ -154,7 +154,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             mp->stage = STAGE_KILLER_2;
             if (   !skip_quiets
                 &&  mp->killer1 != mp->tt_move
-                &&  moveIsPseudoLegal(board, mp->killer1))
+                &&  move_is_pseudo_legal(board, mp->killer1))
                 return mp->killer1;
 
             /* fallthrough */
@@ -165,7 +165,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
             mp->stage = STAGE_COUNTER_MOVE;
             if (   !skip_quiets
                 &&  mp->killer2 != mp->tt_move
-                &&  moveIsPseudoLegal(board, mp->killer2))
+                &&  move_is_pseudo_legal(board, mp->killer2))
                 return mp->killer2;
 
             /* fallthrough */
@@ -178,7 +178,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 &&  mp->counter != mp->tt_move
                 &&  mp->counter != mp->killer1
                 &&  mp->counter != mp->killer2
-                &&  moveIsPseudoLegal(board, mp->counter))
+                &&  move_is_pseudo_legal(board, mp->counter))
                 return mp->counter;
 
             /* fallthrough */

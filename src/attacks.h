@@ -46,9 +46,6 @@ uint64_t pawnAttackDouble(uint64_t pawns, uint64_t targets, int colour);
 uint64_t pawnAdvance(uint64_t pawns, uint64_t occupied, int colour);
 uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour);
 
-int squareIsAttacked(Board *board, int colour, int sq);
-uint64_t attackersToSquare(Board *board, int colour, int sq);
-uint64_t allAttackedSquares(Board *board, int colour);
 uint64_t allAttackersToSquare(Board *board, uint64_t occupied, int sq);
 uint64_t discoveredAttacks(Board *board, int sq, int US);
 

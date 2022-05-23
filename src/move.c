@@ -17,6 +17,7 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,54 +53,26 @@ int castleRookTo(int king, int rook) {
 }
 
 
-int apply(Thread *thread, Board *board, uint16_t move) {
+void apply(Thread *thread, Board *board, uint16_t move) {
 
     NodeState *const ns = &thread->states[thread->height];
 
-    // NULL moves are only tried when legal
     if (move == NULL_MOVE) {
-
         ns->movedPiece    = EMPTY;
         ns->tactical      = false;
         ns->continuations = NULL;
         ns->move          = NULL_MOVE;
-
         applyNullMove(board, &thread->undoStack[thread->height]);
     }
 
     else {
-
         ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
         ns->tactical      = moveIsTactical(board, move);
         ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
         ns->move          = move;
-
-        // Apply the move and reject if illegal
         applyMove(board, move, &thread->undoStack[thread->height]);
-        if (!moveWasLegal(board))
-            return revertMove(board, move, &thread->undoStack[thread->height]), 0;
     }
 
-    // Advance the Stack before updating
-    thread->height++;
-
-    return 1;
-}
-
-void applyLegal(Thread *thread, Board *board, uint16_t move) {
-
-    NodeState *const ns = &thread->states[thread->height];
-
-    ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
-    ns->tactical      = moveIsTactical(board, move);
-    ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
-    ns->move          = move;
-
-    // Assumed that this move is legal
-    applyMove(board, move, &thread->undoStack[thread->height]);
-    assert(moveWasLegal(board));
-
-    // Advance the Stack before updating
     thread->height++;
 }
 
@@ -115,6 +88,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->pkhash          = board->pkhash;
     undo->checkers        = board->checkers;
     undo->threats         = board->threats;
+    undo->blockers        = board->blockers;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
@@ -355,6 +329,7 @@ void applyNullMove(Board *board, Undo *undo) {
     // Save information which is hard to recompute
     undo->hash            = board->hash;
     undo->threats         = board->threats;
+    undo->blockers        = board->blockers;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
 
@@ -394,6 +369,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->pkhash          = undo->pkhash;
     board->checkers        = undo->checkers;
     board->threats         = undo->threats;
+    board->blockers        = undo->blockers;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -479,6 +455,7 @@ void revertNullMove(Board *board, Undo *undo) {
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
     board->threats         = undo->threats;
+    board->blockers        = undo->blockers;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 
@@ -489,7 +466,7 @@ void revertNullMove(Board *board, Undo *undo) {
 }
 
 
-int legalMoveCount(Board * board) {
+int legalMoveCount(Board *board) {
 
     // Count of the legal number of moves for a given position
 
@@ -583,141 +560,156 @@ int moveBestCaseValue(Board *board) {
     return value;
 }
 
-int moveIsLegal(Board *board, uint16_t move) {
 
-    int legal; Undo undo;
+bool move_is_legal(Board *board, uint16_t move) {
 
-    if (!moveIsPseudoLegal(board, move))
-        return 0;
+    /// This function is predicated upon a few optimizations during movegen.
+    /// #1. If there are two checkers, then only King moves should be attempted
+    /// #2. All normal King moves will be legal during generation explicitly
+    /// #3. If checked, only checker-captures and potential blockers will be generated
+    /// #4. All castle moves will be legal, unless there is FRC implications
+    /// #5. Enpass moves have no such stipulation and need to be done manually
+    /// #6. Promotion moves are no different than regular moves regarding check
 
-    applyMove(board, move, &undo);
-    legal = moveWasLegal(board);
-    revertMove(board, move, &undo);
+    const int from = MoveFrom(move), to = MoveTo(move);
+    const int ksq = getlsb(board->pieces[KING] & board->colours[board->turn]);
 
-    return legal;
-}
+    bool correct, actual;
 
-int moveIsPseudoLegal(Board *board, uint16_t move) {
+    // {
+    //     Undo undo[1];
+    //     applyMove(board, move, undo);
+    //     uint64_t occ = board->colours[WHITE] | board->colours[BLACK];
+    //     const int k = getlsb(board->pieces[KING] & board->colours[!board->turn]);
+    //     bool illeagl = allAttackersToSquare(board, occ, k) & board->colours[board->turn];
+    //     revertMove(board, move, undo);
+    //     correct = !illeagl;
+    // }
 
-    int from   = MoveFrom(move);
-    int type   = MoveType(move);
-    int ftype  = pieceType(board->squares[from]);
-    int rook, king, rookTo, kingTo;
+    {
 
-    uint64_t friendly = board->colours[ board->turn];
-    uint64_t enemy    = board->colours[!board->turn];
-    uint64_t castles  = friendly & board->castleRooks;
-    uint64_t occupied = friendly | enemy;
-    uint64_t attacks, forward, mask;
+        if (MoveType(move) == ENPASS_MOVE) {
 
-    // Quick check against obvious illegal moves, such as our special move values,
-    // moving a piece that is not ours, normal move and enpass moves that have bits
-    // set which would otherwise indicate that the move is a castle or a promotion
-    if (   (move == NONE_MOVE || move == NULL_MOVE)
-        || (pieceColour(board->squares[from]) != board->turn)
-        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type == NORMAL_MOVE)
-        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type == ENPASS_MOVE))
-        return 0;
+            Undo undo[1];
+            applyMove(board, move, undo);
+            uint64_t occ = board->colours[WHITE] | board->colours[BLACK];
+            const int k = getlsb(board->pieces[KING] & board->colours[!board->turn]);
+            bool illeagl = allAttackersToSquare(board, occ, k) & board->colours[board->turn];
+            revertMove(board, move, undo);
+            actual = !illeagl;
 
-    // Knight, Bishop, Rook, and Queen moves are legal so long as the
-    // move type is NORMAL and the destination is an attacked square
+        }
 
-    if (ftype == KNIGHT)
-        return type == NORMAL_MOVE
-            && testBit(knightAttacks(from) & ~friendly, MoveTo(move));
+        // Legal if not FRC, or if the Rook (to) is not a blocker
+        else if (MoveType(move) == CASTLE_MOVE)
+            actual = !board->chess960
+                || !testBit(board->blockers, to);
 
-    if (ftype == BISHOP)
-        return type == NORMAL_MOVE
-            && testBit(bishopAttacks(from, occupied) & ~friendly, MoveTo(move));
+        // Legal if not a blocker, or moving along the blocking path
+        else
+            actual = !testBit(board->blockers, from)
+                  ||  testBit(attackRayMasks(ksq, from), to);
 
-    if (ftype == ROOK)
-        return type == NORMAL_MOVE
-            && testBit(rookAttacks(from, occupied) & ~friendly, MoveTo(move));
-
-    if (ftype == QUEEN)
-        return type == NORMAL_MOVE
-            && testBit(queenAttacks(from, occupied) & ~friendly, MoveTo(move));
-
-    if (ftype == PAWN) {
-
-        // Throw out castle moves with our pawn
-        if (type == CASTLE_MOVE)
-            return 0;
-
-        // Look at the squares which our pawn threatens
-        attacks = pawnAttacks(board->turn, from);
-
-        // Enpass moves are legal if our to square is the enpass
-        // square and we could attack a piece on the enpass square
-        if (type == ENPASS_MOVE)
-            return MoveTo(move) == board->epSquare && testBit(attacks, MoveTo(move));
-
-        // Compute simple pawn advances
-        forward = pawnAdvance(1ull << from, occupied, board->turn);
-
-        // Promotion moves are legal if we can move to one of the promotion
-        // ranks, defined by PROMOTION_RANKS, independent of moving colour
-        if (type == PROMOTION_MOVE)
-            return testBit(PROMOTION_RANKS & ((attacks & enemy) | forward), MoveTo(move));
-
-        // Add the double advance to forward
-        forward |= pawnAdvance(forward & (!board->turn ? RANK_3 : RANK_6), occupied, board->turn);
-
-        // Normal moves are legal if we can move there
-        return testBit(~PROMOTION_RANKS & ((attacks & enemy) | forward), MoveTo(move));
+        return actual;
     }
 
-    // The colour check should (assuming board->squares only contains
-    // pieces and EMPTY flags) ensure that ftype is an actual piece,
-    // which at this point the only piece left to check is the King
-    assert(ftype == KING);
+    // if (correct != actual) {
+    //     printBoard(board);
+    //     printMove(move, board->chess960);
+    //     printBitboard(board->checkers);
+    //     printBitboard(board->threats);
+    //     printBitboard(board->blockers);
+    //     printBitboard(attackRayMasks(ksq, from));
+    //     fflush(stdout);
+    //     printf("%d %d\n", (int) correct, (int) actual);
+    //     exit(EXIT_FAILURE);
+    // }
+    //
+    // return correct;
+}
 
-    // Normal moves are legal if the to square is a valid target
-    if (type == NORMAL_MOVE)
-        return testBit(kingAttacks(from) & ~friendly, MoveTo(move));
+bool move_is_pseudo_legal(Board *board, uint16_t move) {
 
-    // Kings cannot enpass or promote
-    if (type != CASTLE_MOVE)
-        return 0;
+    const int to    = MoveTo(move);
+    const int from  = MoveFrom(move);
+    const int type  = MoveType(move);
+    const int ftype = pieceType(board->squares[from]);
 
-    // Verifying a castle move can be difficult, so instead we will just
-    // attempt to generate the (two) possible castle moves for the given
-    // player. If one matches, we can then verify the pseudo legality
-    // using the same code as from movegen.c
+    const uint64_t friendly = board->colours[ board->turn];
+    const uint64_t enemy    = board->colours[!board->turn];
+    const uint64_t occupied = friendly | enemy;
 
-    while (castles && !board->checkers) {
+    // Skip obvious illegal moves, like our special ones, or those which attempt
+    // to move a piece we don't control. Also, handle the weird but impossible case
+    // of having the promotion bits set but not the promotion move-type flag
+    if (    move == NONE_MOVE || move == NULL_MOVE
+        ||  pieceColour(board->squares[from]) != board->turn
+        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
+        return FALSE;
 
-        // Figure out which pieces are moving to which squares
-        rook = poplsb(&castles), king = from;
-        rookTo = castleRookTo(king, rook);
-        kingTo = castleKingTo(king, rook);
+    // In movegen, we filter all non-King moves when doubly checked
+    if (several(board->checkers) && ftype != KING)
+        return FALSE;
 
-        // Make sure the move actually matches what we have
-        if (move != MoveMake(king, rook, CASTLE_MOVE)) continue;
+    // In movegen, we only generate fully legal castling moves
+    if (ftype == KING && type == CASTLE_MOVE) {
 
-        // Castle is illegal if we would go over a piece
-        mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
-        mask |= bitsBetweenMasks(rook, rookTo) | (1ull << rookTo);
-        mask &= ~((1ull << king) | (1ull << rook));
-        if (occupied & mask) return 0;
-
-        // Castle is illegal if we move through a checking threat
-        if (bitsBetweenMasks(king, kingTo) & board->threats)
-            return 0;
-
-        return 1; // All requirments are met
+        return  !board->checkers
+            &&  !testBit(board->blockers, to)
+            &&   move == MoveMake(from, to, CASTLE_MOVE)
+            &&   testBit(friendly & board->castleRooks, to)
+            && !(occupied & castle_occupied_mask(from, to))
+            &&  !testBit(board->threats, castleKingTo(from, to))
+            && !(bitsBetweenMasks(from, castleKingTo(from, to)) & board->threats);
     }
 
-    return 0;
+    // In movegen, Kings will only make completely legal moves
+    if (ftype == KING)
+        return type == NORMAL_MOVE
+            && testBit(kingAttacks(from) & ~board->threats & ~friendly, to);
+
+    // In movegen, non-pawn moves block or capture checkers when present
+    if (ftype != PAWN) {
+
+        // Block or capture the checking piece if there is one
+        const uint64_t targets = !board->checkers ? ~0ULL
+                               : (board->checkers | check_blocking_mask(board));
+        const uint64_t attacks = pieceAttacks(ftype, board->turn, from, occupied);
+
+        return type == NORMAL_MOVE && testBit(attacks & targets & ~friendly, to);
+    }
+
+    // In movegen, no special care is taken for Enpassant legality
+    if (type == ENPASS_MOVE)
+        return MoveTo(move) == board->epSquare
+            && testBit(pawnAttacks(board->turn, from), to);
+
+    else {
+
+        // Block or capture the checking piece if there is one
+        const uint64_t targets = !board->checkers ? ~0ULL
+                               : (board->checkers | check_blocking_mask(board));
+        const uint64_t attacks = pawnAttacks(board->turn, from);
+
+        // Compute the possible single and double pushes
+        const uint64_t rank3    = board->turn == WHITE ? RANK_3 : RANK_6;
+        const uint64_t forward1 = pawnAdvance(1ULL << from, occupied, board->turn);
+        const uint64_t forward2 = pawnAdvance(forward1 & rank3, occupied, board->turn);
+
+        // Ensure that promotions, and only promotions, hit the final rank
+        const uint64_t filter  = type == NORMAL_MOVE
+                               ? ~PROMOTION_RANKS & targets
+                               :  PROMOTION_RANKS & targets;
+
+        // Tack on double pushes to the candiates if the move is normal
+        const uint64_t refined = type == PROMOTION_MOVE
+                               ? (attacks & enemy) | forward1
+                               : (attacks & enemy) | forward1 | forward2;
+
+        return type != CASTLE_MOVE && testBit(filter & refined, to);
+    }
 }
 
-int moveWasLegal(Board *board) {
-
-    // Grab the last player's King's square and verify safety
-    int sq = getlsb(board->colours[!board->turn] & board->pieces[KING]);
-    assert(board->squares[sq] == makePiece(KING, !board->turn));
-    return !squareIsAttacked(board, !board->turn, sq);
-}
 
 
 void printMove(uint16_t move, int chess960) {

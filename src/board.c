@@ -79,37 +79,74 @@ static int stringToSquare(char *str) {
 }
 
 
+uint64_t castle_occupied_mask(int ksq, int rsq) {
+
+    /// Returns the mask of bits moved through while castling,
+    /// excluding the initial location of the King and the Rook.
+
+    const int rto = castleRookTo(ksq, rsq);
+    const int kto = castleKingTo(ksq, rsq);
+
+    uint64_t mask =  bitsBetweenMasks(ksq, kto)
+                  |  bitsBetweenMasks(rsq, rto)
+                  | (1ULL << kto) | (1ULL << rto);
+
+    return mask & ~(1ULL << ksq) & ~(1ULL << rsq);
+}
+
+uint64_t check_blocking_mask(const Board *board) {
+
+    /// Returns the mask of bits between the King and its sole checker.
+    /// This should only be called when there is exactly one checking piece.
+
+    assert(onlyOne(board->checkers));
+
+    const uint64_t king = board->colours[board->turn] & board->pieces[KING];
+
+    return bitsBetweenMasks(getlsb(king), getlsb(board->checkers));
+}
+
+
 void update_board_state(Board *board) {
 
-    /// Update threats and checkers for an individual piece's attacks
+    /// Sets board->threats, board->checkers, and board->blockers.
+    /// This must be executed every single time a move is applied.
 
+    // Update threats and checkers for an individual piece's attacks
     #define individual_update(PT, C, BB, OCC) do {                  \
         uint64_t ATT;                                               \
-        int SQ = poplsb(&BB);                                       \
+        const int SQ = poplsb(&BB);                                 \
         board->threats  |= (ATT = pieceAttacks(PT, C, SQ, OCC));    \
         board->checkers |= testBit(ATT, ksq) ? (1ULL << SQ) : 0ULL; \
     } while (0)
 
-    uint64_t enemy    = board->colours[!board->turn];
-    uint64_t occupied = board->colours[ board->turn] | enemy;
+    const uint64_t enemy    = board->colours[!board->turn];
+    const uint64_t occupied = board->colours[ board->turn] | enemy;
 
     uint64_t pawns   = enemy &  board->pieces[PAWN  ];
     uint64_t knights = enemy &  board->pieces[KNIGHT];
     uint64_t bishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
     uint64_t rooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
     uint64_t kings   = enemy &  board->pieces[KING  ];
+    uint64_t pinners;
 
     const int ksq = getlsb(board->pieces[KING] & ~enemy);
+
+    // Compute blocked pieces of either colour preventing a check
+    board->blockers = 0ULL;
+    pinners = (bishops & bishopAttacks(ksq, occupied & ~bishopAttacks(ksq, occupied)))
+            | (rooks   &   rookAttacks(ksq, occupied &   ~rookAttacks(ksq, occupied)));
+    while (pinners) board->blockers |= occupied & bitsBetweenMasks(ksq, poplsb(&pinners));
 
     // Pawns can be updated all at once without popping individual pieces
     board->threats  = pawnAttackSpan(pawns, ~0ULL, !board->turn);
     board->checkers = pawnAttacks(board->turn, ksq) & pawns;
 
     // Update threats & checkers, using each of the non-pawn pieces
-    while (knights) individual_update(KNIGHT, !board->turn, knights, occupied);
-    while (bishops) individual_update(BISHOP, !board->turn, bishops, occupied);
-    while (rooks)   individual_update(ROOK  , !board->turn, rooks  , occupied);
-    while (kings)   individual_update(KING  , !board->turn, kings  , occupied);
+    while (knights) individual_update(KNIGHT, !board->turn, knights, (occupied ^ (1ULL << ksq)));
+    while (bishops) individual_update(BISHOP, !board->turn, bishops, (occupied ^ (1ULL << ksq)));
+    while (rooks)   individual_update(ROOK  , !board->turn, rooks  , (occupied ^ (1ULL << ksq)));
+    while (kings)   individual_update(KING  , !board->turn, kings  , (occupied ^ (1ULL << ksq)));
 
     #undef individual_update
 }
@@ -381,11 +418,50 @@ uint64_t perft(Board *board, int depth) {
     size += genAllNoisyMoves(board, moves);
     size += genAllQuietMoves(board, moves + size);
 
+    // for (int i = 0; i < size; i++) {
+    //     if (!move_is_pseudo_legal(board, moves[i])) {
+    //         printf("Case A\n");
+    //         printBoard(board);
+    //         printMove(moves[i], board->chess960);
+    //         printf("TYPE %d\n", MoveType(moves[i]));
+    //         printBitboard(board->checkers);
+    //         printBitboard(board->threats);
+    //         printBitboard(board->blockers);
+    //         fflush(stdout);
+    //         exit(EXIT_FAILURE);
+    //     }
+    // }
+    //
+    // for (uint16_t m = 0; m <= 16384; m++) {
+    //
+    //     if (move_is_pseudo_legal(board, m)) {
+    //
+    //
+    //         bool contains = false;
+    //         for (int i = 0; i < size; i++)
+    //             contains = contains || m == moves[i];
+    //
+    //         if (!contains) {
+    //             printf("Case B\n");
+    //             printBoard(board);
+    //             printMove(m, board->chess960);
+    //             printf("TYPE %d\n", MoveType(m));
+    //             printBitboard(board->checkers);
+    //             printBitboard(board->threats);
+    //             printBitboard(board->blockers);
+    //             fflush(stdout);
+    //             exit(EXIT_FAILURE);
+    //         }
+    //     }
+    // }
+
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
-        applyMove(board, moves[size], undo);
-        if (moveWasLegal(board)) found += perft(board, depth-1);
-        revertMove(board, moves[size], undo);
+        if (move_is_legal(board, moves[size])) {
+            applyMove(board, moves[size], undo);
+            found += perft(board, depth-1);
+            revertMove(board, moves[size], undo);
+        }
     }
 
     return found;

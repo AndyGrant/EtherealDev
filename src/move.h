@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "types.h"
@@ -40,8 +41,7 @@ enum {
 int castleKingTo(int king, int rook);
 int castleRookTo(int king, int rook);
 
-int apply(Thread *thread, Board *board, uint16_t move);
-void applyLegal(Thread *thread, Board *board, uint16_t move);
+void apply(Thread *thread, Board *board, uint16_t move);
 void applyMove(Board *board, uint16_t move, Undo *undo);
 void applyNormalMove(Board *board, uint16_t move, Undo *undo);
 void applyCastleMove(Board *board, uint16_t move, Undo *undo);
@@ -59,9 +59,9 @@ int moveIsInRootMoves(Thread *thread, uint16_t move);
 int moveIsTactical(Board *board, uint16_t move);
 int moveEstimatedValue(Board *board, uint16_t move);
 int moveBestCaseValue(Board *board);
-int moveIsLegal(Board *board, uint16_t move);
-int moveIsPseudoLegal(Board *board, uint16_t move);
-int moveWasLegal(Board *board);
+
+bool move_is_legal(Board *board, uint16_t move);
+bool move_is_pseudo_legal(Board *board, uint16_t move);
 
 void printMove(uint16_t move, int chess960);
 void moveToString(uint16_t move, char *str, int chess960);

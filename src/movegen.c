@@ -30,7 +30,7 @@
 typedef uint64_t (*JumperFunc)(int);
 typedef uint64_t (*SliderFunc)(int, uint64_t);
 
-uint16_t* buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
+static uint16_t* buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
 
     while (attacks)
         *(moves++) = MoveMake(poplsb(&attacks), epsq, ENPASS_MOVE);
@@ -38,7 +38,7 @@ uint16_t* buildEnpassMoves(uint16_t *moves, uint64_t attacks, int epsq) {
     return moves;
 }
 
-uint16_t* buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
+static uint16_t* buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
 
     while (attacks) {
         int sq = poplsb(&attacks);
@@ -48,7 +48,7 @@ uint16_t* buildPawnMoves(uint16_t *moves, uint64_t attacks, int delta) {
     return moves;
 }
 
-uint16_t* buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
+static uint16_t* buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
 
     while (attacks) {
         int sq = poplsb(&attacks);
@@ -61,7 +61,7 @@ uint16_t* buildPawnPromotions(uint16_t *moves, uint64_t attacks, int delta) {
     return moves;
 }
 
-uint16_t* buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
+static uint16_t* buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
 
     while (attacks)
         *(moves++) = MoveMake(sq, poplsb(&attacks), NORMAL_MOVE);
@@ -69,7 +69,7 @@ uint16_t* buildNormalMoves(uint16_t *moves, uint64_t attacks, int sq) {
     return moves;
 }
 
-uint16_t* buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets) {
+static uint16_t* buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets) {
 
     while (pieces) {
         int sq = poplsb(&pieces);
@@ -79,7 +79,7 @@ uint16_t* buildJumperMoves(JumperFunc F, uint16_t *moves, uint64_t pieces, uint6
     return moves;
 }
 
-uint16_t* buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets, uint64_t occupied) {
+static uint16_t* buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint64_t targets, uint64_t occupied) {
 
     while (pieces) {
         int sq = poplsb(&pieces);
@@ -92,7 +92,6 @@ uint16_t* buildSliderMoves(SliderFunc F, uint16_t *moves, uint64_t pieces, uint6
 
 int genAllLegalMoves(Board *board, uint16_t *moves) {
 
-    Undo undo[1];
     int size = 0, pseudo = 0;
     uint16_t pseudoMoves[MAX_MOVES];
 
@@ -101,11 +100,9 @@ int genAllLegalMoves(Board *board, uint16_t *moves) {
     pseudo += genAllQuietMoves(board, pseudoMoves + pseudo);
 
     // Check each move for legality before copying
-    for (int i = 0; i < pseudo; i++) {
-        applyMove(board, pseudoMoves[i], undo);
-        if (moveWasLegal(board)) moves[size++] = pseudoMoves[i];
-        revertMove(board, pseudoMoves[i], undo);
-    }
+    for (int i = 0; i < pseudo; i++)
+        if (move_is_legal(board, pseudoMoves[i]))
+            moves[size++] = pseudoMoves[i];
 
     return size;
 }
@@ -118,7 +115,7 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     const int Right   = board->turn == WHITE ? -9 : 9;
     const int Forward = board->turn == WHITE ? -8 : 8;
 
-    uint64_t destinations, pawnEnpass, pawnLeft, pawnRight;
+    uint64_t destinations, pdestinations, pawnEnpass, pawnLeft, pawnRight;
     uint64_t pawnPromoForward, pawnPromoLeft, pawnPromoRight;
 
     uint64_t us       = board->colours[board->turn];
@@ -136,11 +133,17 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
     rooks   |= us & board->pieces[QUEEN];
 
     // Double checks can only be evaded by moving the King
-    if (several(board->checkers))
-        return buildJumperMoves(&kingAttacks, moves, kings, them & ~board->threats) - start;
+    if (several(board->checkers)) {
+        destinations = them & ~board->threats;
+        return buildJumperMoves(&kingAttacks, moves, kings, destinations) - start;
+    }
 
     // When checked, we may only uncheck by capturing the checker
     destinations = board->checkers ? board->checkers : them;
+
+    // Promotions may also "quietly" block checkers
+    pdestinations = !board->checkers ? ~0ULL
+                  :  board->checkers | check_blocking_mask(board);
 
     // Compute bitboards for each type of Pawn movement
     pawnEnpass       = pawnEnpassCaptures(pawns, board->epSquare, board->turn);
@@ -152,11 +155,11 @@ int genAllNoisyMoves(Board *board, uint16_t *moves) {
 
     // Generate moves for all the Pawns, so long as they are noisy
     moves = buildEnpassMoves(moves, pawnEnpass, board->epSquare);
-    moves = buildPawnMoves(moves, pawnLeft & destinations, Left);
+    moves = buildPawnMoves(moves, pawnLeft  & destinations, Left);
     moves = buildPawnMoves(moves, pawnRight & destinations, Right);
-    moves = buildPawnPromotions(moves, pawnPromoForward, Forward);
-    moves = buildPawnPromotions(moves, pawnPromoLeft, Left);
-    moves = buildPawnPromotions(moves, pawnPromoRight, Right);
+    moves = buildPawnPromotions(moves, pawnPromoForward & pdestinations, Forward);
+    moves = buildPawnPromotions(moves, pawnPromoLeft    & pdestinations, Left);
+    moves = buildPawnPromotions(moves, pawnPromoRight   & pdestinations, Right);
 
     // Generate moves for the remainder of the pieces, so long as they are noisy
     moves = buildJumperMoves(&knightAttacks, moves, knights, destinations);
@@ -174,8 +177,8 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     const int Forward = board->turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
 
-    int rook, king, rookTo, kingTo;
-    uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
+    int rook, king;
+    uint64_t destinations, pawnForwardOne, pawnForwardTwo;
 
     uint64_t us       = board->colours[board->turn];
     uint64_t occupied = us | board->colours[!board->turn];
@@ -192,8 +195,10 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
     rooks   |= us & board->pieces[QUEEN];
 
     // Double checks can only be evaded by moving the King
-    if (several(board->checkers))
-        return buildJumperMoves(&kingAttacks, moves, kings, ~occupied & ~board->threats) - start;
+    if (several(board->checkers)) {
+        destinations = ~occupied & ~board->threats;
+        return buildJumperMoves(&kingAttacks, moves, kings, destinations) - start;
+    }
 
     // When checked, we must block the checker with non-King pieces
     destinations = !board->checkers ? ~occupied
@@ -218,17 +223,13 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
 
         // Figure out which pieces are moving to which squares
         rook = poplsb(&castles), king = getlsb(kings);
-        rookTo = castleRookTo(king, rook);
-        kingTo = castleKingTo(king, rook);
 
-        // Castle is illegal if we would go over a piece
-        mask  = bitsBetweenMasks(king, kingTo) | (1ull << kingTo);
-        mask |= bitsBetweenMasks(rook, rookTo) | (1ull << rookTo);
-        mask &= ~((1ull << king) | (1ull << rook));
-        if (occupied & mask) continue;
-
-        // Castle is illegal if we move through a checking threat
-        if (bitsBetweenMasks(king, kingTo) & board->threats)
+        // Don't castle through pieces, through check, or expose the king
+        // by moving a Rook that was blocking a check (Applicable to FRC only)
+        if (    testBit(board->blockers, rook)
+            || (occupied & castle_occupied_mask(king, rook))
+            ||  testBit(board->threats, castleKingTo(king, rook))
+            || (bitsBetweenMasks(king, castleKingTo(king, rook)) & board->threats))
             continue;
 
         // All conditions have been met. Identify which side we are castling to

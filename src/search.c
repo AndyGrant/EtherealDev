@@ -482,8 +482,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
-            // Apply move, skip if move is illegal
-            if (apply(thread, board, move)) {
+            if (move_is_legal(board, move)) {
+
+                // Apply the move after verifying legality
+                apply(thread, board, move);
 
                 // For high depths, verify the move first with a qsearch
                 if (depth >= 2 * ProbCutDepth)
@@ -579,13 +581,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
             continue;
 
-        // Apply move, skip if move is illegal
-        if (!apply(thread, board, move))
+        // Skip illegal moves
+        if (!move_is_legal(board, move))
             continue;
-
-        played += 1;
-        if (isQuiet) quietsTried[quietsPlayed++] = move;
-        else capturesTried[capturesPlayed++] = move;
 
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
@@ -593,18 +591,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
-        // Identify moves which are candidate singular moves
+        // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
+        // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
+        // extend for any position where our King is checked.
+
         singular =  !RootNode
                  &&  depth >= 8
                  &&  move == ttMove
                  &&  ttDepth >= depth - 2
                  && (ttBound & BOUND_LOWER);
 
-        // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
-        // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
-        // extend for any position where our King is checked.
-
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, beta) : inCheck;
+        extension = singular ? singularity(thread, ttValue, depth, beta) : inCheck;
         newDepth = depth + (!RootNode ? extension : 0);
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
@@ -613,6 +610,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         if (ns->mp.stage == STAGE_DONE)
             return MAX(ttValue - depth, -MATE);
+
+        // Update History arrays for later
+        apply(thread, board, move);
+        if (isQuiet) quietsTried[quietsPlayed++] = move;
+        else capturesTried[capturesPlayed++] = move;
+        played += 1;
 
         // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
         // of Quiet moves after we've explored the main line. If a reduced search
@@ -794,21 +797,22 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
+        if (!move_is_legal(board, move))
+            continue;
+
         // Worst case which assumes we lose our piece immediately
         int pessimism = moveEstimatedValue(board, move)
                       - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
-        // Search the next ply if the move is legal
-        if (!apply(thread, board, move)) continue;
-
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
-            revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
             return beta;
         }
 
+        // Search the next ply if the move is legal
+        apply(thread, board, move);
         value = -qsearch(thread, &lpv, -beta, -alpha);
         revert(thread, board, move);
 
@@ -935,26 +939,25 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     return board->turn != colour;
 }
 
-int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int beta) {
+int singularity(Thread *thread, int ttValue, int depth, int beta) {
 
     Board *const board  = &thread->board;
-    NodeState *const ns = &thread->states[thread->height-1];
+    NodeState *const ns = &thread->states[thread->height];
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     PVariation lpv; lpv.length = 0;
 
-    // Table move was already applied
-    revert(thread, board, ttMove);
-
     // Iterate over the remaining moves in the Move Picker
     while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
 
-        assert(move != ttMove); // Skip the table move
+        // Skip any illegal moves
+        if (!move_is_legal(board, move))
+            continue;
 
         // Perform a reduced depth search on a null rbeta window
-        if (!apply(thread, board, move)) continue;
+        apply(thread, board, move);
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
         revert(thread, board, move);
 
@@ -979,10 +982,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int bet
         ns->mp.stage = STAGE_DONE;
     }
 
-    // Reapply the table move we took off
-    else applyLegal(thread, board, ttMove);
-
-    return value <= rBeta   ?  1 // Singular due to no cutoffs produced
-         : ttValue >=  beta ? -1 // Potential multi-cut even at current depth
+    return value <= rBeta  ?  1 // Singular due to no cutoffs produced
+         : ttValue >= beta ? -1 // Potential multi-cut even at current depth
          : 0;                    // Not singular, and unlikely to produce a cutoff
 }
