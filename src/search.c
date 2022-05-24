@@ -572,6 +572,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 continue;
         }
 
+        // Skip illegal moves
+        if (!move_is_legal(board, move))
+            continue;
+
         // Step 14 (~42 elo). Static Exchange Evaluation Pruning. Prune moves which fail
         // to beat a depth dependent SEE threshold. The use of the Move Picker's stage
         // is a speedup, which assumes that good noisy moves have a positive SEE
@@ -579,10 +583,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  depth <= SEEPruningDepth
             &&  ns->mp.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
-            continue;
-
-        // Skip illegal moves
-        if (!move_is_legal(board, move))
             continue;
 
         // The UCI spec allows us to output information about the current move
