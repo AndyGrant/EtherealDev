@@ -226,14 +226,11 @@ int genAllQuietMoves(Board *board, uint16_t *moves) {
 
         // Don't castle through pieces, through check, or expose the king
         // by moving a Rook that was blocking a check (Applicable to FRC only)
-        if (    testBit(board->blockers, rook)
-            || (occupied & castle_occupied_mask(king, rook))
-            ||  testBit(board->threats, castleKingTo(king, rook))
-            || (bitsBetweenMasks(king, castleKingTo(king, rook)) & board->threats))
-            continue;
-
-        // All conditions have been met. Identify which side we are castling to
-        *(moves++) = MoveMake(king, rook, CASTLE_MOVE);
+        if (   ! testBit(board->blockers, rook)
+            && !(occupied & castle_occupied_mask(king, rook))
+            && ! testBit(board->threats, castleKingTo(king, rook))
+            && !(bitsBetweenMasks(king, castleKingTo(king, rook)) & board->threats))
+            *(moves++) = MoveMake(king, rook, CASTLE_MOVE);
     }
 
     return moves - start;

@@ -868,6 +868,10 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     // Best case still fails to beat the threshold
     if (balance < 0) return 0;
 
+    // We already know the opponent cannot recapture this piece
+    if (!testBit(board->threats, to) && !testBit(board->threats, from))
+        return 1;
+
     // Worst case is losing the moved piece
     balance -= SEEPieceValues[nextVictim];
 
@@ -893,8 +897,12 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
     while (1) {
 
-        // If we have no more attackers left we lose
+        // Remove our blockers if there are any pinners present
         myAttackers = attackers & board->colours[colour];
+        if (board->pinners & board->colours[!colour] & occupied)
+            myAttackers &= ~board->blockers;
+
+        // If we have no more attackers left we lose
         if (myAttackers == 0ull) break;
 
         // Find our weakest piece to attack with
@@ -911,7 +919,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
         // A vertical or horizontal move may reveal rook or queen attackers
         if (nextVictim == ROOK || nextVictim == QUEEN)
-            attackers |=   rookAttacks(to, occupied) & rooks;
+            attackers |= rookAttacks(to, occupied) & rooks;
 
         // Make sure we did not add any already used attacks
         attackers &= occupied;

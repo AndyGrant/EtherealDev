@@ -128,15 +128,36 @@ void update_board_state(Board *board) {
     uint64_t bishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
     uint64_t rooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
     uint64_t kings   = enemy &  board->pieces[KING  ];
+
+    const int ksq  = getlsb(board->pieces[KING] & ~enemy);
+    const int eksq = getlsb(board->pieces[KING] &  enemy);
+
     uint64_t pinners;
+    uint64_t fbishops = ~enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
+    uint64_t frooks   = ~enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
 
-    const int ksq = getlsb(board->pieces[KING] & ~enemy);
 
-    // Compute blocked pieces of either colour preventing a check
-    board->blockers = 0ULL;
-    pinners = (bishops & bishopAttacks(ksq, occupied & ~bishopAttacks(ksq, occupied)))
-            | (rooks   &   rookAttacks(ksq, occupied &   ~rookAttacks(ksq, occupied)));
-    while (pinners) board->blockers |= occupied & bitsBetweenMasks(ksq, poplsb(&pinners));
+    board->blockers = board->pinners = 0ULL;
+
+    board->pinners |= (
+        pinners = (bishops & bishopAttacks(ksq, occupied & ~bishopAttacks(ksq, occupied)))
+                | (rooks   &   rookAttacks(ksq, occupied &   ~rookAttacks(ksq, occupied)))
+    );
+
+    while (pinners) {
+        const uint64_t pinline = occupied & bitsBetweenMasks(ksq, poplsb(&pinners));
+        if (pinline & ~enemy) board->blockers |= pinline;
+    }
+
+    board->pinners |= (
+        pinners = (fbishops & bishopAttacks(eksq, occupied & ~bishopAttacks(eksq, occupied)))
+                | (frooks   &   rookAttacks(eksq, occupied &   ~rookAttacks(eksq, occupied)))
+    );
+
+    while (pinners) {
+        const uint64_t pinline = occupied & bitsBetweenMasks(eksq, poplsb(&pinners));
+        if (pinline & enemy) board->blockers |= pinline;
+    }
 
     // Pawns can be updated all at once without popping individual pieces
     board->threats  = pawnAttackSpan(pawns, ~0ULL, !board->turn);

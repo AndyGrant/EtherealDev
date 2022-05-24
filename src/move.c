@@ -89,6 +89,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->checkers        = board->checkers;
     undo->threats         = board->threats;
     undo->blockers        = board->blockers;
+    undo->pinners         = board->pinners;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
@@ -329,7 +330,6 @@ void applyNullMove(Board *board, Undo *undo) {
     // Save information which is hard to recompute
     undo->hash            = board->hash;
     undo->threats         = board->threats;
-    undo->blockers        = board->blockers;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
 
@@ -370,6 +370,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->checkers        = undo->checkers;
     board->threats         = undo->threats;
     board->blockers        = undo->blockers;
+    board->pinners         = undo->pinners;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -455,7 +456,6 @@ void revertNullMove(Board *board, Undo *undo) {
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
     board->threats         = undo->threats;
-    board->blockers        = undo->blockers;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 
@@ -574,58 +574,28 @@ bool move_is_legal(Board *board, uint16_t move) {
     const int from = MoveFrom(move), to = MoveTo(move);
     const int ksq = getlsb(board->pieces[KING] & board->colours[board->turn]);
 
-    bool correct, actual;
+    if (MoveType(move) == ENPASS_MOVE) {
 
-    // {
-    //     Undo undo[1];
-    //     applyMove(board, move, undo);
-    //     uint64_t occ = board->colours[WHITE] | board->colours[BLACK];
-    //     const int k = getlsb(board->pieces[KING] & board->colours[!board->turn]);
-    //     bool illeagl = allAttackersToSquare(board, occ, k) & board->colours[board->turn];
-    //     revertMove(board, move, undo);
-    //     correct = !illeagl;
-    // }
+        const int ep = to - 8 + (board->turn << 4);
 
-    {
+        const uint64_t enemy    = board->colours[!board->turn];
+        const uint64_t occupied = board->colours[ board->turn] | enemy;
 
-        if (MoveType(move) == ENPASS_MOVE) {
+        const uint64_t rooks   = board->pieces[  ROOK] | board->pieces[QUEEN];
+        const uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
+        const uint64_t updated = occupied ^ (1ULL << from) ^ (1ULL << ep) ^ (1ULL << to);
 
-            Undo undo[1];
-            applyMove(board, move, undo);
-            uint64_t occ = board->colours[WHITE] | board->colours[BLACK];
-            const int k = getlsb(board->pieces[KING] & board->colours[!board->turn]);
-            bool illeagl = allAttackersToSquare(board, occ, k) & board->colours[board->turn];
-            revertMove(board, move, undo);
-            actual = !illeagl;
-
-        }
-
-        // Legal if not FRC, or if the Rook (to) is not a blocker
-        else if (MoveType(move) == CASTLE_MOVE)
-            actual = !board->chess960
-                || !testBit(board->blockers, to);
-
-        // Legal if not a blocker, or moving along the blocking path
-        else
-            actual = !testBit(board->blockers, from)
-                  ||  testBit(attackRayMasks(ksq, from), to);
-
-        return actual;
+        return !(  rookAttacks(ksq, updated) & (enemy &   rooks))
+            && !(bishopAttacks(ksq, updated) & (enemy & bishops));
     }
 
-    // if (correct != actual) {
-    //     printBoard(board);
-    //     printMove(move, board->chess960);
-    //     printBitboard(board->checkers);
-    //     printBitboard(board->threats);
-    //     printBitboard(board->blockers);
-    //     printBitboard(attackRayMasks(ksq, from));
-    //     fflush(stdout);
-    //     printf("%d %d\n", (int) correct, (int) actual);
-    //     exit(EXIT_FAILURE);
-    // }
-    //
-    // return correct;
+    // We generate fully legal King Moves
+    if (MoveType(move) == CASTLE_MOVE)
+        return TRUE;
+
+    // Don't move a blocker outside the blocking path
+    return !testBit(board->blockers, from)
+        ||  testBit(attackRayMasks(ksq, from), to);
 }
 
 bool move_is_pseudo_legal(Board *board, uint16_t move) {
@@ -639,12 +609,9 @@ bool move_is_pseudo_legal(Board *board, uint16_t move) {
     const uint64_t enemy    = board->colours[!board->turn];
     const uint64_t occupied = friendly | enemy;
 
-    // Skip obvious illegal moves, like our special ones, or those which attempt
-    // to move a piece we don't control. Also, handle the weird but impossible case
-    // of having the promotion bits set but not the promotion move-type flag
+    // Skip specially designated, or outright illegal moves
     if (    move == NONE_MOVE || move == NULL_MOVE
-        ||  pieceColour(board->squares[from]) != board->turn
-        || (MovePromoType(move) != PROMOTE_TO_KNIGHT && type != PROMOTION_MOVE))
+        ||  pieceColour(board->squares[from]) != board->turn)
         return FALSE;
 
     // In movegen, we filter all non-King moves when doubly checked
@@ -709,7 +676,6 @@ bool move_is_pseudo_legal(Board *board, uint16_t move) {
         return type != CASTLE_MOVE && testBit(filter & refined, to);
     }
 }
-
 
 
 void printMove(uint16_t move, int chess960) {
