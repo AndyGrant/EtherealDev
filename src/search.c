@@ -513,10 +513,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     init_picker(&ns->mp, thread, ttMove);
     while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
 
-        // Skip illegal moves ???
-        if (!move_is_legal(board, move))
-                continue;
-
         // MultiPV and searchmoves may limit our search options
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
@@ -583,6 +579,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  depth <= SEEPruningDepth
             &&  ns->mp.stage > STAGE_GOOD_NOISY
             && !staticExchangeEvaluation(board, move, seeMargin[isQuiet]))
+            continue;
+
+        // Skip illegal moves
+        if (!move_is_legal(board, move))
             continue;
 
         // The UCI spec allows us to output information about the current move
