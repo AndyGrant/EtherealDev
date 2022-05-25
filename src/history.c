@@ -183,26 +183,23 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
     if (!depth || (length == 1 && depth <= 3))
         return;
 
-    // Reduce update size if we found the move easily
-    // if (length == 1) depth--;
-
-    // Increase update size if we found the move very late
-    if (length >= 8) depth++;
-
     for (int i = 0; i < length; i++) {
 
         int16_t *histories[3];
         underlying_quiet_history(thread, moves[i], histories);
 
+        const int bdepth = i != length - 1 ? depth
+                         : depth + MAX(0, MIN(13 - depth, length / 8));
+
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-             update_history(histories[0], depth, i == length - 1);
+            update_history(histories[0], bdepth, i == length - 1);
 
         // Update Followup Move History if it exists
         if ((ns-2)->continuations != NULL)
-             update_history(histories[1], depth, i == length - 1);
+            update_history(histories[1], bdepth, i == length - 1);
 
         // Update Butterfly History, which always exists
-        update_history(histories[2], depth, i == length - 1);
+        update_history(histories[2], bdepth, i == length - 1);
     }
 }
