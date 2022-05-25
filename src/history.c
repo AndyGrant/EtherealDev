@@ -60,7 +60,7 @@ static int16_t* underlying_capture_history(Thread *thread, uint16_t move) {
     assert(PAWN <= captured && captured <= QUEEN);
     assert(PAWN <= piece && piece <= KING);
 
-    return &thread->chistory[piece][threat_from][MoveTo(move)][captured];
+    return &thread->chistory[piece][threat_to][MoveTo(move)][captured];
 }
 
 static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *histories[3]) {
