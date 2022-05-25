@@ -183,6 +183,12 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
     if (!depth || (length == 1 && depth <= 3))
         return;
 
+    // Reduce update size if we found the move easily
+    if (length == 1) depth--;
+
+    // Increase update size if we found the move very late
+    // if (length >= 8) depth++;
+
     for (int i = 0; i < length; i++) {
 
         int16_t *histories[3];
