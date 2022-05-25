@@ -46,7 +46,7 @@ struct NodeState {
     MovePicker mp;  // Move Picker at each ply
 
     // Fast reference for future use for History lookups
-    int16_t (*continuations)[CONT_NB][2][2][PIECE_NB][SQUARE_NB];
+    int16_t (*continuations)[CONT_NB][2][PIECE_NB][SQUARE_NB];
 };
 
 struct Thread {
