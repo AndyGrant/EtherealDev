@@ -91,15 +91,15 @@ endif
 ### Section 3. Build Targets Optimized For Native Use
 ### =========================================================================
 
-default:
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o $(EXE)
-
 pgo:
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
 	$(CC) -fprofile-generate $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o $(EXE)
 	./$(EXE) bench
 	$(CC) -fprofile-use $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o $(EXE)
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda
+
+basic:
+	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o $(EXE)
 
 tune:
 	$(CC) $(TFLAGS) $(SRC) $(LIBS) -o $(EXE)
