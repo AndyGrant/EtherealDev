@@ -629,7 +629,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
 
-            R +=  testBit(old_threats, MoveTo(move))
+            R += !testBit(old_threats, MoveFrom(move))
+              &&  testBit(old_threats, MoveTo(move))
               && !testBit(board->threats, MoveTo(move));
 
             // Reduce for Killers and Counters
