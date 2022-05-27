@@ -630,7 +630,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R -= ns->mp.stage < STAGE_QUIET;
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, hist / 5500));
+            R -= MAX(-2, MIN(2, hist / 4500));
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
