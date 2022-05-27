@@ -296,6 +296,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     const int PvNode     = (alpha != beta - 1);
     const int RootNode   = (thread->height == 0);
 
+    uint64_t old_threats = board->threats;
+
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
@@ -625,6 +627,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+
+            R +=  testBit(old_threats, MoveTo(move))
+              && !testBit(board->threats, MoveTo(move));
 
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
