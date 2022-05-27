@@ -171,7 +171,7 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
 
     for (int i = 0; i < length; i++) {
         int16_t *hist = underlying_capture_history(thread, moves[i]);
-        update_history2(hist, depth, moves[i] == best);
+        update_history(hist, depth, moves[i] == best);
     }
 }
 
@@ -215,6 +215,6 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
              update_history(histories[1], depth, i == length - 1);
 
         // Update Butterfly History, which always exists
-        update_history(histories[2], depth, i == length - 1);
+        update_history2(histories[2], depth, i == length - 1);
     }
 }
