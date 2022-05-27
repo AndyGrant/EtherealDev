@@ -41,6 +41,20 @@ static void update_history(int16_t *current, int depth, bool good) {
 }
 
 
+static int stat_bonus2(int depth) {
+
+    // Approximately verbatim stat bonus formula from Stockfish
+    return depth > 13 ? 32 : 8 * depth * depth + 64 * MAX(depth - 1, 0);
+}
+
+static void update_history2(int16_t *current, int depth, bool good) {
+
+    // HistoryDivisor is essentially the max value of history
+    const int delta = good ? stat_bonus2(depth) : -stat_bonus2(depth);
+    *current += delta - *current * abs(delta) / HistoryDivisor;
+}
+
+
 static int history_captured_piece(Thread *thread, uint16_t move) {
 
     // Handle Enpassant; Consider promotions as Pawn Captures
@@ -194,11 +208,11 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
 
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-             update_history(histories[0], depth, i == length - 1);
+             update_history2(histories[0], depth, i == length - 1);
 
         // Update Followup Move History if it exists
         if ((ns-2)->continuations != NULL)
-             update_history(histories[1], depth, i == length - 1);
+             update_history2(histories[1], depth, i == length - 1);
 
         // Update Butterfly History, which always exists
         update_history(histories[2], depth, i == length - 1);
