@@ -34,6 +34,22 @@ extern ALIGN64 int16_t in_weights[INSIZE * KPSIZE];
 extern ALIGN64 int16_t in_biases[KPSIZE];
 
 
+static int bucket_index(int sq) {
+
+    static const int LUT[] = {
+         0,  1,  2,  3,  3,  2,  1,  0,
+         4,  5,  6,  7,  7,  6,  5,  4,
+         8,  9, 10, 11, 11, 10,  9,  8,
+         8,  9, 10, 11, 11, 10,  9,  8,
+        12, 12, 13, 13, 13, 13, 12, 12,
+        12, 12, 13, 13, 13, 13, 12, 12,
+        14, 14, 15, 15, 15, 15, 14, 14,
+        14, 14, 15, 15, 15, 15, 14, 14,
+    };
+
+    return LUT[sq];
+}
+
 static int sq64_to_sq32(int sq) {
     static const int Mirror[] = { 3, 2, 1, 0, 0, 1, 2, 3 };
     return ((sq >> 1) & ~0x3) + Mirror[sq & 0x7];
@@ -48,7 +64,7 @@ static int nnue_index_delta(int piece, int relksq, int colour, int sq) {
     const int mksq = testBit(LEFT_FLANK, relksq) ? (relksq ^ 0x7) : relksq;
     const int mpsq = testBit(LEFT_FLANK, relksq) ? (relpsq ^ 0x7) : relpsq;
 
-    return 640 * sq64_to_sq32(mksq) + (64 * (5 * (colour == pcolour) + ptype)) + mpsq;
+    return 640 * bucket_index(mksq) + (64 * (5 * (colour == pcolour) + ptype)) + mpsq;
 }
 
 static int nnue_index(Board *board, int relksq, int colour, int sq) {
