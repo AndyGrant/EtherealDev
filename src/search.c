@@ -535,25 +535,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Base LMR reduced depth value that we expect to use later
             int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
-            int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
-            // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
+            int fmpMargin = FutilityMarginBase
+                          + lmrDepth * FutilityMarginPerDepth
+                          + MIN(150, MAX(-150, hist / FutilityMarginHistoryDivisor));
+
+            // Step 13A (~5 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   !inCheck
                 &&  eval + fmpMargin <= alpha
-                &&  lmrDepth <= FutilityPruningDepth
-                &&  hist < FutilityPruningHistoryLimit[improving])
+                &&  lmrDepth <= FutilityPruningDepth)
                 skipQuiets = 1;
 
-            // Step 13B (~2.5 elo). Futility Pruning. If our score is not only far
-            // below alpha but still far below alpha after adding the Futility Margin,
-            // we can somewhat safely skip all quiet moves after this one
-            if (   !inCheck
-                &&  lmrDepth <= FutilityPruningDepth
-                &&  eval + fmpMargin + FutilityMarginNoHistory <= alpha)
-                skipQuiets = 1;
-
-            // Step 13C (~10 elo). Continuation Pruning. Moves with poor counter
+            // Step 13B (~10 elo). Continuation Pruning. Moves with poor counter
             // or follow-up move history are pruned near the leaf nodes of the search
             if (   ns->mp.stage > STAGE_COUNTER_MOVE
                 && lmrDepth <= ContinuationPruningDepth[improving]
