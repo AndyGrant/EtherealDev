@@ -538,7 +538,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             int fmpMargin = FutilityMarginBase
                           + lmrDepth * FutilityMarginPerDepth
-                          + MIN(180, MAX(-180, hist / FutilityMarginHistoryDivisor));
+                          + hist / FutilityMarginHistoryDivisor;
 
             // Step 13A (~5 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
