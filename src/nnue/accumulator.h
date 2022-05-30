@@ -64,8 +64,8 @@ INLINE void nnue_push(Board *board) {
 INLINE void nnue_move_piece(Board *board, int piece, int from, int to) {
 
     if (   pieceType(piece) == KING
-        && SquareToBucket[from] == SquareToBucket[to]
-        && testBit(LEFT_FLANK, to) == testBit(LEFT_FLANK, from))
+        && testBit(LEFT_FLANK, to) == testBit(LEFT_FLANK, from)
+        && SquareToBucket[relativeSquare(board->turn, to)] == SquareToBucket[relativeSquare(board->turn, from)])
         return;
 
     if (USE_NNUE && board->thread != NULL) {
