@@ -35,8 +35,6 @@
 #define INSIZE  20480
 #define KPSIZE  256
 #define L1SIZE  512
-#define L2SIZE  16
-#define L3SIZE  16
 #define OUTSIZE 1
 
 typedef struct NNUEDelta {

@@ -46,59 +46,12 @@ INCBIN(IncWeights, EVALFILE);
 #endif
 
 ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
-ALIGN64 int8_t  l1_weights[L1SIZE * L2SIZE ];
-ALIGN64 float   l2_weights[L2SIZE * L3SIZE ];
-ALIGN64 float   l3_weights[L3SIZE * OUTSIZE];
-
+ALIGN64 int8_t  l1_weights[L1SIZE * OUTSIZE];
 ALIGN64 int16_t in_biases[KPSIZE ];
-ALIGN64 int32_t l1_biases[L2SIZE ];
-ALIGN64 float   l2_biases[L3SIZE ];
-ALIGN64 float   l3_biases[OUTSIZE];
+ALIGN64 int32_t l1_biases[OUTSIZE];
 
 static int NNUE_LOADED = 0;
 
-static void scale_weights() {
-
-    // Delayed dequantization of the results of L1 forces an upshift in
-    // biases of L2 and L3 to compensate. This saves SRAI calls, as well as
-    // increases the precision of each layer, with no clear downsides.
-
-    for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] *= (1 << SHIFT_L1);
-
-    for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] *= (1 << SHIFT_L1);
-}
-
-static void quant_transpose(int8_t *matrix, int rows, int cols) {
-
-    // Typical Matrix Transposition using int8_t. Ethereal's trainer
-    // stores weights in a way to allow faster updates, not computes
-
-    int8_t *cpy = malloc(sizeof(int8_t) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(int8_t) * rows * cols);
-    free(cpy);
-}
-
-static void float_transpose(float *matrix, int rows, int cols) {
-
-    // Typical Matrix Transposition using floats. Ethereal's trainer
-    // stores weights in a way to allow faster updates, not computes
-
-    float *cpy = malloc(sizeof(float) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(float) * rows * cols);
-    free(cpy);
-}
 
 static void shuffle_input_layer() {
 
@@ -176,9 +129,34 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
     }
 }
 
-INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs, float *outputs) {
+INLINE int output_transform(int8_t *weights, int32_t *biases, uint8_t *inputs) {
 
-    assert(L1SIZE % 16 == 0 && L2SIZE % 8 == 0);
+    const vepi16 ones = vepi16_one;
+    const vepi8  *inp = (vepi8 *) inputs;
+    const vepi8  *wgt = (vepi8 *) weights;
+
+    vepi32 acc = vepi32_zero();
+
+    for (int i = 0; i < L1SIZE / vepi8_cnt; i += 2) {
+        const vepi16 sumA = vepi16_maubs(inp[i+0], wgt[i + 0]);
+        const vepi16 sumB = vepi16_maubs(inp[i+1], wgt[i + 1]);
+        acc = vepi32_add(acc, vepi16_madd(ones, vepi16_add(sumA, sumB)));
+    }
+
+    const __m128i r4 = _mm_add_epi32(_mm256_castsi256_si128(acc), _mm256_extractf128_si256(acc, 1));
+    const __m128i r2 = _mm_add_epi32(r4, _mm_srli_si128(r4, 8));
+    const __m128i r1 = _mm_add_epi32(r2, _mm_srli_si128(r2, 4));
+
+    return _mm_cvtsi128_si32(r1) + *biases;
+
+    // int output = *biases;
+    //
+    // for (int i = 0; i < L1SIZE; i++)
+    //     output += weights[i] * inputs[i];
+    //
+    // return output;
+
+    /*assert(L1SIZE % 16 == 0 && L2SIZE % 8 == 0);
 
     const int InChunks  = L1SIZE / vepi8_cnt;
     const int OutChunks = L2SIZE / 8;
@@ -279,115 +257,11 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         out[i * 2 + 1] = vps32_max(zero, _mm_cvtepi32_ps(vepi32_add(bia[i * 2 + 1], acc4)));
 
         #endif
-    }
-}
-
-INLINE void float_affine_relu(float *weights, float *biases, float *inputs, float *outputs) {
-
-    assert(L2SIZE % 8 == 0 && L3SIZE % 8 == 0);
-
-    const int InChunks  = L2SIZE / vps32_cnt;
-    const int OutChunks = L3SIZE / 8;
-
-    const vps32 zero = vps32_zero();
-
-    const vps32 *inp = (vps32 *) inputs;
-    const vps32 *bia = (vps32 *) biases;
-    const vps32 *wgt = (vps32 *) weights;
-    vps32 *const out = (vps32 *) outputs;
-
-    for (int i = 0; i < OutChunks; i++) {
-
-        vps32 acc0 = vps32_mul(wgt[InChunks * (i * 8 + 0) + 0], inp[0]);
-        vps32 acc1 = vps32_mul(wgt[InChunks * (i * 8 + 1) + 0], inp[0]);
-        vps32 acc2 = vps32_mul(wgt[InChunks * (i * 8 + 2) + 0], inp[0]);
-        vps32 acc3 = vps32_mul(wgt[InChunks * (i * 8 + 3) + 0], inp[0]);
-        vps32 acc4 = vps32_mul(wgt[InChunks * (i * 8 + 4) + 0], inp[0]);
-        vps32 acc5 = vps32_mul(wgt[InChunks * (i * 8 + 5) + 0], inp[0]);
-        vps32 acc6 = vps32_mul(wgt[InChunks * (i * 8 + 6) + 0], inp[0]);
-        vps32 acc7 = vps32_mul(wgt[InChunks * (i * 8 + 7) + 0], inp[0]);
-
-        for (int j = 1; j < InChunks; j++) {
-            acc0 = vps32_fma(wgt[InChunks * (i * 8 + 0) + j], inp[j], acc0);
-            acc1 = vps32_fma(wgt[InChunks * (i * 8 + 1) + j], inp[j], acc1);
-            acc2 = vps32_fma(wgt[InChunks * (i * 8 + 2) + j], inp[j], acc2);
-            acc3 = vps32_fma(wgt[InChunks * (i * 8 + 3) + j], inp[j], acc3);
-            acc4 = vps32_fma(wgt[InChunks * (i * 8 + 4) + j], inp[j], acc4);
-            acc5 = vps32_fma(wgt[InChunks * (i * 8 + 5) + j], inp[j], acc5);
-            acc6 = vps32_fma(wgt[InChunks * (i * 8 + 6) + j], inp[j], acc6);
-            acc7 = vps32_fma(wgt[InChunks * (i * 8 + 7) + j], inp[j], acc7);
-        }
-
-        acc0 = vps32_hadd(acc0, acc1);
-        acc2 = vps32_hadd(acc2, acc3);
-        acc4 = vps32_hadd(acc4, acc5);
-        acc6 = vps32_hadd(acc6, acc7);
-
-        acc0 = vps32_hadd(acc0, acc2);
-        acc4 = vps32_hadd(acc4, acc6);
-
-        #if defined(USE_AVX2) || defined(USE_AVX)
-
-        __m128 sumabcd1 = _mm256_extractf128_ps(acc0, 0);
-        __m128 sumabcd2 = _mm256_extractf128_ps(acc0, 1);
-        __m128 sumefgh1 = _mm256_extractf128_ps(acc4, 0);
-        __m128 sumefgh2 = _mm256_extractf128_ps(acc4, 1);
-
-        sumabcd1 = _mm_add_ps(sumabcd1, sumabcd2);
-        sumefgh1 = _mm_add_ps(sumefgh1, sumefgh2);
-
-        acc0 = _mm256_insertf128_ps(_mm256_castps128_ps256(sumabcd1), sumefgh1, 1);
-        out[i] = _mm256_max_ps(zero, _mm256_add_ps(bia[i], acc0));
-
-        #elif defined(USE_SSSE3)
-
-        out[i * 2 + 0] = vps32_max(zero, vps32_add(bia[i * 2 + 0], acc0));
-        out[i * 2 + 1] = vps32_max(zero, vps32_add(bia[i * 2 + 1], acc4));
-
-        #endif
-    }
-}
-
-INLINE void output_transform(float *weights, float *biases, float *inputs, float *outputs) {
-
-    assert(L3SIZE % 8 == 0);
-
-    const int InChunks = L3SIZE / vps32_cnt;
-
-    const vps32 *inp  = (vps32 *) inputs;
-    const vps32 *wgt  = (vps32 *) weights;
-
-    vps32 acc = vps32_mul(wgt[0], inp[0]);
-    for (int i = 1; i < InChunks; i++)
-        acc = vps32_fma(wgt[i], inp[i], acc);
-
-    #if defined(USE_AVX) || defined(USE_AVX2)
-
-    const __m128 hiQuad  = _mm256_extractf128_ps(acc, 1);
-    const __m128 loQuad  = _mm256_castps256_ps128(acc);
-    const __m128 sumQuad = _mm_add_ps(loQuad, hiQuad);
-
-    #elif defined(USE_SSSE3)
-
-    const __m128 sumQuad = acc;
-
-    #endif
-
-    const __m128 hiDual  = _mm_movehl_ps(sumQuad, sumQuad);
-    const __m128 sumDual = _mm_add_ps(sumQuad, hiDual);
-
-    const __m128 hi      = _mm_shuffle_ps(sumDual, sumDual, 0x1);
-    const __m128 sum     = _mm_add_ss(sumDual, hi);
-
-    *outputs = (_mm_cvtss_f32(sum) + *biases);
+    }*/
 }
 
 
 void nnue_init(const char* fname) {
-
-    // Reads an NNUE file specificed by a User. If the datasize does not match
-    // the compiled NNUE configuration, abort. Afterwords, scale some weights
-    // for speed optimizations, and transpose the weights in L1 and L2
 
     FILE *fin = fopen(fname, "rb");
 
@@ -395,22 +269,11 @@ void nnue_init(const char* fname) {
         || fread(in_weights, sizeof(int16_t), INSIZE * KPSIZE, fin) != (size_t) INSIZE * KPSIZE)
         abort_nnue("Unable to read NNUE File");
 
-    if (   fread(l1_biases, sizeof(int32_t), L2SIZE, fin) != (size_t) L2SIZE
-        || fread(l1_weights, sizeof(int8_t), L1SIZE * L2SIZE, fin) != (size_t) L1SIZE * L2SIZE)
+    if (   fread(l1_biases, sizeof(int32_t), OUTSIZE, fin) != (size_t) OUTSIZE
+        || fread(l1_weights, sizeof(int8_t), L1SIZE * OUTSIZE, fin) != (size_t) L1SIZE * OUTSIZE)
         abort_nnue("Unable to read NNUE File");
 
-    if (   fread(l2_biases, sizeof(float), L3SIZE, fin) != (size_t) L3SIZE
-        || fread(l2_weights, sizeof(float), L2SIZE * L3SIZE, fin) != (size_t) L2SIZE * L3SIZE)
-        abort_nnue("Unable to read NNUE File");
-
-    if (   fread(l3_biases, sizeof(float), OUTSIZE, fin) != (size_t) OUTSIZE
-        || fread(l3_weights, sizeof(float), L3SIZE * OUTSIZE, fin) != (size_t) L3SIZE * OUTSIZE)
-        abort_nnue("Unable to read NNUE File");
-
-    scale_weights();
     shuffle_input_layer();
-    quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    float_transpose(l2_weights, L2SIZE, L3SIZE);
     fclose(fin);
 
     NNUE_LOADED = 1;
@@ -418,13 +281,9 @@ void nnue_init(const char* fname) {
 
 void nnue_incbin_init() {
 
-    // Inits from an NNUE file compiled into the binary. Assume the compiled
-    // data is correct for the given NNUE config. Afterwords, scale some
-    // weights for speed optimizations, and transpose the weights in L1 and L2
-
     #ifdef EVALFILE
 
-    int8_t *data8; int16_t *data16; int32_t *data32; float *dataf;
+    int8_t *data8; int16_t *data16; int32_t *data32;
 
     // Input layer uses 16-bit Biases and Weights
 
@@ -438,34 +297,14 @@ void nnue_incbin_init() {
     // Layer one uses 32-bit Biases and 8-bit Weights
 
     data32 = (int32_t*) data16;
-    for (int i = 0; i < L2SIZE; i++)
+    for (int i = 0; i < OUTSIZE; i++)
         l1_biases[i] = *(data32++);
 
     data8 = (int8_t*) data32;
-    for (int i = 0; i < L1SIZE * L2SIZE; i++)
+    for (int i = 0; i < L1SIZE * OUTSIZE; i++)
         l1_weights[i] = *(data8++);
 
-    // Layer two and uses Floating Point Biases and Weights
-
-    dataf = (float*) data8;
-    for (int i = 0; i < L3SIZE; i++)
-        l2_biases[i] = *(dataf++);
-
-    for (int i = 0; i < L2SIZE * L3SIZE; i++)
-        l2_weights[i] = *(dataf++);
-
-    // Layer three and uses Floating Point Biases and Weights
-
-    for (int i = 0; i < OUTSIZE; i++)
-        l3_biases[i] = *(dataf++);
-
-    for (int i = 0; i < L3SIZE * OUTSIZE; i++)
-        l3_weights[i] = *(dataf++);
-
-    scale_weights();
     shuffle_input_layer();
-    quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    float_transpose(l2_weights, L2SIZE, L3SIZE);
 
     NNUE_LOADED = 1;
 
@@ -491,8 +330,6 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     // Large enough to handle layer computations
     ALIGN64 uint8_t out8[L1SIZE];
-    ALIGN64 float outN1[L1SIZE];
-    ALIGN64 float outN2[L1SIZE];
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
@@ -509,13 +346,11 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     // Feed-forward the entire evaluation function
     halfkp_relu(accum, out8, board->turn);
-    quant_affine_relu(l1_weights, l1_biases, out8, outN1);
-    float_affine_relu(l2_weights, l2_biases, outN1, outN2);
-    output_transform(l3_weights, l3_biases, outN2, outN1);
+    int output = output_transform(l1_weights, l1_biases, out8);
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = 140 * (output >> SHIFT_L1) / 100;
+    eg_eval = 100 * (output >> SHIFT_L1) / 100;
 
     // Cap the NNUE evaluation within [-2000, 2000]
     mg_eval = MAX(-2000, MIN(2000, mg_eval));
