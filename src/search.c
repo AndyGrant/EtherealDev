@@ -766,6 +766,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     eval = ns->eval = ttEval != VALUE_NONE
                     ? ttEval : evaluateBoard(thread, board);
 
+    // Toss the static evaluation into the TT if we won't overwrite something
+    if (!ttHit && !board->kingAttackers)
+        storeTTEntry(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha

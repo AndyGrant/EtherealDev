@@ -22,25 +22,6 @@
 #include "types.h"
 #include "zobrist.h"
 
-int getCachedEvaluation(Thread *thread, Board *board, int *eval) {
-
-    EvalEntry eve;
-    uint64_t key;
-
-    eve =  thread->evtable[board->hash & EVAL_CACHE_MASK];
-    key = (eve & ~0xFFFF) | (board->hash & 0xFFFF);
-
-    *eval = (int16_t)((uint16_t)(eve & 0xFFFF));
-    *eval = board->turn == WHITE ? *eval : -*eval;
-    return board->hash == key;
-}
-
-void storeCachedEvaluation(Thread *thread, Board *board, int eval) {
-    thread->evtable[board->hash & EVAL_CACHE_MASK]
-        = (board->hash & ~0xFFFF) | (uint16_t)((int16_t)eval);
-}
-
-
 PKEntry* getCachedPawnKingEval(Thread *thread, Board *board) {
     PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
     return pke->pkhash == board->pkhash ? pke : NULL;
