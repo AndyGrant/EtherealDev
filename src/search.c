@@ -172,7 +172,7 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
     // Minor house keeping for starting a search
     tt_update(); // Table has an age component
     ABORT_SIGNAL = 0; // Otherwise Threads will exit
-    initTimeManagment(&info, limits);
+    initTimeManagment(limits, &info);
     newSearchThreadPool(threads, board, limits, &info);
 
     // Create a new thread for each of the helpers and reuse the current
@@ -224,13 +224,13 @@ void* iterativeDeepening(void *vthread) {
         if (limits->multiPV > 1) report_multipv_lines(thread);
 
         // Update clock based on score and pv changes
-        update_time_manager(thread, info, limits);
+        update_time_manager(thread, limits, info);
 
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;
 
         // Check for termination by any of the possible limits
-        if (   (limits->limitedBySelf  && terminateTimeManagment(info))
+        if (   (limits->limitedBySelf  && terminateTimeManagment(thread, info))
             || (limits->limitedBySelf  && elapsedTime(info) > info->maxUsage)
             || (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
             || (limits->limitedByDepth && thread->depth >= limits->depthLimit))

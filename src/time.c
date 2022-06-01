@@ -16,8 +16,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
-
 #include "search.h"
 #include "thread.h"
 #include "time.h"
@@ -41,84 +39,72 @@ double getRealTime() {
 #endif
 }
 
-double elapsedTime(SearchInfo *info) {
+double elapsedTime(const SearchInfo *info) {
     return getRealTime() - info->startTime;
 }
 
-void initTimeManagment(SearchInfo *info, Limits *limits) {
+void initTimeManagment(const Limits *limits, SearchInfo *info) {
 
     info->startTime = limits->start; // Save off the start time of the search
 
-    info->pvFactor = 0; // Clear our stability time usage heuristic
+    info->pv_stability = 0; // Clear our stability time usage heuristic
 
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf) {
 
         // Playing using X / Y + Z time control
         if (limits->mtg >= 0) {
-            info->idealUsage =  0.67 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
-            info->maxAlloc   =  4.00 * (limits->time - MoveOverhead) / (limits->mtg +  7) + limits->inc;
+            info->idealUsage =  2.50 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
             info->maxUsage   = 10.00 * (limits->time - MoveOverhead) / (limits->mtg + 10) + limits->inc;
         }
 
         // Playing using X + Y time controls
         else {
-            info->idealUsage =  0.90 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
-            info->maxAlloc   =  5.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
+            info->idealUsage =  2.50 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
             info->maxUsage   = 10.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
         }
 
         // Cap time allocations using the move overhead
         info->idealUsage = MIN(info->idealUsage, limits->time - MoveOverhead);
-        info->maxAlloc   = MIN(info->maxAlloc,   limits->time - MoveOverhead);
         info->maxUsage   = MIN(info->maxUsage,   limits->time - MoveOverhead);
     }
 
     // Interface told us to search for a predefined duration
     if (limits->limitedByTime) {
         info->idealUsage = limits->timeLimit;
-        info->maxAlloc   = limits->timeLimit;
         info->maxUsage   = limits->timeLimit;
     }
 }
 
-void update_time_manager(Thread *thread, SearchInfo *info, Limits *limits) {
-
-    const int this_depth = thread->completed;
-    const int this_value = thread->pvs[this_depth].score;
-    const int last_value = thread->pvs[this_depth-1].score;
+void update_time_manager(const Thread *thread, const Limits *limits, SearchInfo *info) {
 
     // Don't update the self-clock at low depths
-    if (!limits->limitedBySelf || this_depth < 4) return;
+    if (!limits->limitedBySelf || thread->completed < 4)
+        return;
 
-    // Increase our time if the score suddenly dropped
-    if (last_value > this_value + 10) info->idealUsage *= 1.050;
-    if (last_value > this_value + 20) info->idealUsage *= 1.050;
-    if (last_value > this_value + 40) info->idealUsage *= 1.050;
-
-    // Increase our time if the score suddenly jumped
-    if (last_value + 15 < this_value) info->idealUsage *= 1.025;
-    if (last_value + 30 < this_value) info->idealUsage *= 1.050;
-
-    // Scale back the PV time factor, but reset if the move changed
-    info->pvFactor = MAX(0, info->pvFactor - 1);
-    if (thread->pvs[this_depth].line[0] != thread->pvs[this_depth-1].line[0])
-        info->pvFactor = PVFactorCount;
+    // Track how long we've kept the same best move between iterations
+    const uint16_t this_move = thread->pvs[thread->completed-0].line[0];
+    const uint16_t last_move = thread->pvs[thread->completed-1].line[0];
+    info->pv_stability = (this_move == last_move) ? MIN(10, info->pv_stability + 1) : 0;
 }
 
-int terminateTimeManagment(SearchInfo *info) {
+bool terminateTimeManagment(const Thread *thread, const SearchInfo *info) {
 
-    // Adjust our ideal usage based on variance in the best move
-    // between iterations of the search. We won't allow the new
-    // usage value to exceed our maximum allocation. The cutoff
-    // is reached if the elapsed time exceeds the ideal usage
+    // Don't terminate early at very low depths
+    if (thread->completed < 4) return FALSE;
 
-    double cutoff = info->idealUsage;
-    cutoff *= 1.00 + info->pvFactor * PVFactorWeight;
-    return elapsedTime(info) > MIN(cutoff, info->maxAlloc);
+    // Scale time between 75% and 125%, based on stable best moves
+    const double pv_factor = 1.25 - 0.05 * info->pv_stability;
+
+    // Scale time between 50% and 150%, based on score fluctuations
+    const double score_diff   = thread->pvs[thread->completed-0].score
+                              - thread->pvs[thread->completed-3].score;
+    const double score_factor = MAX(0.50, MIN(1.50, 0.1 + 0.05 * score_diff));
+
+    return elapsedTime(info) > info->idealUsage * pv_factor * score_factor;
 }
 
-int terminateSearchEarly(Thread *thread) {
+bool terminateSearchEarly(const Thread *thread) {
 
     // Terminate the search early if the max usage time has passed.
     // Only check this once for every 1024 nodes examined, in case

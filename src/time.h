@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include <stdbool.h>
+#include <stdlib.h>
+
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
 #else
@@ -27,11 +30,8 @@
 #include "types.h"
 
 double getRealTime();
-double elapsedTime(SearchInfo *info);
-void initTimeManagment(SearchInfo *info, Limits *limits);
-void update_time_manager(Thread *thread, SearchInfo *info, Limits *limits);
-int terminateTimeManagment(SearchInfo *info);
-int terminateSearchEarly(Thread *thread);
-
-static const double PVFactorCount  = 9;
-static const double PVFactorWeight = 0.105;
+double elapsedTime(const SearchInfo *info);
+void initTimeManagment(const Limits *limits, SearchInfo *info);
+void update_time_manager(const Thread *thread, const Limits *limits, SearchInfo *info);
+bool terminateTimeManagment(const Thread *thread, const SearchInfo *info);
+bool terminateSearchEarly(const Thread *thread);

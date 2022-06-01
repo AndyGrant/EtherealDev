@@ -23,8 +23,10 @@
 #include "types.h"
 
 struct SearchInfo {
-    double startTime, idealUsage, maxAlloc, maxUsage;
-    int pvFactor;
+    double startTime;
+    double idealUsage;
+    double maxUsage;
+    int pv_stability;
 };
 
 struct PVariation {
