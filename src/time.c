@@ -97,9 +97,9 @@ bool terminateTimeManagment(const Thread *thread, const SearchInfo *info) {
     const double pv_factor = 1.25 - 0.05 * info->pv_stability;
 
     // Scale time between 50% and 150%, based on score fluctuations
-    const double score_diff   = thread->pvs[thread->completed-0].score
-                              - thread->pvs[thread->completed-3].score;
-    const double score_factor = MAX(0.50, MIN(1.50, 0.1 + 0.05 * score_diff));
+    const double score_change = thread->pvs[thread->completed-3].score
+                              - thread->pvs[thread->completed-0].score;
+    const double score_factor = MAX(0.50, MIN(1.50, 0.10 + 0.05 * score_change));
 
     return elapsedTime(info) > info->idealUsage * pv_factor * score_factor;
 }
