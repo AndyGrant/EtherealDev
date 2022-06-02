@@ -49,6 +49,8 @@ void initTimeManagment(const Limits *limits, SearchInfo *info) {
 
     info->pv_stability = 0; // Clear our stability time usage heuristic
 
+    memset(info->nodes, 0, sizeof(uint16_t) * 0x10000); // Clear Node counters
+
     // Allocate time if Ethereal is handling the clock
     if (limits->limitedBySelf) {
 
@@ -101,7 +103,12 @@ bool terminateTimeManagment(const Thread *thread, const SearchInfo *info) {
                               - thread->pvs[thread->completed-0].score;
     const double score_factor = MAX(0.50, MIN(1.50, 0.10 + 0.05 * score_change));
 
-    return elapsedTime(info) > info->idealUsage * pv_factor * score_factor;
+    //
+    const uint64_t best_nodes = info->nodes[thread->pvs[thread->completed-0].line[0]];
+    const double non_best_pct = 1.0 - ((double) best_nodes / thread->nodes);
+    const double nodes_factor = MAX(0.50, 2 * non_best_pct + 0.4);
+
+    return elapsedTime(info) > info->idealUsage * pv_factor * score_factor * nodes_factor;
 }
 
 bool terminateSearchEarly(const Thread *thread) {

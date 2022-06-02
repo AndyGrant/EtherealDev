@@ -509,6 +509,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     init_picker(&ns->mp, thread, ttMove);
     while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
 
+        const uint64_t starting_nodes = thread->nodes;
+
         // MultiPV and searchmoves may limit our search options
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
@@ -667,6 +669,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Revert the board state
         revert(thread, board, move);
+
+        // Track where nodes were spent in the Main thread at the Root
+        if (RootNode && !thread->index)
+            thread->info->nodes[move] += thread->nodes - starting_nodes;
 
         // Step 19. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
