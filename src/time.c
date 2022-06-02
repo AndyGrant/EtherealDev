@@ -106,7 +106,7 @@ bool terminateTimeManagment(const Thread *thread, const SearchInfo *info) {
     //
     const uint64_t best_nodes = info->nodes[thread->pvs[thread->completed-0].line[0]];
     const double non_best_pct = 1.0 - ((double) best_nodes / thread->nodes);
-    const double nodes_factor = MAX(0.50, 2 * non_best_pct + 0.4);
+    const double nodes_factor = MAX(0.50, MIN(2.00, 5 * non_best_pct));
 
     return elapsedTime(info) > info->idealUsage * pv_factor * score_factor * nodes_factor;
 }
