@@ -62,7 +62,7 @@ void initTimeManagment(const Limits *limits, SearchInfo *info) {
 
         // Playing using X + Y time controls
         else {
-            info->idealUsage =  2.50 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
+            info->idealUsage =  2.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
             info->maxUsage   = 10.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
         }
 
