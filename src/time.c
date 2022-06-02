@@ -56,7 +56,7 @@ void initTimeManagment(const Limits *limits, SearchInfo *info) {
 
         // Playing using X / Y + Z time control
         if (limits->mtg >= 0) {
-            info->idealUsage =  2.50 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
+            info->idealUsage =  1.80 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
             info->maxUsage   = 10.00 * (limits->time - MoveOverhead) / (limits->mtg + 10) + limits->inc;
         }
 
