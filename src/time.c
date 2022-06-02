@@ -95,13 +95,13 @@ bool terminateTimeManagment(const Thread *thread, const SearchInfo *info) {
     // Don't terminate early at very low depths
     if (thread->completed < 4) return FALSE;
 
-    // Scale time between 75% and 125%, based on stable best moves
-    const double pv_factor = 1.25 - 0.05 * info->pv_stability;
+    // Scale time between 80% and 120%, based on stable best moves
+    const double pv_factor = 1.20 - 0.04 * info->pv_stability;
 
-    // Scale time between 50% and 150%, based on score fluctuations
+    // Scale time between 75% and 125%, based on score fluctuations
     const double score_change = thread->pvs[thread->completed-3].score
                               - thread->pvs[thread->completed-0].score;
-    const double score_factor = MAX(0.50, MIN(1.50, 0.10 + 0.05 * score_change));
+    const double score_factor = MAX(0.75, MIN(1.25, 0.05 * score_change));
 
     //
     const uint64_t best_nodes = info->nodes[thread->pvs[thread->completed-0].line[0]];
