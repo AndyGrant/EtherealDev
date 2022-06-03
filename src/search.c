@@ -222,7 +222,7 @@ void* iterativeDeepening(void *vthread) {
 
         // Rolling average of scores, weighted 66% for the current ply at each step
         thread->rolling_average = thread->depth == 1 ? thread->pvs[thread->depth].score
-                                : thread->rolling_average + (2 * thread->pvs[thread->depth].score) / 3;
+                                : (thread->rolling_average + 2 * thread->pvs[thread->depth].score) / 3;
 
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
