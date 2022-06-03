@@ -216,6 +216,10 @@ void* iterativeDeepening(void *vthread) {
         for (thread->multiPV = 0; thread->multiPV < limits->multiPV; thread->multiPV++)
             aspirationWindow(thread);
 
+        // Rolling average of scores, weighted 66% for the current ply at each step
+        thread->rolling_average = thread->depth == 1 ? thread->pvs[thread->depth].score
+                                : thread->rolling_average + (2 * thread->pvs[thread->depth].score) / 3;
+
         // Helper threads need not worry about time and search info updates
         if (!mainThread) continue;
 
@@ -247,8 +251,8 @@ void aspirationWindow(Thread *thread) {
 
     // After a few depths use a previous result to form a window
     if (thread->depth >= WindowDepth) {
-        alpha = MAX(-MATE, thread->pvs[thread->completed].score - delta);
-        beta  = MIN( MATE, thread->pvs[thread->completed].score + delta);
+        alpha = MAX(-MATE, thread->rolling_average - delta);
+        beta  = MIN( MATE, thread->rolling_average + delta);
     }
 
     while (1) {

@@ -61,6 +61,7 @@ struct Thread {
 
     uint64_t nodes, tbhits;
     int depth, seldepth, height, completed;
+    int rolling_average;
 
     NodeState *states, nodeStates[STACK_SIZE];
     NNUEAccumulator *nnueStack;
