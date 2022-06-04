@@ -88,7 +88,7 @@ void tm_update(const Thread *thread, const Limits *limits, TimeManager *tm) {
     // Track how long we've kept the same best move between iterations
     const uint16_t this_move = thread->pvs[thread->completed-0].line[0];
     const uint16_t last_move = thread->pvs[thread->completed-1].line[0];
-    tm->pv_stability = (this_move == last_move) ? MIN(10, tm->pv_stability + 1) : 0;
+    tm->pv_stability = (this_move == last_move) ? MIN(8, tm->pv_stability + 1) : 0;
 }
 
 bool tm_finished(const Thread *thread, const TimeManager *tm) {
@@ -97,7 +97,7 @@ bool tm_finished(const Thread *thread, const TimeManager *tm) {
     if (thread->completed < 4) return FALSE;
 
     // Scale time between 80% and 120%, based on stable best moves
-    const double pv_factor = 1.20 - 0.04 * tm->pv_stability;
+    const double pv_factor = 1.20 - 0.05 * tm->pv_stability;
 
     // Scale time between 75% and 125%, based on score fluctuations
     const double score_change = thread->pvs[thread->completed-3].score
