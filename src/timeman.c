@@ -63,7 +63,7 @@ void tm_init(const Limits *limits, TimeManager *tm) {
 
         // Playing using X + Y time controls
         else {
-            tm->ideal_usage =  2.25 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
+            tm->ideal_usage =  2.75 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
             tm->max_usage   = 10.00 * ((limits->time - MoveOverhead) + 25 * limits->inc) / 50;
         }
 
