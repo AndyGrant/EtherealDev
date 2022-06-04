@@ -57,7 +57,7 @@ void tm_init(const Limits *limits, TimeManager *tm) {
 
         // Playing using X / Y + Z time control
         if (limits->mtg >= 0) {
-            tm->ideal_usage =  1.65 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
+            tm->ideal_usage =  1.95 * (limits->time - MoveOverhead) / (limits->mtg +  5) + limits->inc;
             tm->max_usage   = 10.00 * (limits->time - MoveOverhead) / (limits->mtg + 10) + limits->inc;
         }
 
