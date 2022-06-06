@@ -502,13 +502,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
-    static const int RazoringDepth = 3;
+    static const int RazoringDepth[] = { 1, 3 };
 
     // Step ?. PV Razoring when we have no TT move.
-    if (    PvNode
-        && !inCheck
+    if (   !inCheck
         &&  ttMove == NONE_MOVE
-        &&  depth <= RazoringDepth)
+        &&  depth <= RazoringDepth[PvNode])
         return qsearch(thread, pv, alpha, beta);
 
     // Step 11. Initialize the Move Picker and being searching through each
