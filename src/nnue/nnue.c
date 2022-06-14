@@ -482,9 +482,6 @@ int nnue_evaluate(Thread *thread, Board *board) {
     if (!NNUE_LOADED)
         abort_nnue("NNUE File was not provided");
 
-    // For optimizations, auto-flag KvK as drawn
-    if (kings == (white | black)) return 0;
-
     // Optimized computation of various input indices
     int wrelksq = relativeSquare(WHITE, getlsb(white & kings));
     int brelksq = relativeSquare(BLACK, getlsb(black & kings));
