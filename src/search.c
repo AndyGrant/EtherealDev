@@ -305,7 +305,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     PVariation lpv;
 
-    int tried_double_extend = false;
+    int tried_double_extend = 0;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
