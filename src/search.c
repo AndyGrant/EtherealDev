@@ -965,7 +965,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
 
         // Fish for Multi-Cuts if we think we might have produced one if-not-for rBeta < beta
-        if (value > rBeta && ttValue > beta && rBeta < beta)
+        if (value > beta && ttValue > beta && rBeta < beta)
             fished_multi_cut = -search(thread, &lpv, -beta-1, -beta, depth / 2 - 1) > beta;
 
         revert(thread, board, move);
