@@ -948,7 +948,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
 
     uint16_t move;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
+    int best = -MATE, value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     PVariation lpv; lpv.length = 0;
 
     // Table move was already applied
@@ -964,8 +964,10 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
         revert(thread, board, move);
 
+        best = MAX(value, best);
+
         // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
+        if (best > rBeta) break;
 
         // Start skipping quiets after a few have been tried
         moveIsTactical(board, move) ? tacticals++ : quiets++;
@@ -979,7 +981,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     ns->mp.stage = STAGE_TABLE + 1;
 
     // MultiCut. We signal the Move Picker to terminate the search
-    if (value > rBeta && rBeta >= beta) {
+    if (best > rBeta && rBeta >= beta) {
         if (!moveIsTactical(board, move))
             update_killer_moves(thread, move);
         ns->mp.stage = STAGE_DONE;
@@ -989,11 +991,11 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     else applyLegal(thread, board, ttMove);
 
     bool double_extend = !PvNode
-                      &&  value <= rBeta - 35
+                      &&  best <= rBeta - 35
                       && (ns-1)->dextensions <= 6;
 
     return double_extend   ?  2 // Double extension in some non-pv nodes
-         : value <= rBeta  ?  1 // Singular due to no cutoffs produced
+         : best <= rBeta   ?  1 // Singular due to no cutoffs produced
          : ttValue >= beta ? -1 // Potential multi-cut even at current depth
          : 0;                   // Not singular, and unlikely to produce a cutoff
 }
