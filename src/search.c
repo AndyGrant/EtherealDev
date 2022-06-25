@@ -947,6 +947,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     NodeState *const ns = &thread->states[thread->height-1];
 
     uint16_t move;
+    int fished_multi_cut = 0;
     int skipQuiets = 0, quiets = 0, tacticals = 0;
     int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     PVariation lpv; lpv.length = 0;
@@ -958,17 +959,21 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
 
         assert(move != ttMove); // Skip the table move
-
-        // Perform a reduced depth search on a null rbeta window
         if (!apply(thread, board, move)) continue;
+
+        // Perform a reduced depth search on a null rBeta window
         value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
+
+        // Fish for Multi-Cuts if we think we might have produced one if-not-for rBeta < beta
+        if (value > rBeta && ttValue > beta && rBeta < beta)
+            fished_multi_cut = -search(thread, &lpv, -beta-1, -beta, depth / 2 - 1) > beta;
+
         revert(thread, board, move);
 
         if (value > rBeta) {
 
-            // Cut when rBeta exceeds beta; attempt to produce additional cutoffs
-            bool multi_cut =  rBeta >= beta
-                          || (value >= beta && -search(thread, &lpv, -beta-1, -beta, depth / 2 - 1) >= beta);
+            // Cut when rBeta exceeds beta, or succeeded in fishing for a Cutoff
+            bool multi_cut = rBeta >= beta || fished_multi_cut;
 
             // Update killer moves when producing multi-cuts
             if (multi_cut && !moveIsTactical(board, move))
