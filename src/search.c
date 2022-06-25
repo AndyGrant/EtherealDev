@@ -991,7 +991,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     else applyLegal(thread, board, ttMove);
 
     bool double_extend = !PvNode
-                      &&  best <= rBeta - 35
+                      &&  best <= rBeta - 25
                       && (ns-1)->dextensions <= 6;
 
     return double_extend   ?  2 // Double extension in some non-pv nodes
