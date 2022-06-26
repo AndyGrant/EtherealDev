@@ -297,7 +297,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
-    int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
+    int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, seeMargin[2];
@@ -322,6 +322,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Updates for UCI reporting
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, thread->height);
     thread->nodes++;
+
+    if (ns->excluded != NONE_MOVE)
+        goto search_init_goto;
 
     // Step 2. Abort Check. Exit the search if signaled by main thread or the
     // UCI thread, or if the search time has expired outside pondering mode
@@ -393,6 +396,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     }
 
     // Step 6. Initialize flags and values used by pruning and search methods
+    search_init_goto:
 
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
@@ -431,6 +435,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // dependent margin, then we assume the eval will hold above beta
     if (   !PvNode
         && !inCheck
+        && !ns->excluded
         &&  depth <= BetaPruningDepth
         &&  eval - BetaMargin * depth > beta)
         return eval;
@@ -440,6 +445,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // bonus doesn't get us beyond alpha, then eval will hold below alpha
     if (   !PvNode
         && !inCheck
+        && !ns->excluded
         &&  depth <= AlphaPruningDepth
         &&  eval + AlphaMargin <= alpha)
         return eval;
@@ -450,6 +456,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // it appears that a TT entry suggests it will fail immediately
     if (   !PvNode
         && !inCheck
+        && !ns->excluded
         &&  eval >= beta
         && (ns-1)->move != NULL_MOVE
         &&  depth >= NullMovePruningDepth
@@ -473,6 +480,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // it will cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         && !inCheck
+        && !ns->excluded
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
@@ -512,9 +520,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         const uint64_t starting_nodes = thread->nodes;
 
-        // MultiPV and searchmoves may limit our search options
-        if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
-        if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
+        // Avoid excluded, already examined, and ignored moves
+        if (    move == ns->excluded
+            || (RootNode && moveExaminedByMultiPV(thread, move))
+            || (RootNode &&    !moveIsInRootMoves(thread, move)))
+            continue;
 
         // Track Moves Seen for Late Move Pruning
         movesSeen += 1;
@@ -717,9 +727,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // score based on how far or close the mate is to the root position
     if (played == 0) return inCheck ? -MATE + thread->height : 0;
 
-    // Step 22. Store results of search into the Transposition Table. We do
-    // not overwrite the Root entry from the first line of play we examined
-    if (!RootNode || !thread->multiPV) {
+    // Step 22. Store results of search into the Transposition Table. We do not overwrite
+    // the Root entry from the first line of play we examined. We also don't store into the
+    // Transposition Table while attempting to veryify singularities
+    if (!ns->excluded && (!RootNode || !thread->multiPV)) {
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
         tt_store(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
@@ -946,54 +957,34 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height-1];
 
-    uint16_t move;
-    int skipQuiets = 0, quiets = 0, tacticals = 0;
-    int value = -MATE, rBeta = MAX(ttValue - depth, -MATE);
     PVariation lpv; lpv.length = 0;
+    int value, rBeta = MAX(ttValue - depth, -MATE);
 
     // Table move was already applied
     revert(thread, board, ttMove);
 
-    // Iterate over the remaining moves in the Move Picker
-    while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
-
-        assert(move != ttMove); // Skip the table move
-
-        // Perform a reduced depth search on a null rbeta window
-        if (!apply(thread, board, move)) continue;
-        value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1);
-        revert(thread, board, move);
-
-        // Move failed high, thus ttMove is not singular
-        if (value > rBeta) break;
-
-        // Start skipping quiets after a few have been tried
-        moveIsTactical(board, move) ? tacticals++ : quiets++;
-        skipQuiets = quiets >= SingularQuietLimit;
-
-        // Start skipping bad captures after a few have been tried
-        if (skipQuiets && tacticals >= SingularTacticalLimit) break;
-    }
+    // Search on a null rBeta window, excluding the tt-move
+    ns->excluded = ttMove;
+    value = search(thread, &lpv, rBeta-1, rBeta, depth / 2 - 1);
+    ns->excluded = NONE_MOVE;
 
     // We reused the Move Picker, so make sure we cleanup
-    ns->mp.stage = STAGE_TABLE + 1;
+    ns->mp.stage   = STAGE_TABLE + 1;
+    ns->mp.tt_move = ttMove;
 
     // MultiCut. We signal the Move Picker to terminate the search
-    if (value > rBeta && rBeta >= beta) {
-        if (!moveIsTactical(board, move))
-            update_killer_moves(thread, move);
+    if (value >= rBeta && rBeta >= beta)
         ns->mp.stage = STAGE_DONE;
-    }
 
     // Reapply the table move we took off
     else applyLegal(thread, board, ttMove);
 
     bool double_extend = !PvNode
-                      &&  value <= rBeta - 35
+                      &&  value < rBeta - 35
                       && (ns-1)->dextensions <= 6;
 
     return double_extend   ?  2 // Double extension in some non-pv nodes
-         : value <= rBeta  ?  1 // Singular due to no cutoffs produced
+         : value < rBeta   ?  1 // Singular due to no cutoffs produced
          : ttValue >= beta ? -1 // Potential multi-cut even at current depth
          : 0;                   // Not singular, and unlikely to produce a cutoff
 }
