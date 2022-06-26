@@ -965,7 +965,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
 
     // Search on a null rBeta window, excluding the tt-move
     ns->excluded = ttMove;
-    value = search(thread, &lpv, rBeta-1, rBeta, depth / 2 - 1);
+    value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2);
     ns->excluded = NONE_MOVE;
 
     // We reused the Move Picker, so make sure we cleanup
