@@ -424,7 +424,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
     // Toss the static evaluation into the TT if we won't overwrite something
-    if (!ttHit && !inCheck)
+    if (!ttHit && !inCheck && !ns->excluded)
         tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
 
     // ------------------------------------------------------------------------
