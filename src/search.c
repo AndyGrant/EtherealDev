@@ -323,9 +323,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     thread->seldepth = RootNode ? 0 : MAX(thread->seldepth, thread->height);
     thread->nodes++;
 
-    if (ns->excluded != NONE_MOVE)
-        goto search_init_goto;
-
     // Step 2. Abort Check. Exit the search if signaled by main thread or the
     // UCI thread, or if the search time has expired outside pondering mode
     if (   (ABORT_SIGNAL && thread->depth > 1)
@@ -351,6 +348,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         rBeta  =  beta <  MATE - thread->height - 1 ?  beta :  MATE - thread->height - 1;
         if (rAlpha >= rBeta) return rAlpha;
     }
+
+    // Don't probe the TT or TB during singluar searches
+    if (ns->excluded != NONE_MOVE)
+        goto search_init_goto;
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
