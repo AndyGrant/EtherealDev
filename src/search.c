@@ -521,11 +521,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         const uint64_t starting_nodes = thread->nodes;
 
-        // Avoid excluded, already examined, and ignored moves
-        if (    move == ns->excluded
-            || (RootNode && moveExaminedByMultiPV(thread, move))
-            || (RootNode &&    !moveIsInRootMoves(thread, move)))
-            continue;
+        // MultiPV and UCI searchmoves may limit our search options
+        if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
+        if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
 
         // Track Moves Seen for Late Move Pruning
         movesSeen += 1;
