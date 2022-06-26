@@ -601,7 +601,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         singular =  !RootNode
                  &&  depth >= 8
                  &&  move == ttMove
-                 &&  ttDepth >= depth - 2
+                 &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
@@ -979,7 +979,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     else applyLegal(thread, board, ttMove);
 
     bool double_extend = !PvNode
-                      &&  value < rBeta - 35
+                      &&  value < rBeta - 15
                       && (ns-1)->dextensions <= 6;
 
     return double_extend   ?  2 // Double extension in some non-pv nodes
