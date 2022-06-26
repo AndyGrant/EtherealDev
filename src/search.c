@@ -515,7 +515,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    init_picker(&ns->mp, thread, ttMove);
+    if (!ns->excluded) init_picker(&ns->mp, thread, ttMove);
     while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
 
         const uint64_t starting_nodes = thread->nodes;
@@ -969,8 +969,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     ns->excluded = NONE_MOVE;
 
     // We reused the Move Picker, so make sure we cleanup
-    ns->mp.stage   = STAGE_TABLE + 1;
-    ns->mp.tt_move = ttMove;
+    ns->mp.stage = STAGE_TABLE + 1;
 
     // MultiCut. We signal the Move Picker to terminate the search
     if (value >= rBeta && rBeta >= beta)

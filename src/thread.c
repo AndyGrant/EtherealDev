@@ -103,8 +103,6 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, TimeMana
 
         memset(threads[i].nodeStates, 0, sizeof(NodeState) * STACK_SIZE);
     }
-
-
 }
 
 uint64_t nodesSearchedThreadPool(Thread *threads) {
