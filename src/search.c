@@ -628,16 +628,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving
-            R += !PvNode + !improving;
+            R += (!PvNode && !ns->excluded) + !improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
-
-            //
-            R -= hist > 0 && ns->excluded;
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
