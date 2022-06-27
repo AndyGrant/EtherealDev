@@ -481,7 +481,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // it will cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         && !inCheck
-        && !ns->excluded
+      //&& !ns->excluded
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
