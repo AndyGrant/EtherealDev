@@ -984,6 +984,6 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
 
     return double_extend   ?  2 // Double extension in some non-pv nodes
          : value < rBeta   ?  1 // Singular due to no cutoffs produced
-         : ttValue >= beta ? -1 // Potential multi-cut even at current depth
+         : ttValue >= beta ? -2 // Potential multi-cut even at current depth
          : 0;                   // Not singular, and unlikely to produce a cutoff
 }
