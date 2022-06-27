@@ -505,7 +505,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 revert(thread, board, move);
 
                 // Store an entry if we don't have a better one already
-                if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
+                if (value >= rBeta && !ns->excluded && (!ttHit || ttDepth < depth - 3))
                     tt_store(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
 
                 // Probcut failed high verifying the cutoff
