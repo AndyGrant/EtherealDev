@@ -297,7 +297,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
-    int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
+    int ttHit = 0, ttValue = VALUE_NONE, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, seeMargin[2];
@@ -706,6 +706,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Search failed high
                 if (alpha >= beta) break;
+
+                // Store partial results earlier into the TT when playing under SMP
+                if (PvNode && thread->nthreads > 1 && ttValue == VALUE_NONE)
+                    tt_store(board->hash, thread->height, bestMove, best, eval, depth, BOUND_LOWER);
             }
         }
     }
