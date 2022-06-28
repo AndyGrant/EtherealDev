@@ -447,11 +447,11 @@ int evaluateBoard(Thread *thread, Board *board) {
         eval = board->turn == WHITE  ? eval : -eval;
     }
 
-    // We can recognize positions we just evaluated
-    else if (thread->states[thread->height-1].move == NULL_MOVE)
-        return -thread->states[thread->height-1].eval + 2 * Tempo;
-
     else {
+
+        // We can recognize positions we just evaluated
+        if (thread->states[thread->height-1].move == NULL_MOVE)
+            return -thread->states[thread->height-1].eval + 2 * Tempo;
 
         EvalInfo ei;
         initEvalInfo(thread, board, &ei);
