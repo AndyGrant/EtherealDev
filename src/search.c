@@ -788,7 +788,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     // Save a history of the static evaluations
     eval = ns->eval = ttEval != VALUE_NONE      ? ttEval
-                    : (ns-1)->move == NULL_MOVE ? -(ns-1)->move + 2 * Tempo
+                    : (ns-1)->move == NULL_MOVE ? -(ns-1)->eval + 2 * Tempo
                                                 : evaluateBoard(thread, board);
 
     // Toss the static evaluation into the TT if we won't overwrite something
