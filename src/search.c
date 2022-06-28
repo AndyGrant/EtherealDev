@@ -402,9 +402,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // We can grab in check based on the already computed king attackers bitboard
     inCheck = !!board->kingAttackers;
 
-    // Save a history of the static evaluations when not checked
-    eval = ns->eval = inCheck ? VALUE_NONE
-         : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+    // Save a history of the static evaluations
+    eval = ns->eval = inCheck               ? VALUE_NONE
+                    : ns->excluded          ? ns->eval
+                    : ttEval != VALUE_NONE  ? ttEval
+                                            : evaluateBoard(thread, board);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -785,8 +787,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Save a history of the static evaluations
-    eval = ns->eval = ttEval != VALUE_NONE
-                    ? ttEval : evaluateBoard(thread, board);
+    eval = ns->eval = ttEval != VALUE_NONE      ? ttEval
+                    : (ns-1)->move == NULL_MOVE ? -(ns-1)->move + 2 * Tempo
+                                                : evaluateBoard(thread, board);
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !board->kingAttackers)
