@@ -441,15 +441,15 @@ int evaluateBoard(Thread *thread, Board *board) {
 
     int phase, eval, pkeval, factor = SCALE_NORMAL;
 
-    // We can recognize positions we just evaluated
-    if (thread->states[thread->height-1].move == NULL_MOVE)
-        return -thread->states[thread->height-1].eval + 2 * Tempo;
-
     // Use the NNUE unless we are in an extremely unbalanced position
     if (USE_NNUE && abs(ScoreEG(board->psqtmat)) <= 2000) {
         eval = nnue_evaluate(thread, board);
         eval = board->turn == WHITE  ? eval : -eval;
     }
+
+    // We can recognize positions we just evaluated
+    else if (thread->states[thread->height-1].move == NULL_MOVE)
+        return -thread->states[thread->height-1].eval + 2 * Tempo;
 
     else {
 
