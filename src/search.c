@@ -481,14 +481,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // it will cause a similar cutoff at this search depth, with a normal beta value
     if (   !PvNode
         && !inCheck
-        && !ns->excluded
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
-        while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
+        MovePicker mp;
+        init_noisy_picker(&mp, thread, ttMove, rBeta - eval);
+        while ((move = select_next(&mp, thread, 1)) != NONE_MOVE) {
+
+            // Don't use the ttMove to attempt to prove this
+            if (move == ns->excluded)
+                continue;
 
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
