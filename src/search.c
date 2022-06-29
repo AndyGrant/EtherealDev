@@ -815,7 +815,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         played++;
 
         // Step 7. Pruning. Look to prune moves so long as they are not
-        // recaptures, checking moves, or promotions. This definition stems directly
+        // recaptures, checking moves, or promotions. This definition is directly
         // from Stockfish's QSearch(), which updates best even when pruning a move
 
         if (   !board->kingAttackers
@@ -834,10 +834,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             // Step 7B. Move Count Pruning. Prune all moves after we have found a couple
             // legal ones, so long as they meet Step 7's original criteria for pruning
 
-            if (played > 2) {
-                revert(thread, board, move);
-                continue;
-            }
+            // if (played > 2) {
+            //     revert(thread, board, move);
+            //     continue;
+            // }
         }
 
         // Short-circuit QS and assume a stand-pat matches the SEE
