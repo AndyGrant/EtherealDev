@@ -744,7 +744,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height];
 
-    int eval, value, best, oldAlpha = alpha;
+    int value, best, oldAlpha = alpha;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
@@ -785,30 +785,29 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Save a history of the static evaluations
-    eval = ns->eval = ttEval != VALUE_NONE
+    best = ns->eval = ttEval != VALUE_NONE
                     ? ttEval : evaluateBoard(thread, board);
 
-    // Toss the static evaluation into the TT if we won't overwrite something
-    if (!ttHit && !board->kingAttackers)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+    if (best >= beta) {
 
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+        if (!ttHit)
+            tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, ns->eval, 0, BOUND_LOWER);
+
+        return best;
+    }
+
+    alpha = MAX(alpha, ns->eval);
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
     // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
+    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - ns->eval)
+        return ns->eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
+    init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - ns->eval - QSSeeMargin));
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
@@ -819,7 +818,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         if (!apply(thread, board, move)) continue;
 
         // Short-circuit QS and assume a stand-pat matches the SEE
-        if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
+        if (ns->eval + pessimism > beta && abs(ns->eval + pessimism) < MATE / 2) {
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
@@ -854,7 +853,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
             : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    tt_store(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    tt_store(board->hash, thread->height, bestMove, best, ns->eval, 0, ttBound);
 
     return best;
 }
