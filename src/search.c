@@ -801,7 +801,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     // Step 6. Move Generation and Looping. Generate all tactical moves,
     // returning those which are not losing via Static Exchange Evaluations
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, 1);
+    init_noisy_picker(&ns->mp, thread, NONE_MOVE, 0);
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
