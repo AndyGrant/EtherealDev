@@ -744,7 +744,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height];
 
-    int eval, value, best, oldAlpha = alpha;
+    int eval, value, best, oldAlpha = alpha, played = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
@@ -799,24 +799,46 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     alpha = MAX(alpha, eval);
     if (alpha >= beta) return eval;
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo, with a minor boost for pawn captures, would still fail to cover
-    // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
-
-    // Step 7. Move Generation and Looping. Generate all tactical moves
-    // and return those which are winning via SEE, and also strong enough
-    // to beat the margin computed in the Delta Pruning step found above
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
+    // Step 6. Move Generation and Looping. Generate all tactical moves,
+    // returning those which are not losing via Static Exchange Evaluations
+    init_noisy_picker(&ns->mp, thread, NONE_MOVE, 1);
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
-        int pessimism = moveEstimatedValue(board, move)
-                      - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+        int estimated = moveEstimatedValue(board, move);
+        int pessimism = estimated - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
-        // Search the next ply if the move is legal
-        if (!apply(thread, board, move)) continue;
+        // Skip illegal moves
+        if (!apply(thread, board, move))
+            continue;
+
+        played++;
+
+        // Step 7. Pruning. Look to prune moves so long as they are not
+        // recaptures, checking moves, or promotions. This definition stems directly
+        // from Stockfish's QSearch(), which updates best even when pruning a move
+
+        if (   !board->kingAttackers
+            &&  MoveType(move) == NORMAL_MOVE
+            &&  MoveTo(move) != MoveTo((ns-1)->move)) {
+
+            // Step 7A. Futility Pruning. The capture, plus a margin, would still fail to
+            // improve Alpha. We can prune, and update best assuming the capture is sound
+
+            if (eval + estimated + QSFutilityMargin <= alpha) {
+                best = MAX(best, eval + estimated + QSFutilityMargin);
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Step 7B. Move Count Pruning. Prune all moves after we have found a couple
+            // legal ones, so long as they meet Step 7's original criteria for pruning
+
+            if (played > 2) {
+                revert(thread, board, move);
+                continue;
+            }
+        }
 
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
