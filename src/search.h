@@ -72,4 +72,4 @@ static const int SEEPieceValues[] = {
     1300,    0,    0,    0,
 };
 
-static const int QSFutilityMargin = 80;
+static const int QSFutilityMargin = 40;
