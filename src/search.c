@@ -487,7 +487,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
+        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval, 1);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
@@ -801,7 +801,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     // Step 6. Move Generation and Looping. Generate all tactical moves,
     // returning those which are not losing via Static Exchange Evaluations
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, 1);
+    init_noisy_picker(&ns->mp, thread, ttMove, 1, 0);
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately

@@ -40,5 +40,5 @@ struct MovePicker {
 };
 
 void     init_picker       (MovePicker *mp, Thread *thread, uint16_t tt_move);
-void     init_noisy_picker (MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold);
+void     init_noisy_picker (MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold, int skip_tt);
 uint16_t select_next       (MovePicker *mp, Thread *thread, int skip_quiets);

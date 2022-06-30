@@ -60,7 +60,7 @@ void init_picker(MovePicker *mp, Thread *thread, uint16_t tt_move) {
     mp->stage += !moveIsPseudoLegal(&thread->board, tt_move);
 }
 
-void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold) {
+void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold, int skip_tt) {
 
     // Start with the tt-move potentially
     mp->stage   = STAGE_TABLE;
@@ -77,6 +77,9 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
     mp->stage += !moveIsTactical(&thread->board, tt_move)
               || !moveIsPseudoLegal(&thread->board, tt_move)
               || !staticExchangeEvaluation(&thread->board, tt_move, threshold);
+
+    if (!skip_tt && mp->stage != STAGE_TABLE)
+        mp->tt_move = NONE_MOVE;
 }
 
 uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
