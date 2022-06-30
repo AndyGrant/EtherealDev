@@ -79,15 +79,6 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
               || !staticExchangeEvaluation(&thread->board, tt_move, threshold);
 }
 
-void init_probcut_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold) {
-
-    // Same as noisy_picker, but set the type to PROBCUT_PICKER to skip bad Captures
-
-    init_noisy_picker(mp, thread, tt_move, threshold);
-
-    mp->type = PROBCUT_PICKER;
-}
-
 
 uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
@@ -230,7 +221,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
         case STAGE_BAD_NOISY:
 
             // Check to see if there are still more noisy moves
-            while (mp->noisy_size && mp->type != PROBCUT_PICKER) {
+            while (mp->noisy_size && mp->type != NOISY_PICKER) {
 
                 // Reduce effective move list size
                 best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, 0);
