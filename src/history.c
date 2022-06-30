@@ -41,6 +41,10 @@ static void update_history(int16_t *current, int depth, bool good) {
 }
 
 
+static int history_moved_piece(Thread *thread, uint16_t move) {
+    return pieceType(thread->board.squares[MoveFrom(move)]);
+}
+
 static int history_captured_piece(Thread *thread, uint16_t move) {
 
     // Handle Enpassant; Consider promotions as Pawn Captures
@@ -143,11 +147,19 @@ void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int sta
     // we include an MVV-LVA factor to improve sorting. Additionally, we add 64k to
     // the history score to ensure it is >= 0 to differentiate good from bad later on
 
-    static const int MVVAugment[] = { 0, 2400, 2400, 4800, 9600 };
+    static const int MVVAugment[][5] = {
+        { 0, 2400, 2400, 4800, 9600 },
+        { 0,    0,    0, 4800, 9600 },
+        { 0,    0,    0, 4800, 9600 },
+        { 0, 1200, 1200,    0, 9600 },
+        { 0,  600,  600, 2400,    0 },
+        { 0, 2400, 2400, 4800, 9600 },
+    };
 
     for (int i = start; i < start + length; i++)
         scores[i] = 64000 + get_capture_history(thread, moves[i])
-                  + MVVAugment[history_captured_piece(thread, moves[i])];
+                  + MVVAugment[   history_moved_piece(thread, moves[i])]
+                              [history_captured_piece(thread, moves[i])];
 }
 
 void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
