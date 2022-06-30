@@ -808,9 +808,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         int estimated = moveEstimatedValue(board, move);
         int pessimism = estimated - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
-        // BAD CODE COULD BE DONE CHEAPER
-        int see_negative =  ns->mp.stage != STAGE_GOOD_NOISY
-                        && !staticExchangeEvaluation(board, move, 0);
+
+        // ...
+        if (    ns->mp.stage != STAGE_GOOD_NOISY
+            && !staticExchangeEvaluation(board, move, 0))
+            continue;
 
         // Skip illegal moves
         if (!apply(thread, board, move))
@@ -852,14 +854,6 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             // legal ones, so long as they meet Step 7's original criteria for pruning
 
             if (played > 2) {
-                revert(thread, board, move);
-                continue;
-            }
-
-            // Step 7D. Bad Capture Pruning. Prune all captures which are losing. We
-            // could compute this _after_ the move is played with some effort.
-
-            if (see_negative) {
                 revert(thread, board, move);
                 continue;
             }
