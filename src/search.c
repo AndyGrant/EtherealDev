@@ -487,7 +487,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
+        init_probcut_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
@@ -808,6 +808,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         int estimated = moveEstimatedValue(board, move);
         int pessimism = estimated - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
+        // BAD CODE COULD BE DONE CHEAPER
+        int see_negative =  ns->mp.stage != STAGE_GOOD_NOISY
+                        && !staticExchangeEvaluation(board, move, 0);
+
         // Skip illegal moves
         if (!apply(thread, board, move))
             continue;
@@ -822,19 +826,40 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             &&  MoveType(move) == NORMAL_MOVE
             &&  MoveTo(move) != MoveTo((ns-1)->move)) {
 
-            // Step 7A. Futility Pruning. The capture, plus a margin, would still fail to
-            // improve Alpha. We can prune, and update best assuming the capture is sound
+            // Step 7A. Futility Pruning for Winning Captures. If the captured piece,
+            // plus a margin still falls short of alpha, then prune this move and assume
+            // that we could have captured and won the material, even if its unlikely
 
-            if (eval + estimated + QSFutilityMargin <= alpha) {
+            if (   ns->mp.stage == STAGE_GOOD_NOISY
+                && eval + estimated + QSFutilityMargin <= alpha) {
                 best = MAX(best, eval + estimated + QSFutilityMargin);
                 revert(thread, board, move);
                 continue;
             }
 
-            // Step 7B. Move Count Pruning. Prune all moves after we have found a couple
+            // Step 7B. Futility Pruning for Equal Captures. If adding a small margin to
+            // the eval would still fail to improve alpha, then prune this move and assume
+            // that we could have captured and maintained the margin, even if its unlikely
+
+            if (   ns->mp.stage == STAGE_BAD_NOISY
+                && eval + QSFutilityMargin <= alpha) {
+                best = MAX(best, eval + QSFutilityMargin);
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Step 7C. Move Count Pruning. Prune all moves after we have found a couple
             // legal ones, so long as they meet Step 7's original criteria for pruning
 
             if (played > 2) {
+                revert(thread, board, move);
+                continue;
+            }
+
+            // Step 7D. Bad Capture Pruning. Prune all captures which are losing. We
+            // could compute this _after_ the move is played with some effort.
+
+            if (see_negative) {
                 revert(thread, board, move);
                 continue;
             }
