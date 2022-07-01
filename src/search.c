@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -801,9 +802,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
-    // the distance between alpha and the evaluation. Playing a move is futile.
-    if (MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval)
-        return eval;
+    // the distance between alpha and the evaluation. Play a single move in the
+    // hopes of beating eval by a fair margin, and then give up.
+    bool delta_pruned = MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
@@ -844,11 +845,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
                 pv->line[0] = move;
                 memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
             }
-
-            // Search has failed high
-            if (alpha >= beta)
-                break;
         }
+
+        // Failed high, or already planned to give up after a single move
+        if (alpha >= beta || delta_pruned)
+            break;
     }
 
     // Step 8. Store results of search into the Transposition Table.
