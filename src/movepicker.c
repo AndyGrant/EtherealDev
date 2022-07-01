@@ -66,8 +66,10 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
     mp->stage   = STAGE_TABLE;
     mp->tt_move = tt_move;
 
-    // Skip all of the refutation moves
-    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    // Only use refutations when doing Evasions
+    if (thread->board.kingAttackers)
+        get_refutation_moves(thread, &mp->killer1, &mp->killer2, &mp->counter);
+    else mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
 
     // General housekeeping
     mp->threshold = threshold;
@@ -219,8 +221,8 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
         case STAGE_BAD_NOISY:
 
-            // Check to see if there are still more noisy moves
-            while (mp->noisy_size && mp->type != NOISY_PICKER) {
+            // Check to see if there are still more noisy moves  // HACK!
+            while (mp->noisy_size && mp->type != NOISY_PICKER && !skip_quiets) {
 
                 // Reduce effective move list size
                 best_move = pop_move(&mp->noisy_size, mp->moves, mp->values, 0);

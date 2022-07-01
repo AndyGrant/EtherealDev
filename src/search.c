@@ -21,6 +21,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -307,7 +308,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
-    if (depth <= 0 && !board->kingAttackers)
+    if (depth <= 0)
         return qsearch(thread, pv, alpha, beta);
 
     // Prefetch TT as early as reasonable
@@ -743,9 +744,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height];
+    const bool InCheck  = board->kingAttackers;
 
-    int eval, value, best, oldAlpha = alpha, played = 0;
+    int eval, value, best = -MATE, oldAlpha = alpha, played = 0, evasions = 0;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
+    bool skip_quiets = !InCheck;
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     PVariation lpv;
 
@@ -784,41 +787,53 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             return ttValue;
     }
 
-    // Save a history of the static evaluations
-    eval = ns->eval = ttEval != VALUE_NONE
-                    ? ttEval : evaluateBoard(thread, board);
+    // Save a history of the static evaluations when not checked
+    eval = ns->eval = InCheck              ? VALUE_NONE
+                    : ttEval != VALUE_NONE ? ttEval
+                                           : evaluateBoard(thread, board);
 
-    // Toss the static evaluation into the TT if we won't overwrite something
-    if (!ttHit && !board->kingAttackers)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+    if (!InCheck) {
 
-    // Step 5. Eval Pruning. If a static evaluation of the board will
-    // exceed beta, then we can stop the search here. Also, if the static
-    // eval exceeds alpha, we can call our static eval the new alpha
-    best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+        // Toss the static evaluation into the TT if we won't overwrite something
+        if (!ttHit)
+            tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
 
-    // Step 6. Move Generation and Looping. Generate all tactical moves,
-    // returning those which are not losing via Static Exchange Evaluations
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, 1);
-    while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
+        // Step 5. Eval Pruning. If a static evaluation of the board will
+        // exceed beta, then we can stop the search here. Also, if the static
+        // eval exceeds alpha, we can call our static eval the new alpha
+        if ((alpha = MAX(alpha, eval)) >= beta)
+            return eval;
+
+        best = eval;
+    }
+
+    // Step 6. Move Generation and Looping. When not in check, look only at
+    // winning captures. When in check, explore bad captures and even quiet
+    // moves in order to verify that the position is not checkmated
+    init_noisy_picker(&ns->mp, thread, NONE_MOVE, !InCheck);
+
+    while ((move = select_next(&ns->mp, thread, skip_quiets)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
         int estimated = moveEstimatedValue(board, move);
         int pessimism = estimated - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+
+        bool tactical = moveIsTactical(board, move);
 
         // Skip illegal moves
         if (!apply(thread, board, move))
             continue;
 
         played++;
+        evasions += !tactical;
 
         // Step 7. Pruning. Look to prune moves so long as they are not
-        // recaptures, checking moves, or promotions. This definition stems directly
+        // recaptures, checking moves, or promotions. This definition is directly
         // from Stockfish's QSearch(), which updates best even when pruning a move
 
-        if (   !board->kingAttackers
+        if (    tactical
+            &&  best > -TBWIN_IN_MAX
+            && !board->kingAttackers
             &&  MoveType(move) == NORMAL_MOVE
             &&  MoveTo(move) != MoveTo((ns-1)->move)) {
 
@@ -841,7 +856,10 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         }
 
         // Short-circuit QS and assume a stand-pat matches the SEE
-        if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
+        if (   !InCheck
+            &&  eval + pessimism > beta
+            &&  abs(eval + pessimism) < MATE / 2) {
+
             revert(thread, board, move);
             pv->length = 1;
             pv->line[0] = move;
@@ -871,7 +889,13 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             if (alpha >= beta)
                 break;
         }
+
+        // Start skipping quiets after playing at least two, legal, non-losing ones
+        skip_quiets = skip_quiets || (best > -TBWIN_IN_MAX && evasions > 1);
     }
+
+    if (InCheck && best == -MATE)
+        return -MATE + thread->height;
 
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
