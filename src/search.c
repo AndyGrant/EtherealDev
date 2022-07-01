@@ -834,7 +834,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
             // Step 7B. Move Count Pruning. Prune all moves after we have found a couple
             // legal ones, so long as they meet Step 7's original criteria for pruning
 
-            if (played > 2) {
+            if (played > 4) {
                 revert(thread, board, move);
                 continue;
             }
