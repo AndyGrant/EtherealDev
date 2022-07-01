@@ -800,24 +800,25 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     alpha = MAX(alpha, eval);
     if (alpha >= beta) return eval;
 
-    // Step 6. Delta Pruning. Even the best possible capture and or promotion
-    // combo, with a minor boost for pawn captures, would still fail to cover
-    // the distance between alpha and the evaluation. Play a single move in the
-    // hopes of beating eval by a fair margin, and then give up.
-    bool delta_pruned = MAX(QSDeltaMargin, moveBestCaseValue(board)) < alpha - eval;
-
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
+    init_noisy_picker(&ns->mp, thread, NONE_MOVE, 1);
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
-        int pessimism = moveEstimatedValue(board, move)
-                      - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+        int estimated = moveEstimatedValue(board, move);
+        int pessimism = estimated - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
 
         // Search the next ply if the move is legal
         if (!apply(thread, board, move)) continue;
+
+        // ...
+        if (eval + QSSeeMargin + estimated < alpha) {
+            best = eval + QSSeeMargin + estimated;
+            revert(thread, board, move);
+            continue;
+        }
 
         // Short-circuit QS and assume a stand-pat matches the SEE
         if (eval + pessimism > beta && abs(eval + pessimism) < MATE / 2) {
@@ -845,11 +846,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
                 pv->line[0] = move;
                 memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
             }
-        }
 
-        // Failed high, or already planned to give up after a single move
-        if (alpha >= beta || delta_pruned)
-            break;
+            // Search failed high
+            if (alpha >= beta)
+                break;
+        }
     }
 
     // Step 8. Store results of search into the Transposition Table.
