@@ -650,6 +650,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Initialize R based on Capture History
             R = MIN(3, 3 - (hist + 4000) / 2000);
 
+            // Reduce for recaptures
+            R -= (ns-1)->tactical
+              && MoveTo(move) == MoveTo((ns-1)->move);
+
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
 
