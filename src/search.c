@@ -802,7 +802,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 6. Delta Pruning. Even capturing our opponents strongest piece,
     // and an additional margin, would not allow eval to exceed alpha.
     if (eval + moveBestCaseValue(board) + QSSeeMargin < alpha)
-        return eval;
+        return eval + moveBestCaseValue(board) + QSSeeMargin;
 
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
