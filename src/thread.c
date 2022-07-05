@@ -32,7 +32,8 @@
 
 Thread* createThreadPool(int nthreads) {
 
-    Thread *threads = calloc(nthreads, sizeof(Thread));
+    Thread *threads = align_malloc(sizeof(Thread) * nthreads);
+    memset(threads, 0, sizeof(Thread) * nthreads);
 
     for (int i = 0; i < nthreads; i++) {
 
@@ -60,7 +61,7 @@ void deleteThreadPool(Thread *threads) {
     for (int i = 0; i < threads->nthreads; i++)
         nnue_delete_accumulators(threads[i].nnueStack);
 
-    free(threads);
+    align_free(threads);
 }
 
 void resetThreadPool(Thread *threads) {
