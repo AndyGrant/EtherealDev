@@ -91,11 +91,12 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, TimeMana
 
     for (int i = 0; i < threads->nthreads; i++) {
 
-        threads[i].limits = limits;
-        threads[i].tm     = tm;
-        threads[i].height = 0;
-        threads[i].nodes  = 0ull;
-        threads[i].tbhits = 0ull;
+        threads[i].limits      = limits;
+        threads[i].tm          = tm;
+        threads[i].height      = 0;
+        threads[i].nnue_height = 0;
+        threads[i].nodes       = 0ull;
+        threads[i].tbhits      = 0ull;
 
         memcpy(&threads[i].board, board, sizeof(Board));
         threads[i].board.thread = &threads[i];

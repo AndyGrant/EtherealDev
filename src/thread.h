@@ -62,7 +62,8 @@ struct Thread {
     uint16_t bestMoves[MAX_MOVES];
 
     uint64_t nodes, tbhits;
-    int depth, seldepth, height, completed;
+    int depth, seldepth, height, completed, nnue_height;
+
 
     NodeState *states, nodeStates[STACK_SIZE];
     NNUEAccumulator *nnueStack;

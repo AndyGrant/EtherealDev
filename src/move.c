@@ -374,8 +374,6 @@ void applyNullMove(Board *board, Undo *undo) {
     }
 
     board->threats = allAttackedSquares(board, !board->turn);
-
-    nnue_push(board);
 }
 
 
@@ -475,6 +473,8 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
         board->squares[to] = EMPTY;
         board->squares[ep] = undo->capturePiece;
     }
+
+    nnue_pop(board);
 }
 
 void revertNullMove(Board *board, Undo *undo) {

@@ -134,15 +134,6 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int wrelksq, 
     if (!(accum-1)->accurate)
         nnue_update_accumulator((accum-1), board, wrelksq, brelksq);
 
-    // The last move was a NULL move so we can cheat and copy
-    if (!accum->changes) {
-        memcpy(accum->values, (accum-1)->values, sizeof(int16_t) * L1SIZE);
-        accum->accurate = 1;
-        return;
-    }
-
-    // ------------------------------------------------------------------------------------------
-
     int add_list[2][3], remove_list[2][3];
     int add = 0, remove = 0, refreshed[2] = { 0, 0 };
 
