@@ -516,7 +516,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Rebel
     if (PvNode && !ttMove && !inCheck)
-        depth = MAX(0, depth - 1);
+        depth = MAX(0, depth - 2);
 
 
     // Step 11. Initialize the Move Picker and being searching through each
