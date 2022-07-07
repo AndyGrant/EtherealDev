@@ -595,14 +595,32 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet) quietsTried[quietsPlayed++] = move;
         else capturesTried[capturesPlayed++] = move;
 
+
+        static const int PessimismPruningDepth = 1;
+
+        if (   !PvNode
+            && !isQuiet
+            && !board->kingAttackers
+            &&  eval + pessimism > beta
+            &&  depth <= PessimismPruningDepth
+            &&  ns->mp.stage == STAGE_GOOD_NOISY) {
+
+            // Update as if we completed the search
+            best = beta;
+            pv->length = 1;
+            pv->line[0] = bestMove = move;
+
+            // Break out since best > alpha
+            revert(thread, board, move);
+            break;
+        }
+
+
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
         // and we wait a few seconds in order to avoid floiding the output
         if (RootNode && !thread->index && elapsed_time(thread->tm) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
-
-
-
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
@@ -615,19 +633,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                  &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER);
 
-        if (   !PvNode
-            && !isQuiet
-            && !board->kingAttackers
-            &&  eval + pessimism > beta
-            &&  ns->mp.stage == STAGE_GOOD_NOISY)
-            extension = -1;
-
-        else {
-            extension = !singular ? inCheck
-                      :  singularity(thread, ttMove, ttValue, depth, PvNode, beta);
-        }
+        extension = !singular ? inCheck
+                  :  singularity(thread, ttMove, ttValue, depth, PvNode, beta);
 
         newDepth = depth + (!RootNode ? extension : 0);
+
         if (extension > 1) ns->dextensions++;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
