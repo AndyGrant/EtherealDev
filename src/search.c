@@ -522,6 +522,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         const uint64_t starting_nodes = thread->nodes;
 
+        // Worst case which assumes we lose our piece immediately
+        const int pessimism = moveEstimatedValue(board, move)
+                            - SEEPieceValues[pieceType(board->squares[MoveFrom(move)])];
+
         // MultiPV and UCI searchmoves may limit our search options
         if (RootNode && moveExaminedByMultiPV(thread, move)) continue;
         if (RootNode &&    !moveIsInRootMoves(thread, move)) continue;
@@ -597,6 +601,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && !thread->index && elapsed_time(thread->tm) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
+
+
+
+        // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
+        // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
+        // extend for any position where our King is checked.
+
         // Identify moves which are candidate singular moves
         singular =  !RootNode
                  &&  depth >= 8
@@ -604,11 +615,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                  &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER);
 
-        // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
-        // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
-        // extend for any position where our King is checked.
+        if (   !PvNode
+            && !isQuiet
+            && !board->kingAttackers
+            &&  eval + pessimism > beta
+            &&  ns->mp.stage == STAGE_GOOD_NOISY)
+            extension = 1;
 
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, beta) : inCheck;
+        else {
+            extension = !singular ? inCheck
+                      :  singularity(thread, ttMove, ttValue, depth, PvNode, beta);
+        }
+
         newDepth = depth + (!RootNode ? extension : 0);
         if (extension > 1) ns->dextensions++;
 
