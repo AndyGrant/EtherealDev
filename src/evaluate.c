@@ -433,7 +433,7 @@ const int ComplexityAdjustment  = S(   0,-157);
 
 /* General Evaluation Terms */
 
-const int Tempo = 30;
+const int Tempo = 10;
 
 #undef S
 
