@@ -601,6 +601,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (   !PvNode
             && !isQuiet
             && !board->kingAttackers
+            &&  pessimism > 0
             &&  eval + pessimism > beta
             &&  depth <= PessimismPruningDepth
             &&  ns->mp.stage == STAGE_GOOD_NOISY) {
