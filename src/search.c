@@ -620,7 +620,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             && !board->kingAttackers
             &&  eval + pessimism > beta
             &&  ns->mp.stage == STAGE_GOOD_NOISY)
-            extension = 1;
+            extension = -1;
 
         else {
             extension = !singular ? inCheck
