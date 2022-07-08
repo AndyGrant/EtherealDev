@@ -636,6 +636,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
 
+            // Reduce for Killers and Counters that respond to bad captures
+            R -= ns->mp.stage < STAGE_QUIET && (ns-1)->mp.stage == STAGE_BAD_NOISY;
+
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
 
