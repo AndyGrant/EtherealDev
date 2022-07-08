@@ -634,7 +634,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Increase for responses to a tt-move after our own tt-move failed
-            R += ttHit
+            R += ttHit && ttMove
               && (ns-0)->mp.stage == STAGE_QUIET
               && (ns-1)->mp.stage == STAGE_TABLE + 1;
 
