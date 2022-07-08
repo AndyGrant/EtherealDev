@@ -972,8 +972,13 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     ns->mp.stage = STAGE_TABLE + 1;
 
     // MultiCut. We signal the Move Picker to terminate the search
-    if (value >= rBeta && rBeta >= beta)
+    if (value >= rBeta && rBeta >= beta) {
+
+        if (lpv.length)
+            tt_store(board->hash, thread->height, lpv.line[0], value, ns->eval, (depth - 1) / 2, BOUND_LOWER);
+
         ns->mp.stage = STAGE_DONE;
+    }
 
     // Reapply the table move we took off
     else applyLegal(thread, board, ttMove);
