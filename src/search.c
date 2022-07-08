@@ -514,6 +514,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
     }
 
+    // Identify moves which are candidate singular moves
+    singular =  !RootNode
+            &&  depth >= 8
+            &&  ttDepth >= depth - 3
+            && (ttBound & BOUND_LOWER);
+
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff. We
     // reuse an already initialized MovePicker to verify Singular Extension
@@ -597,19 +603,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && !thread->index && elapsed_time(thread->tm) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
-        // Identify moves which are candidate singular moves
-        singular =  !RootNode
-                 &&  depth >= 8
-                 &&  move == ttMove
-                 &&  ttDepth >= depth - 3
-                 && (ttBound & BOUND_LOWER);
-
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, beta) : inCheck;
+        extension = (singular && ttMove == move)
+                  ? singularity(thread, ttMove, ttValue, depth, PvNode, beta)
+                  : inCheck && !singular;
+
         newDepth = depth + (!RootNode ? extension : 0);
+
         if (extension > 1) ns->dextensions++;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
