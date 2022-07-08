@@ -974,7 +974,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     // MultiCut. We signal the Move Picker to terminate the search
     if (value >= rBeta && rBeta >= beta) {
 
-        if (lpv.length)
+        if (lpv.length && value > ttValue)
             tt_store(board->hash, thread->height, lpv.line[0], value, ns->eval, (depth - 1) / 2, BOUND_LOWER);
 
         ns->mp.stage = STAGE_DONE;
