@@ -608,13 +608,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
+        extension = !singular ? inCheck
+                  : singularity(thread, ttMove, ttValue, depth, PvNode, beta);
+
         if (thread->height + depth > 2 * thread->depth)
             extension = 0;
-
-        else {
-            extension = !singular ? inCheck
-                      : singularity(thread, ttMove, ttValue, depth, PvNode, beta);
-        }
 
         newDepth = depth + (!RootNode ? extension : 0);
 
