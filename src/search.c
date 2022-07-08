@@ -296,7 +296,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
-    int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
+    int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0;
     int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
@@ -420,6 +420,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Track the # of double extensions in this line
     ns->dextensions = RootNode ? 0 : (ns-1)->dextensions;
 
+    // Reset played counter for the current Node
+    ns->played = 0;
+
     // Beta value for ProbCut Pruning
     rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
 
@@ -538,6 +541,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // have seen many moves in this position already, and we don't expect
         // anything from this move, we can skip all the remaining quiets
         if (   best > -TBWIN_IN_MAX
+            && ns->played > (ns-1)->played
             && depth <= LateMovePruningDepth
             && movesSeen >= LateMovePruningCounts[improving][depth])
             skipQuiets = 1;
@@ -547,7 +551,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(ns->played, 63)]);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
@@ -587,7 +591,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (!apply(thread, board, move))
             continue;
 
-        played += 1;
+        ns->played += 1;
         if (isQuiet) quietsTried[quietsPlayed++] = move;
         else capturesTried[capturesPlayed++] = move;
 
@@ -595,7 +599,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // that we are going to search. We only do this from the main thread,
         // and we wait a few seconds in order to avoid floiding the output
         if (RootNode && !thread->index && elapsed_time(thread->tm) > CurrmoveTimerMS)
-            uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
+            uciReportCurrentMove(board, move, ns->played + thread->multiPV, thread->depth);
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
@@ -622,10 +626,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
         // of Quiet moves after we've explored the main line. If a reduced search
         // manages to beat alpha, against our expectations, we perform a research
-        if (isQuiet && depth > 2 && played > 1) {
+        if (isQuiet && depth > 2 && ns->played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(ns->played, 63)];
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
@@ -645,7 +649,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 15A, but
         // only applied to Tactical moves with unusually poor Capture History scores
-        else if (!isQuiet && depth > 2 && played > 1) {
+        else if (!isQuiet && depth > 2 && ns->played > 1) {
 
             // Initialize R based on Capture History
             R = MIN(3, 3 - (hist + 4000) / 2000);
@@ -669,14 +673,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
-        if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
+        if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && ns->played == 1)))
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
 
         // Step 18C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
-        if (PvNode && (played == 1 || value > alpha))
+        if (PvNode && (ns->played == 1 || value > alpha))
             value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
 
         // Revert the board state
@@ -725,7 +729,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
     // score based on how far or close the mate is to the root position
-    if (played == 0) return inCheck ? -MATE + thread->height : 0;
+    if (ns->played == 0) return inCheck ? -MATE + thread->height : 0;
 
     // Step 22. Store results of search into the Transposition Table. We do not overwrite
     // the Root entry from the first line of play we examined. We also don't store into the
