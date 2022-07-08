@@ -599,7 +599,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
-                 &&  depth >= 8
+                 &&  depth >= 6
                  &&  move == ttMove
                  &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER);
