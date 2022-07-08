@@ -608,8 +608,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, beta) : inCheck;
+        extension = !singular ? inCheck && (ttMove == move || !ttMove)
+                  :  singularity(thread, ttMove, ttValue, depth, PvNode, beta);
+
         newDepth = depth + (!RootNode ? extension : 0);
+
         if (extension > 1) ns->dextensions++;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
