@@ -634,7 +634,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Killers and Counters
-            R -= 2 * (ns->mp.stage < STAGE_QUIET);
+            R -= (ns->mp.stage < STAGE_QUIET);
 
             R += (ns-0)->mp.stage == STAGE_QUIET
               && (ns-1)->mp.stage == STAGE_BAD_NOISY;
