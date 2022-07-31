@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "attacks.h"
 #include "bitboards.h"
 #include "board.h"
 #include "history.h"
@@ -92,6 +93,17 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
 }
 
 
+static bool risks_capture_by_pawn(Thread *thread, uint16_t move) {
+
+    const int colour = thread->board.turn;
+
+    const uint64_t enemy_pawns = thread->board.pieces[PAWN]
+                               & thread->board.colours[!thread->board.turn];
+
+    return  pieceType(thread->board.squares[MoveFrom(move)]) != PAWN
+        && (pawnAttacks(thread->board.turn, MoveTo(move)) & enemy_pawns);
+}
+
 void update_history_heuristics(Thread *thread, uint16_t *moves, int length, int depth) {
 
     NodeState *const prev = &thread->states[thread->height-1];
@@ -147,6 +159,7 @@ void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int sta
 
     for (int i = start; i < start + length; i++)
         scores[i] = 64000 + get_capture_history(thread, moves[i])
+                  - 16000 * risks_capture_by_pawn(thread, moves[i])
                   + MVVAugment[history_captured_piece(thread, moves[i])];
 }
 
