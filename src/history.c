@@ -155,6 +155,10 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
     // Update the history for each capture move that was attempted. One of them
     // might have been the move which produced a cutoff, and thus earn a bonus
 
+    // We found a low-depth cutoff too easily
+    if (!depth || (length == 1 && depth <= 3))
+        return;
+
     for (int i = 0; i < length; i++) {
         int16_t *hist = underlying_capture_history(thread, moves[i]);
         update_history(hist, depth, moves[i] == best);
