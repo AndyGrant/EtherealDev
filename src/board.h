@@ -25,7 +25,7 @@ extern const char *PieceLabel[COLOUR_NB];
 struct Board {
     uint8_t squares[SQUARE_NB];
     uint64_t pieces[8], colours[3];
-    uint64_t hash, pkhash, kingAttackers, threats;
+    uint64_t hash, pkhash, kingAttackers, threats, strongThreats;
     uint64_t castleRooks, castleMasks[SQUARE_NB];
     int turn, epSquare, halfMoveCounter, fullMoveCounter;
     int psqtmat, numMoves, chess960;
@@ -34,7 +34,7 @@ struct Board {
 };
 
 struct Undo {
-    uint64_t hash, pkhash, kingAttackers, threats, castleRooks;
+    uint64_t hash, pkhash, kingAttackers, threats, strongThreats, castleRooks;
     int epSquare, halfMoveCounter, psqtmat, capturePiece;
 };
 
@@ -47,5 +47,7 @@ int boardIsDrawn(Board *board, int height);
 int boardDrawnByFiftyMoveRule(Board *board);
 int boardDrawnByRepetition(Board *board, int height);
 int boardDrawnByInsufficientMaterial(Board *board);
+
+void board_update_threats(Board *board);
 
 uint64_t perft(Board *board, int depth);

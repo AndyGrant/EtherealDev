@@ -115,6 +115,7 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     undo->pkhash          = board->pkhash;
     undo->kingAttackers   = board->kingAttackers;
     undo->threats         = board->threats;
+    undo->strongThreats   = board->strongThreats;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
@@ -141,8 +142,8 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
     // Need king attackers for move generation
     board->kingAttackers = attackersToKingSquare(board);
 
-    // Need squares attacked by the opposing player
-    board->threats = allAttackedSquares(board, !board->turn);
+    // Attacked and heavily attacked squares
+    board_update_threats(board);
 }
 
 void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
@@ -358,6 +359,7 @@ void applyNullMove(Board *board, Undo *undo) {
     // Save information which is hard to recompute
     undo->hash            = board->hash;
     undo->threats         = board->threats;
+    undo->strongThreats   = board->strongThreats;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
 
@@ -373,7 +375,8 @@ void applyNullMove(Board *board, Undo *undo) {
         board->epSquare = -1;
     }
 
-    board->threats = allAttackedSquares(board, !board->turn);
+    // Attacked and heavily attacked squares
+    board_update_threats(board);
 
     nnue_push(board);
 }
@@ -397,6 +400,7 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
     board->pkhash          = undo->pkhash;
     board->kingAttackers   = undo->kingAttackers;
     board->threats         = undo->threats;
+    board->strongThreats   = undo->strongThreats;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
@@ -482,6 +486,7 @@ void revertNullMove(Board *board, Undo *undo) {
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
     board->threats         = undo->threats;
+    board->strongThreats   = undo->strongThreats;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 

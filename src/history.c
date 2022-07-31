@@ -54,7 +54,7 @@ static int16_t* underlying_capture_history(Thread *thread, uint16_t move) {
     const int piece    = pieceType(thread->board.squares[MoveFrom(move)]);
 
     // Determine if piece evades and/or enters a threat
-    const bool threat_from = testBit(thread->board.threats, MoveFrom(move));
+    const bool threat_from = testBit(thread->board.strongThreats, MoveFrom(move));
     const bool threat_to   = testBit(thread->board.threats, MoveTo(move));
 
     assert(PAWN <= captured && captured <= QUEEN);
@@ -67,8 +67,7 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
 
     static int16_t NULL_HISTORY; // Always zero to handle missing CM/FM history
 
-    NodeState *const ns    = &thread->states[thread->height];
-    const uint64_t threats = thread->board.threats;
+    NodeState *const ns = &thread->states[thread->height];
 
     // Extract information from this move
     const int to    = MoveTo(move);
@@ -76,8 +75,8 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
     const int piece = pieceType(thread->board.squares[from]);
 
     // Determine if piece evades and/or enters a threat
-    const bool threat_from = testBit(threats, from);
-    const bool threat_to   = testBit(threats, to);
+    const bool threat_from = testBit(thread->board.strongThreats, from);
+    const bool threat_to   = testBit(thread->board.threats, to);
 
     // Set Counter Move History if it exists
     histories[0] = (ns-1)->continuations == NULL

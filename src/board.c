@@ -78,6 +78,7 @@ static int stringToSquare(char *str) {
     return str[0] == '-' ? -1 : square(str[1] - '1', str[0] - 'a');
 }
 
+
 void squareToString(int sq, char *str) {
 
     // Helper for writing the enpass square, as well as for converting
@@ -171,8 +172,8 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     // Need king attackers for move generation
     board->kingAttackers = attackersToKingSquare(board);
 
-    // Need squares attacked by the opposing player
-    board->threats = allAttackedSquares(board, !board->turn);
+    // Attacked and heavily attacked squares
+    board_update_threats(board);
 
     // We save the game mode in order to comply with the UCI rules for printing
     // moves. If chess960 is not enabled, but we have detected an unconventional
@@ -333,6 +334,66 @@ int boardDrawnByInsufficientMaterial(Board *board) {
         && (    !several(board->pieces[KNIGHT] | board->pieces[BISHOP])
             || (!board->pieces[BISHOP] && popcount(board->pieces[KNIGHT]) <= 2));
 }
+
+
+void board_update_threats(Board *board) {
+
+    const uint64_t enemy    = board->colours[!board->turn];
+    const uint64_t friendly = board->colours[ board->turn];
+
+    const uint64_t pawns   = board->pieces[PAWN  ];
+    const uint64_t knights = board->pieces[KNIGHT];
+    const uint64_t bishops = board->pieces[BISHOP];
+    const uint64_t rooks   = board->pieces[ROOK  ];
+    const uint64_t queens  = board->pieces[QUEEN ];
+    const uint64_t kings   = board->pieces[KING  ];
+
+    uint64_t their_pawns   = enemy & pawns;
+    uint64_t their_knights = enemy & knights;
+    uint64_t their_bishops = enemy & bishops;
+    uint64_t their_rooks   = enemy & rooks;
+    uint64_t their_queens  = enemy & queens;
+    uint64_t their_kings   = enemy & kings;
+
+    // Pawns create strong threats on all minor and major pieces
+    board->threats = pawnAttackSpan(their_pawns, ~0ULL, !board->turn);
+    board->strongThreats = board->threats & friendly & ~(pawns | kings);
+
+    // Knights create strong threats only on major pieces
+    while (their_knights) {
+        const uint64_t bb = knightAttacks(poplsb(&their_knights));
+        board->strongThreats |= bb & friendly & (rooks | queens);
+        board->threats |= bb;
+    }
+
+    // Bishops create strong threats only on major pieces
+    while (their_bishops) {
+        const uint64_t bb = bishopAttacks(poplsb(&their_bishops), friendly | enemy);
+        board->strongThreats |= bb & friendly & (rooks | queens);
+        board->threats |= bb;
+    }
+
+    // Rooks create strong threats only on Queens
+    while (their_rooks) {
+        const uint64_t bb = rookAttacks(poplsb(&their_rooks), friendly | enemy);
+        board->strongThreats |= bb & friendly & queens;
+        board->threats |= bb;
+    }
+
+    // Queens do not create strong threats on any pieces
+    while (their_queens) {
+        const uint64_t bb = queenAttacks(poplsb(&their_queens), friendly | enemy);
+        board->threats |= bb;
+    }
+
+    // Kings do not create strong threats on any pieces (???)
+    while (their_kings) {
+        const uint64_t bb = kingAttacks(poplsb(&their_kings));
+        // board->strongThreats |= bb; // ???
+        board->threats |= bb;
+    }
+}
+
 
 uint64_t perft(Board *board, int depth) {
 
