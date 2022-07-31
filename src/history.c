@@ -95,8 +95,6 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
 
 static bool risks_capture_by_pawn(Thread *thread, uint16_t move) {
 
-    const int colour = thread->board.turn;
-
     const uint64_t enemy_pawns = thread->board.pieces[PAWN]
                                & thread->board.colours[!thread->board.turn];
 
