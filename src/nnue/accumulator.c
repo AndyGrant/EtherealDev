@@ -48,7 +48,7 @@ static int nnue_index_delta(int piece, int relksq, int colour, int sq) {
     const int mksq = testBit(LEFT_FLANK, relksq) ? (relksq ^ 0x7) : relksq;
     const int mpsq = testBit(LEFT_FLANK, relksq) ? (relpsq ^ 0x7) : relpsq;
 
-    return 640 * sq64_to_sq32(mksq) + (64 * (5 * (colour == pcolour) + ptype)) + mpsq;
+    return 768 * sq64_to_sq32(mksq) + (64 * (6 * (colour == pcolour) + ptype)) + mpsq;
 }
 
 static int nnue_index(Board *board, int relksq, int colour, int sq) {
@@ -90,18 +90,18 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour, 
     const uint64_t black = board->colours[BLACK];
     const uint64_t kings = board->pieces[KING];
 
-    uint64_t pieces = (white | black) & ~kings;
+    uint64_t pieces = (white | black) & ~(kings & white);
 
     vepi16* biases  = (vepi16*) &in_biases[0];
     vepi16* outputs = (vepi16*) &accum->values[colour][0];
 
-    // We can assert that this position is not KvK, and therefore to
-    // slightly optimize the AVX code, we can seperate out the very
-    // first piece and use it to initialize the output with the biases
+    // Split out just the White King initially, in order to do a single first
+    // step where we set the output equal to the bias + the weights. All other
+    // steps will simply add their components to the output as expected
 
     {
-        int index = nnue_index(board, relsq, colour, poplsb(&pieces));
-        vepi16* inputs  = (vepi16*) &in_weights[index * KPSIZE];
+        const int index = nnue_index(board, relsq, colour, getlsb(white & kings));
+        const vepi16* inputs = (vepi16*) &in_weights[index * KPSIZE];
 
         for (int i = 0; i < KPSIZE / vepi16_cnt; i += 4) {
             outputs[i+0] = vepi16_add(biases[i+0], inputs[i+0]);
@@ -116,8 +116,8 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour, 
 
     while (pieces) {
 
-        int index = nnue_index(board, relsq, colour, poplsb(&pieces));
-        vepi16* inputs  = (vepi16*) &in_weights[index * KPSIZE];
+        const int index = nnue_index(board, relsq, colour, poplsb(&pieces));
+        const vepi16* inputs = (vepi16*) &in_weights[index * KPSIZE];
 
         for (int i = 0; i < KPSIZE / vepi16_cnt; i += 4) {
             outputs[i+0] = vepi16_add(outputs[i+0], inputs[i+0]);
@@ -156,7 +156,6 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int wrelksq, 
             int relksq = colour == WHITE ? wrelksq : brelksq;
             nnue_refresh_accumulator(accum, board, colour, relksq);
             refreshed[colour] = 1;
-            continue;
         }
 
         // Moving or placing a Piece to a Square
