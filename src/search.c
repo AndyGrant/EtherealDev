@@ -366,6 +366,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
+
+        // Allow fail-lows, which should trigger a research
+        if (   !PvNode
+            &&  ttDepth >= depth - 1
+            &&  ttValue + 32 <= alpha
+            && (ttBound & BOUND_UPPER))
+            return alpha;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
