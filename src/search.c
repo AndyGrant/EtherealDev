@@ -599,10 +599,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Identify moves which are candidate singular moves
         singular =  !RootNode
-                 &&  depth >= 8
                  &&  move == ttMove
                  &&  ttDepth >= depth - 3
-                 && (ttBound & BOUND_LOWER);
+                 && (ttBound & BOUND_LOWER)
+                 &&  depth >= 8 - 2 * (ttValue > beta);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
