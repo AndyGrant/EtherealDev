@@ -603,7 +603,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                  &&  move == ttMove
                  &&  ttDepth >= depth - 3
                  && (ttBound & BOUND_LOWER)
-                 &&  depth >= (thread->index & 0x2) ? 6 : 8;
+                 &&  depth >= (thread->index % 2 ? 6 : 8);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
