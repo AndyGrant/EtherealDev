@@ -633,7 +633,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R += !PvNode + !improving;
 
             // Reduce when we've made bad calls in this Node before
-            R -= bad_lmr_decisions / 4;
+            R -= MIN(3, bad_lmr_decisions / 3);
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
