@@ -370,7 +370,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Allow fail-lows, which should trigger a research
         if (   !PvNode
             &&  ttDepth >= depth - 1
-            &&  ttValue + 32 <= alpha
+            &&  ttValue + 128 <= alpha
             && (ttBound & BOUND_UPPER))
             return alpha;
     }
