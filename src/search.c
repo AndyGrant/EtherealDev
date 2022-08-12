@@ -353,6 +353,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (ns->excluded != NONE_MOVE)
         goto search_init_goto;
 
+
+    int could_have_failed_high = 0;
+
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
@@ -366,6 +369,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
                 return ttValue;
         }
+
+        could_have_failed_high = ttValue >= beta
+                              && ttDepth >= depth
+                              && ttBound == BOUND_LOWER;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -632,6 +639,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+
+            //
+            R += could_have_failed_high && bestMove == ttMove && alpha > oldAlpha;
 
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
