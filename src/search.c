@@ -349,12 +349,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (rAlpha >= rBeta) return rAlpha;
     }
 
+    int could_have_failed_high = 0;
+
     // Don't probe the TT or TB during singluar searches
     if (ns->excluded != NONE_MOVE)
         goto search_init_goto;
 
-
-    int could_have_failed_high = 0;
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
