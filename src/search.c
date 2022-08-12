@@ -151,7 +151,7 @@ void initSearch() {
     // Init Late Move Reductions Table
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
+            LMRTable[depth][played] = 7.50 + log(depth) * log(played) / 0.225;
 
     for (int depth = 1; depth < 9; depth++) {
         LateMovePruningCounts[0][depth] = 2.5 + 2 * depth * depth / 4.5;
@@ -547,7 +547,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
+            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] / 10);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
@@ -628,19 +628,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving
-            R += !PvNode + !improving;
+            R += 10 * !PvNode + 10 * !improving;
 
             // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+            R += 10 * (inCheck && pieceType(board->squares[MoveTo(move)]) == KING);
 
             // Reduce for Killers and Counters
-            R -= ns->mp.stage < STAGE_QUIET;
+            R -= 10 * (ns->mp.stage < STAGE_QUIET);
 
             // Adjust based on history scores
-            R -= MAX(-2, MIN(2, hist / 5000));
+            R -= MAX(-20, MIN(20, hist / 500));
 
             // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
+            R = MIN(depth - 1, MAX(R / 10, 1));
         }
 
         // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 15A, but
@@ -648,13 +648,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         else if (!isQuiet && depth > 2 && played > 1) {
 
             // Initialize R based on Capture History
-            R = MIN(3, 3 - (hist + 4000) / 2000);
+            R = MIN(30, 30 - (hist + 4000) / 200);
 
             // Reduce for moves that give check
-            R -= !!board->kingAttackers;
+            R -= 10 * !!board->kingAttackers;
 
             // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
+            R = MIN(depth - 1, MAX(R / 10, 1));
         }
 
         // No LMR conditions were met. Use a Standard Reduction
