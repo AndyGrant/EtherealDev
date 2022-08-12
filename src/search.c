@@ -597,12 +597,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && !thread->index && elapsed_time(thread->tm) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
-        // Identify moves which are candidate singular moves
+        // Identify moves which are candidate singular moves.
+        // Do more singular searches on every alternating helper threads.
         singular =  !RootNode
-                 &&  depth >= 8
                  &&  move == ttMove
                  &&  ttDepth >= depth - 3
-                 && (ttBound & BOUND_LOWER);
+                 && (ttBound & BOUND_LOWER)
+                 &&  depth >= (thread->index & 0x2) ? 6 : 8;
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
