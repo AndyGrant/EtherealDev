@@ -21,6 +21,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -254,7 +255,7 @@ void aspirationWindow(Thread *thread) {
     while (1) {
 
         // Perform a search and consider reporting results
-        pv.score = search(thread, &pv, alpha, beta, MAX(1, depth));
+        pv.score = search(thread, &pv, alpha, beta, MAX(1, depth), FALSE);
         if (   (report && pv.score > alpha && pv.score < beta)
             || (report && elapsed_time(thread->tm) >= WindowTimerMS))
             uciReport(thread->threads, &pv, alpha, beta);
@@ -286,7 +287,7 @@ void aspirationWindow(Thread *thread) {
     }
 }
 
-int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
+int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool reduced) {
 
     Board *const board   = &thread->board;
     NodeState *const ns  = &thread->states[thread->height];
@@ -369,7 +370,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // An entry coming from one depth lower than we would accept for a cutoff will
         // still be accepted if it appears that failing low will trigger a research.
-        if (   !PvNode
+        if (    reduced
             &&  ttDepth >= depth - 1
             && (ttBound & BOUND_UPPER)
             &&  ttValue + TTResearchMargin <= alpha)
@@ -476,7 +477,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
 
         apply(thread, board, NULL_MOVE);
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R);
+        value = -search(thread, &lpv, -beta, -beta+1, depth-R, FALSE);
         revert(thread, board, NULL_MOVE);
 
         // Don't return unproven TB-Wins or Mates
@@ -507,7 +508,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // For low depths, or after the above, verify with a reduced search
                 if (depth < 2 * ProbCutDepth || value >= rBeta)
-                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, FALSE);
 
                 // Revert the board state
                 revert(thread, board, move);
@@ -671,21 +672,21 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 18A. If we triggered the LMR conditions (which we know by the value of R),
         // then we will perform a reduced search on the null alpha window, as we have no
         // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
+        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, TRUE);
 
         // Step 18B. There are two situations in which we will search again on a null window,
         // but without a depth reduction R. First, if the LMR search happened, and failed
         // high, secondly, if we did not try an LMR search, and this is not the first move
         // we have tried in a PvNode, we will research with the normally reduced depth
         if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, FALSE);
 
         // Step 18C. Finally, if we are in a PvNode and a move beat alpha while being
         // search on a reduced depth, we will search again on the normal window. Also,
         // if we did not perform Step 18B, we will search for the first time on the
         // normal window. This happens only for the first move in a PvNode
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, FALSE);
 
         // Revert the board state
         revert(thread, board, move);
@@ -973,7 +974,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
 
     // Search on a null rBeta window, excluding the tt-move
     ns->excluded = ttMove;
-    value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2);
+    value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2, FALSE);
     ns->excluded = NONE_MOVE;
 
     // We reused the Move Picker, so make sure we cleanup
