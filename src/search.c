@@ -368,10 +368,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         }
 
         // An entry coming from one depth lower than we would accept for a cutoff will
-        // still be accepted if it appears that failing low will trigger a research.
+        // still be accepted if it appears that failing low will trigger a research. NULL
+        // moves are an exception, since failing-low will trigger a fail-high in the parent.
         if (   !PvNode
             &&  ttDepth >= depth - 1
             && (ttBound & BOUND_UPPER)
+            && (ns-1)->move != NULL_MOVE
             &&  ttValue + TTResearchMargin <= alpha)
             return alpha;
     }
