@@ -373,7 +373,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  ttDepth >= depth - 1
             && (ttBound & BOUND_UPPER)
             &&  ttValue + TTResearchMargin <= alpha)
-            return alpha;
+            return ttValue;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
