@@ -370,6 +370,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // An entry coming from one depth lower than we would accept for a cutoff will
         // still be accepted if it appears that failing low will trigger a research.
         if (   !PvNode
+            && !ns->expecting_low
             &&  ttDepth >= depth - 1
             && (ttBound & BOUND_UPPER)
             &&  ttValue + TTResearchMargin <= alpha)
@@ -377,12 +378,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Let a lower depth entry produce a fail-high, if the parent node is
         // expecting us to fail-low in order to produce an immediate cutoff.
-        if (   !PvNode
-            &&  ns->expecting_low
-            &&  ttDepth >= depth - 1
-            && (ttBound & BOUND_LOWER)
-            &&  ttValue - TTResearchMargin >= beta)
-            return beta;
+        // if (   !PvNode
+        //     &&  ns->expecting_low
+        //     &&  ttDepth >= depth - 1
+        //     && (ttBound & BOUND_LOWER)
+        //     &&  ttValue - TTResearchMargin >= beta)
+        //     return beta;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
