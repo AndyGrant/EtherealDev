@@ -509,12 +509,13 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        ns->expecting_low = TRUE;
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
+
+                ns->expecting_low = TRUE;
 
                 // For high depths, verify the move first with a qsearch
                 if (depth >= 2 * ProbCutDepth)
@@ -523,6 +524,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 // For low depths, or after the above, verify with a reduced search
                 if (depth < 2 * ProbCutDepth || value >= rBeta)
                     value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+
+                ns->expecting_low = FALSE;
 
                 // Revert the board state
                 revert(thread, board, move);
