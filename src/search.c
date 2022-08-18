@@ -374,6 +374,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             && (ttBound & BOUND_UPPER)
             &&  ttValue + TTResearchMargin <= alpha)
             return alpha;
+
+        // Let a lower depth entry produce a fail-high, if the parent node is
+        // expecting us to fail-low in order to produce an immediate cutoff.
+        if (   !PvNode
+            &&  ns->expecting_low
+            &&  ttDepth >= depth - 1
+            && (ttBound & BOUND_LOWER)
+            &&  ttValue - TTResearchMargin >= beta)
+            return beta;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -475,8 +484,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Dynamic R based on Depth, Eval, and Tactical state
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
 
+        ns->expecting_low = TRUE;
         apply(thread, board, NULL_MOVE);
+
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
+
+        ns->expecting_low = FALSE;
         revert(thread, board, NULL_MOVE);
 
         // Don't return unproven TB-Wins or Mates
@@ -495,6 +508,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
+        ns->expecting_low = TRUE;
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
@@ -520,6 +534,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 if (value >= rBeta) return value;
             }
         }
+
+        ns->expecting_low = FALSE; // Reset flag
     }
 
     // Step 11. Initialize the Move Picker and being searching through each
