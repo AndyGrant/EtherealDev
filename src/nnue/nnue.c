@@ -252,18 +252,12 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
 
         #if defined(USE_AVX2)
 
-        __m128i sumabcd1 = _mm256_extracti128_si256(acc0, 0);
-        __m128i sumabcd2 = _mm256_extracti128_si256(acc0, 1);
-        __m128i sumefgh1 = _mm256_extracti128_si256(acc4, 0);
-        __m128i sumefgh2 = _mm256_extracti128_si256(acc4, 1);
+        const vepi32 summed = vepi32_add(
+            _mm256_permute2x128_si256(acc0, acc4, 0x20),
+            _mm256_permute2x128_si256(acc0, acc4, 0x31)
+        );
 
-        sumabcd1 = _mm_add_epi32(sumabcd1, sumabcd2);
-        sumefgh1 = _mm_add_epi32(sumefgh1, sumefgh2);
-
-        acc0 = _mm256_inserti128_si256(_mm256_castsi128_si256(sumabcd1), sumefgh1, 1);
-        acc0 = _mm256_add_epi32(acc0, bia[i]);
-        acc0 = _mm256_max_epi32(acc0, zero);
-        out[i] = _mm256_cvtepi32_ps(acc0);
+        out[i] = _mm256_cvtepi32_ps(_mm256_max_epi32(zero, _mm256_add_epi32(bia[i], summed)));
 
         #elif defined (USE_AVX)
 
@@ -328,16 +322,12 @@ INLINE void float_affine_relu(float *weights, float *biases, float *inputs, floa
 
         #if defined(USE_AVX2) || defined(USE_AVX)
 
-        __m128 sumabcd1 = _mm256_extractf128_ps(acc0, 0);
-        __m128 sumabcd2 = _mm256_extractf128_ps(acc0, 1);
-        __m128 sumefgh1 = _mm256_extractf128_ps(acc4, 0);
-        __m128 sumefgh2 = _mm256_extractf128_ps(acc4, 1);
+        const vps32 summed = vps32_add(
+            _mm256_permute2f128_ps(acc0, acc4, 0x20),
+            _mm256_permute2f128_ps(acc0, acc4, 0x31)
+        );
 
-        sumabcd1 = _mm_add_ps(sumabcd1, sumabcd2);
-        sumefgh1 = _mm_add_ps(sumefgh1, sumefgh2);
-
-        acc0 = _mm256_insertf128_ps(_mm256_castps128_ps256(sumabcd1), sumefgh1, 1);
-        out[i] = _mm256_max_ps(zero, _mm256_add_ps(bia[i], acc0));
+        out[i] = _mm256_max_ps(zero, _mm256_add_ps(bia[i], summed));
 
         #elif defined(USE_SSSE3)
 
