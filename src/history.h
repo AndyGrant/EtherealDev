@@ -35,3 +35,5 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
 int  get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist);
 void get_quiet_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length);
 void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int depth);
+
+int  get_history(Thread *thread, uint16_t move);

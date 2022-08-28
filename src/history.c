@@ -204,3 +204,13 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
         update_history(histories[2], depth, i == length - 1);
     }
 }
+
+
+int get_history(Thread *thread, uint16_t move) {
+
+    if (moveIsTactical(&thread->board, move))
+        return get_capture_history(thread, move);
+
+    int cmhist, fmhist; // Unused
+    return get_quiet_history(thread, move, &cmhist, &fmhist);
+}

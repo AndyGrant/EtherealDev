@@ -446,7 +446,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !inCheck
         && !ns->excluded
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
+        &&  eval - BetaMargin * depth > beta
+        && (!ttMove || get_history(thread, ttMove) > 0))
         return eval;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
