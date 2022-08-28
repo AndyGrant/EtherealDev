@@ -20,6 +20,7 @@
 
 #include "board.h"
 #include "evaluate.h"
+#include "move.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
@@ -99,28 +100,29 @@ int tt_hashfull() {
     return used / TT_BUCKET_NB;
 }
 
-bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
+bool tt_probe(Board *board, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
 
     /// Search for a Transposition matching the provided Zobrist Hash. If one is found,
     /// we update its age in order to indicate that it is still relevant, before copying
     /// over its contents and signaling to the caller that an Entry was found.
 
-    const uint16_t hash16 = hash >> 48;
-    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+    const uint16_t hash16 = board->hash >> 48;
+    TTEntry *slots = Table.buckets[board->hash & Table.hashMask].slots;
 
     for (int i = 0; i < TT_BUCKET_NB; i++) {
 
-        if (slots[i].hash16 == hash16) {
+        if (    slots[i].hash16 != hash16
+            || !moveIsPseudoLegal(board, slots[i].move))
+            continue;
 
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
+        slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
 
-            *move  = slots[i].move;
-            *value = tt_value_from(slots[i].value, height);
-            *eval  = slots[i].eval;
-            *depth = slots[i].depth;
-            *bound = slots[i].generation & TT_MASK_BOUND;
-            return TRUE;
-        }
+        *move  = slots[i].move;
+        *value = tt_value_from(slots[i].value, height);
+        *eval  = slots[i].eval;
+        *depth = slots[i].depth;
+        *bound = slots[i].generation & TT_MASK_BOUND;
+        return TRUE;
     }
 
     return FALSE;

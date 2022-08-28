@@ -85,7 +85,7 @@ void tt_prefetch(uint64_t hash);
 
 int tt_init(int megabytes);
 int tt_hashfull();
-bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound);
+bool tt_probe(Board *board, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound);
 void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound);
 
 

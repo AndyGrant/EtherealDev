@@ -354,7 +354,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         goto search_init_goto;
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = tt_probe(board, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
@@ -783,7 +783,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         return evaluateBoard(thread, board);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = tt_probe(board, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         // Table is exact or produces a cutoff
         if (    ttBound == BOUND_EXACT
