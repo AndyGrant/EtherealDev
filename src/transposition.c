@@ -111,8 +111,11 @@ bool tt_probe(Board *board, int height, uint16_t *move, int *value, int *eval, i
 
     for (int i = 0; i < TT_BUCKET_NB; i++) {
 
-        if (    slots[i].hash16 != hash16
-            || !moveIsPseudoLegal(board, slots[i].move))
+        if (slots[i].hash16 != hash16)
+            continue;
+
+        if (    slots[i].move != NONE_MOVE
+            && !moveIsPseudoLegal(board, slots[i].move))
             continue;
 
         slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
