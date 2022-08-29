@@ -205,8 +205,6 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
     const vps32  zero = vps32_zero();
     #endif
 
-    const vepi16 ones = vepi16_one;
-
     const vepi8  *inp = (vepi8  *) inputs;
     const vepi8  *wgt = (vepi8  *) weights;
     const vepi32 *bia = (vepi32 *) biases;
