@@ -207,37 +207,35 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         vepi32 acc6 = vepi32_zero();
         vepi32 acc7 = vepi32_zero();
 
-        // vepi32 *accs[8] = { &acc0, &acc1, &acc2, &acc3, &acc4, &acc5, &acc6, &acc7 };
-        //
-        // for (int idx = 0; idx < 8; idx++) {
-        //
-        //
-        //     vepi32 *acc = accs[idx];
-        //
-        //     for (int j = 0; j < InChunks; j += 8) {
-        //
-        //         const vepi16 sumA = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + idx) + j + 0]);
-        //         const vepi16 sumB = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + idx) + j + 1]);
-        //         const vepi16 sumC = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + idx) + j + 2]);
-        //         const vepi16 sumD = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + idx) + j + 3]);
-        //         const vepi16 sumE = vepi16_maubs(inp[j+4], wgt[InChunks * (i * 8 + idx) + j + 4]);
-        //         const vepi16 sumF = vepi16_maubs(inp[j+5], wgt[InChunks * (i * 8 + idx) + j + 5]);
-        //         const vepi16 sumG = vepi16_maubs(inp[j+6], wgt[InChunks * (i * 8 + idx) + j + 6]);
-        //         const vepi16 sumH = vepi16_maubs(inp[j+7], wgt[InChunks * (i * 8 + idx) + j + 7]);
-        //
-        //
-        //         const vepi16 sumGH = vepi16_add(sumG, sumH);
-        //         const vepi16 sumEF = vepi16_add(sumE, sumF);
-        //         const vepi16 sumCD = vepi16_add(sumC, sumD);
-        //         const vepi16 sumAB = vepi16_add(sumA, sumB);
-        //
-        //         const vepi16 sumABCD = vepi16_add(sumAB, sumCD);
-        //         const vepi16 sumEFGH = vepi16_add(sumEF, sumGH);
-        //
-        //         *acc = vepi32_add(*acc, vepi16_madd(ones, vepi16_add(sumABCD, sumEFGH)));
-        //     }
-        // }
+        vepi32 *accs[8] = { &acc0, &acc1, &acc2, &acc3, &acc4, &acc5, &acc6, &acc7 };
 
+        for (int idx = 0; idx < 8; idx++) {
+
+            vepi32 *acc = accs[idx];
+
+            for (int j = 0; j < InChunks; j += 8) {
+
+                const vepi16 sumA = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + idx) + j + 0]);
+                const vepi16 sumB = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + idx) + j + 1]);
+                const vepi16 sumC = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + idx) + j + 2]);
+                const vepi16 sumD = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + idx) + j + 3]);
+                const vepi16 sumE = vepi16_maubs(inp[j+4], wgt[InChunks * (i * 8 + idx) + j + 4]);
+                const vepi16 sumF = vepi16_maubs(inp[j+5], wgt[InChunks * (i * 8 + idx) + j + 5]);
+                const vepi16 sumG = vepi16_maubs(inp[j+6], wgt[InChunks * (i * 8 + idx) + j + 6]);
+                const vepi16 sumH = vepi16_maubs(inp[j+7], wgt[InChunks * (i * 8 + idx) + j + 7]);
+
+                const vepi16 sumGH = vepi16_add(sumG, sumH);
+                const vepi16 sumEF = vepi16_add(sumE, sumF);
+                const vepi16 sumCD = vepi16_add(sumC, sumD);
+                const vepi16 sumAB = vepi16_add(sumA, sumB);
+
+                const vepi16 sumABCD = vepi16_add(sumAB, sumCD);
+                const vepi16 sumEFGH = vepi16_add(sumEF, sumGH);
+
+                *acc = vepi32_add(*acc, vepi16_madd(ones, vepi16_add(sumABCD, sumEFGH)));
+            }
+        }
+/*
         for (int j = 0; j < InChunks; j += 4) {
 
             vepi16 sum0A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 0) + j + 0]);
@@ -296,7 +294,7 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
             vepi16 sum7X = vepi16_add(sum7A, vepi16_add(sum7B, vepi16_add(sum7C, sum7D)));
             acc7 = vepi32_add(acc7, vepi16_madd(ones, sum7X));
         }
-
+*/
         acc0 = vepi32_hadd(acc0, acc1);
         acc2 = vepi32_hadd(acc2, acc3);
         acc0 = vepi32_hadd(acc0, acc2);
