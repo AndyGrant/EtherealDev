@@ -139,6 +139,22 @@ static void abort_nnue(const char *reason) {
 }
 
 
+INLINE void maddubs_x4(vepi32 *acc, const vepi8 *inp, const vepi8 *wgt, int i, int j, int k) {
+
+    vepi16 ones = vepi16_one;
+    static const int InChunks = L1SIZE / vepi8_cnt;
+
+    vepi16 sum0A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + k) + j + 0]);
+    vepi16 sum0B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + k) + j + 1]);
+    vepi16 sum0C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + k) + j + 2]);
+    vepi16 sum0D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + k) + j + 3]);
+
+    vepi16 sum0X = vepi16_add(sum0A, vepi16_add(sum0B, vepi16_add(sum0C, sum0D)));
+    *acc = vepi32_add(*acc, vepi16_madd(ones, sum0X));
+}
+
+
+
 INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
     // The accumulation of king-piece values has already been computed.
@@ -178,7 +194,7 @@ INLINE void halfkp_relu(NNUEAccumulator *accum, uint8_t *outputs, int turn) {
 
 INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs, float *outputs) {
 
-    assert(L1SIZE % 16 == 0 && L2SIZE % 8 == 0);
+    assert(L1SIZE % 64 == 0 && L2SIZE % 8 == 0);
 
     const int InChunks  = L1SIZE / vepi8_cnt;
     const int OutChunks = L2SIZE / 8;
@@ -207,94 +223,15 @@ INLINE void quant_affine_relu(int8_t *weights, int32_t *biases, uint8_t *inputs,
         vepi32 acc6 = vepi32_zero();
         vepi32 acc7 = vepi32_zero();
 
-        // vepi32 *accs[8] = { &acc0, &acc1, &acc2, &acc3, &acc4, &acc5, &acc6, &acc7 };
-        //
-        // for (int idx = 0; idx < 8; idx++) {
-        //
-        //
-        //     vepi32 *acc = accs[idx];
-        //
-        //     for (int j = 0; j < InChunks; j += 8) {
-        //
-        //         const vepi16 sumA = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + idx) + j + 0]);
-        //         const vepi16 sumB = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + idx) + j + 1]);
-        //         const vepi16 sumC = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + idx) + j + 2]);
-        //         const vepi16 sumD = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + idx) + j + 3]);
-        //         const vepi16 sumE = vepi16_maubs(inp[j+4], wgt[InChunks * (i * 8 + idx) + j + 4]);
-        //         const vepi16 sumF = vepi16_maubs(inp[j+5], wgt[InChunks * (i * 8 + idx) + j + 5]);
-        //         const vepi16 sumG = vepi16_maubs(inp[j+6], wgt[InChunks * (i * 8 + idx) + j + 6]);
-        //         const vepi16 sumH = vepi16_maubs(inp[j+7], wgt[InChunks * (i * 8 + idx) + j + 7]);
-        //
-        //
-        //         const vepi16 sumGH = vepi16_add(sumG, sumH);
-        //         const vepi16 sumEF = vepi16_add(sumE, sumF);
-        //         const vepi16 sumCD = vepi16_add(sumC, sumD);
-        //         const vepi16 sumAB = vepi16_add(sumA, sumB);
-        //
-        //         const vepi16 sumABCD = vepi16_add(sumAB, sumCD);
-        //         const vepi16 sumEFGH = vepi16_add(sumEF, sumGH);
-        //
-        //         *acc = vepi32_add(*acc, vepi16_madd(ones, vepi16_add(sumABCD, sumEFGH)));
-        //     }
-        // }
-
         for (int j = 0; j < InChunks; j += 4) {
-
-            vepi16 sum0A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 0) + j + 0]);
-            vepi16 sum0B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 0) + j + 1]);
-            vepi16 sum0C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 0) + j + 2]);
-            vepi16 sum0D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 0) + j + 3]);
-            vepi16 sum0X = vepi16_add(sum0A, vepi16_add(sum0B, vepi16_add(sum0C, sum0D)));
-            acc0 = vepi32_add(acc0, vepi16_madd(ones, sum0X));
-
-            vepi16 sum1A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 1) + j + 0]);
-            vepi16 sum1B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 1) + j + 1]);
-            vepi16 sum1C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 1) + j + 2]);
-            vepi16 sum1D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 1) + j + 3]);
-            vepi16 sum1X = vepi16_add(sum1A, vepi16_add(sum1B, vepi16_add(sum1C, sum1D)));
-            acc1 = vepi32_add(acc1, vepi16_madd(ones, sum1X));
-
-            vepi16 sum2A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 2) + j + 0]);
-            vepi16 sum2B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 2) + j + 1]);
-            vepi16 sum2C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 2) + j + 2]);
-            vepi16 sum2D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 2) + j + 3]);
-            vepi16 sum2X = vepi16_add(sum2A, vepi16_add(sum2B, vepi16_add(sum2C, sum2D)));
-            acc2 = vepi32_add(acc2, vepi16_madd(ones, sum2X));
-
-            vepi16 sum3A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 3) + j + 0]);
-            vepi16 sum3B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 3) + j + 1]);
-            vepi16 sum3C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 3) + j + 2]);
-            vepi16 sum3D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 3) + j + 3]);
-            vepi16 sum3X = vepi16_add(sum3A, vepi16_add(sum3B, vepi16_add(sum3C, sum3D)));
-            acc3 = vepi32_add(acc3, vepi16_madd(ones, sum3X));
-
-            vepi16 sum4A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 4) + j + 0]);
-            vepi16 sum4B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 4) + j + 1]);
-            vepi16 sum4C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 4) + j + 2]);
-            vepi16 sum4D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 4) + j + 3]);
-            vepi16 sum4X = vepi16_add(sum4A, vepi16_add(sum4B, vepi16_add(sum4C, sum4D)));
-            acc4 = vepi32_add(acc4, vepi16_madd(ones, sum4X));
-
-            vepi16 sum5A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 5) + j + 0]);
-            vepi16 sum5B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 5) + j + 1]);
-            vepi16 sum5C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 5) + j + 2]);
-            vepi16 sum5D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 5) + j + 3]);
-            vepi16 sum5X = vepi16_add(sum5A, vepi16_add(sum5B, vepi16_add(sum5C, sum5D)));
-            acc5 = vepi32_add(acc5, vepi16_madd(ones, sum5X));
-
-            vepi16 sum6A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 6) + j + 0]);
-            vepi16 sum6B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 6) + j + 1]);
-            vepi16 sum6C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 6) + j + 2]);
-            vepi16 sum6D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 6) + j + 3]);
-            vepi16 sum6X = vepi16_add(sum6A, vepi16_add(sum6B, vepi16_add(sum6C, sum6D)));
-            acc6 = vepi32_add(acc6, vepi16_madd(ones, sum6X));
-
-            vepi16 sum7A = vepi16_maubs(inp[j+0], wgt[InChunks * (i * 8 + 7) + j + 0]);
-            vepi16 sum7B = vepi16_maubs(inp[j+1], wgt[InChunks * (i * 8 + 7) + j + 1]);
-            vepi16 sum7C = vepi16_maubs(inp[j+2], wgt[InChunks * (i * 8 + 7) + j + 2]);
-            vepi16 sum7D = vepi16_maubs(inp[j+3], wgt[InChunks * (i * 8 + 7) + j + 3]);
-            vepi16 sum7X = vepi16_add(sum7A, vepi16_add(sum7B, vepi16_add(sum7C, sum7D)));
-            acc7 = vepi32_add(acc7, vepi16_madd(ones, sum7X));
+            maddubs_x4(&acc0, inp, wgt, i, j, 0);
+            maddubs_x4(&acc1, inp, wgt, i, j, 1);
+            maddubs_x4(&acc2, inp, wgt, i, j, 2);
+            maddubs_x4(&acc3, inp, wgt, i, j, 3);
+            maddubs_x4(&acc4, inp, wgt, i, j, 4);
+            maddubs_x4(&acc5, inp, wgt, i, j, 5);
+            maddubs_x4(&acc6, inp, wgt, i, j, 6);
+            maddubs_x4(&acc7, inp, wgt, i, j, 7);
         }
 
         acc0 = vepi32_hadd(acc0, acc1);
