@@ -414,9 +414,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     eval = ns->eval = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
-    // Use the ttValue as a better static evaluation (Which is within [-2000, 2000])
+    // Use the ttValue as a better static evaluation
     if (   !inCheck
-        &&  abs(ttValue) < 2000
         &&  ttValue != VALUE_NONE
         && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
         eval = ttValue;
