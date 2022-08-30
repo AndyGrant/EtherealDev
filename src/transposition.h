@@ -52,8 +52,8 @@
 
 enum {
     BOUND_NONE  = 0,
-    BOUND_LOWER = 1,
-    BOUND_UPPER = 2,
+    BOUND_UPPER = 1,
+    BOUND_LOWER = 2,
     BOUND_EXACT = 3,
 
     TT_MASK_BOUND = 0x03,
