@@ -297,7 +297,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     unsigned tbresult;
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
-    int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
+    int ttHit = 0, ttValue = VALUE_NONE, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, seeMargin[2];
@@ -414,12 +414,19 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     eval = ns->eval = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
+    // Use the ttValue as a better static evaluation (Which is within [-2000, 2000])
+    if (   !inCheck
+        &&  abs(ttValue) < 2000
+        &&  ttValue != VALUE_NONE
+        && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
+        eval = ttValue;
+
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
     seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
-    improving = !inCheck && eval > (ns-2)->eval;
+    improving = !inCheck && ns->eval > (ns-2)->eval;
 
     // Reset Killer moves for our children
     thread->killers[thread->height+1][0] = NONE_MOVE;
@@ -433,7 +440,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !inCheck && !ns->excluded)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, ns->eval, 0, BOUND_NONE);
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
@@ -446,8 +453,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !inCheck
         && !ns->excluded
         &&  depth <= BetaPruningDepth
-        &&  eval - BetaMargin * depth > beta)
-        return eval;
+        &&  ns->eval - BetaMargin * depth > beta)
+        return ns->eval;
 
     // Step 8 (~3 elo). Alpha Pruning for main search loop. The idea is
     // that for low depths if eval is so bad that even a large static
@@ -456,8 +463,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !inCheck
         && !ns->excluded
         &&  depth <= AlphaPruningDepth
-        &&  eval + AlphaMargin <= alpha)
-        return eval;
+        &&  ns->eval + AlphaMargin <= alpha)
+        return ns->eval;
 
     // Step 9 (~93 elo). Null Move Pruning. If our position is so strong
     // that giving our opponent a double move still allows us to maintain
@@ -467,13 +474,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !inCheck
         && !ns->excluded
         &&  eval >= beta
+        &&  eval >= ns->eval
         && (ns-1)->move != NULL_MOVE
         &&  depth >= NullMovePruningDepth
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         // Dynamic R based on Depth, Eval, and Tactical state
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
+        R = 4 + depth / 6 + MIN(3, (ns->eval - beta) / 200) + (ns-1)->tactical;
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
@@ -495,7 +503,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
+        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - ns->eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
@@ -514,7 +522,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Store an entry if we don't have a better one already
                 if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
-                    tt_store(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
+                    tt_store(board->hash, thread->height, move, value, ns->eval, depth-3, BOUND_LOWER);
 
                 // Probcut failed high verifying the cutoff
                 if (value >= rBeta) return value;
@@ -561,7 +569,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
             if (   !inCheck
-                &&  eval + fmpMargin <= alpha
+                &&  ns->eval + fmpMargin <= alpha
                 &&  lmrDepth <= FutilityPruningDepth
                 &&  hist < FutilityPruningHistoryLimit[improving])
                 skipQuiets = 1;
@@ -571,7 +579,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // we can somewhat safely skip all quiet moves after this one
             if (   !inCheck
                 &&  lmrDepth <= FutilityPruningDepth
-                &&  eval + fmpMargin + FutilityMarginNoHistory <= alpha)
+                &&  ns->eval + fmpMargin + FutilityMarginNoHistory <= alpha)
                 skipQuiets = 1;
 
             // Step 13C (~10 elo). Continuation Pruning. Moves with poor counter
@@ -741,7 +749,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (!ns->excluded && (!RootNode || !thread->multiPV)) {
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        tt_store(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
+        tt_store(board->hash, thread->height, bestMove, best, ns->eval, depth, ttBound);
     }
 
     return best;
