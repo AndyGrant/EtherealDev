@@ -414,10 +414,6 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     eval = ns->eval = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
-    // Static Exchange Evaluation Pruning Margins
-    seeMargin[0] = SEENoisyMargin * depth * depth;
-    seeMargin[1] = SEEQuietMargin * depth;
-
     // Improving if our static eval increased in the last move
     improving = !inCheck && eval > (ns-2)->eval;
 
@@ -483,6 +479,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (value >= beta)
             return (value > TBWIN_IN_MAX) ? beta : value;
     }
+
+    // Verbatim Stockfish-ish
+    if (PvNode && !ttMove && !inCheck)
+        depth -= 3;
+
+    if (depth <= 0 && !inCheck)
+        return qsearch(thread, pv, alpha, beta);
+
+    // Static Exchange Evaluation Pruning Margins
+    seeMargin[0] = SEENoisyMargin * depth * depth;
+    seeMargin[1] = SEEQuietMargin * depth;
 
     // Step 10 (~9 elo). Probcut Pruning. If we have a good capture that causes a
     // cutoff with an adjusted beta value at a reduced search depth, we expect that
