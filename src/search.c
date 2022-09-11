@@ -733,7 +733,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 21. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
     // score based on how far or close the mate is to the root position
-    if (played == 0) return inCheck ? -MATE + thread->height : 0;
+    if (played == 0) best = inCheck ? -MATE + thread->height : 0;
 
     // Step 22. Store results of search into the Transposition Table. We do not overwrite
     // the Root entry from the first line of play we examined. We also don't store into the
