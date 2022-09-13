@@ -511,8 +511,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
 
-                bool rrBeta = multicut && move != ttMove
-                            ? MIN(rBeta, MAX(ttValue - depth, -MATE)) : rBeta;
+                int rrBeta = multicut && move != ttMove
+                           ? MIN(rBeta, MAX(ttValue - depth, -MATE)) : rBeta;
 
                 // For high depths, verify the move first with a qsearch
                 if (depth >= 2 * ProbCutDepth)
