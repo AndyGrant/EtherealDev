@@ -494,6 +494,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         &&  abs(beta) < TBWIN_IN_MAX
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
+        // Singular ???
+        if (    depth >= 8
+            &&  ttDepth >= depth - 3
+            && (ttBound & BOUND_LOWER)
+            && !moveIsTactical(board, ttMove)
+            &&  MAX(ttValue - depth, -MATE) >= beta
+            &&  moveIsLegal(board, ttMove)
+            &&  moveIsPseudoLegal(board, ttMove))
+            rBeta = MIN(rBeta, MAX(ttValue - depth, -MATE));
+
         // Try tactical moves which maintain rBeta.
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
