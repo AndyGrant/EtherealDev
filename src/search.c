@@ -495,14 +495,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Singular ???
-        if (    depth >= 8
-            &&  ttDepth >= depth - 3
-            && (ttBound & BOUND_LOWER)
-            && !moveIsTactical(board, ttMove)
-            &&  MAX(ttValue - depth, -MATE) >= beta
-            &&  moveIsLegal(board, ttMove)
-            &&  moveIsPseudoLegal(board, ttMove))
-            rBeta = MIN(rBeta, MAX(ttValue - depth, -MATE));
+
+        bool multicut = depth >= 8
+                    &&  ttDepth >= depth - 3
+                    && (ttBound & BOUND_LOWER)
+                    && !moveIsTactical(board, ttMove)
+                    &&  MAX(ttValue - depth, -MATE) >= beta
+                    &&  moveIsLegal(board, ttMove)
+                    &&  moveIsPseudoLegal(board, ttMove);
 
         // Try tactical moves which maintain rBeta.
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
@@ -511,23 +511,26 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
 
+                bool rrBeta = multicut && move != ttMove
+                            ? MIN(rBeta, MAX(ttValue - depth, -MATE)) : rBeta;
+
                 // For high depths, verify the move first with a qsearch
                 if (depth >= 2 * ProbCutDepth)
-                    value = -qsearch(thread, &lpv, -rBeta, -rBeta+1);
+                    value = -qsearch(thread, &lpv, -rrBeta, -rrBeta+1);
 
                 // For low depths, or after the above, verify with a reduced search
-                if (depth < 2 * ProbCutDepth || value >= rBeta)
-                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+                if (depth < 2 * ProbCutDepth || value >= rrBeta)
+                    value = -search(thread, &lpv, -rrBeta, -rrBeta+1, depth-4);
 
                 // Revert the board state
                 revert(thread, board, move);
 
                 // Store an entry if we don't have a better one already
-                if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
+                if (value >= rrBeta && (!ttHit || ttDepth < depth - 3))
                     tt_store(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
 
                 // Probcut failed high verifying the cutoff
-                if (value >= rBeta) return value;
+                if (value >= rrBeta) return value;
             }
         }
     }
