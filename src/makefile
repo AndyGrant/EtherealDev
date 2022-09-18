@@ -106,8 +106,8 @@ endif
 
 pgo:
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda *.profdata *.profraw
-	$(CC) $(PGOGEN) $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o $(EXE)
-	./$(EXE) bench > /dev/null 2>&1
+	$(CC) $(PGOGEN) $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o ethereal-temp
+	./ethereal-temp bench > /dev/null 2>&1
 	$(PGOMERGE)
 	$(CC) $(PGOUSE) $(CFLAGS) $(PGOFLAGS) $(SRC) $(LIBS) -o $(EXE)
 	rm -f *.gcda pyrrhic/*.gcda nnue/*.gcda *.profdata *.profraw
