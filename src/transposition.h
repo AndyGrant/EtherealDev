@@ -57,8 +57,16 @@ enum {
     BOUND_EXACT = 3,
 
     TT_MASK_BOUND = 0x03,
-    TT_MASK_AGE   = 0xFC,
+    TT_MASK_TTPV  = 0x04,
+    TT_MASK_AGE   = 0xF8,
     TT_BUCKET_NB  = 3,
+};
+
+struct TTProbeData {
+    uint16_t move;
+    int value, eval;
+    int depth, bound;
+    bool ttpv;
 };
 
 struct TTEntry {
@@ -85,8 +93,8 @@ void tt_prefetch(uint64_t hash);
 
 int tt_init(int megabytes);
 int tt_hashfull();
-bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound);
-void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound);
+bool tt_probe(uint64_t hash, int height, TTProbeData *tte);
+void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound, bool ttpv);
 
 
 /// The Pawn King table contains saved evaluations, and additional Pawn information

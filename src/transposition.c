@@ -32,19 +32,21 @@ TTable Table; // Global Transposition Table
 /// we will not know when we have a "faster" vs "slower" Mate or TB Win/Loss
 
 static int tt_value_from(int value, int height) {
-    return value >=  TBWIN_IN_MAX ? value - height
+    return value ==  VALUE_NONE   ? VALUE_NONE
+         : value >=  TBWIN_IN_MAX ? value - height
          : value <= -TBWIN_IN_MAX ? value + height : value;
 }
 
 static int tt_value_to(int value, int height) {
-    return value >=  TBWIN_IN_MAX ? value + height
+    return value ==  VALUE_NONE   ? VALUE_NONE
+         : value >=  TBWIN_IN_MAX ? value + height
          : value <= -TBWIN_IN_MAX ? value - height : value;
 }
 
 
 /// Trivial helper functions to Transposition Table handleing
 
-void tt_update() { Table.generation += TT_MASK_BOUND + 1; }
+void tt_update() { Table.generation += 8; }
 void tt_clear() { memset(Table.buckets, 0, sizeof(TTBucket) * (Table.hashMask + 1u)); }
 void tt_prefetch(uint64_t hash) { __builtin_prefetch(&Table.buckets[hash & Table.hashMask]); }
 
@@ -99,7 +101,7 @@ int tt_hashfull() {
     return used / TT_BUCKET_NB;
 }
 
-bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
+bool tt_probe(uint64_t hash, int height, TTProbeData *tte) {
 
     /// Search for a Transposition matching the provided Zobrist Hash. If one is found,
     /// we update its age in order to indicate that it is still relevant, before copying
@@ -112,13 +114,14 @@ bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, 
 
         if (slots[i].hash16 == hash16) {
 
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
+            slots[i].generation = Table.generation | (slots[i].generation & 0x7);
 
-            *move  = slots[i].move;
-            *value = tt_value_from(slots[i].value, height);
-            *eval  = slots[i].eval;
-            *depth = slots[i].depth;
-            *bound = slots[i].generation & TT_MASK_BOUND;
+            tte->move  = slots[i].move;
+            tte->value = tt_value_from(slots[i].value, height);
+            tte->eval  = slots[i].eval;
+            tte->depth = slots[i].depth;
+            tte->bound = slots[i].generation & TT_MASK_BOUND;
+            tte->ttpv  = 0x1 & (slots[i].generation >> 2);
             return TRUE;
         }
     }
@@ -126,7 +129,7 @@ bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, 
     return FALSE;
 }
 
-void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound) {
+void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound, bool ttpv) {
 
     int i;
     const uint16_t hash16 = hash >> 48;
@@ -136,8 +139,8 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
-            >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
+        if (   replace->depth - ((263 + Table.generation - replace->generation) & TT_MASK_AGE)
+            >= slots[i].depth - ((263 + Table.generation - slots[i].generation) & TT_MASK_AGE))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
@@ -152,7 +155,7 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
 
     // Finally, copy the new data into the replaced slot
     replace->depth      = (int8_t  ) depth;
-    replace->generation = (uint8_t ) bound | Table.generation;
+    replace->generation = (uint8_t ) bound | (ttpv << 2) | Table.generation;
     replace->value      = (int16_t ) tt_value_to(value, height);
     replace->eval       = (int16_t ) eval;
     replace->move       = (uint16_t) move;

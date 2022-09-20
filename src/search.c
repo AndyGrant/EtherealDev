@@ -295,15 +295,16 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     const int RootNode   = (thread->height == 0);
 
     unsigned tbresult;
+    int ttHit = 0, ttPv = PvNode;
     int hist = 0, cmhist = 0, fmhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
-    int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
-    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
+    int R, newDepth, rAlpha, rBeta, oldAlpha = alpha, bound;
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, seeMargin[2];
-    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
+    uint16_t move, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     PVariation lpv;
+    TTProbeData tte = {0};
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
     // moves to reach a more stable position for use as a static evaluation
@@ -354,26 +355,29 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         goto search_init_goto;
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = tt_probe(board->hash, thread->height, &tte))) {
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
+        if (tte.depth >= depth && (depth == 0 || !PvNode)) {
 
             // Table is exact or produces a cutoff
-            if (    ttBound == BOUND_EXACT
-                || (ttBound == BOUND_LOWER && ttValue >= beta)
-                || (ttBound == BOUND_UPPER && ttValue <= alpha))
-                return ttValue;
+            if (    tte.bound == BOUND_EXACT
+                || (tte.bound == BOUND_LOWER && tte.value >= beta)
+                || (tte.bound == BOUND_UPPER && tte.value <= alpha))
+                return tte.value;
         }
 
         // An entry coming from one depth lower than we would accept for a cutoff will
         // still be accepted if it appears that failing low will trigger a research.
         if (   !PvNode
-            &&  ttDepth >= depth - 1
-            && (ttBound & BOUND_UPPER)
-            &&  ttValue + TTResearchMargin <= alpha)
+            &&  tte.depth >= depth - 1
+            && (tte.bound & BOUND_UPPER)
+            &&  tte.value + TTResearchMargin <= alpha)
             return alpha;
+
+        // Also include nodes that used to be on the PV
+        ttPv |= ttHit && tte.ttpv;
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -391,15 +395,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Identify the bound based on WDL scores. For wins and losses the
         // bound is not exact because we are dependent on the height, but
         // for draws (and blessed / cursed) we know the tbresult to be exact
-        ttBound = tbresult == TB_LOSS ? BOUND_UPPER
-                : tbresult == TB_WIN  ? BOUND_LOWER : BOUND_EXACT;
+        bound = tbresult == TB_LOSS ? BOUND_UPPER
+              : tbresult == TB_WIN  ? BOUND_LOWER : BOUND_EXACT;
 
         // Check to see if the WDL value would cause a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && value >= beta)
-            || (ttBound == BOUND_UPPER && value <= alpha)) {
+        if (    bound == BOUND_EXACT
+            || (bound == BOUND_LOWER && value >= beta)
+            || (bound == BOUND_UPPER && value <= alpha)) {
 
-            tt_store(board->hash, thread->height, NONE_MOVE, value, VALUE_NONE, depth, ttBound);
+            tt_store(board->hash, thread->height, NONE_MOVE, value, VALUE_NONE, depth, bound, ttPv);
             return value;
         }
     }
@@ -412,7 +416,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Save a history of the static evaluations when not checked
     eval = ns->eval = inCheck ? VALUE_NONE
-         : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
+         : (ttHit && tte.eval != VALUE_NONE) ? tte.eval : evaluateBoard(thread, board);
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -433,7 +437,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !inCheck && !ns->excluded)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE, ttPv);
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
@@ -470,7 +474,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (ns-1)->move != NULL_MOVE
         &&  depth >= NullMovePruningDepth
         &&  boardHasNonPawnMaterial(board, board->turn)
-        && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
+        && (!ttHit || !(tte.bound & BOUND_UPPER) || tte.value >= beta)) {
 
         // Dynamic R based on Depth, Eval, and Tactical state
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
@@ -492,10 +496,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !ns->excluded
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX
-        && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
+        && (!ttHit || tte.value >= rBeta || tte.depth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
+        init_noisy_picker(&ns->mp, thread, tte.move, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
@@ -513,8 +517,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 revert(thread, board, move);
 
                 // Store an entry if we don't have a better one already
-                if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
-                    tt_store(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
+                if (value >= rBeta && (!ttHit || tte.depth < depth - 3))
+                    tt_store(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER, ttPv);
 
                 // Probcut failed high verifying the cutoff
                 if (value >= rBeta) return value;
@@ -525,7 +529,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff. We
     // reuse an already initialized MovePicker to verify Singular Extension
-    if (!ns->excluded) init_picker(&ns->mp, thread, ttMove);
+    if (!ns->excluded) init_picker(&ns->mp, thread, tte.move);
     while ((move = select_next(&ns->mp, thread, skipQuiets)) != NONE_MOVE) {
 
         const uint64_t starting_nodes = thread->nodes;
@@ -608,15 +612,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Identify moves which are candidate singular moves
         singular =  !RootNode
                  &&  depth >= 8
-                 &&  move == ttMove
-                 &&  ttDepth >= depth - 3
-                 && (ttBound & BOUND_LOWER);
+                 &&  move == tte.move
+                 &&  tte.depth >= depth - 3
+                 && (tte.bound & BOUND_LOWER);
 
         // Step 15 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, beta) : inCheck;
+        extension = singular ? singularity(thread, move, tte.value, depth, PvNode, beta) : inCheck;
         newDepth = depth + (!RootNode ? extension : 0);
         if (extension > 1) ns->dextensions++;
 
@@ -625,7 +629,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // which appear to beat beta at a reduced depth. singularity() sets the stage to STAGE_DONE
 
         if (ns->mp.stage == STAGE_DONE)
-            return MAX(ttValue - depth, -MATE);
+            return MAX(tte.value - depth, -MATE);
 
         // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
         // of Quiet moves after we've explored the main line. If a reduced search
@@ -636,7 +640,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
             // Increase for non PV, non improving
-            R += !PvNode + !improving;
+            R += !ttPv + !improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
@@ -739,9 +743,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // the Root entry from the first line of play we examined. We also don't store into the
     // Transposition Table while attempting to veryify singularities
     if (!ns->excluded && (!RootNode || !thread->multiPV)) {
-        ttBound = best >= beta    ? BOUND_LOWER
-                : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        tt_store(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
+        bound = best >= beta    ? BOUND_LOWER
+              : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+        tt_store(board->hash, thread->height, bestMove, best, eval, depth, bound, ttPv);
     }
 
     return best;
@@ -749,12 +753,14 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
+    const int PvNode    = (alpha != beta - 1);
+
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height];
 
-    int eval, value, best, oldAlpha = alpha;
-    int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
-    uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
+    int ttHit, ttPv, bound, eval, value, best, oldAlpha = alpha;
+    uint16_t move, bestMove = NONE_MOVE;
+    TTProbeData tte = {0};
     PVariation lpv;
 
     // Prefetch TT as early as reasonable
@@ -783,22 +789,25 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
         return evaluateBoard(thread, board);
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-    if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+    if ((ttHit = tt_probe(board->hash, thread->height, &tte))) {
 
         // Table is exact or produces a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && ttValue >= beta)
-            || (ttBound == BOUND_UPPER && ttValue <= alpha))
-            return ttValue;
+        if (    tte.bound == BOUND_EXACT
+            || (tte.bound == BOUND_LOWER && tte.value >= beta)
+            || (tte.bound == BOUND_UPPER && tte.value <= alpha))
+            return tte.value;
     }
 
     // Save a history of the static evaluations
-    eval = ns->eval = ttEval != VALUE_NONE
-                    ? ttEval : evaluateBoard(thread, board);
+    eval = ns->eval = (ttHit && tte.eval != VALUE_NONE)
+                    ? tte.eval : evaluateBoard(thread, board);
+
+    // Track nodes that are on, or were on, the PV
+    ttPv = PvNode || (ttHit && tte.ttpv);
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !board->kingAttackers)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE, ttPv);
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
@@ -860,9 +869,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     }
 
     // Step 8. Store results of search into the Transposition Table.
-    ttBound = best >= beta    ? BOUND_LOWER
-            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    tt_store(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    bound = best >= beta    ? BOUND_LOWER
+          : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+    tt_store(board->hash, thread->height, bestMove, best, eval, 0, bound, ttPv);
 
     return best;
 }

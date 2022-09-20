@@ -88,6 +88,7 @@ typedef struct TimeManager TimeManager;
 typedef struct PVariation PVariation;
 typedef struct NodeState NodeState;
 typedef struct Thread Thread;
+typedef struct TTProbeData TTProbeData;
 typedef struct TTEntry TTEntry;
 typedef struct TTBucket TTBucket;
 typedef struct PKEntry PKEntry;
