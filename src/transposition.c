@@ -139,8 +139,8 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
-        if (   replace->depth + 2 * !!(replace->generation & TT_MASK_TTPV) - ((263 + Table.generation - replace->generation) & TT_MASK_AGE)
-            >= slots[i].depth + 2 * !!(slots[i].generation & TT_MASK_TTPV) - ((263 + Table.generation - slots[i].generation) & TT_MASK_AGE))
+        if (   replace->depth - ((263 + Table.generation - replace->generation) & TT_MASK_AGE)
+            >= slots[i].depth - ((263 + Table.generation - slots[i].generation) & TT_MASK_AGE))
             replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
@@ -150,7 +150,7 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
     // an exact bound or depth that is nearly as good as the old one
     if (   bound != BOUND_EXACT
         && hash16 == replace->hash16
-        && depth < replace->depth - 2)
+        && depth + 2 * ttpv < replace->depth - 2)
         return;
 
     // Finally, copy the new data into the replaced slot
