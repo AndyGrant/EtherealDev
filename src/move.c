@@ -17,6 +17,7 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -724,6 +725,24 @@ int moveWasLegal(Board *board) {
     return !squareIsAttacked(board, !board->turn, sq);
 }
 
+
+bool move_gives_direct_check(const Board *board, uint16_t move) {
+
+    const int mtype = MoveType(move);
+
+    const int piece = mtype == PROMOTION_MOVE ? MovePromoType(move)
+                    : pieceType(board->squares[MoveFrom(move)]);
+
+    const uint64_t occupied = ~((1ull << MoveTo(move)) | (1ull << MoveFrom(move)))
+                            &  (board->colours[WHITE] | board->colours[BLACK]);
+
+    if (mtype == CASTLE_MOVE)
+        return FALSE;
+
+    return board->pieces[KING]
+         & board->colours[!board->turn]
+         & pieceAttacks(piece, board->turn, MoveTo(move), occupied);
+}
 
 void printMove(uint16_t move, int chess960) {
     char str[6]; moveToString(move, str, chess960);

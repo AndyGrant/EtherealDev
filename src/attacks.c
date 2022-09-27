@@ -164,6 +164,15 @@ uint64_t kingAttacks(int sq) {
     return KingAttacks[sq];
 }
 
+uint64_t pieceAttacks(int piece, int colour, int sq, uint64_t occupied) {
+
+    return piece == PAWN   ? pawnAttacks   (colour, sq)
+         : piece == KNIGHT ? knightAttacks (sq)
+         : piece == BISHOP ? bishopAttacks (sq, occupied)
+         : piece == ROOK   ? rookAttacks   (sq, occupied)
+         : piece == QUEEN  ? queenAttacks  (sq, occupied)
+                           : kingAttacks   (sq);
+}
 
 uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour) {
     return targets & (colour == WHITE ? (pawns << 7) & ~FILE_H

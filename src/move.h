@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "types.h"
@@ -62,6 +63,8 @@ int moveBestCaseValue(Board *board);
 int moveIsLegal(Board *board, uint16_t move);
 int moveIsPseudoLegal(Board *board, uint16_t move);
 int moveWasLegal(Board *board);
+
+bool move_gives_direct_check(const Board *board, uint16_t move);
 
 void printMove(uint16_t move, int chess960);
 void moveToString(uint16_t move, char *str, int chess960);

@@ -37,6 +37,7 @@ uint64_t bishopAttacks(int sq, uint64_t occupied);
 uint64_t rookAttacks(int sq, uint64_t occupied);
 uint64_t queenAttacks(int sq, uint64_t occupied);
 uint64_t kingAttacks(int sq);
+uint64_t pieceAttacks(int piece, int colour, int sq, uint64_t occupied);
 
 uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour);
 uint64_t pawnRightAttacks(uint64_t pawns, uint64_t targets, int colour);
