@@ -555,7 +555,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
             // Base LMR reduction, with a minor history extension to delay pruning on great moves
-            int lmrDepth = depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] + (hist > 10000);
+            int lmrDepth = depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] - (hist < -10000);
             int fmpMargin = FutilityMarginBase + MAX(0, lmrDepth) * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
