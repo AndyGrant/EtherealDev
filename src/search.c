@@ -554,9 +554,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // of the criteria below, only after proving a non mated line exists
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
-            // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth - LMRTable[MIN(depth, 63)][MIN(played, 63)]);
-            int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
+            // Base LMR reduction, with a minor history extension to delay pruning on great moves
+            int lmrDepth = depth - LMRTable[MIN(depth, 63)][MIN(played, 63)] + (hist > 10000);
+            int fmpMargin = FutilityMarginBase + MAX(0, lmrDepth) * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
             // and we don't expect anything from this move, we can skip all other quiets
