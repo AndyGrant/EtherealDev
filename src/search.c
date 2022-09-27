@@ -987,8 +987,8 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     else applyLegal(thread, board, ttMove);
 
     bool double_extend = !PvNode
-                      &&  value < rBeta - 15
-                      && (ns-1)->dextensions <= 6;
+                      && (ns-1)->dextensions <= 6
+                      &&  value < rBeta - 5 * ((ns-1)->dextensions + 1);
 
     return double_extend   ?  2 // Double extension in some non-pv nodes
          : value < rBeta   ?  1 // Singular due to no cutoffs produced
