@@ -50,17 +50,20 @@ static int history_captured_piece(Thread *thread, uint16_t move) {
 
 static int16_t* underlying_capture_history(Thread *thread, uint16_t move) {
 
+    NodeState *const ns  = &thread->states[thread->height];
+
     const int captured = history_captured_piece(thread, move);
     const int piece    = pieceType(thread->board.squares[MoveFrom(move)]);
 
     // Determine if piece evades and/or enters a threat
     const bool threat_from = testBit(thread->board.threats, MoveFrom(move));
     const bool threat_to   = testBit(thread->board.threats, MoveTo(move));
+    const bool recapture   = MoveTo(move) == MoveTo((ns-1)->move) && (ns-1)->tactical;
 
     assert(PAWN <= captured && captured <= QUEEN);
     assert(PAWN <= piece && piece <= KING);
 
-    return &thread->chistory[piece][threat_from][threat_to][MoveTo(move)][captured];
+    return &thread->chistory[piece][threat_from][threat_to][recapture][MoveTo(move)][captured];
 }
 
 static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *histories[3]) {
