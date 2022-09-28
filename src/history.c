@@ -143,10 +143,12 @@ void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int sta
     // we include an MVV-LVA factor to improve sorting. Additionally, we add 64k to
     // the history score to ensure it is >= 0 to differentiate good from bad later on
 
+    NodeState *const ns = &thread->states[thread->height];
     static const int MVVAugment[] = { 0, 2400, 2400, 4800, 9600 };
 
     for (int i = start; i < start + length; i++)
         scores[i] = 64000 + get_capture_history(thread, moves[i])
+                  + 16000 * (MoveTo((ns-1)->move) == MoveTo(moves[i]))
                   + MVVAugment[history_captured_piece(thread, moves[i])];
 }
 
