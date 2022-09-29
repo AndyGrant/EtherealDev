@@ -107,11 +107,7 @@ void update_history_heuristics(Thread *thread, uint16_t *moves, int length, int 
 
 void update_killer_moves(Thread *thread, uint16_t move) {
 
-    // Avoid saving the same Killer Move twice
-    if (thread->killers[thread->height][0] != move) {
-        thread->killers[thread->height][1] = thread->killers[thread->height][0];
-        thread->killers[thread->height][0] = move;
-    }
+    thread->killers[thread->height] = move;
 }
 
 void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2, uint16_t *counter) {
@@ -125,8 +121,10 @@ void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2, 
     *counter = (prev->move == NONE_MOVE || prev->move == NULL_MOVE) ? NONE_MOVE
              :  thread->cmtable[!thread->board.turn][prev->movedPiece][MoveTo(prev->move)];
 
-    *killer1 = thread->killers[thread->height][0];
-    *killer2 = thread->killers[thread->height][1];
+    *killer1 = thread->killers[thread->height];
+
+    *killer2 = thread->height <= 1 ? NONE_MOVE
+             : thread->killers[thread->height-2];
 }
 
 

@@ -97,7 +97,7 @@ typedef struct UCIGoStruct UCIGoStruct;
 
 // Renamings, currently for move ordering
 
-typedef uint16_t KillerTable[MAX_PLY+1][2];
+typedef uint16_t KillerTable[MAX_PLY+1];
 typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
 
 typedef int16_t HistoryTable[COLOUR_NB][2][2][SQUARE_NB][SQUARE_NB];

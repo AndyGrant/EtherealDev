@@ -421,9 +421,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Improving if our static eval increased in the last move
     improving = !inCheck && eval > (ns-2)->eval;
 
-    // Reset Killer moves for our children
-    thread->killers[thread->height+1][0] = NONE_MOVE;
-    thread->killers[thread->height+1][1] = NONE_MOVE;
+    // Reset Killer move for our children
+    thread->killers[thread->height+1] = NONE_MOVE;
 
     // Track the # of double extensions in this line
     ns->dextensions = RootNode ? 0 : (ns-1)->dextensions;
