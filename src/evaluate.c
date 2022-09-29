@@ -446,7 +446,7 @@ int evaluateBoard(Thread *thread, Board *board) {
         return -thread->states[thread->height-1].eval + 2 * Tempo;
 
     // Use the NNUE unless we are in an extremely unbalanced position
-    if (USE_NNUE && abs(ScoreEG(board->psqtmat)) <= 2000) {
+    if (USE_NNUE && abs(ScoreEG(board->psqtmat)) <= 500) {
         eval = nnue_evaluate(thread, board);
         eval = board->turn == WHITE  ? eval : -eval;
     }
