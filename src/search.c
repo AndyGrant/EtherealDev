@@ -816,7 +816,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
+    init_noisy_picker(&ns->mp, thread, ttBound == BOUND_LOWER ? ttMove : NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
