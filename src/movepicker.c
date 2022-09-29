@@ -73,11 +73,35 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
     mp->threshold = threshold;
     mp->type      = NOISY_PICKER;
 
+    // Skip over the tt captures that are not legal, or don't beat the threshold
+    if (moveIsTactical(&thread->board, tt_move))
+        mp->stage += !moveIsPseudoLegal(&thread->board, tt_move)
+                  || !staticExchangeEvaluation(&thread->board, tt_move, threshold);
+
+    // Skip over the tt quiets that are not legal, or if threshold is non-trivial
+    if (!moveIsTactical(&thread->board, tt_move))
+        mp->stage += !moveIsPseudoLegal(&thread->board, tt_move) || threshold > 1;
+}
+
+void init_probcut_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int threshold) {
+
+    // Start with the tt-move potentially
+    mp->stage   = STAGE_TABLE;
+    mp->tt_move = tt_move;
+
+    // Skip all of the refutation moves
+    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+
+    // General housekeeping
+    mp->threshold = threshold;
+    mp->type      = NOISY_PICKER;
+
     // Skip over the TT-move unless its a threshold-winning capture
     mp->stage += !moveIsTactical(&thread->board, tt_move)
               || !moveIsPseudoLegal(&thread->board, tt_move)
               || !staticExchangeEvaluation(&thread->board, tt_move, threshold);
 }
+
 
 uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 

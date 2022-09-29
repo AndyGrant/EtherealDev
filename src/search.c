@@ -495,7 +495,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
 
         // Try tactical moves which maintain rBeta.
-        init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
+        init_probcut_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
             // Apply move, skip if move is illegal
@@ -816,7 +816,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 7. Move Generation and Looping. Generate all tactical moves
     // and return those which are winning via SEE, and also strong enough
     // to beat the margin computed in the Delta Pruning step found above
-    init_noisy_picker(&ns->mp, thread, NONE_MOVE, MAX(1, alpha - eval - QSSeeMargin));
+    init_noisy_picker(&ns->mp, thread, ttMove, MAX(1, alpha - eval - QSSeeMargin));
     while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
         // Worst case which assumes we lose our piece immediately
