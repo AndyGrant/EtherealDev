@@ -295,7 +295,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     const int RootNode   = (thread->height == 0);
 
     unsigned tbresult;
-    int hist = 0, cmhist = 0, fmhist = 0;
+    int hist = 0, cmhist = 0, fmhist = 0, ffhist = 0;
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
@@ -540,7 +540,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // All moves have one or more History scores
         hist = !isQuiet ? get_capture_history(thread, move)
-             : get_quiet_history(thread, move, &cmhist, &fmhist);
+             : get_quiet_history(thread, move, &cmhist, &fmhist, &ffhist);
 
         // Step 12 (~80 elo). Late Move Pruning / Move Count Pruning. If we
         // have seen many moves in this position already, and we don't expect

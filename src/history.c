@@ -63,7 +63,7 @@ static int16_t* underlying_capture_history(Thread *thread, uint16_t move) {
     return &thread->chistory[piece][threat_from][threat_to][MoveTo(move)][captured];
 }
 
-static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *histories[3]) {
+static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *histories[4]) {
 
     static int16_t NULL_HISTORY; // Always zero to handle missing CM/FM history
 
@@ -87,8 +87,12 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
     histories[1] = (ns-2)->continuations == NULL
                  ? &NULL_HISTORY : &(*(ns-2)->continuations)[1][piece][to];
 
+    // Set Followup Move History if it exists
+    histories[2] = (ns-4)->continuations == NULL
+                 ? &NULL_HISTORY : &(*(ns-4)->continuations)[2][piece][to];
+
     // Set Butterfly History, which will always exist
-    histories[2] = &thread->history[thread->board.turn][threat_from][threat_to][from][to];
+    histories[3] = &thread->history[thread->board.turn][threat_from][threat_to][from][to];
 }
 
 
@@ -162,21 +166,21 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
 }
 
 
-int get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
+int get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist, int *ffhist) {
 
-    int16_t *histories[3];
+    int16_t *histories[4];
     underlying_quiet_history(thread, move, histories);
 
-    *cmhist = *histories[0]; *fmhist = *histories[1];
-    return *histories[0] + *histories[1] + *histories[2];
+    *cmhist = *histories[0]; *fmhist = *histories[1]; *ffhist = *histories[2];
+    return *histories[0] + *histories[1] + *histories[2] + *histories[3];
 }
 
 void get_quiet_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    int null_hist; // cmhist & fmhist are set, although ignored
+    int null_hist; // cmhist, fmhist, & ffhist are set, although ignored
 
     for (int i = start; i < start + length; i++)
-        scores[i] = get_quiet_history(thread, moves[i], &null_hist, &null_hist);
+        scores[i] = get_quiet_history(thread, moves[i], &null_hist, &null_hist, &null_hist);
 }
 
 void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int depth) {
@@ -189,7 +193,7 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
 
     for (int i = 0; i < length; i++) {
 
-        int16_t *histories[3];
+        int16_t *histories[4];
         underlying_quiet_history(thread, moves[i], histories);
 
         // Update Counter Move History if it exists
@@ -200,7 +204,11 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
         if ((ns-2)->continuations != NULL)
              update_history(histories[1], depth, i == length - 1);
 
+        // Update 2xFollowup Move History if it exists
+        if ((ns-4)->continuations != NULL)
+             update_history(histories[2], depth, i == length - 1);
+
         // Update Butterfly History, which always exists
-        update_history(histories[2], depth, i == length - 1);
+        update_history(histories[3], depth, i == length - 1);
     }
 }
