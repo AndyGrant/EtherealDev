@@ -635,10 +635,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (ns->mp.stage == STAGE_DONE)
             return MAX(ttValue - depth, -MATE);
 
-        // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
-        // of Quiet moves after we've explored the main line. If a reduced search
+        // Step 17A (~249 elo). Late Move Reductions. Reduce the search depth
+        // of moves after we've explored the main line some. If a reduced search
         // manages to beat alpha, against our expectations, we perform a research
-        if (isQuiet && depth > 2 && played > 1) {
+
+        if (depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
             R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
@@ -646,28 +647,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             // Increase for non PV, non improving
             R += !PvNode + !improving;
 
-            // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+            // Increase for quiet King moves that evade checks
+            R += isQuiet && inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
             // Reduce for Killers and Counters
             R -= ns->mp.stage < STAGE_QUIET;
 
+            // Reduce for captures that give check
+            R -= board->kingAttackers && !isQuiet;
+
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
-
-            // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
-        }
-
-        // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 15A, but
-        // only applied to Tactical moves with unusually poor Capture History scores
-        else if (!isQuiet && depth > 2 && played > 1) {
-
-            // Initialize R based on Capture History
-            R = MIN(3, 3 - (hist + 4000) / 2000);
-
-            // Reduce for moves that give check
-            R -= !!board->kingAttackers;
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
