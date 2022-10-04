@@ -754,7 +754,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (!ns->excluded && (!RootNode || !thread->multiPV)) {
         ttBound = best >= beta    ? BOUND_LOWER
                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-        tt_store(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
+        tt_store(board->hash, thread->height, bestMove, best, eval, depth + singular, ttBound);
     }
 
     return best;
