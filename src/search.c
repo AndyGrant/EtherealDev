@@ -989,18 +989,18 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2);
     ns->excluded = NONE_MOVE;
 
+    // We are going to be extending, so lets update the history for the ttmove
+    if (value < rBeta)
+        !moveIsTactical(board, ttMove)
+            ? update_history_heuristics(thread, &ttMove, 1, depth)
+            : update_capture_histories(thread, ttMove, &ttMove, 1, depth);
+
     // We reused the Move Picker, so make sure we cleanup
     ns->mp.stage = STAGE_TABLE + 1;
 
     // MultiCut. We signal the Move Picker to terminate the search
     if (value >= rBeta && rBeta >= beta)
         ns->mp.stage = STAGE_DONE;
-
-    // We are going to be extending, so lets update the history for the ttmove
-    if (value < rBeta)
-        !moveIsTactical(board, ttMove)
-            ? update_history_heuristics(thread, &ttMove, 1, depth)
-            : update_capture_histories(thread, ttMove, &ttMove, 1, depth);
 
     // Reapply the table move we took off
     else applyLegal(thread, board, ttMove);
