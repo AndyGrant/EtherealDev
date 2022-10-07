@@ -27,16 +27,30 @@
 #include "thread.h"
 #include "types.h"
 
-static int stat_bonus(int depth) {
+static int quiet_stat_bonus(int depth) {
 
     // Approximately verbatim stat bonus formula from Stockfish
     return depth > 13 ? 32 : 16 * depth * depth + 128 * MAX(depth - 1, 0);
 }
 
-static void update_history(int16_t *current, int depth, bool good) {
+static int capture_stat_bonus(int depth) {
+
+    // Approximately verbatim stat bonus formula from Stockfish
+    return depth > 13 ? 32 : 8 * depth * depth + 64 * MAX(depth - 1, 0);
+}
+
+
+static void update_quiet_history(int16_t *current, int depth, bool good) {
 
     // HistoryDivisor is essentially the max value of history
-    const int delta = good ? stat_bonus(depth) : -stat_bonus(depth);
+    const int delta = good ? quiet_stat_bonus(depth) : -quiet_stat_bonus(depth);
+    *current += delta - *current * abs(delta) / HistoryDivisor;
+}
+
+static void update_capture_history(int16_t *current, int depth, bool good) {
+
+    // HistoryDivisor is essentially the max value of history
+    const int delta = good ? capture_stat_bonus(depth) : -capture_stat_bonus(depth);
     *current += delta - *current * abs(delta) / HistoryDivisor;
 }
 
@@ -157,7 +171,7 @@ void update_capture_histories(Thread *thread, uint16_t best, uint16_t *moves, in
 
     for (int i = 0; i < length; i++) {
         int16_t *hist = underlying_capture_history(thread, moves[i]);
-        update_history(hist, depth, moves[i] == best);
+        update_capture_history(hist, depth, moves[i] == best);
     }
 }
 
@@ -194,13 +208,13 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
 
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-             update_history(histories[0], depth, i == length - 1);
+            update_quiet_history(histories[0], depth, i == length - 1);
 
         // Update Followup Move History if it exists
         if ((ns-2)->continuations != NULL)
-             update_history(histories[1], depth, i == length - 1);
+            update_quiet_history(histories[1], depth, i == length - 1);
 
         // Update Butterfly History, which always exists
-        update_history(histories[2], depth, i == length - 1);
+        update_quiet_history(histories[2], depth, i == length - 1);
     }
 }
