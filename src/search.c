@@ -990,10 +990,8 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     ns->excluded = NONE_MOVE;
 
     // We are going to be extending, so lets update the history for the ttmove
-    if (value < rBeta && ttValue >= beta)
-        !moveIsTactical(board, ttMove)
-            ? update_history_heuristics(thread, &ttMove, 1, depth)
-            : update_capture_histories(thread, ttMove, &ttMove, 1, depth);
+    if (value < rBeta && ttValue >= beta && !moveIsTactical(board, ttMove))
+        update_history_heuristics(thread, &ttMove, 1, depth);
 
     // We reused the Move Picker, so make sure we cleanup
     ns->mp.stage = STAGE_TABLE + 1;
