@@ -361,12 +361,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             &&  ttValue >= beta
             &&  ttDepth >= depth
             &&  ttMove != NONE_MOVE
-            && (ttBound & BOUND_LOWER)) {
-
-            isQuiet = !moveIsTactical(board, ttMove);
-            isQuiet ? update_history_heuristics(thread, &ttMove, 1, depth)
-                    : update_capture_histories(thread, ttMove, &ttMove, 1, depth);
-        }
+            && (ttBound & BOUND_LOWER)
+            && !moveIsTactical(board, ttMove))
+            update_history_heuristics(thread, &ttMove, 1, depth);
 
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
