@@ -114,16 +114,16 @@ void update_killer_moves(Thread *thread, uint16_t move) {
     }
 }
 
-void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2, uint16_t *counter) {
+void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2) { //, uint16_t *counter) {
 
     // At each ply, we should have two potential Killer moves that have produced cutoffs
     // at the same ply in sibling nodes. Additionally, we may have a counter move, which
     // refutes the previously moved piece's destination square, somewhere in the search tree
 
-    NodeState *const prev = &thread->states[thread->height-1];
+    // NodeState *const prev = &thread->states[thread->height-1];
 
-    *counter = (prev->move == NONE_MOVE || prev->move == NULL_MOVE) ? NONE_MOVE
-             :  thread->cmtable[!thread->board.turn][prev->movedPiece][MoveTo(prev->move)];
+    // *counter = (prev->move == NONE_MOVE || prev->move == NULL_MOVE) ? NONE_MOVE
+    //          :  thread->cmtable[!thread->board.turn][prev->movedPiece][MoveTo(prev->move)];
 
     *killer1 = thread->killers[thread->height][0];
     *killer2 = thread->killers[thread->height][1];

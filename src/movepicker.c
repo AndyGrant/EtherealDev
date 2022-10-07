@@ -50,7 +50,7 @@ void init_picker(MovePicker *mp, Thread *thread, uint16_t tt_move) {
     mp->tt_move = tt_move;
 
     // Lookup our refutations (killers and counter moves)
-    get_refutation_moves(thread, &mp->killer1, &mp->killer2, &mp->counter);
+    get_refutation_moves(thread, &mp->killer1, &mp->killer2); // , &mp->counter);
 
     // General housekeeping
     mp->threshold = 0;
@@ -67,7 +67,7 @@ void init_noisy_picker(MovePicker *mp, Thread *thread, uint16_t tt_move, int thr
     mp->tt_move = tt_move;
 
     // Skip all of the refutation moves
-    mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
+    mp->killer1 = mp->killer2 = /* mp->counter = */ NONE_MOVE;
 
     // General housekeeping
     mp->threshold = threshold;
@@ -133,7 +133,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
                 // Don't play the refutation moves twice
                 if (best_move == mp->killer1) mp->killer1 = NONE_MOVE;
                 if (best_move == mp->killer2) mp->killer2 = NONE_MOVE;
-                if (best_move == mp->counter) mp->counter = NONE_MOVE;
+                /* if (best_move == mp->counter) mp->counter = NONE_MOVE; */
 
                 return best_move;
             }
@@ -162,7 +162,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
         case STAGE_KILLER_2:
 
             // Play killer move if not yet played, and pseudo legal
-            mp->stage = STAGE_COUNTER_MOVE;
+            mp->stage = STAGE_GENERATE_QUIET;
             if (   !skip_quiets
                 &&  mp->killer2 != mp->tt_move
                 &&  moveIsPseudoLegal(board, mp->killer2))
@@ -170,7 +170,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
             /* fallthrough */
 
-        case STAGE_COUNTER_MOVE:
+        /* case STAGE_COUNTER_MOVE:
 
             // Play counter move if not yet played, and pseudo legal
             mp->stage = STAGE_GENERATE_QUIET;
@@ -206,7 +206,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
                 // Don't play a move more than once
                 if (   best_move == mp->tt_move || best_move == mp->killer1
-                    || best_move == mp->killer2 || best_move == mp->counter)
+                    || best_move == mp->killer2) /* || best_move == mp->counter) */
                     continue;
 
                 return best_move;
@@ -227,7 +227,7 @@ uint16_t select_next(MovePicker *mp, Thread *thread, int skip_quiets) {
 
                 // Don't play a move more than once
                 if (   best_move == mp->tt_move || best_move == mp->killer1
-                    || best_move == mp->killer2 || best_move == mp->counter)
+                    || best_move == mp->killer2) /* || best_move == mp->counter) */
                     continue;
 
                 return best_move;

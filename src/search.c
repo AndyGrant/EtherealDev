@@ -584,7 +584,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Step 13C (~10 elo). Continuation Pruning. Moves with poor counter
             // or follow-up move history are pruned near the leaf nodes of the search
-            if (   ns->mp.stage > STAGE_COUNTER_MOVE
+            if (   ns->mp.stage > STAGE_KILLER_2
                 && lmrDepth <= ContinuationPruningDepth[improving]
                 && MIN(cmhist, fmhist) < ContinuationPruningHistoryLimit[improving])
                 continue;

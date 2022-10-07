@@ -26,7 +26,7 @@ static const int HistoryDivisor = 16384;
 
 void update_history_heuristics(Thread *thread, uint16_t *moves, int length, int depth);
 void update_killer_moves(Thread *thread, uint16_t move);
-void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2, uint16_t *counter);
+void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2); // , uint16_t *counter);
 
 int  get_capture_history(Thread *thread, uint16_t move);
 void get_capture_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length);
