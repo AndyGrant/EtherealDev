@@ -356,6 +356,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
+        // Update History Heuristic for moves that produce a fail-high
+        if (   !PvNode
+            &&  ttValue >= beta
+            &&  ttDepth >= depth
+            &&  ttMove != NONE_MOVE
+            && (ttBound & BOUND_LOWER)) {
+
+            isQuiet = !moveIsTactical(board, ttMove);
+            isQuiet ? update_history_heuristics(thread, &ttMove, 1, depth)
+                    : update_capture_histories(thread, ttMove, &ttMove, 1, depth);
+        }
+
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
         if (ttDepth >= depth && (depth == 0 || !PvNode)) {
