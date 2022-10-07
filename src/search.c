@@ -628,6 +628,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         newDepth = depth + (!RootNode ? extension : 0);
         if (extension > 1) ns->dextensions++;
 
+        if (singular && extension >= 1) {
+            isQuiet ? update_quiet_histories(thread, &ttMove, 1, depth)
+                    : update_capture_histories(thread, ttMove, &ttMove, 1, depth);
+        }
+
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
         // which appear to beat beta at a reduced depth. singularity() sets the stage to STAGE_DONE
