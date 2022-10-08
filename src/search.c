@@ -500,7 +500,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !ns->excluded
         &&  depth >= ProbCutDepth
         &&  abs(beta) < TBWIN_IN_MAX
-        && (!ttHit || ttValue >= rBeta || ttDepth < depth - 3)) {
+        && (!ttHit || ttValue >= rBeta || ttDepth < depth - 6)) {
 
         // Try tactical moves which maintain rBeta.
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
