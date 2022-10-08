@@ -100,7 +100,7 @@ void update_history_heuristics(Thread *thread, uint16_t *moves, int length, int 
     update_killer_moves(thread, moves[length-1]);
 
     if (prev->move != NONE_MOVE && prev->move != NULL_MOVE)
-        thread->cmtable[!colour][prev->movedPiece][MoveTo(prev->move)] = moves[length-1];
+        thread->cmtable[!colour][prev->tactical][prev->movedPiece][MoveTo(prev->move)] = moves[length-1];
 
     update_quiet_histories(thread, moves, length, depth);
 }
@@ -123,7 +123,7 @@ void get_refutation_moves(Thread *thread, uint16_t *killer1, uint16_t *killer2, 
     NodeState *const prev = &thread->states[thread->height-1];
 
     *counter = (prev->move == NONE_MOVE || prev->move == NULL_MOVE) ? NONE_MOVE
-             :  thread->cmtable[!thread->board.turn][prev->movedPiece][MoveTo(prev->move)];
+             :  thread->cmtable[!thread->board.turn][prev->tactical][prev->movedPiece][MoveTo(prev->move)];
 
     *killer1 = thread->killers[thread->height][0];
     *killer2 = thread->killers[thread->height][1];
