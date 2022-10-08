@@ -42,6 +42,7 @@ struct NodeState {
     int movedPiece;    // Moving piece, otherwise UB
     int dextensions;   // Number of Double Extensions
     bool tactical;     // Cached moveIsTactical()
+    bool improving;    // Static eval has increased
     uint16_t move;     // Move applied at the Node
     uint16_t excluded; // Excluded move during Singular Extensions
     MovePicker mp;     // Move Picker at each ply

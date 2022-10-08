@@ -427,7 +427,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     seeMargin[1] = SEEQuietMargin * depth;
 
     // Improving if our static eval increased in the last move
-    improving = !inCheck && eval > (ns-2)->eval;
+    ns->improving = improving = !inCheck && eval > (ns-2)->eval;
 
     // Reset Killer moves for our children
     thread->killers[thread->height+1][0] = NONE_MOVE;
@@ -645,6 +645,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
+
+            R += !(ns-0)->improving
+              && !(ns-2)->improving
+              && !(ns-4)->improving;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
