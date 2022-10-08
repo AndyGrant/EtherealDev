@@ -563,7 +563,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && best > -TBWIN_IN_MAX) {
 
             // Base LMR reduced depth value that we expect to use later
-            int lmrDepth = MAX(0, depth -  LMRTable[MIN(depth, 63)][MIN(played * (inCheck ? 4 : 1), 63)]);
+            int lmrDepth = MAX(0, depth -  LMRTable[MIN(depth, 63)][MIN(played * (inCheck ? 2 : 1), 63)]);
             int fmpMargin = FutilityMarginBase + lmrDepth * FutilityMarginPerDepth;
 
             // Step 13A (~3 elo). Futility Pruning. If our score is far below alpha,
@@ -641,7 +641,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (isQuiet && depth > 2 && played > 1) {
 
             /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played * (inCheck ? 4 : 1), 63)];
+            R  = LMRTable[MIN(depth, 63)][MIN(played * (inCheck ? 2 : 1), 63)];
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
