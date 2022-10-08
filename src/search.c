@@ -506,6 +506,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         init_noisy_picker(&ns->mp, thread, ttMove, rBeta - eval);
         while ((move = select_next(&ns->mp, thread, 1)) != NONE_MOVE) {
 
+            if (move == ttMove && ttValue < rBeta)
+                continue;
+
             // Apply move, skip if move is illegal
             if (apply(thread, board, move)) {
 
