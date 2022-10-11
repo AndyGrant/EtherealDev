@@ -664,7 +664,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         else if (!isQuiet && depth > 2 && played > 1) {
 
             // Initialize R based on Capture History
-            R = 2 + (ns->mp.stage < STAGE_BAD_NOISY) - (hist / 5000);
+            R = 2 - (ns->mp.stage == STAGE_GOOD_NOISY) - (hist / 5000);
 
             // Reduce for moves that give check
             R -= !!board->kingAttackers;
