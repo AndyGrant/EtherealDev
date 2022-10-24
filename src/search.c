@@ -101,17 +101,17 @@ static Thread* select_best_thread(Thread *threads) {
         candidate_moves     [index] = move;
     }
 
-    uint16_t n = 0;
+    int best_idx = 0;
     for (int i = 1; i < candidates; i++) {
         const int this = candidate_scores[i] / candidate_occurances[i];
-        const int best = candidate_scores[n] / candidate_occurances[n];
-        if (best > this) n = i;
+        const int best = candidate_scores[best_idx] / candidate_occurances[best_idx];
+        if (this > best) best_idx = i;
     }
 
     for (int i = 1; i < threads->nthreads; i++) {
 
         if (    threads[i].completed != highest_depth
-            ||  threads[i].pvs[highest_depth].line[0] != candidate_moves[n])
+            ||  threads[i].pvs[highest_depth].line[0] != candidate_moves[best_idx])
             continue;
 
         if (best_thread->pvs[highest_depth].score < threads[i].pvs[highest_depth].score)
