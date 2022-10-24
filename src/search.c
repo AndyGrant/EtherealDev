@@ -52,31 +52,78 @@ volatile int IS_PONDERING; // Global PONDER flag for threads
 volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 
 
-static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
-
-    /// A thread is better than another if any are true:
-    /// [1] The thread has an equal depth and greater score.
-    /// [2] The thread has a mate score and is closer to mate.
-    /// [3] The thread has a greater depth without replacing a closer mate
+static Thread* select_best_thread(Thread *threads) {
 
     Thread *best_thread = &threads[0];
+    int highest_depth   = best_thread->completed;
+
+    // Search for any thread that has a TBWIN or greater. If so,
+    // take the best of those threads. Otherwise, just determine the
+    // greatest depth among the threads, to be selected from later.
 
     for (int i = 1; i < threads->nthreads; i++) {
 
-        const int best_depth = best_thread->completed;
-        const int best_score = best_thread->pvs[best_depth].score;
+        const int this_score = threads[i].pvs[threads[i].completed].score;
+        const int best_score = best_thread->pvs[best_thread->completed].score;
 
-        const int this_depth = threads[i].completed;
-        const int this_score = threads[i].pvs[this_depth].score;
-
-        if (   (this_depth == best_depth && this_score > best_score)
-            || (this_score > MATE_IN_MAX && this_score > best_score))
+        if (this_score >= TBWIN_IN_MAX && this_score > best_score)
             best_thread = &threads[i];
 
-        if (    this_depth > best_depth
-            && (this_score > best_score || best_score < MATE_IN_MAX))
+        highest_depth = MAX(threads[i].completed, highest_depth);
+    }
+
+    // Finished if we found a thread that gives a TB Win or Mate
+    if (best_thread->pvs[best_thread->completed].score >= TBWIN_IN_MAX)
+        return best_thread;
+
+    int index;
+    int candidates = 0;
+    int candidate_scores[MAX_MOVES];
+    int candidate_occurances[MAX_MOVES];
+    uint16_t candidate_moves[MAX_MOVES];
+
+    for (int i = 0; i < threads->nthreads; i++) {
+
+        const int depth = threads[i].completed;
+        const int score = threads[i].pvs[depth].score;
+        const int move  = threads[i].pvs[depth].line[0];
+
+        if (depth != highest_depth)
+            continue;
+
+        for (index = 0; index < candidates; index++)
+            if (candidate_moves[index] == move)
+                break;
+
+        candidates += index == candidates;
+        candidate_scores    [index] += score;
+        candidate_occurances[index] += 1;
+        candidate_moves     [index] = move;
+    }
+
+    uint16_t n = 0;
+    for (int i = 1; i < candidates; i++) {
+        const int this = candidate_scores[i] / candidate_occurances[i];
+        const int best = candidate_scores[n] / candidate_occurances[n];
+        if (best > this) n = i;
+    }
+
+    for (int i = 1; i < threads->nthreads; i++) {
+
+        if (    threads[i].completed != highest_depth
+            ||  threads[i].pvs[highest_depth].line[0] != candidate_moves[n])
+            continue;
+
+        if (best_thread->pvs[highest_depth].score < threads[i].pvs[highest_depth].score)
             best_thread = &threads[i];
     }
+
+    return best_thread;
+}
+
+static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
+
+    Thread *best_thread = select_best_thread(threads);
 
     // Best and Ponder moves are simply the PV moves
     *best   = best_thread->pvs[best_thread->completed].line[0];
