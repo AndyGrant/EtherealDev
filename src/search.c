@@ -715,9 +715,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Reset the extension tracker
         if (extension > 1) ns->dextensions--;
 
-        // Track where nodes were spent in the Main thread at the Root
-        if (RootNode && !thread->index)
-            thread->tm.nodes[move] += thread->nodes - starting_nodes;
+        // Track where nodes were spent for each thread
+        if (RootNode) thread->tm.nodes[move] += thread->nodes - starting_nodes;
 
         // Step 19. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
