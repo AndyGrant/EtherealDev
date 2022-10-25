@@ -21,6 +21,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +52,18 @@ volatile int ABORT_SIGNAL; // Global ABORT flag for threads
 volatile int IS_PONDERING; // Global PONDER flag for threads
 volatile int ANALYSISMODE; // Whether to make some changes for Analysis
 
+
+static bool half_threads_are_done(const Thread *threads) {
+
+    /// Determine if half or more of the search threads have decided to
+    /// exit, based on their own individual understanding of the Clock
+
+    int finished = 0;
+    for (int i = 0; i < threads->nthreads; i++)
+        finished += threads[i].tm.ready_to_abort;
+
+    return 2 * finished >= threads->nthreads;
+}
 
 static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponder, int *score) {
 
@@ -194,7 +207,6 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
 void* iterativeDeepening(void *vthread) {
 
     Thread *const thread  = (Thread*) vthread;
-    TimeManager *const tm = thread->tm;
     Limits *const limits  = thread->limits;
     const int mainThread  = thread->index == 0;
 
@@ -216,22 +228,24 @@ void* iterativeDeepening(void *vthread) {
         for (thread->multiPV = 0; thread->multiPV < limits->multiPV; thread->multiPV++)
             aspirationWindow(thread);
 
-        // Helper threads need not worry about time and search info updates
-        if (!mainThread) continue;
-
-        // We delay reporting during MultiPV searches
-        if (limits->multiPV > 1) report_multipv_lines(thread);
+        // We had delay reporting during MultiPV searches
+        if (mainThread && limits->multiPV > 1)
+            report_multipv_lines(thread);
 
         // Update clock based on score and pv changes
-        tm_update(thread, limits, tm);
+        tm_update(thread, limits, &thread->tm);
 
         // Don't want to exit while pondering
         if (IS_PONDERING) continue;
 
+        // Indicate when this thread has decided it is ready to exit
+        if (limits->limitedBySelf && tm_finished(thread, &thread->tm))
+            thread->tm.ready_to_abort = true;
+
         // Check for termination by any of the possible limits
-        if (   (limits->limitedBySelf  && tm_finished(thread, tm))
+        if (   (limits->limitedBySelf  && half_threads_are_done(thread->threads))
             || (limits->limitedByDepth && thread->depth >= limits->depthLimit)
-            || (limits->limitedByTime  && elapsed_time(tm) >= limits->timeLimit))
+            || (limits->limitedByTime  && elapsed_time(&thread->tm) >= limits->timeLimit))
             break;
     }
 
@@ -256,7 +270,7 @@ void aspirationWindow(Thread *thread) {
         // Perform a search and consider reporting results
         pv.score = search(thread, &pv, alpha, beta, MAX(1, depth));
         if (   (report && pv.score > alpha && pv.score < beta)
-            || (report && elapsed_time(thread->tm) >= WindowTimerMS))
+            || (report && elapsed_time(&thread->tm) >= WindowTimerMS))
             uciReport(thread->threads, &pv, alpha, beta);
 
         // Search returned a result within our window
@@ -610,7 +624,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // The UCI spec allows us to output information about the current move
         // that we are going to search. We only do this from the main thread,
         // and we wait a few seconds in order to avoid floiding the output
-        if (RootNode && !thread->index && elapsed_time(thread->tm) > CurrmoveTimerMS)
+        if (RootNode && !thread->index && elapsed_time(&thread->tm) > CurrmoveTimerMS)
             uciReportCurrentMove(board, move, played + thread->multiPV, thread->depth);
 
         // Identify moves which are candidate singular moves
@@ -703,7 +717,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         // Track where nodes were spent in the Main thread at the Root
         if (RootNode && !thread->index)
-            thread->tm->nodes[move] += thread->nodes - starting_nodes;
+            thread->tm.nodes[move] += thread->nodes - starting_nodes;
 
         // Step 19. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case

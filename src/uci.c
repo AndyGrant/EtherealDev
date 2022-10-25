@@ -381,7 +381,7 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta) {
     int depth       = threads->depth;
     int seldepth    = threads->seldepth;
     int multiPV     = threads->multiPV + 1;
-    int elapsed     = elapsed_time(threads->tm);
+    int elapsed     = elapsed_time(&threads->tm);
     int bounded     = MAX(alpha, MIN(pv->score, beta));
     uint64_t nodes  = nodesSearchedThreadPool(threads);
     uint64_t tbhits = tbhitsThreadPool(threads);

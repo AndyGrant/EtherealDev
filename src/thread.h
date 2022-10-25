@@ -26,6 +26,7 @@
 #include "movepicker.h"
 #include "network.h"
 #include "search.h"
+#include "timeman.h"
 #include "transposition.h"
 #include "types.h"
 
@@ -54,7 +55,7 @@ struct Thread {
 
     Board board;
     Limits *limits;
-    TimeManager *tm;
+    TimeManager tm;
     PVariation pvs[MAX_PLY];
     PVariation mpvs[MAX_MOVES];
 

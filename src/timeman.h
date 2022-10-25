@@ -33,12 +33,14 @@
 
 struct TimeManager {
     int pv_stability;
+    bool ready_to_abort;
     double start_time, ideal_usage, max_usage;
     uint64_t nodes[0x10000];
 };
 
 double get_real_time();
 double elapsed_time(const TimeManager *tm);
+
 void tm_init(const Limits *limits, TimeManager *tm);
 void tm_update(const Thread *thread, const Limits *limits, TimeManager *tm);
 bool tm_finished(const Thread *thread, const TimeManager *tm);

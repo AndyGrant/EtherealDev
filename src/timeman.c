@@ -126,5 +126,5 @@ bool tm_stop_early(const Thread *thread) {
     return  thread->depth > 1
         && (thread->nodes & 1023) == 1023
         && (limits->limitedBySelf || limits->limitedByTime)
-        &&  elapsed_time(thread->tm) >= thread->tm->max_usage;
+        &&  elapsed_time(&thread->tm) >= thread->tm.max_usage;
 }
