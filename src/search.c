@@ -194,9 +194,7 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
         pthread_create(&pthreads[i], NULL, &iterativeDeepening, &threads[i]);
     iterativeDeepening((void*) &threads[0]);
 
-    // When the main thread exits it should signal for the helpers to
-    // shutdown. Wait until all helpers have finished before moving on
-    ABORT_SIGNAL = 1;
+    // When any thread decides to exit, it signals the others to stop
     for (int i = 1; i < threads->nthreads; i++)
         pthread_join(pthreads[i], NULL);
 
@@ -248,6 +246,8 @@ void* iterativeDeepening(void *vthread) {
             || (limits->limitedByTime  && elapsed_time(&thread->tm) >= limits->timeLimit))
             break;
     }
+
+    ABORT_SIGNAL = 1;
 
     return NULL;
 }
