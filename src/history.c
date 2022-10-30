@@ -25,6 +25,7 @@
 #include "history.h"
 #include "move.h"
 #include "thread.h"
+#include "timeman.h"
 #include "types.h"
 
 static int stat_bonus(int depth) {
@@ -173,10 +174,17 @@ int get_quiet_history(Thread *thread, uint16_t move, int *cmhist, int *fmhist) {
 
 void get_quiet_histories(Thread *thread, uint16_t *moves, int *scores, int start, int length) {
 
-    int null_hist; // cmhist & fmhist are set, although ignored
+    if (thread->height == 0) {
+        for (int i = start; i < start + length; i++)
+            scores[i] = 32768 * thread->tm->nodes[moves[i]] / thread->nodes;
+    }
 
-    for (int i = start; i < start + length; i++)
-        scores[i] = get_quiet_history(thread, moves[i], &null_hist, &null_hist);
+    else {
+
+        int null_hist; // cmhist & fmhist are set, although ignored
+        for (int i = start; i < start + length; i++)
+            scores[i] = get_quiet_history(thread, moves[i], &null_hist, &null_hist);
+    }
 }
 
 void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int depth) {
