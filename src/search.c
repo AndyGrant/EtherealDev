@@ -263,6 +263,7 @@ void aspirationWindow(Thread *thread) {
         if (pv.score > alpha && pv.score < beta) {
             thread->bestMoves[thread->multiPV] = pv.line[0];
             update_best_line(thread, &pv);
+            thread->fail_highs = 0;
             return;
         }
 
@@ -270,14 +271,14 @@ void aspirationWindow(Thread *thread) {
         if (pv.score <= alpha) {
             beta  = (alpha + beta) / 2;
             alpha = MAX(-MATE, alpha - delta);
-            depth = thread->depth;
+            thread->fail_highs = 0;
             revert_best_line(thread);
         }
 
         // Search failed high, adjust window and reduce depth
         else if (pv.score >= beta) {
             beta = MIN(MATE, beta + delta);
-            depth = depth - (abs(pv.score) <= MATE / 2);
+            thread->fail_highs += 1;
             update_best_line(thread, &pv);
         }
 
@@ -645,6 +646,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
             // Increase for non PV, non improving
             R += !PvNode + !improving;
+
+            // ...
+            R += RootNode * thread->fail_highs;
 
             // Increase for King moves that evade checks
             R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
