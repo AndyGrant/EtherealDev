@@ -245,6 +245,9 @@ void aspirationWindow(Thread *thread) {
     int alpha  = -MATE, beta = MATE, delta = WindowSize;
     int report = !thread->index && thread->limits->multiPV == 1;
 
+    // Reset the LMR trick used to reduce on consecutive fail-highs
+    thread->fail_highs = 0;
+
     // After a few depths use a previous result to form the window
     if (thread->depth >= WindowDepth) {
         alpha = MAX(-MATE, thread->pvs[thread->completed].score - delta);
@@ -263,7 +266,6 @@ void aspirationWindow(Thread *thread) {
         if (pv.score > alpha && pv.score < beta) {
             thread->bestMoves[thread->multiPV] = pv.line[0];
             update_best_line(thread, &pv);
-            thread->fail_highs = 0;
             return;
         }
 
