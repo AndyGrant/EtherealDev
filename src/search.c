@@ -21,6 +21,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -303,6 +304,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int eval, value, best = -MATE, syzygyMax = MATE, syzygyMin = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
+    bool doFullSearch = FALSE;
     PVariation lpv;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
@@ -638,61 +640,53 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
         // of Quiet moves after we've explored the main line. If a reduced search
         // manages to beat alpha, against our expectations, we perform a research
-        if (isQuiet && depth > 2 && played > 1) {
+        if (depth > 2 && played > 1) {
 
-            /// Use the LMR Formula as a starting point
-            R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
+            if (isQuiet) {
 
-            // Increase for non PV, non improving
-            R += !PvNode + !improving;
+                // Use the LMR Formula as a starting point
+                R  = LMRTable[MIN(depth, 63)][MIN(played, 63)];
 
-            // Increase for King moves that evade checks
-            R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+                // Increase for non PV, non improving
+                R += !PvNode + !improving;
 
-            // Reduce for Killers and Counters
-            R -= ns->mp.stage < STAGE_QUIET;
+                // Increase for King moves that evade checks
+                R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
-            // Adjust based on history scores
-            R -= MAX(-2, MIN(2, hist / 5000));
+                // Reduce for Killers and Counters
+                R -= ns->mp.stage < STAGE_QUIET;
 
-            // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
-        }
+                // Adjust based on history scores
+                R -= MAX(-2, MIN(2, hist / 5000));
+            }
 
-        // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 15A, but
-        // only applied to Tactical moves with unusually poor Capture History scores
-        else if (!isQuiet && depth > 2 && played > 1) {
+            else {
 
-            // Initialize R based on Capture History
-            R = 2 - (hist / 5000);
+                // Initialize R based on Capture History
+                R = 2 - (hist / 5000);
 
-            // Reduce for moves that give check
-            R -= !!board->kingAttackers;
+                // Reduce for moves that give check
+                R -= !!board->kingAttackers;
+            }
 
             // Don't extend or drop into QS
             R = MIN(depth - 1, MAX(R, 1));
+
+            // Perform reduced depth search on a Null Window
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
+
+            // Abandon searching here if we could not beat alpha
+            doFullSearch = value > alpha && R != 1;
         }
 
-        // No LMR conditions were met. Use a Standard Reduction
-        else R = 1;
+        else doFullSearch = !PvNode || played > 1;
 
-        // Step 18A. If we triggered the LMR conditions (which we know by the value of R),
-        // then we will perform a reduced search on the null alpha window, as we have no
-        // expectation that this move will be worth looking into deeper
-        if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
-
-        // Step 18B. There are two situations in which we will search again on a null window,
-        // but without a depth reduction R. First, if the LMR search happened, and failed
-        // high, secondly, if we did not try an LMR search, and this is not the first move
-        // we have tried in a PvNode, we will research with the normally reduced depth
-        if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
+        // Full depth search on a null window
+        if (doFullSearch)
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
 
-        // Step 18C. Finally, if we are in a PvNode and a move beat alpha while being
-        // search on a reduced depth, we will search again on the normal window. Also,
-        // if we did not perform Step 18B, we will search for the first time on the
-        // normal window. This happens only for the first move in a PvNode
-        if (PvNode && (played == 1 || value > alpha))
+        // Full depth search on a full window for some PvNodes
+        if (PvNode && (played == 1 || (value > alpha && value < beta)))
             value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
 
         // Revert the board state
