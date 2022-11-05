@@ -686,7 +686,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
 
         // Full depth search on a full window for some PvNodes
-        if (PvNode && (played == 1 || (value > alpha && value < beta)))
+        if (PvNode && (played == 1 || (value > alpha && (RootNode || value < beta))))
             value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
 
         // Revert the board state
