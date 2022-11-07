@@ -304,7 +304,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int eval, value, best = -MATE, syzygyMax = MATE, syzygyMin = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
-    bool doFullSearch = FALSE;
+    bool doFullSearch;
     PVariation lpv;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
@@ -637,10 +637,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (ns->mp.stage == STAGE_DONE)
             return MAX(ttValue - depth, -MATE);
 
-        // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
-        // of Quiet moves after we've explored the main line. If a reduced search
-        // manages to beat alpha, against our expectations, we perform a research
         if (depth > 2 && played > 1) {
+
+            // Step 17A (~249 elo). Quiet Late Move Reductions. Reduce the search depth
+            // of Quiet moves after we've explored the main line. If a reduced search
+            // manages to beat alpha, against our expectations, we perform a research
 
             if (isQuiet) {
 
@@ -659,6 +660,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
                 // Adjust based on history scores
                 R -= MAX(-2, MIN(2, hist / 5000));
             }
+
+            // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 17A, but
+            // only applied to Tactical moves, based on the Capture History scores
 
             else {
 
@@ -686,7 +690,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
 
         // Full depth search on a full window for some PvNodes
-        if (PvNode && (played == 1 || (value > alpha && (RootNode || value < beta))))
+        if (PvNode && (played == 1 || value > alpha))
             value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
 
         // Revert the board state
@@ -699,7 +703,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         if (RootNode && !thread->index)
             thread->tm->nodes[move] += thread->nodes - starting_nodes;
 
-        // Step 19. Update search stats for the best move and its value. Update
+        // Step 18. Update search stats for the best move and its value. Update
         // our lower bound (alpha) if exceeded, and also update the PV in that case
         if (value > best) {
 
@@ -723,7 +727,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Prefetch TT for store
     tt_prefetch(board->hash);
 
-    // Step 20 (~760 elo). Update History counters on a fail high for a quiet move.
+    // Step 19 (~760 elo). Update History counters on a fail high for a quiet move.
     // We also update Capture History Heuristics, which augment or replace MVV-LVA.
 
     if (best >= beta && !moveIsTactical(board, bestMove))
@@ -732,17 +736,17 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if (best >= beta)
         update_capture_histories(thread, bestMove, capturesTried, capturesPlayed, depth);
 
-    // Step 21. Stalemate and Checkmate detection. If no moves were found to
+    // Step 20. Stalemate and Checkmate detection. If no moves were found to
     // be legal then we are either mated or stalemated, For mates, return a
     // score based on how far or close the mate is to the root position
     if (played == 0) return inCheck ? -MATE + thread->height : 0;
 
-    // Step 22. When we found a Syzygy entry, don't report a value greater than
+    // Step 21. When we found a Syzygy entry, don't report a value greater than
     // the known bounds. For example, a non-zeroing move could be played, not be
     // held in Syzygy, and then be scored better than the true lost value.
     if (PvNode) best = MAX(syzygyMin, MIN(best, syzygyMax));
 
-    // Step 23. Store results of search into the Transposition Table. We do not overwrite
+    // Step 22. Store results of search into the Transposition Table. We do not overwrite
     // the Root entry from the first line of play we examined. We also don't store into the
     // Transposition Table while attempting to veryify singularities
     if (!ns->excluded && (!RootNode || !thread->multiPV)) {
