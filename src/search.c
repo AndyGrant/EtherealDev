@@ -432,10 +432,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
     improving = !inCheck && eval > (ns-2)->eval;
 
     // Reset Killers for our children unless we are researching
-    if (!research) {
-        thread->killers[thread->height+1][0] = NONE_MOVE;
-        thread->killers[thread->height+1][1] = NONE_MOVE;
-    }
+    thread->killers[thread->height+2][0] = NONE_MOVE;
+    thread->killers[thread->height+2][1] = NONE_MOVE;
 
     // Track the # of double extensions in this line
     ns->dextensions = RootNode ? 0 : (ns-1)->dextensions;
