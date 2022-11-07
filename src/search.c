@@ -255,7 +255,7 @@ void aspirationWindow(Thread *thread) {
     while (1) {
 
         // Perform a search and consider reporting results
-        pv.score = search(thread, &pv, alpha, beta, MAX(1, depth));
+        pv.score = search(thread, &pv, alpha, beta, MAX(1, depth), TRUE);
         if (   (report && pv.score > alpha && pv.score < beta)
             || (report && elapsed_time(thread->tm) >= WindowTimerMS))
             uciReport(thread->threads, &pv, alpha, beta);
@@ -287,7 +287,7 @@ void aspirationWindow(Thread *thread) {
     }
 }
 
-int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
+int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool research) {
 
     Board *const board   = &thread->board;
     NodeState *const ns  = &thread->states[thread->height];
@@ -431,9 +431,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Improving if our static eval increased in the last move
     improving = !inCheck && eval > (ns-2)->eval;
 
-    // Reset Killer moves for our children
-    thread->killers[thread->height+1][0] = NONE_MOVE;
-    thread->killers[thread->height+1][1] = NONE_MOVE;
+    // Reset Killers for our children unless we are researching
+    if (!research) {
+        thread->killers[thread->height+1][0] = NONE_MOVE;
+        thread->killers[thread->height+1][1] = NONE_MOVE;
+    }
 
     // Track the # of double extensions in this line
     ns->dextensions = RootNode ? 0 : (ns-1)->dextensions;
@@ -486,7 +488,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
 
         apply(thread, board, NULL_MOVE);
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R);
+        value = -search(thread, &lpv, -beta, -beta+1, depth-R, FALSE);
         revert(thread, board, NULL_MOVE);
 
         // Don't return unproven TB-Wins or Mates
@@ -517,7 +519,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // For low depths, or after the above, verify with a reduced search
                 if (depth < 2 * ProbCutDepth || value >= rBeta)
-                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4);
+                    value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, FALSE);
 
                 // Revert the board state
                 revert(thread, board, move);
@@ -677,7 +679,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R = MIN(depth - 1, MAX(R, 1));
 
             // Perform reduced depth search on a Null Window
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, FALSE);
 
             // Abandon searching here if we could not beat alpha
             doFullSearch = value > alpha && R != 1;
@@ -685,13 +687,15 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
         else doFullSearch = !PvNode || played > 1;
 
+        bool didLMR = depth > 2 && played > 1;
+
         // Full depth search on a null window
         if (doFullSearch)
-            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1);
+            value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, didLMR);
 
         // Full depth search on a full window for some PvNodes
         if (PvNode && (played == 1 || value > alpha))
-            value = -search(thread, &lpv, -beta, -alpha, newDepth-1);
+            value = -search(thread, &lpv, -beta, -alpha, newDepth-1, played != 1);
 
         // Revert the board state
         revert(thread, board, move);
@@ -984,7 +988,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
 
     // Search on a null rBeta window, excluding the tt-move
     ns->excluded = ttMove;
-    value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2);
+    value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2, FALSE);
     ns->excluded = NONE_MOVE;
 
     // We reused the Move Picker, so make sure we cleanup
