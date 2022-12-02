@@ -423,7 +423,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
     // Use the tt score as a better static evaluation
-    if (    ttValue != VALUE_NONE
+    if (   ttDepth >= depth
+        && ttValue != VALUE_NONE
         && (ttBound & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
         eval = ttValue;
 
