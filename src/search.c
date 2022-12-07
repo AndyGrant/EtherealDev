@@ -684,7 +684,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
 
             // Abandon searching here if we could not beat alpha
-            doFullSearch = value > alpha && R != 1;
+            doFullSearch = value > alpha && R > 1;
         }
 
         else doFullSearch = !PvNode || played > 1;
