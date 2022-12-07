@@ -304,7 +304,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int eval, value, best = -MATE, syzygyMax = MATE, syzygyMin = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
-    bool doFullSearch;
+    bool doFullSearch, didSingularExtension = FALSE;
     PVariation lpv;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
@@ -627,8 +627,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, beta) : inCheck;
+
+        didSingularExtension |= singular && extension >= 1;
+
         newDepth = depth + (!RootNode ? extension : 0);
-        if (extension > 1) ns->dextensions++;
+
+        ns->dextensions += extension > 1;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
         // If this happens, and the rBeta used is greater than beta, then we have multiple moves
@@ -674,7 +678,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             }
 
             // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, 1));
+            R = MIN(depth - 1, MAX(R, !didSingularExtension));
 
             // Perform reduced depth search on a Null Window
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
