@@ -483,7 +483,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         // Dynamic R based on Depth, Eval, and Tactical state
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
+        R = 4 + depth / 6 + MIN(7, (eval - beta) / 250) + (ns-1)->tactical;
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R);
