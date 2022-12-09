@@ -304,7 +304,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int eval, value, best = -MATE, syzygyMax = MATE, syzygyMin = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
-    bool doFullSearch, didSingularExtension = FALSE;
+    bool doFullSearch, ttCapture = FALSE, didSingularExtension = FALSE;
     PVariation lpv;
 
     // Step 1. Quiescence Search. Perform a search using mostly tactical
@@ -376,6 +376,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             && (ttBound & BOUND_UPPER)
             &&  ttValue + TTResearchMargin <= alpha)
             return alpha;
+
+        //
+        ttCapture = moveIsTactical(board, ttMove);
     }
 
     // Step 5. Probe the Syzygy Tablebases. tablebasesProbeWDL() handles all of
@@ -663,6 +666,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Adjust based on history scores
                 R -= MAX(-2, MIN(2, hist / 5000));
+
+                R -= didSingularExtension && !ttCapture;
             }
 
             // Step 17B (~3 elo). Noisy Late Move Reductions. The same as Step 17A, but
@@ -678,7 +683,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             }
 
             // Don't extend or drop into QS
-            R = MIN(depth - 1, MAX(R, !didSingularExtension));
+            R = MIN(depth - 1, MAX(R, 1));
 
             // Perform reduced depth search on a Null Window
             value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R);
