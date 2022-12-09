@@ -680,6 +680,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
                 // Reduce for moves that give check
                 R -= !!board->kingAttackers;
+
+                R -= didSingularExtension && !ttCapture;
             }
 
             // Don't extend or drop into QS
