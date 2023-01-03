@@ -18,9 +18,6 @@
 /*                                                                            */
 /******************************************************************************/
 
-#include <stdio.h>
-#include "timeman.h"
-
 #include <pthread.h>
 
 #include "board.h"
@@ -169,8 +166,7 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
 
 void tt_clear(int nthreads) {
 
-    double start = get_real_time();
-
+    // Only use 1/4th of the enabled search Threads
     int nworkers = MAX(1, nthreads / 4);
     pthread_t pthreads[nworkers];
     struct TTClear ttclears[nworkers];
@@ -189,8 +185,6 @@ void tt_clear(int nthreads) {
     // Join each of the helper threads after they've cleared their sections
     for (int i = 1; i < nworkers; i++)
         pthread_join(pthreads[i], NULL);
-
-    printf("Time Taken: %d\n", (int)(get_real_time() - start));
 }
 
 void *tt_clear_threaded(void *cargo) {
@@ -205,7 +199,6 @@ void *tt_clear_threaded(void *cargo) {
     const uint64_t begin  = MIN(size, ttclear->index * blocks * 2 * MB);
     const uint64_t end    = MIN(size, begin + blocks * 2 * MB);
 
-    printf("%d %d %lu %lu %lu %lu %lu\n", ttclear->index, ttclear->count, size, slice, blocks, begin, end);
     memset(Table.buckets + begin / sizeof(TTBucket), 0, end - begin);
     return NULL;
 }
