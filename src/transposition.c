@@ -18,6 +18,11 @@
 /*                                                                            */
 /******************************************************************************/
 
+#include <stdio.h>
+#include "timeman.h"
+
+#include <pthread.h>
+
 #include "board.h"
 #include "evaluate.h"
 #include "thread.h"
@@ -47,11 +52,10 @@ static int tt_value_to(int value, int height) {
 /// Trivial helper functions to Transposition Table handleing
 
 void tt_update() { Table.generation += TT_MASK_BOUND + 1; }
-void tt_clear() { memset(Table.buckets, 0, sizeof(TTBucket) * (Table.hashMask + 1u)); }
 void tt_prefetch(uint64_t hash) { __builtin_prefetch(&Table.buckets[hash & Table.hashMask]); }
 
 
-int tt_init(int megabytes) {
+int tt_init(Thread *threads, int megabytes) {
 
     const uint64_t MB = 1ull << 20;
     uint64_t keySize = 16ull;
@@ -80,7 +84,8 @@ int tt_init(int megabytes) {
     // Save the lookup mask
     Table.hashMask = (1ull << keySize) - 1u;
 
-    tt_clear(); // Clear the table and load everything into the cache
+    // Clear the table and load everything into the cache
+    tt_clear(threads);
 
     // Return the number of MB actually allocated for the TTable
     return ((Table.hashMask + 1) * sizeof(TTBucket)) / MB;
@@ -161,6 +166,40 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
     replace->hash16     = (uint16_t) hash16;
 }
 
+
+void tt_clear(Thread *threads) {
+
+    double start = get_real_time();
+
+    pthread_t pthreads[threads->nthreads];
+
+    for (int i = 1; i < threads->nthreads; i++)
+        pthread_create(&pthreads[i], NULL, tt_clear_threaded, &threads[i]);
+    tt_clear_threaded((void*) &threads[0]);
+
+    for (int i = 1; i < threads->nthreads; i++)
+        pthread_join(pthreads[i], NULL);
+
+    printf("Time Taken: %d\n", (int)(get_real_time() - start));
+}
+
+void *tt_clear_threaded(void *cargo) {
+
+    Thread *thread = (Thread*) cargo;
+    const int idx  = thread->index, count = thread->nthreads;
+    const uint64_t MB = 1ull << 20;
+
+    const uint64_t size   = (Table.hashMask + 1) * sizeof(TTBucket);
+    const uint64_t slice  = (size + count - 1) / count;
+    const uint64_t blocks = (slice + 2 * MB - 1) / (2 * MB);
+    const uint64_t begin  = MIN(size, idx * blocks * 2 * MB);
+    const uint64_t end    = MIN(size, begin + blocks * 2 * MB);
+
+    // printf("%d %d %lu %lu %lu %lu %lu\n", idx, count, size, slice, blocks, begin, end);
+
+    memset(Table.buckets + begin / sizeof(TTBucket), 0, end - begin);
+    return NULL;
+}
 
 /// Simple Pawn+King Evaluation Hash Table, which also stores some additional
 /// safety information for use in King Safety, when not using NNUE evaluations

@@ -80,14 +80,15 @@ struct TTable {
 };
 
 void tt_update();
-void tt_clear();
 void tt_prefetch(uint64_t hash);
 
-int tt_init(int megabytes);
+int tt_init(Thread *threads, int megabytes);
 int tt_hashfull();
 bool tt_probe(uint64_t hash, int height, uint16_t *move, int *value, int *eval, int *depth, int *bound);
 void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int depth, int bound);
 
+void tt_clear(Thread *threads);
+void* tt_clear_threaded(void *cargo);
 
 /// The Pawn King table contains saved evaluations, and additional Pawn information
 /// that is expensive to compute during evaluation. This includes the location of all

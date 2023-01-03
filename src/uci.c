@@ -55,21 +55,19 @@ const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 int main(int argc, char **argv) {
 
     Board board;
-    char str[8192];
-    Thread *threads;
+    char str[8192] = {0};
     pthread_t pthreadsgo;
     UCIGoStruct uciGoStruct;
+    Thread *threads = createThreadPool(1);
 
-    int chess960 = 0;
-    int multiPV  = 1;
+    int chess960 = 0, multiPV = 1;
 
     // Initialize core components of Ethereal
     initAttacks(); initMasks(); initEval();
-    initSearch(); initZobrist(); tt_init(16);
+    initSearch(); initZobrist(); tt_init(threads, 16);
     initPKNetwork(&PKNN); nnue_incbin_init();
 
     // Create the UCI-board and our threads
-    threads = createThreadPool(1);
     boardFromFEN(&board, StartPosition, chess960);
 
     // Handle any command line requests
@@ -116,7 +114,7 @@ int main(int argc, char **argv) {
             printf("readyok\n"), fflush(stdout);
 
         else if (strEquals(str, "ucinewgame"))
-            resetThreadPool(threads), tt_clear();
+            resetThreadPool(threads), tt_clear(threads);
 
         else if (strStartsWith(str, "setoption"))
             uciSetOption(str, &threads, &multiPV, &chess960);
@@ -267,7 +265,7 @@ void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960) {
 
     if (strStartsWith(str, "setoption name Hash value ")) {
         int megabytes = atoi(str + strlen("setoption name Hash value "));
-        printf("info string set Hash to %dMB\n", tt_init(megabytes));
+        printf("info string set Hash to %dMB\n", tt_init(*threads, megabytes));
     }
 
     if (strStartsWith(str, "setoption name Threads value ")) {
@@ -422,15 +420,15 @@ void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) 
 
 }
 
-int strEquals(char *str1, char *str2) {
+int strEquals(const char *str1, const char *str2) {
     return strcmp(str1, str2) == 0;
 }
 
-int strStartsWith(char *str, char *key) {
+int strStartsWith(const char *str, const char *key) {
     return strstr(str, key) == str;
 }
 
-int strContains(char *str, char *key) {
+int strContains(const char *str, const char *key) {
     return strstr(str, key) != NULL;
 }
 

@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-#define VERSION_ID "13.97"
+#define VERSION_ID "13.98"
 
 #ifndef LICENSE_OWNER
     #define LICENSE_OWNER "Unlicensed"
@@ -60,7 +60,7 @@ void uciPosition(char *str, Board *board, int chess960);
 void uciReport(Thread *threads, PVariation *pv, int alpha, int beta);
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth);
 
-int strEquals(char *str1, char *str2);
-int strStartsWith(char *str, char *key);
-int strContains(char *str, char *key);
+int strEquals(const char *str1, const char *str2);
+int strStartsWith(const char *str, const char *key);
+int strContains(const char *str, const char *key);
 int getInput(char *str);
