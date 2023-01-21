@@ -357,11 +357,8 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
-        // Only cut with a greater depth search, and do not return
-        // when in a PvNode, unless we would otherwise hit a qsearch
-        if (ttDepth >= depth && (depth == 0 || !PvNode)) {
-
-            // Table is exact or produces a cutoff
+        // Only cut with a greater depth search, and do not return when in a PvNode
+        if (ttDepth >= depth ) {
             if (    ttBound == BOUND_EXACT
                 || (ttBound == BOUND_LOWER && ttValue >= beta)
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
@@ -761,6 +758,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height];
+    const int PvNode    = (alpha != beta - 1);
 
     int eval, value, best, oldAlpha = alpha;
     int ttHit, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, ttBound = 0;
@@ -796,10 +794,12 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         // Table is exact or produces a cutoff
-        if (    ttBound == BOUND_EXACT
-            || (ttBound == BOUND_LOWER && ttValue >= beta)
-            || (ttBound == BOUND_UPPER && ttValue <= alpha))
-            return ttValue;
+        if (!PvNode) {
+            if (    ttBound == BOUND_EXACT
+                || (ttBound == BOUND_LOWER && ttValue >= beta)
+                || (ttBound == BOUND_UPPER && ttValue <= alpha))
+                return ttValue;
+        }
     }
 
     // Save a history of the static evaluations
