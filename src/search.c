@@ -358,7 +358,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
         // Only cut with a greater depth search, and do not return when in a PvNode
-        if (ttDepth >= depth ) {
+        if (ttDepth >= depth && !PvNode) {
             if (    ttBound == BOUND_EXACT
                 || (ttBound == BOUND_LOWER && ttValue >= beta)
                 || (ttBound == BOUND_UPPER && ttValue <= alpha))
