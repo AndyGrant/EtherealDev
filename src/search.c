@@ -814,8 +814,11 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // exceed beta, then we can stop the search here. Also, if the static
     // eval exceeds alpha, we can call our static eval the new alpha
     best = eval;
-    alpha = MAX(alpha, eval);
-    if (alpha >= beta) return eval;
+
+    if (!PvNode) {
+        alpha = MAX(alpha, eval);
+        if (alpha >= beta) return eval;
+    }
 
     // Step 6. Delta Pruning. Even the best possible capture and or promotion
     // combo, with a minor boost for pawn captures, would still fail to cover
