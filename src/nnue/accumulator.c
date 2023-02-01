@@ -90,41 +90,40 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour, 
     const uint64_t black = board->colours[BLACK];
     const uint64_t kings = board->pieces[KING];
 
+    int indices[32], count = 0;
     uint64_t pieces = (white | black) & ~kings;
+    vepi16 *biases, *outputs, *weights, registers[NUM_REGS];
 
-    vepi16* biases  = (vepi16*) &in_biases[0];
-    vepi16* outputs = (vepi16*) &accum->values[colour][0];
-
-    // We can assert that this position is not KvK, and therefore to
-    // slightly optimize the AVX code, we can seperate out the very
-    // first piece and use it to initialize the output with the biases
-
-    {
-        int index = nnue_index(board, relsq, colour, poplsb(&pieces));
-        vepi16* inputs  = (vepi16*) &in_weights[index * KPSIZE];
-
-        for (int i = 0; i < KPSIZE / vepi16_cnt; i += 4) {
-            outputs[i+0] = vepi16_add(biases[i+0], inputs[i+0]);
-            outputs[i+1] = vepi16_add(biases[i+1], inputs[i+1]);
-            outputs[i+2] = vepi16_add(biases[i+2], inputs[i+2]);
-            outputs[i+3] = vepi16_add(biases[i+3], inputs[i+3]);
-        }
-    }
-
-    // Add up the remainder of the pieces to the accumulator. We batch
-    // updates into 4x16 at a timein order to get optimal assembly output
+    // Compute the list of indices just once, to then be used multiple
+    // times while updating the accumulator using a tiling method
 
     while (pieces) {
+        const int sq = poplsb(&pieces);
+        indices[count++] = nnue_index(board, relsq, colour, sq);
+    }
 
-        int index = nnue_index(board, relsq, colour, poplsb(&pieces));
-        vepi16* inputs  = (vepi16*) &in_weights[index * KPSIZE];
+    // Refresh completely, using all pieces as inputs except the Kings
+    // We do this by tiling over the accumulator, to get the compiler to
+    // produce more optimal code that does not emit extra move instructions
 
-        for (int i = 0; i < KPSIZE / vepi16_cnt; i += 4) {
-            outputs[i+0] = vepi16_add(outputs[i+0], inputs[i+0]);
-            outputs[i+1] = vepi16_add(outputs[i+1], inputs[i+1]);
-            outputs[i+2] = vepi16_add(outputs[i+2], inputs[i+2]);
-            outputs[i+3] = vepi16_add(outputs[i+3], inputs[i+3]);
+    for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * vepi16_cnt) {
+
+        biases  = (vepi16*) &in_biases[offset];
+        outputs = (vepi16*) &accum->values[colour][offset];
+
+        for (int i = 0; i < NUM_REGS; i++)
+            registers[i] = biases[i];
+
+        for (int i = 0; i < count; i++) {
+
+            weights = (vepi16*) &in_weights[indices[i] * KPSIZE + offset];
+
+            for (int j = 0; j < NUM_REGS; j++)
+                registers[j] = vepi16_add(registers[j], weights[j]);
         }
+
+        for (int i = 0; i < NUM_REGS; i++)
+            outputs[i] = registers[i];
     }
 }
 
