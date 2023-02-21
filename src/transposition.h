@@ -58,7 +58,7 @@ enum {
 
     TT_MASK_BOUND = 0x03,
     TT_MASK_AGE   = 0xFC,
-    TT_BUCKET_NB  = 3,
+    TT_BUCKET_NB  = 6,
 };
 
 struct TTEntry {
@@ -70,7 +70,7 @@ struct TTEntry {
 
 struct TTBucket {
     TTEntry slots[TT_BUCKET_NB];
-    uint16_t padding;
+    uint32_t padding;
 };
 
 struct TTable {
