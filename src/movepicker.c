@@ -50,7 +50,10 @@ void init_picker(MovePicker *mp, Thread *thread, uint16_t tt_move) {
     mp->tt_move = tt_move;
 
     // Lookup our refutations (killers and counter moves)
-    get_refutation_moves(thread, &mp->killer1, &mp->killer2, &mp->counter);
+    if (!thread->board.kingAttackers)
+        get_refutation_moves(thread, &mp->killer1, &mp->killer2, &mp->counter);
+    else
+        mp->killer1 = mp->killer2 = mp->counter = NONE_MOVE;
 
     // General housekeeping
     mp->threshold = 0;
