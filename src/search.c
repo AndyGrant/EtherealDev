@@ -981,6 +981,8 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     // Table move was already applied
     revert(thread, board, ttMove);
 
+    bool ttCapture = moveIsTactical(board, ttMove);
+
     // Search on a null rBeta window, excluding the tt-move
     ns->excluded = ttMove;
     value = search(thread, &lpv, rBeta-1, rBeta, (depth - 1) / 2);
@@ -1000,8 +1002,8 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
                       &&  value < rBeta - 15
                       && (ns-1)->dextensions <= 6;
 
-    return double_extend   ?  2 // Double extension in some non-pv nodes
-         : value < rBeta   ?  1 // Singular due to no cutoffs produced
-         : ttValue >= beta ? -1 // Potential multi-cut even at current depth
-         : 0;                   // Not singular, and unlikely to produce a cutoff
+    return double_extend   ?  2                  // Double extension in some non-pv nodes
+         : value < rBeta   ?  1                  // Singular due to no cutoffs produced
+         : ttValue >= beta ? (ttCapture ? 2 : 1) // Potential multi-cut even at current depth
+         : 0;                                    // Not singular, and unlikely to produce a cutoff
 }
