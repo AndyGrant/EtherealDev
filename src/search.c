@@ -625,7 +625,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked.
 
-        extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, beta) : inCheck;
+        extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, alpha, beta) : inCheck;
         newDepth = depth + (!RootNode ? extension : 0);
         if (extension > 1) ns->dextensions++;
 
@@ -970,7 +970,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
     return board->turn != colour;
 }
 
-int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvNode, int beta) {
+int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvNode, int alpha, int beta) {
 
     Board *const board  = &thread->board;
     NodeState *const ns = &thread->states[thread->height-1];
@@ -1000,8 +1000,9 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
                       &&  value < rBeta - 15
                       && (ns-1)->dextensions <= 6;
 
-    return double_extend   ?  2 // Double extension in some non-pv nodes
-         : value < rBeta   ?  1 // Singular due to no cutoffs produced
-         : ttValue >= beta ? -1 // Potential multi-cut even at current depth
-         : 0;                   // Not singular, and unlikely to produce a cutoff
+    return double_extend                ?  2 // Double extension in some non-pv nodes
+         : value < rBeta                ?  1 // Singular due to no cutoffs produced
+         : ttValue >= beta              ? -1 // Potential multi-cut even at current depth
+         : ttValue <= MIN(alpha, value) ? -1 //
+         : 0;                                // Not singular, and unlikely to produce a cutoff
 }
