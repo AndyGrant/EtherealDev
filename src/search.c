@@ -36,6 +36,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "movepicker.h"
+#include "nnue/nnue.h"
 #include "search.h"
 #include "syzygy.h"
 #include "thread.h"
