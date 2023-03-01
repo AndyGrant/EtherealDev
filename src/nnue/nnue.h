@@ -26,6 +26,7 @@
 
 void nnue_init(const char* fname);
 void nnue_incbin_init();
+void nnue_ensure_accumulators(Thread *thread, Board *board);
 int nnue_evaluate(Thread *thread, Board *board);
 
 #else
@@ -37,6 +38,10 @@ INLINE void nnue_init(const char* fname) {
 INLINE void nnue_incbin_init() {
     (void) 0;
 };
+
+INLINE void nnue_ensure_accumulators(Thread *thread, Board *board) {
+    (void) thread; (void) board;
+}
 
 INLINE int nnue_evaluate(Thread *thread, Board * board) {
     (void) thread; (void) board; return 0;

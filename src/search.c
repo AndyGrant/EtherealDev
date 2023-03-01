@@ -420,7 +420,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     inCheck = !!board->kingAttackers;
 
     // Save a history of the static evaluations when not checked
-    eval = ns->eval = inCheck ? VALUE_NONE
+    eval = ns->eval = ns->excluded ? ns->eval : inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
     // Static Exchange Evaluation Pruning Margins

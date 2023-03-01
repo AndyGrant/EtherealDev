@@ -459,6 +459,30 @@ void nnue_incbin_init() {
     #endif
 }
 
+void nnue_ensure_accumulators(Thread *thread, Board *board) {
+
+    NNUEAccumulator *accum = &thread->nnueStack[thread->height];
+
+    if (!accum->accurate) {
+
+        const uint64_t white = board->colours[WHITE];
+        const uint64_t black = board->colours[BLACK];
+        const uint64_t kings = board->pieces[KING];
+
+        // Optimized computation of various input indices
+        int wrelksq = relativeSquare(WHITE, getlsb(white & kings));
+        int brelksq = relativeSquare(BLACK, getlsb(black & kings));
+
+        // Possible to recurse and incrementally update each
+        if (nnue_can_update(accum, board))
+            nnue_update_accumulator(accum, board, wrelksq, brelksq);
+
+        // History is missing, we must refresh completely
+        else
+            nnue_refresh_accumulators(accum, board, wrelksq, brelksq);
+    }
+}
+
 int nnue_evaluate(Thread *thread, Board *board) {
 
     int mg_eval, eg_eval;
@@ -472,10 +496,6 @@ int nnue_evaluate(Thread *thread, Board *board) {
     // For optimizations, auto-flag KvK as drawn
     if (kings == (white | black)) return 0;
 
-    // Optimized computation of various input indices
-    int wrelksq = relativeSquare(WHITE, getlsb(white & kings));
-    int brelksq = relativeSquare(BLACK, getlsb(black & kings));
-
     // Large enough to handle layer computations
     ALIGN64 uint8_t out8[L1SIZE];
     ALIGN64 float outN1[L1SIZE];
@@ -483,16 +503,8 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
     NNUEAccumulator *accum = &thread->nnueStack[thread->height];
 
-    if (!accum->accurate) {
-
-        // Possible to recurse and incrementally update each
-        if (nnue_can_update(accum, board))
-            nnue_update_accumulator(accum, board, wrelksq, brelksq);
-
-        // History is missing, we must refresh completely
-        else
-            nnue_refresh_accumulators(accum, board, wrelksq, brelksq);
-    }
+    // Make sure we are up-to-date
+    nnue_ensure_accumulators(thread, board);
 
     // Feed-forward the entire evaluation function
     halfkp_relu(accum, out8, board->turn);
