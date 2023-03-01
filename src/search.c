@@ -351,8 +351,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     }
 
     // Don't probe the TT or TB during singluar searches
-    if (ns->excluded != NONE_MOVE)
+    if (ns->excluded != NONE_MOVE) {
+        nnue_ensure_accumulators(thread, board);
         goto search_init_goto;
+    }
 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
