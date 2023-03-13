@@ -24,7 +24,9 @@
 
 #include "../types.h"
 
-#if defined(USE_AVX2)
+#if defined (USE_AVX512)
+    #include "archs/avx512.h"
+#elif defined(USE_AVX2)
     #include "archs/avx2.h"
 #elif defined(USE_AVX)
     #include "archs/avx.h"

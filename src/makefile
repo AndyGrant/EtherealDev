@@ -52,6 +52,7 @@ PEXTFLAGS   = -DUSE_PEXT -mbmi2 $(POPCNTFLAGS)
 SSSE3FLAGS  = -DUSE_SSSE3 -msse -msse2 -msse3 -mssse3
 AVXFLAGS    = -DUSE_AVX -mavx -msse4.1 $(SSSE3FLAGS)
 AVX2FLAGS   = -DUSE_AVX2 -mavx2 -mfma $(AVXFLAGS)
+AVX512FLAGS = -DUSE_AVX512 -mavx512f -mavx512bw -mavx512cd -mavx512dq $(AVXFLAGS)
 
 ### =========================================================================
 ### Section 2. Native Build Configuration [ Auto-Detection ]
@@ -74,6 +75,10 @@ ifneq ($(findstring __BMI2__, $(PROPS)),)
 endif
 
 # Detect AVX2, AVX, or otherwise SSSE3 Instruction Support
+
+ifneq ($(findstring __AVX512BW__, $(PROPS)),)
+	CFLAGS += -DUSE_AVX512
+endif
 
 ifneq ($(findstring __AVX2__, $(PROPS)),)
 	CFLAGS += -DUSE_AVX2

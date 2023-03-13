@@ -20,6 +20,11 @@
 
 #pragma once
 
+#define acc_vepi16     __m256i
+#define acc_vepi16_add _mm256_add_epi16
+#define acc_vepi16_sub _mm256_sub_epi16
+#define acc_vepi16_cnt 16
+
 #define vepi8  __m256i
 #define vepi16 __m256i
 #define vepi32 __m256i

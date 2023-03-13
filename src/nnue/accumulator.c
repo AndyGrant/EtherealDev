@@ -95,7 +95,7 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour, 
 
     int indices[32], count = 0;
     uint64_t pieces = (white | black) & ~kings;
-    vepi16 *biases, *outputs, *weights, registers[NUM_REGS];
+    acc_vepi16 *biases, *outputs, *weights, registers[NUM_REGS];
 
     // Compute the list of indices just once, to then be used multiple
     // times while updating the accumulator using a tiling method
@@ -109,20 +109,20 @@ void nnue_refresh_accumulator(NNUEAccumulator *accum, Board *board, int colour, 
     // We do this by tiling over the accumulator, to get the compiler to
     // produce more optimal code that does not emit extra move instructions
 
-    for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * vepi16_cnt) {
+    for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * acc_vepi16_cnt) {
 
-        biases  = (vepi16*) &in_biases[offset];
-        outputs = (vepi16*) &accum->values[colour][offset];
+        biases  = (acc_vepi16*) &in_biases[offset];
+        outputs = (acc_vepi16*) &accum->values[colour][offset];
 
         for (int i = 0; i < NUM_REGS; i++)
             registers[i] = biases[i];
 
         for (int i = 0; i < count; i++) {
 
-            weights = (vepi16*) &in_weights[indices[i] * KPSIZE + offset];
+            weights = (acc_vepi16*) &in_weights[indices[i] * KPSIZE + offset];
 
             for (int j = 0; j < NUM_REGS; j++)
-                registers[j] = vepi16_add(registers[j], weights[j]);
+                registers[j] = acc_vepi16_add(registers[j], weights[j]);
         }
 
         for (int i = 0; i < NUM_REGS; i++)
@@ -136,7 +136,7 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, i
 
     int add = 0, remove = 0;
     int add_list[3], remove_list[3];
-    vepi16 *inputs, *outputs, *weights, registers[NUM_REGS];
+    acc_vepi16 *inputs, *outputs, *weights, registers[NUM_REGS];
 
     // Recurse and update all out of our date parents
     if (!(accum-1)->accurate[colour])
@@ -165,28 +165,28 @@ void nnue_update_accumulator(NNUEAccumulator *accum, Board *board, int colour, i
             remove_list[remove++] = nnue_index_delta(x->piece, relksq, colour, x->from);
     }
 
-    for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * vepi16_cnt) {
+    for (int offset = 0; offset < KPSIZE; offset += NUM_REGS * acc_vepi16_cnt) {
 
-        outputs = (vepi16*) &(accum-0)->values[colour][offset];
-        inputs  = (vepi16*) &(accum-1)->values[colour][offset];
+        outputs = (acc_vepi16*) &(accum-0)->values[colour][offset];
+        inputs  = (acc_vepi16*) &(accum-1)->values[colour][offset];
 
         for (int i = 0; i < NUM_REGS; i++)
             registers[i] = inputs[i];
 
         for (int i = 0; i < add; i++) {
 
-            weights = (vepi16*) &in_weights[add_list[i] * KPSIZE + offset];
+            weights = (acc_vepi16*) &in_weights[add_list[i] * KPSIZE + offset];
 
             for (int j = 0; j < NUM_REGS; j++)
-                registers[j] = vepi16_add(registers[j], weights[j]);
+                registers[j] = acc_vepi16_add(registers[j], weights[j]);
         }
 
         for (int i = 0; i < remove; i++) {
 
-            weights = (vepi16*) &in_weights[remove_list[i] * KPSIZE + offset];
+            weights = (acc_vepi16*) &in_weights[remove_list[i] * KPSIZE + offset];
 
             for (int j = 0; j < NUM_REGS; j++)
-                registers[j] = vepi16_sub(registers[j], weights[j]);
+                registers[j] = acc_vepi16_sub(registers[j], weights[j]);
         }
 
         for (int i = 0; i < NUM_REGS; i++)
