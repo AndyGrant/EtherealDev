@@ -299,7 +299,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int movesSeen = 0, quietsPlayed = 0, capturesPlayed = 0, played = 0;
     int ttHit = 0, ttValue = 0, ttEval = VALUE_NONE, ttDepth = 0, tbBound, ttBound = 0;
     int R, newDepth, rAlpha, rBeta, oldAlpha = alpha;
-    int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
+    int inCheck, isQuiet, improving, extension, singular, neverExtend = FALSE, skipQuiets = 0;
     int eval, value, best = -MATE, syzygyMax = MATE, syzygyMin = -MATE, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
@@ -474,20 +474,24 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         && !ns->excluded
         &&  eval >= beta
         && (ns-1)->move != NULL_MOVE
-        &&  depth >= NullMovePruningDepth
         &&  boardHasNonPawnMaterial(board, board->turn)
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
-        // Dynamic R based on Depth, Eval, and Tactical state
-        R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
+        neverExtend = TRUE;
 
-        apply(thread, board, NULL_MOVE);
-        value = -search(thread, &lpv, -beta, -beta+1, depth-R);
-        revert(thread, board, NULL_MOVE);
+        if (depth >= NullMovePruningDepth) {
 
-        // Don't return unproven TB-Wins or Mates
-        if (value >= beta)
-            return (value > TBWIN_IN_MAX) ? beta : value;
+            // Dynamic R based on Depth, Eval, and Tactical state
+            R = 4 + depth / 6 + MIN(3, (eval - beta) / 200) + (ns-1)->tactical;
+
+            apply(thread, board, NULL_MOVE);
+            value = -search(thread, &lpv, -beta, -beta+1, depth-R);
+            revert(thread, board, NULL_MOVE);
+
+            // Don't return unproven TB-Wins or Mates
+            if (value >= beta)
+                return (value > TBWIN_IN_MAX) ? beta : value;
+        }
     }
 
     // Step 10 (~9 elo). Probcut Pruning. If we have a good capture that causes a
@@ -623,7 +627,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // extend for any position where our King is checked.
 
         extension = singular ? singularity(thread, ttMove, ttValue, depth, PvNode, alpha, beta) : inCheck;
-        newDepth = depth + (!RootNode ? extension : 0);
+        newDepth = depth + (!RootNode && !neverExtend ? extension : 0);
         if (extension > 1) ns->dextensions++;
 
         // Step 16. MultiCut. Sometimes candidate Singular moves are shown to be non-Singular.
