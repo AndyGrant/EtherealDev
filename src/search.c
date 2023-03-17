@@ -269,14 +269,14 @@ void aspirationWindow(Thread *thread) {
         // Search failed low, adjust window and reset depth
         if (pv.score <= alpha) {
             beta  = (alpha + beta) / 2;
-            alpha = MAX(-MATE, alpha - delta);
+            alpha = MAX(-MATE, MIN(pv.score, alpha - delta));
             depth = thread->depth;
             revert_best_line(thread);
         }
 
         // Search failed high, adjust window and reduce depth
         else if (pv.score >= beta) {
-            beta = MIN(MATE, beta + delta);
+            beta = MIN(MATE, MAX(pv.score, beta + delta));
             depth = depth - (abs(pv.score) <= MATE / 2);
             update_best_line(thread, &pv);
         }
