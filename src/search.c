@@ -561,6 +561,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
         }
     }
 
+    if (   cutnode
+        && depth >= 7
+        && ttMove == NONE_MOVE)
+        depth -= 2;
+
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff. We
     // reuse an already initialized MovePicker to verify Singular Extension
