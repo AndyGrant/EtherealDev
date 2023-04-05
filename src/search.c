@@ -680,6 +680,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
                 // Increase for non PV, non improving
                 R += !PvNode + !improving;
 
+                //
+                R += cutnode;
+
                 // Increase for King moves that evade checks
                 R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
 
