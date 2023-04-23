@@ -387,6 +387,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
     // Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
     if ((ttHit = tt_probe(board->hash, thread->height, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
+        // Always use the true PV move at the root node.
+        if (RootNode)
+            ttMove = thread->pvs[thread->completed].line[0];
+
         // Only cut with a greater depth search, and do not return
         // when in a PvNode, unless we would otherwise hit a qsearch
         if (ttDepth >= depth && (depth == 0 || !PvNode)) {
