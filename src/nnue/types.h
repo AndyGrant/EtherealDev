@@ -33,10 +33,10 @@
 #endif
 
 #define INSIZE  20480
-#define KPSIZE  1024
-#define L1SIZE  2048
-#define L2SIZE  8
-#define L3SIZE  32
+#define KPSIZE  512
+#define L1SIZE  1024
+#define L2SIZE  16
+#define L3SIZE  16
 #define OUTSIZE 1
 
 #define NUM_REGS 16
