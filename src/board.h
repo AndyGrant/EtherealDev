@@ -25,17 +25,17 @@ extern const char *PieceLabel[COLOUR_NB];
 struct Board {
     uint8_t squares[SQUARE_NB];
     uint64_t pieces[8], colours[3];
-    uint64_t hash, pkhash, kingAttackers, threats;
+    uint64_t hash, kingAttackers, threats;
     uint64_t castleRooks, castleMasks[SQUARE_NB];
     int turn, epSquare, halfMoveCounter, fullMoveCounter;
-    int psqtmat, numMoves, chess960;
+    int numMoves, chess960;
     uint64_t history[8192];
     Thread *thread;
 };
 
 struct Undo {
-    uint64_t hash, pkhash, kingAttackers, threats, castleRooks;
-    int epSquare, halfMoveCounter, psqtmat, capturePiece;
+    uint64_t hash, kingAttackers, threats, castleRooks;
+    int epSquare, halfMoveCounter, capturePiece;
 };
 
 void squareToString(int sq, char *str);

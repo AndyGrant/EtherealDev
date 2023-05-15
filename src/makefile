@@ -43,7 +43,6 @@ endif
 WFLAGS   = -std=gnu11 -Wall -Wextra -Wshadow
 RFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto $(NN) $(NNFLAGS) -static
 CFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto $(NN) $(NNFLAGS) -march=native
-TFLAGS   = -O3 $(WFLAGS) -DNDEBUG -flto $(NN) $(NNFLAGS) -march=native -fopenmp -DTUNE
 PGOFLAGS = -fno-asynchronous-unwind-tables
 
 POPCNTFLAGS = -DUSE_POPCNT -mpopcnt
@@ -114,9 +113,6 @@ pgo:
 
 basic:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o $(EXE)
-
-tune:
-	$(CC) $(TFLAGS) $(SRC) $(LIBS) -o $(EXE)
 
 ### =========================================================================
 ### Section 4. Release Build Targets [ make release OWNER= OS= EXE= EXT= ]

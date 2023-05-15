@@ -117,13 +117,11 @@ void applyMove(Board *board, uint16_t move, Undo *undo) {
 
     // Save information which is hard to recompute
     undo->hash            = board->hash;
-    undo->pkhash          = board->pkhash;
     undo->kingAttackers   = board->kingAttackers;
     undo->threats         = board->threats;
     undo->castleRooks     = board->castleRooks;
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter;
-    undo->psqtmat         = board->psqtmat;
 
     // Store hash history for repetition checking
     board->history[board->numMoves++] = board->hash;
@@ -181,21 +179,10 @@ void applyNormalMove(Board *board, uint16_t move, Undo *undo) {
     board->castleRooks &= board->castleMasks[to];
     updateCastleZobrist(board, undo->castleRooks, board->castleRooks);
 
-    board->psqtmat += PSQT[fromPiece][to]
-                   -  PSQT[fromPiece][from]
-                   -  PSQT[toPiece][to];
-
     board->hash    ^= ZobristKeys[fromPiece][from]
                    ^  ZobristKeys[fromPiece][to]
                    ^  ZobristKeys[toPiece][to]
                    ^  ZobristTurnKey;
-
-    if (fromType == PAWN || fromType == KING)
-        board->pkhash ^= ZobristKeys[fromPiece][from]
-                      ^  ZobristKeys[fromPiece][to];
-
-    if (toType == PAWN)
-        board->pkhash ^= ZobristKeys[toPiece][to];
 
     if (fromType == PAWN && (to ^ from) == 16) {
 
@@ -242,19 +229,11 @@ void applyCastleMove(Board *board, uint16_t move, Undo *undo) {
     board->castleRooks &= board->castleMasks[from];
     updateCastleZobrist(board, undo->castleRooks, board->castleRooks);
 
-    board->psqtmat += PSQT[fromPiece][to]
-                   -  PSQT[fromPiece][from]
-                   +  PSQT[rFromPiece][rTo]
-                   -  PSQT[rFromPiece][rFrom];
-
-    board->hash    ^= ZobristKeys[fromPiece][from]
-                   ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[rFromPiece][rFrom]
-                   ^  ZobristKeys[rFromPiece][rTo]
-                   ^  ZobristTurnKey;
-
-    board->pkhash  ^= ZobristKeys[fromPiece][from]
-                   ^  ZobristKeys[fromPiece][to];
+    board->hash ^= ZobristKeys[fromPiece][from]
+                ^  ZobristKeys[fromPiece][to]
+                ^  ZobristKeys[rFromPiece][rFrom]
+                ^  ZobristKeys[rFromPiece][rTo]
+                ^  ZobristTurnKey;
 
     assert(pieceType(fromPiece) == KING);
 
@@ -287,18 +266,10 @@ void applyEnpassMove(Board *board, uint16_t move, Undo *undo) {
     board->squares[ep]   = EMPTY;
     undo->capturePiece   = enpassPiece;
 
-    board->psqtmat += PSQT[fromPiece][to]
-                   -  PSQT[fromPiece][from]
-                   -  PSQT[enpassPiece][ep];
-
-    board->hash    ^= ZobristKeys[fromPiece][from]
-                   ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[enpassPiece][ep]
-                   ^  ZobristTurnKey;
-
-    board->pkhash  ^= ZobristKeys[fromPiece][from]
-                   ^  ZobristKeys[fromPiece][to]
-                   ^  ZobristKeys[enpassPiece][ep];
+    board->hash ^= ZobristKeys[fromPiece][from]
+                ^  ZobristKeys[fromPiece][to]
+                ^  ZobristKeys[enpassPiece][ep]
+                ^  ZobristTurnKey;
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(enpassPiece) == PAWN);
@@ -337,16 +308,10 @@ void applyPromotionMove(Board *board, uint16_t move, Undo *undo) {
     board->castleRooks &= board->castleMasks[to];
     updateCastleZobrist(board, undo->castleRooks, board->castleRooks);
 
-    board->psqtmat += PSQT[promoPiece][to]
-                   -  PSQT[fromPiece][from]
-                   -  PSQT[toPiece][to];
-
-    board->hash    ^= ZobristKeys[fromPiece][from]
-                   ^  ZobristKeys[promoPiece][to]
-                   ^  ZobristKeys[toPiece][to]
-                   ^  ZobristTurnKey;
-
-    board->pkhash  ^= ZobristKeys[fromPiece][from];
+    board->hash ^= ZobristKeys[fromPiece][from]
+                ^  ZobristKeys[promoPiece][to]
+                ^  ZobristKeys[toPiece][to]
+                ^  ZobristTurnKey;
 
     assert(pieceType(fromPiece) == PAWN);
     assert(pieceType(toPiece) != PAWN);
@@ -397,13 +362,11 @@ void revertMove(Board *board, uint16_t move, Undo *undo) {
 
     // Revert information which is hard to recompute
     board->hash            = undo->hash;
-    board->pkhash          = undo->pkhash;
     board->kingAttackers   = undo->kingAttackers;
     board->threats         = undo->threats;
     board->castleRooks     = undo->castleRooks;
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
-    board->psqtmat         = undo->psqtmat;
 
     // Swap turns and update the history index
     board->turn = !board->turn;

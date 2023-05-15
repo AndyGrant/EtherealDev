@@ -52,9 +52,7 @@ static void clearBoard(Board *board) {
 
 static void setSquare(Board *board, int colour, int piece, int sq) {
 
-    // Generate a piece on the given square. This serves as an aid
-    // to setting up the board from a FEN. We make sure update any
-    // related hash values, as well as the PSQT + material values
+    // Generate a piece on the given square
 
     assert(0 <= colour && colour < COLOUR_NB);
     assert(0 <= piece && piece < PIECE_NB);
@@ -64,10 +62,7 @@ static void setSquare(Board *board, int colour, int piece, int sq) {
     setBit(&board->colours[colour], sq);
     setBit(&board->pieces[piece], sq);
 
-    board->psqtmat += PSQT[board->squares[sq]][sq];
     board->hash ^= ZobristKeys[board->squares[sq]][sq];
-    if (piece == PAWN || piece == KING)
-        board->pkhash ^= ZobristKeys[board->squares[sq]][sq];
 }
 
 static int stringToSquare(char *str) {

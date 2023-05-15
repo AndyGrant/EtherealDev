@@ -90,22 +90,3 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
 struct TTClear { int index, count; };
 void tt_clear(int nthreads);
 void *tt_clear_threaded(void *cargo);
-
-/// The Pawn King table contains saved evaluations, and additional Pawn information
-/// that is expensive to compute during evaluation. This includes the location of all
-/// passed pawns, and Pawn-Shelter / Pawn-Storm scores for use in King Safety evaluation.
-///
-/// While this table is seldom accessed when using Ethereal NNUE, the table generally has
-/// an extremely high, 95%+ hit rate, generating a substantial overall speedup to Ethereal.
-
-enum {
-    PK_CACHE_KEY_SIZE = 16,
-    PK_CACHE_MASK     = 0xFFFF,
-    PK_CACHE_SIZE     = 1 << PK_CACHE_KEY_SIZE,
-};
-
-struct PKEntry { uint64_t pkhash, passed; int eval, safetyw, safetyb; };
-typedef PKEntry PKTable[PK_CACHE_SIZE];
-
-PKEntry* getCachedPawnKingEval(Thread *thread, const Board *board);
-void storeCachedPawnKingEval(Thread *thread, const Board *board, uint64_t passed, int eval, int safety[2]);

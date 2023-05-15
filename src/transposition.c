@@ -21,7 +21,6 @@
 #include <pthread.h>
 
 #include "board.h"
-#include "evaluate.h"
 #include "thread.h"
 #include "transposition.h"
 #include "types.h"
@@ -201,17 +200,4 @@ void *tt_clear_threaded(void *cargo) {
 
     memset(Table.buckets + begin / sizeof(TTBucket), 0, end - begin);
     return NULL;
-}
-
-/// Simple Pawn+King Evaluation Hash Table, which also stores some additional
-/// safety information for use in King Safety, when not using NNUE evaluations
-
-PKEntry* getCachedPawnKingEval(Thread *thread, const Board *board) {
-    PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
-    return pke->pkhash == board->pkhash ? pke : NULL;
-}
-
-void storeCachedPawnKingEval(Thread *thread, const Board *board, uint64_t passed, int eval, int safety[2]) {
-    PKEntry *pke = &thread->pktable[board->pkhash & PK_CACHE_MASK];
-    *pke = (PKEntry) { board->pkhash, passed, eval, safety[WHITE], safety[BLACK] };
 }

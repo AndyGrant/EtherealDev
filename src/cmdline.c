@@ -25,15 +25,13 @@
 #include "board.h"
 #include "cmdline.h"
 #include "move.h"
+#include "nnue/nnue.h"
 #include "pgn.h"
 #include "search.h"
 #include "thread.h"
 #include "timeman.h"
 #include "transposition.h"
-#include "tuner.h"
 #include "uci.h"
-
-#include "nnue/nnue.h"
 
 static void runBenchmark(int argc, char **argv) {
 
@@ -147,12 +145,12 @@ void handleCommandLine(int argc, char **argv) {
 
     // Output all the wonderful things we can do from the Command Line
     if (argc > 1 && strEquals(argv[1], "--help")) {
-        printf("\nbench       [depth=13] [threads=1] [hash=16] [NNUE=None]");
-        printf("\n            Run searches on a set of positions to compute a hash\n");
-        printf("\nevalbook    [input-file] [depth=12] [threads=1] [hash=2]");
-        printf("\n            Evaluate all positions in a FEN file using various options\n");
-        printf("\nndata       [input-file] [output-file]");
-        printf("\n            Build an nndata from a stripped pgn file\n");
+        printf("\nbench    [depth=13] [threads=1] [hash=16] [NNUE=None]");
+        printf("\n         Run searches on a set of positions to compute a hash\n");
+        printf("\nevalbook [input-file] [depth=12] [threads=1] [hash=2]");
+        printf("\n         Evaluate all positions in a FEN file using various options\n");
+        printf("\nndata    [input-file] [output-file]");
+        printf("\n         Build an nndata from a stripped pgn file\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -173,10 +171,4 @@ void handleCommandLine(int argc, char **argv) {
         process_pgn(argv[2], argv[3]);
         exit(EXIT_SUCCESS);
     }
-
-    // Tuner is being run from the command line
-    #ifdef TUNE
-        runTuner();
-        exit(EXIT_SUCCESS);
-    #endif
 }

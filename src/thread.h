@@ -24,7 +24,6 @@
 
 #include "board.h"
 #include "movepicker.h"
-#include "network.h"
 #include "search.h"
 #include "transposition.h"
 #include "types.h"
@@ -69,7 +68,6 @@ struct Thread {
     Undo undoStack[STACK_SIZE];
     NodeState *states, nodeStates[STACK_SIZE];
 
-    ALIGN64 PKTable pktable;
     ALIGN64 KillerTable killers;
     ALIGN64 CounterMoveTable cmtable;
     ALIGN64 HistoryTable history;

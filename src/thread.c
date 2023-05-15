@@ -71,8 +71,6 @@ void resetThreadPool(Thread *threads) {
 
     for (int i = 0; i < threads->nthreads; i++) {
 
-        memset(&threads[i].pktable, 0, sizeof(PKTable));
-
         memset(&threads[i].killers, 0, sizeof(KillerTable));
         memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));
 
