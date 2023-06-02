@@ -155,7 +155,9 @@ void tt_store(uint64_t hash, int height, uint16_t move, int value, int eval, int
         return;
 
     // Don't overwrite a move if we don't have a new one
-    if ((move && bound != BOUND_UPPER) || hash16 != replace->hash16)
+    if (   !replace-move
+        ||  hash16 != replace->hash16
+        || (move && bound != BOUND_UPPER))
         replace->move = (uint16_t) move;
 
     // Finally, copy the new data into the replaced slot
