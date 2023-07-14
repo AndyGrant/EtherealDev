@@ -757,6 +757,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
 
                 // Search failed high
                 if (alpha >= beta) break;
+
+                if (thread->nthreads > 1)
+                    tt_store(board->hash, thread->height, bestMove, best, eval, depth, BOUND_LOWER);
             }
         }
     }
