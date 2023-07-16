@@ -756,7 +756,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
                 memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
 
                 // Search failed high
-                if (alpha >= beta) break;
+                if (alpha >= beta)
+                    break;
+
+                // Continually reduce depth for new best moves in PvNodes
+                depth -= depth > 1;
             }
         }
     }
