@@ -73,7 +73,7 @@ int apply(Thread *thread, Board *board, uint16_t move) {
 
         ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
         ns->tactical      = moveIsTactical(board, move);
-        ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
+        ns->continuations = &thread->continuation[ns->tactical][board->turn][ns->movedPiece][MoveTo(move)];
         ns->move          = move;
 
         // Prefetch the next tt-entry as soon as we have the Key
@@ -97,7 +97,7 @@ void applyLegal(Thread *thread, Board *board, uint16_t move) {
 
     ns->movedPiece    = pieceType(board->squares[MoveFrom(move)]);
     ns->tactical      = moveIsTactical(board, move);
-    ns->continuations = &thread->continuation[ns->tactical][ns->movedPiece][MoveTo(move)];
+    ns->continuations = &thread->continuation[ns->tactical][board->turn][ns->movedPiece][MoveTo(move)];
     ns->move          = move;
 
     // Assumed that this move is legal

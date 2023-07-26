@@ -101,7 +101,7 @@ typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
 
 typedef int16_t HistoryTable[COLOUR_NB][2][2][SQUARE_NB][SQUARE_NB];
 typedef int16_t CaptureHistoryTable[PIECE_NB][2][2][SQUARE_NB][PIECE_NB-1];
-typedef int16_t ContinuationTable[2][PIECE_NB][SQUARE_NB][PIECE_NB][SQUARE_NB];
+typedef int16_t ContinuationTable[2][COLOUR_NB][PIECE_NB][SQUARE_NB][COLOUR_NB][PIECE_NB][SQUARE_NB];
 
 // Trivial alignment macros
 
