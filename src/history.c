@@ -81,11 +81,11 @@ static void underlying_quiet_history(Thread *thread, uint16_t move, int16_t *his
 
     // Set Counter Move History if it exists
     histories[0] = (ns-1)->continuations == NULL
-                 ? &NULL_HISTORY : &(*(ns-1)->continuations)[0][piece][to];
+                 ? &NULL_HISTORY : &(*(ns-1)->continuations)[piece][to];
 
     // Set Followup Move History if it exists
     histories[1] = (ns-2)->continuations == NULL
-                 ? &NULL_HISTORY : &(*(ns-2)->continuations)[1][piece][to];
+                 ? &NULL_HISTORY : &(*(ns-2)->continuations)[piece][to];
 
     // Set Butterfly History, which will always exist
     histories[2] = &thread->history[thread->board.turn][threat_from][threat_to][from][to];
@@ -194,11 +194,11 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
 
         // Update Counter Move History if it exists
         if ((ns-1)->continuations != NULL)
-             update_history(histories[0], depth, i == length - 1);
+            update_history(histories[0], depth, i == length - 1);
 
         // Update Followup Move History if it exists
         if ((ns-2)->continuations != NULL)
-             update_history(histories[1], depth, i == length - 1);
+            update_history(histories[1], depth, i == length - 1);
 
         // Update Butterfly History, which always exists
         update_history(histories[2], depth, i == length - 1);

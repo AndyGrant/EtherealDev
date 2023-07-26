@@ -52,7 +52,6 @@ enum {
     SQUARE_NB = 64, COLOUR_NB = 2,
     RANK_NB   =  8, FILE_NB   = 8,
     PHASE_NB  =  2, PIECE_NB  = 6,
-    CONT_NB   =  2
 };
 
 static inline int pieceType(int piece) {
@@ -102,7 +101,7 @@ typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
 
 typedef int16_t HistoryTable[COLOUR_NB][2][2][SQUARE_NB][SQUARE_NB];
 typedef int16_t CaptureHistoryTable[PIECE_NB][2][2][SQUARE_NB][PIECE_NB-1];
-typedef int16_t ContinuationTable[2][PIECE_NB][SQUARE_NB][CONT_NB][PIECE_NB][SQUARE_NB];
+typedef int16_t ContinuationTable[2][PIECE_NB][SQUARE_NB][PIECE_NB][SQUARE_NB];
 
 // Trivial alignment macros
 
