@@ -39,42 +39,42 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold);
 int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvNode, int alpha, int beta, bool cutnode);
 
 static const int WindowDepth   = 4;
-static const int WindowSize    = 10;
+static const int WindowSize    = 9;
 static const int WindowTimerMS = 2500;
 
 static const int CurrmoveTimerMS = 2500;
 
-static const int TTResearchMargin = 141;
+static const int TTResearchMargin = 145;
 
 static const int BetaPruningDepth = 8;
-static const int BetaMargin = 57;
+static const int BetaMargin = 61;
 
-static const int AlphaPruningDepth = 4;
-static const int AlphaMargin = 3488;
+static const int AlphaPruningDepth = 5;
+static const int AlphaMargin = 3415;
 
 static const int NullMovePruningDepth = 2;
 
 static const int ProbCutDepth = 5;
-static const int ProbCutMargin = 100;
+static const int ProbCutMargin = 102;
 
 static const int FutilityPruningDepth = 8;
-static const int FutilityMarginBase = 77;
-static const int FutilityMarginPerDepth = 52;
-static const int FutilityMarginNoHistory = 165;
-static const int FutilityPruningHistoryLimit[] = { 14296, 6004 };
+static const int FutilityMarginBase = 76;
+static const int FutilityMarginPerDepth = 50;
+static const int FutilityMarginNoHistory = 171;
+static const int FutilityPruningHistoryLimit[] = { 14195, 6190 };
 
 static const int ContinuationPruningDepth[] = { 3, 2 };
 static const int ContinuationPruningHistoryLimit[] = { -1000, -2500 };
 
-static const int LateMovePruningDepth = 8;
+static const int LateMovePruningDepth = 7;
 
 static const int SEEPruningDepth = 10;
 static const int SEEQuietMargin = -64;
 static const int SEENoisyMargin = -20;
 static const int SEEPieceValues[] = {
-     103,  422,  437,  694,
-    1313,    0,    0,    0,
+     108,  417,  438,  721,
+    1403,    0,    0,    0,
 };
 
-static const int QSSeeMargin = 123;
-static const int QSDeltaMargin = 142;
+static const int QSSeeMargin = 132;
+static const int QSDeltaMargin = 149;

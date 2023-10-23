@@ -152,11 +152,11 @@ void initSearch() {
     // Init Late Move Reductions Table
     for (int depth = 1; depth < 64; depth++)
         for (int played = 1; played < 64; played++)
-            LMRTable[depth][played] = 0.7844 + log(depth) * log(played) / 2.4696;
+            LMRTable[depth][played] = 0.7654 + log(depth) * log(played) / 2.5069;
 
     for (int depth = 1; depth <= 10; depth++) {
-        LateMovePruningCounts[0][depth] = 2.0767 + 0.3743 * depth * depth;
-        LateMovePruningCounts[1][depth] = 3.8733 + 0.7124 * depth * depth;
+        LateMovePruningCounts[0][depth] = 1.9976 + 0.3654 * depth * depth;
+        LateMovePruningCounts[1][depth] = 3.8883 + 0.7048 * depth * depth;
     }
 }
 
@@ -515,7 +515,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
         && (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
         // Dynamic R based on Depth, Eval, and Tactical state
-        R = 4 + depth / 5 + MIN(3, (eval - beta) / 191) + (ns-1)->tactical;
+        R = 4 + depth / 5 + MIN(3, (eval - beta) / 195) + (ns-1)->tactical;
 
         apply(thread, board, NULL_MOVE);
         value = -search(thread, &lpv, -beta, -beta+1, depth-R, !cutnode);
@@ -698,7 +698,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
                 R -= ns->mp.stage < STAGE_QUIET;
 
                 // Adjust based on history scores
-                R -= MAX(-2, MIN(2, hist / 6167));
+                R -= MAX(-2, MIN(2, hist / 6194));
             }
 
             // Step 18B (~3 elo). Noisy Late Move Reductions. The same as Step 18A, but
@@ -707,7 +707,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
             else {
 
                 // Initialize R based on Capture History
-                R = 3 - (hist / 4952);
+                R = 3 - (hist / 4820);
 
                 // Reduce for moves that give check
                 R -= !!board->kingAttackers;
@@ -1033,7 +1033,7 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
     else applyLegal(thread, board, ttMove);
 
     bool double_extend = !PvNode
-                      &&  value < rBeta - 16
+                      &&  value < rBeta - 15
                       && (ns-1)->dextensions <= 6;
 
     return double_extend    ?  2 // Double extension in some non-pv nodes
