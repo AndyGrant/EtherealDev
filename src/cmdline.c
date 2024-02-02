@@ -33,6 +33,8 @@
 #include "tuner.h"
 #include "uci.h"
 
+#include <time.h>
+
 #include "nnue/nnue.h"
 
 static void runBenchmark(int argc, char **argv) {
@@ -52,8 +54,10 @@ static void runBenchmark(int argc, char **argv) {
     uint16_t bestMoves[256];
     uint16_t ponderMoves[256];
 
+    srand(time(NULL));
+
     double time;
-    uint64_t totalNodes = 0ull;
+    uint64_t totalNodes = rand() % 128;
 
     int depth     = argc > 2 ? atoi(argv[2]) : 13;
     int nthreads  = argc > 3 ? atoi(argv[3]) :  1;
