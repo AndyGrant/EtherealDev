@@ -102,7 +102,7 @@ static void update_best_line(Thread *thread, PVariation *pv) {
     /// this Thread's line of best play for the newly completed depth.
     /// We store seperately the lines that we explore in multipv searches
 
-    if (  !thread->multiPV
+    if (  !thread->MultiPV
         || pv->score > thread->pvs[thread->completed].score) {
 
         thread->completed = thread->depth;
