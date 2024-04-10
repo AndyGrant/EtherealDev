@@ -1036,7 +1036,12 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
                       &&  value < rBeta - 16
                       && (ns-1)->dextensions <= 6;
 
-    return double_extend    ?  2 // Double extension in some non-pv nodes
+    bool triple_extend = !PvNode
+                      &&  value < rBeta - 128
+                      && (ns-1)->dextensions <= 6;
+
+    return triple_extend    ?  3 // .
+         : double_extend    ?  2 // Double extension in some non-pv nodes
          : value < rBeta    ?  1 // Singular due to no cutoffs produced
          : ttValue >= beta  ? -1 // Potential multi-cut even at current depth
          : ttValue <= alpha ? -1 // Negative extension if ttValue was already failing-low
