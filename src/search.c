@@ -1040,5 +1040,6 @@ int singularity(Thread *thread, uint16_t ttMove, int ttValue, int depth, int PvN
          : value < rBeta    ?  1 // Singular due to no cutoffs produced
          : ttValue >= beta  ? -1 // Potential multi-cut even at current depth
          : ttValue <= alpha ? -1 // Negative extension if ttValue was already failing-low
+         : cutnode          ? -1 //
          : 0;                    // Not singular, and unlikely to produce a cutoff
 }
