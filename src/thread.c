@@ -79,6 +79,8 @@ void resetThreadPool(Thread *threads) {
         memset(&threads[i].history, 0, sizeof(HistoryTable));
         memset(&threads[i].chistory, 0, sizeof(CaptureHistoryTable));
         memset(&threads[i].continuation, 0, sizeof(ContinuationTable));
+
+        memset(&threads[i].correction, 0, sizeof(PawnCorrectionHistory));
     }
 }
 
