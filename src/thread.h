@@ -75,6 +75,7 @@ struct Thread {
     ALIGN64 HistoryTable history;
     ALIGN64 CaptureHistoryTable chistory;
     ALIGN64 ContinuationTable continuation;
+    ALIGN64 PawnCorrectionHistory correction;
 
     int index, nthreads;
     Thread *threads;

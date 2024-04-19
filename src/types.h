@@ -104,6 +104,8 @@ typedef int16_t HistoryTable[COLOUR_NB][2][2][SQUARE_NB][SQUARE_NB];
 typedef int16_t CaptureHistoryTable[PIECE_NB][2][2][SQUARE_NB][PIECE_NB-1];
 typedef int16_t ContinuationTable[2][PIECE_NB][SQUARE_NB][CONT_NB][PIECE_NB][SQUARE_NB];
 
+typedef int16_t PawnCorrectionHistory[0x10000];
+
 // Trivial alignment macros
 
 #define ALIGN64 alignas(64)

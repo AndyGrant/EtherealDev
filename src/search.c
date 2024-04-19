@@ -456,6 +456,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
     eval = ns->eval = inCheck ? VALUE_NONE
          : ttEval != VALUE_NONE ? ttEval : evaluateBoard(thread, board);
 
+    int rawEval = eval;
+
+    eval = ns->eval = eval + get_correction_history(thread) / 512;
+
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
     seeMargin[1] = SEEQuietMargin * depth;
@@ -475,7 +479,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !inCheck && !ns->excluded)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, rawEval, 0, BOUND_NONE);
 
     // ------------------------------------------------------------------------
     // All elo estimates as of Ethereal 11.80, @ 12s+0.12 @ 1.275mnps
@@ -556,7 +560,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
 
                 // Store an entry if we don't have a better one already
                 if (value >= rBeta && (!ttHit || ttDepth < depth - 3))
-                    tt_store(board->hash, thread->height, move, value, eval, depth-3, BOUND_LOWER);
+                    tt_store(board->hash, thread->height, move, value, rawEval, depth-3, BOUND_LOWER);
 
                 // Probcut failed high verifying the cutoff
                 if (value >= rBeta) return value;
@@ -786,11 +790,18 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
     // Step 23. Store results of search into the Transposition Table. We do not overwrite
     // the Root entry from the first line of play we examined. We also don't store into the
     // Transposition Table while attempting to veryify singularities
+
+    ttBound = best >= beta    ? BOUND_LOWER
+            : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
+
+    if (   !inCheck
+        && !moveIsTactical(board, bestMove)
+        && (ttBound & (best >= rawEval ? BOUND_LOWER : BOUND_UPPER)))
+        update_correction_history(thread, rawEval, best);
+
     if (!ns->excluded && (!RootNode || !thread->multiPV)) {
-        ttBound  = best >= beta    ? BOUND_LOWER
-                 : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
         bestMove = ttBound == BOUND_UPPER ? NONE_MOVE : bestMove;
-        tt_store(board->hash, thread->height, bestMove, best, eval, depth, ttBound);
+        tt_store(board->hash, thread->height, bestMove, best, rawEval, depth, ttBound);
     }
 
     return best;
@@ -842,9 +853,13 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     eval = ns->eval = ttEval != VALUE_NONE
                     ? ttEval : evaluateBoard(thread, board);
 
+    int rawEval = eval;
+
+    eval = ns->eval = eval + get_correction_history(thread) / 512;
+
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !board->kingAttackers)
-        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, eval, 0, BOUND_NONE);
+        tt_store(board->hash, thread->height, NONE_MOVE, VALUE_NONE, rawEval, 0, BOUND_NONE);
 
     // Step 5. Eval Pruning. If a static evaluation of the board will
     // exceed beta, then we can stop the search here. Also, if the static
@@ -908,7 +923,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
     // Step 8. Store results of search into the Transposition Table.
     ttBound = best >= beta    ? BOUND_LOWER
             : best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-    tt_store(board->hash, thread->height, bestMove, best, eval, 0, ttBound);
+    tt_store(board->hash, thread->height, bestMove, best, rawEval, 0, ttBound);
 
     return best;
 }

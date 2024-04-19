@@ -204,3 +204,14 @@ void update_quiet_histories(Thread *thread, uint16_t *moves, int length, int dep
         update_history(histories[2], depth, i == length - 1);
     }
 }
+
+
+int get_correction_history(Thread *thread) {
+    return thread->correction[thread->board.pkhash & 0xFFFF];
+}
+
+void update_correction_history(Thread *thread, int eval, int score) {
+    int16_t bonus = MIN(30000, MAX(-30000, (score - eval) * 256));
+    int16_t *ptr  = &thread->correction[thread->board.pkhash & 0xFFFF];
+    *ptr = (*ptr * 255 + bonus) / 256;
+}
