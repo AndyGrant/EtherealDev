@@ -458,7 +458,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
 
     int rawEval = eval;
 
-    eval = ns->eval = eval + get_correction_history(thread) / 256;
+    eval = ns->eval = eval + get_correction_history(thread) / 128;
 
     // Static Exchange Evaluation Pruning Margins
     seeMargin[0] = SEENoisyMargin * depth * depth;
@@ -855,7 +855,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta) {
 
     int rawEval = eval;
 
-    eval = ns->eval = eval + get_correction_history(thread) / 256;
+    eval = ns->eval = eval + get_correction_history(thread) / 128;
 
     // Toss the static evaluation into the TT if we won't overwrite something
     if (!ttHit && !board->kingAttackers)
