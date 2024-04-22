@@ -727,7 +727,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
                 newDepth -= value < best + newDepth;
 
                 if (newDepth - 1 > lmrDepth)
-                    value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, true);
+                    value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, !cutnode);
 
                 doFullSearch = false;
             }
