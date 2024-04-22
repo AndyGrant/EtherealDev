@@ -723,7 +723,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, bool 
 
                 const int lmrDepth = newDepth - R;
 
-                newDepth += value > best + 70;
+                newDepth += value > best + 35;
                 newDepth -= value < best + newDepth;
 
                 if (newDepth - 1 > lmrDepth)
