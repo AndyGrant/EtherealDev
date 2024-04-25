@@ -385,6 +385,8 @@ void uciReport(Thread *threads, PVariation *pv, int alpha, int beta) {
 
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) {
 
+    return;
+
     char moveStr[6];
     moveToString(move, moveStr, board->chess960);
     printf("info depth %d currmove %s currmovenumber %d\n", depth, moveStr, currmove);

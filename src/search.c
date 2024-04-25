@@ -89,11 +89,11 @@ static void select_from_threads(Thread *threads, uint16_t *best, uint16_t *ponde
         *ponder = NONE_MOVE;
 
     // Report via UCI when our best thread is not the main thread
-    if (best_thread != &threads[0]) {
-        const int best_depth = best_thread->completed;
-        best_thread->multiPV = 0;
-        uciReport(best_thread, &best_thread->pvs[best_depth], -MATE, MATE);
-    }
+    // if (best_thread != &threads[0]) {
+    //     best_thread->multiPV = 0;
+    // };
+
+    uciReport(best_thread, &best_thread->pvs[best_thread->completed], -MATE, MATE);
 }
 
 static void update_best_line(Thread *thread, PVariation *pv) {
@@ -276,7 +276,7 @@ void aspirationWindow(Thread *thread) {
     PVariation pv;
     int depth  = thread->depth;
     int alpha  = -MATE, beta = MATE, delta = WindowSize;
-    int report = !thread->index && thread->limits->multiPV == 1;
+    // int report = !thread->index && thread->limits->multiPV == 1;
 
     // After a few depths use a previous result to form the window
     if (thread->depth >= WindowDepth) {
@@ -288,9 +288,9 @@ void aspirationWindow(Thread *thread) {
 
         // Perform a search and consider reporting results
         pv.score = search(thread, &pv, alpha, beta, MAX(1, depth), FALSE);
-        if (   (report && pv.score > alpha && pv.score < beta)
-            || (report && elapsed_time(thread->tm) >= WindowTimerMS))
-            uciReport(thread->threads, &pv, alpha, beta);
+        // if (   (report && pv.score > alpha && pv.score < beta)
+        //     || (report && elapsed_time(thread->tm) >= WindowTimerMS))
+        //     uciReport(thread->threads, &pv, alpha, beta);
 
         // Search returned a result within our window
         if (pv.score > alpha && pv.score < beta) {
