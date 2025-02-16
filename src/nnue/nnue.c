@@ -37,7 +37,7 @@
 
 #include "../incbin/incbin.h"
 
-#define SHIFT_L0 8
+#define SHIFT_L0 7
 #define SHIFT_L1 5
 
 #ifdef EVALFILE
