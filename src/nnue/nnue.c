@@ -37,8 +37,8 @@
 
 #include "../incbin/incbin.h"
 
-#define SHIFT_L0 6
-#define SHIFT_L1 5
+#define SHIFT_L0 7
+#define SHIFT_L1 6
 
 #ifdef EVALFILE
 const char *NNUEDefault = EVALFILE;
@@ -481,14 +481,31 @@ int nnue_evaluate(Thread *thread, Board *board) {
             nnue_refresh_accumulator(thread->nnue, accum, board, BLACK, brelksq);
     }
 
+
+    // static int min = 0, max = 0;
+    // 
+    // for (size_t i = 0; i < KPSIZE; i++) {
+    //     for (int colour = WHITE; colour <= BLACK; colour++) {
+    // 
+    //         if (accum->values[colour][i] > max)
+    //             { max = accum->values[colour][i]; printf("NEW MAX: %d\n", max); }
+    // 
+    //         if (accum->values[colour][i] < min)
+    //             { min = accum->values[colour][i]; printf("NEW MIN: %d\n", min); }
+    //     }
+    // }
+
+
     // Feed-forward the entire evaluation function
     halfkp_relu_quant_affine_relu(l1_weights, l1_biases, accum->values[board->turn], accum->values[!board->turn], outN1);
     float_affine_relu(l2_weights, l2_biases, outN1, outN2);
     output_transform (l3_weights, l3_biases, outN2, outN1);
 
+    int nn_out = outN1[0] * (400.0 / (1 << SHIFT_L1));
+
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
-    eg_eval = 100 * ((int)(outN1[0]) >> SHIFT_L1) / 100;
+    mg_eval = 140 * nn_out / 100;
+    eg_eval = 100 * nn_out / 100;
 
     // Cap the NNUE evaluation within [-2000, 2000]
     mg_eval = MAX(-2000, MIN(2000, mg_eval));
