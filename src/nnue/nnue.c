@@ -63,10 +63,10 @@ static void scale_weights() {
     // biases of L2 and L3 to compensate. This saves SRAI calls, as well as
     // increases the precision of each layer, with no clear downsides.
 
-    for (int i = 0; i < L3SIZE; i++)
+    for (int i = 0; i < N_BUCKETS * L3SIZE; i++)
         l2_biases[i] *= (1 << SHIFT_L1);
 
-    for (int i = 0; i < OUTSIZE; i++)
+    for (int i = 0; i < N_BUCKETS * OUTSIZE; i++)
         l3_biases[i] *= (1 << SHIFT_L1);
 }
 
