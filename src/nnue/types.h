@@ -39,6 +39,8 @@
 #define L3SIZE  32
 #define OUTSIZE 1
 
+#define N_BUCKETS 7
+
 #define NUM_REGS 16
 
 typedef struct NNUEDelta {

@@ -46,14 +46,14 @@ INCBIN(IncWeights, EVALFILE);
 #endif
 
 ALIGN64 int16_t in_weights[INSIZE * KPSIZE ];
-ALIGN64 int8_t  l1_weights[L1SIZE * L2SIZE ];
-ALIGN64 float   l2_weights[L2SIZE * L3SIZE ];
-ALIGN64 float   l3_weights[L3SIZE * OUTSIZE];
+ALIGN64 int8_t  l1_weights[N_BUCKETS * L1SIZE * L2SIZE ];
+ALIGN64 float   l2_weights[N_BUCKETS * L2SIZE * L3SIZE ];
+ALIGN64 float   l3_weights[N_BUCKETS * L3SIZE * OUTSIZE];
 
 ALIGN64 int16_t in_biases[KPSIZE ];
-ALIGN64 int32_t l1_biases[L2SIZE ];
-ALIGN64 float   l2_biases[L3SIZE ];
-ALIGN64 float   l3_biases[OUTSIZE];
+ALIGN64 int32_t l1_biases[N_BUCKETS * L2SIZE ];
+ALIGN64 float   l2_biases[N_BUCKETS * L3SIZE ];
+ALIGN64 float   l3_biases[N_BUCKETS * OUTSIZE];
 
 static int NNUE_LOADED = 0;
 
@@ -68,36 +68,6 @@ static void scale_weights() {
 
     for (int i = 0; i < OUTSIZE; i++)
         l3_biases[i] *= (1 << SHIFT_L1);
-}
-
-static void quant_transpose(int8_t *matrix, int rows, int cols) {
-
-    // Typical Matrix Transposition using int8_t. Ethereal's trainer
-    // stores weights in a way to allow faster updates, not computes
-
-    int8_t *cpy = malloc(sizeof(int8_t) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(int8_t) * rows * cols);
-    free(cpy);
-}
-
-static void float_transpose(float *matrix, int rows, int cols) {
-
-    // Typical Matrix Transposition using floats. Ethereal's trainer
-    // stores weights in a way to allow faster updates, not computes
-
-    float *cpy = malloc(sizeof(float) * rows * cols);
-
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            cpy[j * rows + i] = matrix[i * cols + j];
-
-    memcpy(matrix, cpy, sizeof(float) * rows * cols);
-    free(cpy);
 }
 
 static void shuffle_input_layer() {
@@ -138,6 +108,7 @@ static void abort_nnue(const char *reason) {
     fflush(stdout); exit(EXIT_FAILURE);
 }
 
+
 INLINE vepi8 vepi16_relu_packu(vepi16 in0, vepi16 in1) {
     vepi16 shiftA = vepi16_srai(in0, SHIFT_L0);
     vepi16 shiftB = vepi16_srai(in1, SHIFT_L0);
@@ -156,6 +127,7 @@ INLINE void relu_maddubs_x4(vepi32 *acc, const vepi16 *inp, const vepi8 *wgt, in
     vepi16 sumX = vepi16_add(sum0, vepi16_add(sum1, vepi16_add(sum2, sum3)));
     *acc = vepi32_add(*acc, vepi16_madd(vepi16_one, sumX));
 }
+
 
 INLINE void halfkp_relu_quant_affine_relu(int8_t *weights, int32_t *biases, int16_t *us_accum, int16_t *opp_accum, float *outputs) {
 
@@ -374,8 +346,6 @@ void nnue_init(const char* fname) {
 
     scale_weights();
     shuffle_input_layer();
-    quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    float_transpose(l2_weights, L2SIZE, L3SIZE);
     fclose(fin);
 
     NNUE_LOADED = 1;
@@ -403,34 +373,32 @@ void nnue_incbin_init() {
     // Layer one uses 32-bit Biases and 8-bit Weights
 
     data32 = (int32_t*) data16;
-    for (int i = 0; i < L2SIZE; i++)
+    for (int i = 0; i < N_BUCKETS * L2SIZE; i++)
         l1_biases[i] = *(data32++);
 
     data8 = (int8_t*) data32;
-    for (int i = 0; i < L1SIZE * L2SIZE; i++)
+    for (int i = 0; i < N_BUCKETS * L1SIZE * L2SIZE; i++)
         l1_weights[i] = *(data8++);
 
     // Layer two and uses Floating Point Biases and Weights
 
     dataf = (float*) data8;
-    for (int i = 0; i < L3SIZE; i++)
+    for (int i = 0; i < N_BUCKETS * L3SIZE; i++)
         l2_biases[i] = *(dataf++);
 
-    for (int i = 0; i < L2SIZE * L3SIZE; i++)
+    for (int i = 0; i < N_BUCKETS * L2SIZE * L3SIZE; i++)
         l2_weights[i] = *(dataf++);
 
     // Layer three and uses Floating Point Biases and Weights
 
-    for (int i = 0; i < OUTSIZE; i++)
+    for (int i = 0; i < N_BUCKETS * OUTSIZE; i++)
         l3_biases[i] = *(dataf++);
 
-    for (int i = 0; i < L3SIZE * OUTSIZE; i++)
+    for (int i = 0; i < N_BUCKETS * L3SIZE * OUTSIZE; i++)
         l3_weights[i] = *(dataf++);
 
     scale_weights();
     shuffle_input_layer();
-    quant_transpose(l1_weights, L1SIZE, L2SIZE);
-    float_transpose(l2_weights, L2SIZE, L3SIZE);
 
     NNUE_LOADED = 1;
 
@@ -483,23 +451,32 @@ int nnue_evaluate(Thread *thread, Board *board) {
 
 
     // static int min = 0, max = 0;
-    // 
+    //
     // for (size_t i = 0; i < KPSIZE; i++) {
     //     for (int colour = WHITE; colour <= BLACK; colour++) {
-    // 
+    //
     //         if (accum->values[colour][i] > max)
     //             { max = accum->values[colour][i]; printf("NEW MAX: %d\n", max); }
-    // 
+    //
     //         if (accum->values[colour][i] < min)
     //             { min = accum->values[colour][i]; printf("NEW MIN: %d\n", min); }
     //     }
     // }
 
+    size_t bucket = MAX(0, (popcount(white | black) - 5) / 4);
+
+    int8_t*  l1w = &l1_weights[bucket * L1SIZE * L2SIZE ];
+    float*   l2w = &l2_weights[bucket * L2SIZE * L3SIZE ];
+    float*   l3w = &l3_weights[bucket * L3SIZE * OUTSIZE];
+
+    int32_t* l1b = &l1_biases[bucket * L2SIZE ];
+    float*   l2b = &l2_biases[bucket * L3SIZE ];
+    float*   l3b = &l3_biases[bucket * OUTSIZE];
 
     // Feed-forward the entire evaluation function
-    halfkp_relu_quant_affine_relu(l1_weights, l1_biases, accum->values[board->turn], accum->values[!board->turn], outN1);
-    float_affine_relu(l2_weights, l2_biases, outN1, outN2);
-    output_transform (l3_weights, l3_biases, outN2, outN1);
+    halfkp_relu_quant_affine_relu(l1w, l1b, accum->values[board->turn], accum->values[!board->turn], outN1);
+    float_affine_relu(l2w, l2b, outN1, outN2);
+    output_transform(l3w, l3b, outN2, outN1);
 
     int nn_out = outN1[0] * (400.0 / (1 << SHIFT_L1));
 
