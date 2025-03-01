@@ -481,7 +481,7 @@ int nnue_evaluate(Thread *thread, Board *board) {
     int nn_out = outN1[0] * (400.0 / (1 << SHIFT_L1));
 
     // Perform the dequantization step and upscale the Midgame
-    mg_eval = 140 * nn_out / 100;
+    mg_eval = 100 * nn_out / 100;
     eg_eval = 100 * nn_out / 100;
 
     // Cap the NNUE evaluation within [-2000, 2000]
